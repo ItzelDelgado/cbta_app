@@ -41,12 +41,12 @@
 
     @livewireScripts
     
-    @if (session('swal'))
+    {{-- @if (session('swal'))
         <script>
             // Swal.fire({!! json_encode(session('swal')) !!});
             Swal.fire(@json(session('swal')));
         </script>
-    @endif
+    @endif --}}
 </body>
 
 </html>

@@ -7,6 +7,13 @@
             'active' => request()->routeIs('admin.dashboard'),
             'icon' => 'fa-solid fa-gauge-high',
         ],
+        [
+            //Informacion acerca del enlace
+            'name' => 'Usuarios',
+            'url' => route('users.index'),
+            'active' => request()->routeIs('users.index'),
+            'icon' => 'fa-solid fa-users',
+        ],
     ];
 @endphp
 <aside id="logo-sidebar"
