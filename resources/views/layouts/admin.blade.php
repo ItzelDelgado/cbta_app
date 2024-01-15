@@ -19,6 +19,9 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Styles -->
     @livewireStyles
+
+    @stack('css')
+
 </head>
 
 {{-- con x-data le digo que voy a trabajar con los alpine --}}
@@ -40,13 +43,15 @@
     @stack('modals')
 
     @livewireScripts
-    
-    {{-- @if (session('swal'))
+
+    @if (session('swal'))
         <script>
             // Swal.fire({!! json_encode(session('swal')) !!});
             Swal.fire(@json(session('swal')));
         </script>
-    @endif --}}
+    @endif
+
+    @stack('js')
 </body>
 
 </html>

@@ -7,12 +7,6 @@
             'url' => route('dashboard'),
             'active' => request()->routeIs('dashboard'),
         ],
-        [
-            //Informacion acerca del enlace
-            'name' => 'Hospitales',
-            'url' => route('dashboard'),
-            'active' => false,
-        ],
     ];
 @endphp
 

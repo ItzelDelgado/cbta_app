@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Hospital>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Medicine>
  */
-class HospitalFactory extends Factory
+class MedicineFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,8 +17,7 @@ class HospitalFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->word(),
-            'is_active' => $this->faker->boolean()
+            //
         ];
     }
 }

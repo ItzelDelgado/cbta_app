@@ -9,10 +9,24 @@
         ],
         [
             //Informacion acerca del enlace
+            'name' => 'Hospitales',
+            'url' => route('admin.hospitals.index'),
+            'active' => request()->routeIs('admin.hospitals.*'),
+            'icon' => 'fa-solid fa-hospital',
+        ],
+        [
+            //Informacion acerca del enlace
             'name' => 'Usuarios',
-            'url' => route('users.index'),
-            'active' => request()->routeIs('users.index'),
+            'url' => route('admin.users.index'),
+            'active' => request()->routeIs('admin.users.*'),
             'icon' => 'fa-solid fa-users',
+        ],
+        [
+            //Informacion acerca del enlace
+            'name' => 'Medicamentos',
+            'url' => route('admin.medicines.index'),
+            'active' => request()->routeIs('admin.medicines.*'),
+            'icon' => 'fa-solid fa-prescription-bottle',
         ],
     ];
 @endphp
