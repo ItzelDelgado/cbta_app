@@ -16,6 +16,14 @@
 
         <div class="mb-4">
             <x-label class="mb-2">
+                Dirección
+            </x-label>
+            <x-input name="adress" class="w-full" placeholder="Tlacotalpan 59, Col. Roma Sur , Cuauhtemoc, CDMX, 06760"
+                value="{{old('adress', $hospital->adress)}}" />
+        </div>
+
+        <div class="mb-4">
+            <x-label class="mb-2">
                 Estado
             </x-label>
             <input name="is_active" type="hidden" value="0">

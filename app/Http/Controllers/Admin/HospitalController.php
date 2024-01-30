@@ -32,6 +32,7 @@ class HospitalController extends Controller
     {
         $request->validate(([
             'name'=>'required|string|max:255',
+            'adress'=>'required|string|max:400',
         ]));
         
         Hospital::create($request->all());
@@ -71,6 +72,7 @@ class HospitalController extends Controller
     {
         $request->validate(([
             'name'=>'required|string|max:255',
+            'adress'=>'required|string|max:400',
             'is_active'=>'required|boolean',
         ]));
 

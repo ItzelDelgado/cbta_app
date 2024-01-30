@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Medicine;
+use App\Models\Input;
 use Illuminate\Http\Request;
 
 class MedicineController extends Controller
@@ -24,7 +25,16 @@ class MedicineController extends Controller
     public function create()
     {
         $categories = Category::all();
-        return view('admin.medicines.create',compact('categories'));
+        //$inputs = Input::all();
+
+        $inputs = Input::leftJoin('medicines', 'inputs.id', '=', 'medicines.input_id')
+            ->whereNull('medicines.id')
+            ->select('inputs.*')
+            ->get();
+
+
+        //return $inputs;
+        return view('admin.medicines.create', compact('categories', 'inputs'));
     }
 
     /**
@@ -33,21 +43,24 @@ class MedicineController extends Controller
     public function store(Request $request)
     {
         $request->validate(([
-            'denominacion_generica'=>'required|string|max:255',
-            'nombre_comercial'=>'required|string|max:255',
-            'descripcion'=>'nullable|string|max:255',
-            'precio_ml'=>'required|numeric|regex:/^[0-9]+(\.[0-9][0-9][0-9]?)?$/',
-            'presentacion_ml'=>'required|string|max:255',
+            'denominacion_generica' => 'required|string|max:255',
+            'nombre_comercial' => 'required|string|max:255',
+            'descripcion' => 'nullable|string|max:255',
+            'precio_ml' => 'required|numeric|regex:/^[0-9]+(\.[0-9][0-9][0-9]?)?$/',
+            'presentacion_ml' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
+            'input_id' => 'required|exists:inputs,id',
         ]));
-        
+
         Medicine::create($request->all());
 
-        session()->flash('swal',[
-            'title'=>"¡Bien hecho!",
-            'text'=>"El medicamento se ha creado con éxito.",
-            'icon'=>"success"
-            
+        session()->flash(
+            'swal',
+            [
+                'title' => "¡Bien hecho!",
+                'text' => "El medicamento se ha creado con éxito.",
+                'icon' => "success"
+
             ]
         );
         return redirect()->route('admin.medicines.index');
@@ -66,7 +79,8 @@ class MedicineController extends Controller
      */
     public function edit(Medicine $medicine)
     {
-        //
+        $categories = Category::all();
+        return view('admin.medicines.edit', compact('medicine', 'categories'));
     }
 
     /**
@@ -74,7 +88,26 @@ class MedicineController extends Controller
      */
     public function update(Request $request, Medicine $medicine)
     {
-        //
+        $request->validate(([
+            'denominacion_generica' => 'required|string|max:255',
+            'nombre_comercial' => 'required|string|max:255',
+            'descripcion' => 'nullable|string|max:255',
+            'precio_ml' => 'required|numeric|regex:/^[0-9]+(\.[0-9][0-9][0-9]?)?$/',
+            'presentacion_ml' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            //'input_id' => 'required|exists:inputs,id',
+        ]));
+        $medicine->update($request->all());
+        session()->flash(
+            'swal',
+            [
+                'title' => "¡Bien hecho!",
+                'text' => "El medicamento se ha editado con éxito.",
+                'icon' => "success"
+
+            ]
+        );
+        return redirect()->route('admin.medicines.index');
     }
 
     /**

@@ -18,6 +18,11 @@
                     <th scope="col" class="px-6 py-3">
                         Nombre
                     </th>
+
+                    <th scope="col" class="px-6 py-3">
+                        Dirección
+                    </th>
+
                     <th scope="col" class="px-6 py-3">
                         Estado
                     </th>
@@ -36,6 +41,11 @@
                         <td class="px-6 py-4">
                             {{ $hospital->name }}
                         </td>
+
+                        <td class="px-6 py-4">
+                            {{ $hospital->adress }}
+                        </td>
+
                         <td class="px-6 py-4">
                             @if ($hospital->is_active)
                                 <div class="flex items-center">

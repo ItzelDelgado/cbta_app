@@ -33,9 +33,9 @@
                     {{-- <th scope="col" class="px-6 py-3">
                         Categoría
                     </th> --}}
-                    <th scope="col" class="px-6 py-3">
+                    {{-- <th scope="col" class="px-6 py-3">
                         Estado
-                    </th>
+                    </th> --}}
                     <th scope="col" class="px-6 py-3">
                         
                     </th>
@@ -55,7 +55,7 @@
                             {{ $medicine->nombre_comercial }}
                         </td>
                         <td class="px-6 py-4">
-                            {{ $medicine->descripcion }}
+                            {{ $medicine->input["description"] }}
                         </td>
                         <td class="px-6 py-4">
                             {{ $medicine->presentacion_ml }}
@@ -63,7 +63,7 @@
                         <td class="px-6 py-4">
                             {{ $medicine->precio_ml }}
                         </td>
-                        <td class="px-6 py-4">
+                        {{-- <td class="px-6 py-4">
                             @if ($medicine->is_active)
                                 <div class="flex items-center">
                                     <div class="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Activo
@@ -73,7 +73,7 @@
                                     <div class="h-2.5 w-2.5 rounded-full bg-red-500 me-2"></div> Inactivo
                                 </div>
                             @endif
-                        </td>
+                        </td> --}}
                         <td class="px-6 py-4">
                             <a href="{{ route('admin.medicines.edit', $medicine) }}">Editar</a>
                         </td>
