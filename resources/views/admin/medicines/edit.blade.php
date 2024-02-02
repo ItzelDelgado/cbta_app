@@ -37,6 +37,14 @@
             </x-label>
             <x-input value="{{old('presentacion_ml', $medicine->presentacion_ml)}}" name="presentacion_ml" class="w-full" placeholder="Escriba la presentación del medicamento" />
         </div>
+
+        <div class="mb-4">
+            <x-label class="mb-2">
+                Osmolaridad
+            </x-label>
+            <x-input type="number" value="{{old('osmolaridad', $medicine->osmolaridad)}}" name="osmolaridad" class="w-full" placeholder="Escriba la osmolaridad" />
+        </div>
+
         <div class="mb-4">
             <x-label class="mb-2">
                 Precio por ml

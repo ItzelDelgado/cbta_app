@@ -15,6 +15,7 @@ class Medicine extends Model
     'precio_ml',
     'presentacion_ml',
     'category_id',
+    'osmolaridad',
     'input_id',];
 
     //Relacion uno a muchos inversa

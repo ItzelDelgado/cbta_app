@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\Admin\HospitalController;
+use App\Http\Controllers\Admin\InputController;
 use App\Http\Controllers\Admin\MedicineController;
+use App\Http\Controllers\Admin\SolicitudController;
 use App\Http\Controllers\Admin\UserController;
+use App\Models\Solicitud;
 use Illuminate\Support\Facades\Route; //Importamos para generar nuestras rutas.
 
 //Debemos avisarle a laravel que hemos creado un nuevo archivo de rutas en providers
@@ -23,4 +26,7 @@ Route::resource('/hospitals', HospitalController::class)
 ->except(['show','destroy']);
 
 Route::resource('/medicines', MedicineController::class)
+->except(['destroy']);
+
+Route::resource('/solicitudes', SolicitudController::class)
 ->except(['destroy']);

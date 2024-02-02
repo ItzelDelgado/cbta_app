@@ -13,9 +13,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::all();
-        $categories = Category::all();
-        return view('admin.users.index',compact(['users','categories']));
+        $users = User::paginate();
+        return view('admin.users.index',compact('users'));
     }
 
     /**
@@ -23,7 +22,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.users.create');
     }
 
     /**
@@ -31,7 +30,23 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate(([
+            'name'=>'required|string|max:255',
+            'lastname'=>'required|string|max:255',
+            'username'=>'required|string|max:255',
+            'password'=>'required|string|max:12',
+        ]));
+
+        User::create($request->all());
+
+        session()->flash('swal',[
+            'title'=>"¡Bien hecho!",
+            'text'=>"El usuario se ha creado con éxito.",
+            'icon'=>"success"
+            
+            ]
+        );
+        return redirect()->route('admin.users.index');
     }
 
     /**

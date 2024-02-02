@@ -28,6 +28,13 @@
             'active' => request()->routeIs('admin.medicines.*'),
             'icon' => 'fa-solid fa-prescription-bottle',
         ],
+        [
+            //Informacion acerca del enlace
+            'name' => 'Solicitudes',
+            'url' => route('admin.solicitudes.index'),
+            'active' => request()->routeIs('admin.solicitudes.*'),
+            'icon' => 'fa-solid fa-file-import',
+        ],
     ];
 @endphp
 <aside id="logo-sidebar"
