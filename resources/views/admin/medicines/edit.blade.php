@@ -57,7 +57,7 @@
             </x-label>
             <x-select class="w-full" name="category_id">
                 @foreach ($categories as $category)
-                    <option @selected(old('category_id') == $category->id) value="{{ $category->id }}">{{ $category->name }}</option>
+                    <option @selected(old('category_id', $medicine->category_id) == $category->id) value="{{ $category->id }}">{{ $category->name }}</option>
                 @endforeach
             </x-select>
         </div>

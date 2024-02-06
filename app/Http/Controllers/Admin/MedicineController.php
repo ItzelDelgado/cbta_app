@@ -32,7 +32,6 @@ class MedicineController extends Controller
             ->select('inputs.*')
             ->get();
 
-
         //return $inputs;
         return view('admin.medicines.create', compact('categories', 'inputs'));
     }

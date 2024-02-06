@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('request_details', function (Blueprint $table) {
-            $table->enum('via_de_administracion', ['central', 'periferica']);
-            $table->string('name');
-            $table->double('precio_ml');
-            $table->id();
-            $table->timestamps();
+        Schema::table('medicines', function (Blueprint $table) {
+            $table->double('osmolaridad')->after('presentacion_ml');;
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('request_details');
+        Schema::table('medicines', function (Blueprint $table) {
+            $table->dropColumn('osmolaridad');
+        });
     }
 };

@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class SolicitudDetail extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'via_administracion',
+        'tiempo_infusion_min',
+        'sobrellenado_ml',
+        'volumen_total',
+        'npt',
+        'nombre_medico',
+        'cedula',
+        'fecha_entrega',
+        'hora_entrega',
+        'observaciones',
+    ];
+
+
+    //Relacion uno a uno
+    public function solicitud()
+    {
+        return $this->hasOne(Solicitud::class);
+    }
+}

@@ -33,9 +33,9 @@
                     <th scope="col" class="px-6 py-3">
                         Osmolaridad
                     </th>
-                    {{-- <th scope="col" class="px-6 py-3">
+                    <th scope="col" class="px-6 py-3">
                         Categoría
-                    </th> --}}
+                    </th>
                     {{-- <th scope="col" class="px-6 py-3">
                         Estado
                     </th> --}}
@@ -68,6 +68,9 @@
                         </td>
                         <td class="px-6 py-4">
                             {{ $medicine->osmolaridad }}
+                        </td>
+                        <td class="px-6 py-4">
+                            {{ $medicine->category["name"] }}
                         </td>
                         {{-- <td class="px-6 py-4">
                             @if ($medicine->is_active)

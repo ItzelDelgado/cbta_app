@@ -21,6 +21,12 @@
                     <th scope="col" class="px-6 py-3">
                         Nombre de usuario
                     </th>
+                    <th scope="col" class="px-6 py-3">
+                        Hospital
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -35,6 +41,9 @@
                         </td>
                         <td class="px-6 py-4">
                             {{ $user->username }}
+                        </td>
+                        <td class="px-6 py-4">
+                            {{ $user->hospital["name"] }}
                         </td>
                         <td class="px-6 py-4">
                             <a href="{{ route('admin.users.edit', $user) }}">Editar</a>

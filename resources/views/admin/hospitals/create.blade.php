@@ -11,7 +11,7 @@
             <x-label class="mb-2">
                 Nombre
             </x-label>
-            <x-input value="{{old('name')}}" name="name" class="w-full" placeholder="Escriba el nombre del hospital" />
+            <x-input value="{{old('name')}}" name="name_hp" class="w-full" placeholder="Escriba el nombre del hospital" />
         </div>
         <div class="mb-4">
             <x-label class="mb-2">

@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('solicitud_pacientes', function (Blueprint $table) {
+        Schema::create('solicitud_inputs', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('input_id')->constrained();
+            $table->string('lote');
+            $table->date('caducidad');
+            $table->decimal('input_ml');
+            $table->foreignId('solicitud_id')->constrained();
             $table->timestamps();
         });
     }
@@ -22,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('solicitud_pacientes');
+        Schema::dropIfExists('solicitud_inputs');
     }
 };

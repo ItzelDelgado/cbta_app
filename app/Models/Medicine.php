@@ -11,7 +11,6 @@ class Medicine extends Model
 
     protected $fillable = ['denominacion_generica',
     'nombre_comercial',
-    'descripcion',
     'precio_ml',
     'presentacion_ml',
     'category_id',

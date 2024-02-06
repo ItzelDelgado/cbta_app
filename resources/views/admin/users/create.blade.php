@@ -31,6 +31,16 @@
             </x-label>
             <x-input type="password" value="{{old('password')}}" name="password" class="w-full" placeholder="Escriba la contraseña del usuario" />
         </div>
+        <div class="mb-4">
+            <x-label class="mb-2">
+                Hospital
+            </x-label>
+            <x-select class="w-full" name="hospital_id">
+                @foreach ($hospitals as $hospital)
+                    <option @selected(old('hospital_id') == $hospital->id) value="{{ $hospital->id }}">{{ $hospital->name }}</option>
+                @endforeach
+            </x-select>
+        </div>
         <div class="flex justify-end">
             <x-button>
                 Crear usuario

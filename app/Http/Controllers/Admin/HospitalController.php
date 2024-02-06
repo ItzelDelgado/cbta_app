@@ -31,11 +31,15 @@ class HospitalController extends Controller
     public function store(Request $request)
     {
         $request->validate(([
-            'name'=>'required|string|max:255',
+            'name_hp'=>'required|string|max:255',
             'adress'=>'required|string|max:400',
         ]));
-        
-        Hospital::create($request->all());
+        //Para la solicitud
+        $datos = $request->all();
+        $datos['name'] = $datos['name_hp'];
+        unset($datos['name_hp']);
+
+        Hospital::create($datos);
 
         session()->flash('swal',[
             'title'=>"¡Bien hecho!",

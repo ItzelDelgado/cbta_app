@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Hospital;
 use App\Models\User;
 use Illuminate\Http\Request;
 class UserController extends Controller
@@ -22,7 +23,8 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('admin.users.create');
+        $hospitals = Hospital::all();
+        return view('admin.users.create', compact('hospitals'));
     }
 
     /**
@@ -35,6 +37,7 @@ class UserController extends Controller
             'lastname'=>'required|string|max:255',
             'username'=>'required|string|max:255',
             'password'=>'required|string|max:12',
+            'hospital_id' => 'required|exists:hospitals,id',
         ]));
 
         User::create($request->all());
@@ -60,23 +63,41 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(User $user)
     {
-        //
+        $hospitals = Hospital::all();
+        return view('admin.users.edit', compact('user', 'hospitals'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, User $user)
     {
-        //
+        $request->validate(([
+            'name'=>'string|max:255',
+            'lastname'=>'string|max:255',
+            'username'=>'string|max:255',
+            'password'=>'string',
+            'hospital_id' => 'exists:hospitals,id',
+        ]));
+
+        //User::create($request->all());
+        $user->update($request->all());
+        session()->flash('swal',[
+            'title'=>"¡Bien hecho!",
+            'text'=>"El usuario se ha editado con éxito.",
+            'icon'=>"success"
+            
+            ]
+        );
+        return redirect()->route('admin.users.index');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(User $user)
     {
         //
     }
