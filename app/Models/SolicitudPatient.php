@@ -19,4 +19,10 @@ class SolicitudPatient extends Model
         'peso',
         'sexo',
     ];
+
+    //Relacion uno a uno
+    public function solicitud()
+    {
+        return $this->hasOne(Solicitud::class);
+    }
 }

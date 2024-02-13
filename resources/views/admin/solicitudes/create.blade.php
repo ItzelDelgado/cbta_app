@@ -14,25 +14,25 @@
                     <x-label class="mb-2">
                         Paciente*:
                     </x-label>
-                    <x-input-solicitud value="{{ old('') }}" name="" class="" placeholder="" />
+                    <x-input-solicitud value="{{ old('') }}" name="sp_nombre_paciente" class="" placeholder="" />
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
                         Servicios*:
                     </x-label>
-                    <x-input-solicitud value="{{ old('') }}" name="" class="" placeholder="" />
+                    <x-input-solicitud value="{{ old('') }}" name="sp_servicio" class="" placeholder="" />
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
                         Cama:
                     </x-label>
-                    <x-input-solicitud value="{{ old('') }}" name="" class="" placeholder="" />
+                    <x-input-solicitud value="{{ old('') }}" name="sp_cama" class="" placeholder="" />
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
                         Piso:
                     </x-label>
-                    <x-input-solicitud value="{{ old('') }}" name="" class="" placeholder="" />
+                    <x-input-solicitud value="{{ old('') }}" name="sp_piso" class="" placeholder="" />
                 </div>
             </div>
             <div class="flex gap-4">
@@ -40,13 +40,13 @@
                     <x-label class="mb-2">
                         Registro:
                     </x-label>
-                    <x-input-solicitud value="{{ old('') }}" name="" class="" placeholder="" />
+                    <x-input-solicitud value="{{ old('') }}" name="sp_registro" class="" placeholder="" />
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
                         Diagnóstico:
                     </x-label>
-                    <x-input-solicitud value="{{ old('') }}" name="" class="" placeholder="" />
+                    <x-input-solicitud value="{{ old('') }}" name="sp_diagnostico" class="" placeholder="" />
                 </div>
             </div>
             <div class="flex gap-4">
@@ -54,13 +54,13 @@
                     <x-label class="mb-2">
                         Peso:
                     </x-label>
-                    <x-input-solicitud value="{{ old('') }}" name="" class="" placeholder="" />
+                    <x-input-solicitud value="{{ old('') }}" name="sp_peso" class="" placeholder="" />
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
                         Sexo:
                     </x-label>
-                    <x-select class="" name="category_id">
+                    <x-select class="" name="sp_sexo">
 
                         <option value="">Femenino</option>
                         <option value="">Masculino</option>
@@ -70,7 +70,7 @@
                     <x-label class="mb-2">
                         Fecha de nacimiento*:
                     </x-label>
-                    <x-input-solicitud type="date" value="{{ old('') }}" name="" class=""
+                    <x-input-solicitud type="date" value="{{ old('') }}" name="sp_fecha_nacimiento" class=""
                         placeholder="" />
                 </div>
             </div>
@@ -79,7 +79,7 @@
                     <x-label class="mb-2">
                         Vía de administración*:
                     </x-label>
-                    <x-select class="" name="category_id">
+                    <x-select class="" name="sd_via_administracion">
 
                         <option value="">Central</option>
                         <option value="">Periférica</option>
@@ -89,7 +89,7 @@
                     <x-label class="mb-2">
                         Tiempo de infusión (h):
                     </x-label>
-                    <x-input-solicitud value="{{ old('') }}" name="" class="" placeholder="" />
+                    <x-input-solicitud value="{{ old('') }}" name="sd_tiempo_infusion" class="" placeholder="" />
                 </div>
             </div>
             <div class="flex gap-4">
@@ -98,20 +98,20 @@
                         <x-label class="mb-2">
                             Sobrellenado* (mL):
                         </x-label>
-                        <x-input-solicitud value="{{ old('') }}" name="" class="" placeholder="" />
+                        <x-input-solicitud value="{{ old('') }}" name="sd_sobrellenado_ml" class="" placeholder="" />
                     </div>
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
                         Vol. Total* (mL):
                     </x-label>
-                    <x-input-solicitud value="{{ old('') }}" name="" class="" placeholder="" />
+                    <x-input-solicitud value="{{ old('') }}" name="sd_volumen_total" class="" placeholder="" />
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
                         NPT*:
                     </x-label>
-                    <x-select class="" name="category_id">
+                    <x-select class="" name="sd_npt">
 
                         <option value="">RNPT</option>
                         <option value="">LACT</option>
@@ -132,7 +132,7 @@
                             <x-label class="mb-2">
                                 Aminoácidos Adulto 10%
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_4" class=""
                                 placeholder="" /><span>g/Kg</span>
                         </div>
                     </div>
@@ -141,7 +141,7 @@
                             <x-label class="mb-2">
                                 Aminoácidos pediátricos 10%
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_5" class=""
                                 placeholder="" /><span>g/Kg</span>
                         </div>
                     </div>
@@ -150,7 +150,7 @@
                             <x-label class="mb-2">
                                 Aminoácidos de cadena ramificada 8%
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_6" class=""
                                 placeholder="" /><span>g/Kg</span>
                         </div>
                     </div>
@@ -159,7 +159,7 @@
                             <x-label class="mb-2">
                                 Aminoácidos esenciales 5.4%
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_7" class=""
                                 placeholder="" /><span>g/Kg</span>
                         </div>
                     </div>
@@ -172,7 +172,7 @@
                                 <x-label class="mb-2">
                                     Dextrosa 50%
                                 </x-label>
-                                <x-input-solicitud value="{{ old('') }}" name="" class=""
+                                <x-input-solicitud value="{{ old('') }}" name="i_8" class=""
                                     placeholder="" /><span>g/Kg</span>
                             </div>
                         </div>
@@ -184,7 +184,7 @@
                                 <x-label class="mb-2">
                                     MCT/LCT 20%
                                 </x-label>
-                                <x-input-solicitud value="{{ old('') }}" name="" class=""
+                                <x-input-solicitud value="{{ old('') }}" name="i_9" class=""
                                     placeholder="" /><span>g/Kg</span>
                             </div>
                         </div>
@@ -193,7 +193,7 @@
                                 <x-label class="mb-2">
                                     SMOF 20%
                                 </x-label>
-                                <x-input-solicitud value="{{ old('') }}" name="" class=""
+                                <x-input-solicitud value="{{ old('') }}" name="i_10" class=""
                                     placeholder="" /><span>g/Kg</span>
                             </div>
                         </div>
@@ -209,7 +209,7 @@
                             <x-label class="mb-2">
                                 Cloruro de Sodio (3 mEq/mL Na)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_11" class=""
                                 placeholder="" /><span>mEq/Kg</span>
                         </div>
                     </div>
@@ -218,7 +218,16 @@
                             <x-label class="mb-2">
                                 Acetato de sodio (4 mEq/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_12" class=""
+                                placeholder="" /><span>mEq/Kg</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="mb-4 flex items-baseline gap-2">
+                            <x-label class="mb-2">
+                                Fosfato de sodio (4 mEq/mL)
+                            </x-label>
+                            <x-input-solicitud value="{{ old('') }}" name="i_13" class=""
                                 placeholder="" /><span>mEq/Kg</span>
                         </div>
                     </div>
@@ -227,7 +236,7 @@
                             <x-label class="mb-2">
                                 Sulfato de Magnesio (0.81mEq/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_14" class=""
                                 placeholder="" /><span>mEq/Kg</span>
                         </div>
                     </div>
@@ -238,7 +247,7 @@
                             <x-label class="mb-2">
                                 Cloruro de Potasio (4 mEq/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_15" class=""
                                 placeholder="" /><span>mEq/Kg</span>
                         </div>
                     </div>
@@ -247,7 +256,7 @@
                             <x-label class="mb-2">
                                 Acetato de Potasio (2mEq/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_16" class=""
                                 placeholder="" /><span>mEq/Kg</span>
                         </div>
                     </div>
@@ -256,7 +265,7 @@
                             <x-label class="mb-2">
                                 Fosfato de Potasio (2mEq/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_17" class=""
                                 placeholder="" /><span>mEq/Kg</span>
                         </div>
                     </div>
@@ -265,7 +274,7 @@
                             <x-label class="mb-2">
                                 Gluconato de Calcio (0.465 mEq/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_18" class=""
                                 placeholder="" /><span>mEq/Kg</span>
                         </div>
                     </div>
@@ -280,7 +289,7 @@
                             <x-label class="mb-2">
                                 Ácidos Grasos Omega 3 10%
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_19" class=""
                                 placeholder="" /><span>mL</span>
                         </div>
                     </div>
@@ -289,7 +298,7 @@
                             <x-label class="mb-2">
                                 Albúmina 25% (0.25 g/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_20" class=""
                                 placeholder="" /><span>g</span>
                         </div>
                     </div>
@@ -298,7 +307,7 @@
                             <x-label class="mb-2">
                                 Albúmina 20% (0.20 g/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_21" class=""
                                 placeholder="" /><span>g</span>
                         </div>
                     </div>
@@ -307,7 +316,7 @@
                             <x-label class="mb-2">
                                 Glutamina 20%
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_22" class=""
                                 placeholder="" /><span>g</span>
                         </div>
                     </div>
@@ -316,7 +325,7 @@
                             <x-label class="mb-2">
                                 Cromo (4 mcg/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_23" class=""
                                 placeholder="" /><span>mcg</span>
                         </div>
                     </div>
@@ -325,7 +334,7 @@
                             <x-label class="mb-2">
                                 Heparina (1000 UI/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_24" class=""
                                 placeholder="" /><span>UI</span>
                         </div>
                     </div>
@@ -334,7 +343,7 @@
                             <x-label class="mb-2">
                                 L-Carnitina (200 mg/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_25" class=""
                                 placeholder="" /><span>mg</span>
                         </div>
                     </div>
@@ -343,7 +352,7 @@
                             <x-label class="mb-2">
                                 Insulina (100 UI/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_26" class=""
                                 placeholder="" /><span>UI</span>
                         </div>
                     </div>
@@ -354,7 +363,7 @@
                             <x-label class="mb-2">
                                 Manganeso (100 mcg/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_27" class=""
                                 placeholder="" /><span>mcg</span>
                         </div>
                     </div>
@@ -363,7 +372,7 @@
                             <x-label class="mb-2">
                                 MVI
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_28" class=""
                                 placeholder="" /><span>mL</span>
                         </div>
                     </div>
@@ -372,7 +381,7 @@
                             <x-label class="mb-2">
                                 Oligoelementos
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_29" class=""
                                 placeholder="" /><span>mL</span>
                         </div>
                     </div>
@@ -381,7 +390,7 @@
                             <x-label class="mb-2">
                                 Ácido Folínico (12.5 mg/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_30" class=""
                                 placeholder="" /><span>mg</span>
                         </div>
                     </div>
@@ -390,7 +399,7 @@
                             <x-label class="mb-2">
                                 Selenio (40 mcg/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_31" class=""
                                 placeholder="" /><span>mcg</span>
                         </div>
                     </div>
@@ -399,7 +408,7 @@
                             <x-label class="mb-2">
                                 Vitamina C (100 mg/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_32" class=""
                                 placeholder="" /><span>mg</span>
                         </div>
                     </div>
@@ -408,7 +417,7 @@
                             <x-label class="mb-2">
                                 Vitamina K (10 mg/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_33" class=""
                                 placeholder="" /><span>mg</span>
                         </div>
                     </div>
@@ -417,7 +426,7 @@
                             <x-label class="mb-2">
                                 Zinc (1 mg/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_34" class=""
                                 placeholder="" /><span>mg</span>
                         </div>
                     </div>
@@ -426,7 +435,7 @@
                             <x-label class="mb-2">
                                 L-Cisteina (50mg/mL)
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="i_35" class=""
                                 placeholder="" /><span>mg</span>
                         </div>
                     </div>
@@ -436,7 +445,7 @@
                 <x-label class="mb-2">
                     OBSERVACIONES
                 </x-label>
-                <textarea class="border-2 border-solid w-full resize-x overflow-auto h-20" name="" id="" ></textarea>
+                <textarea class="border-2 border-solid w-full resize-x overflow-auto h-20" name="sd_observaciones" id="" ></textarea>
             </div>
             <div class="flex flex-row gap-4 items-start">
                 <div>
@@ -445,7 +454,7 @@
                             <x-label class="mb-2">
                                 Fecha de entrega:
                             </x-label>
-                            <x-input-solicitud type="date" value="{{ old('') }}" name=""
+                            <x-input-solicitud type="date" value="{{ old('') }}" name="sd_fecha_entrega"
                                 class="" placeholder="" />
                         </div>
                     </div>
@@ -454,7 +463,7 @@
                             <x-label class="mb-2">
                                 Hora de entrega
                             </x-label>
-                            <x-input-solicitud type="date" value="{{ old('') }}" name=""
+                            <x-input-solicitud type="date" value="{{ old('') }}" name="hora_entrega"
                                 class="" placeholder="" />
                         </div>
                     </div>
@@ -465,7 +474,7 @@
                             <x-label class="mb-2">
                                 NOMBRE DEL MÉDICO*:
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="sd_nombre_medico" class=""
                                 placeholder="" />
                         </div>
                     </div>
@@ -474,7 +483,7 @@
                             <x-label class="mb-2">
                                 CÉDULA*:
                             </x-label>
-                            <x-input-solicitud value="{{ old('') }}" name="" class=""
+                            <x-input-solicitud value="{{ old('') }}" name="sd_cedula" class=""
                                 placeholder="" />
                         </div>
                     </div>
