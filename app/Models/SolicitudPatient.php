@@ -18,6 +18,7 @@ class SolicitudPatient extends Model
         'edad',
         'peso',
         'sexo',
+        'fecha_nacimiento'
     ];
 
     //Relacion uno a uno
