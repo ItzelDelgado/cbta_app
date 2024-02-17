@@ -15,7 +15,6 @@ class SolicitudPatient extends Model
         'piso',
         'registro',
         'diagnostico',
-        'edad',
         'peso',
         'sexo',
         'fecha_nacimiento'
