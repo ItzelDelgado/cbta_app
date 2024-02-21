@@ -15,14 +15,17 @@ return new class extends Migration
             $table->id();
             $table->enum('via_administracion', ['Central', 'Periférica']);
             $table->integer('tiempo_infusion_min');
-            $table->decimal('sobrellenado_ml');
-            $table->decimal('volumen_total');
+            $table->double('sobrellenado_ml');
+            $table->double('volumen_total');
+            $table->double('suma_volumen')->nullable();
+            $table->double('volumen_total_final')->nullable();
+            $table->double('suma_volumen_final')->nullable();
             $table->enum('npt', ['RNPT', 'LACT', 'INF', 'ADOL', 'ADUL']);
             $table->string('nombre_medico');
             $table->string('cedula');
             $table->date('fecha_entrega');
             $table->time('hora_entrega');
-            $table->string('observaciones');
+            $table->string('observaciones')->nullable();
             $table->timestamps();
         });
     }

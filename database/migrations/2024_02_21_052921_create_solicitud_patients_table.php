@@ -14,14 +14,16 @@ return new class extends Migration
         Schema::create('solicitud_patients', function (Blueprint $table) {
             $table->id();
             $table->string('nombre_paciente');
+            $table->string('apellidos_paciente');
             $table->string('servicio');
-            $table->string('cama');
-            $table->string('piso');
-            $table->string('registro');
-            $table->string('diagnostico');
-            $table->date('edad');
-            $table->decimal('peso');
-            $table->enum('sexo', ['Femenino', 'Masculino']);
+            $table->string('cama')->nullable();
+            $table->string('piso')->nullable();
+            $table->string('registro')->nullable();
+            $table->string('diagnostico')->nullable();
+            $table->date('fecha_nacimiento');
+            $table->string('edad')->nullable();
+            $table->decimal('peso')->nullable();
+            $table->enum('sexo', ['Femenino', 'Masculino'])->nullable();
             $table->timestamps();
         });
     }

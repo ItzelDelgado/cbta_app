@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('solicitud_inputs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('input_id')->constrained();
-            $table->string('lote');
-            $table->date('caducidad');
-            $table->decimal('input_ml');
+            $table->string('lote')->nullable();
+            $table->date('caducidad')->nullable();
+            $table->double('valor');
+            $table->double('valor_sobrellenado')->nullable();
+            $table->double('valor_ml')->nullable();
             $table->foreignId('solicitud_id')->constrained();
             $table->timestamps();
         });

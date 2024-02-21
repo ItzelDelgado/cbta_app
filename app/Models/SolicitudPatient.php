@@ -10,14 +10,16 @@ class SolicitudPatient extends Model
     use HasFactory;
     protected $fillable = [
         'nombre_paciente',
+        'apellidos_paciente',
         'servicio',
         'cama',
         'piso',
         'registro',
         'diagnostico',
+        'fecha_nacimiento',
+        'edad',
         'peso',
         'sexo',
-        'fecha_nacimiento'
     ];
 
     //Relacion uno a uno

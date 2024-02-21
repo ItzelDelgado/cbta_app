@@ -13,7 +13,9 @@ class SolicitudInput extends Model
         'input_id',
         'lote',
         'caducidad',
-        'input_ml',
+        'valor',
+        'valor_sobrellenado',
+        'valor_ml',
         'solicitud_id',
     ];
 

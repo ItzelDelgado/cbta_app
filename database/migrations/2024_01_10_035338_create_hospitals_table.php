@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('hospitals', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->boolean('is_active');
+            $table->string('adress');
+            $table->boolean('is_active')->default(1);
             $table->timestamps();
         });
     }

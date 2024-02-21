@@ -9,7 +9,9 @@ class Category extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name',];
+    protected $fillable = [
+        'name'
+    ];
 
     //Relacion uno a muchos, por que una category puede ser asignado a varias medicinas
     public function medicines(){

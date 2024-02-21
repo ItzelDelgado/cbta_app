@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('solicituds', function (Blueprint $table) {
+        Schema::create('inputs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained();
-            $table->foreignId('solicitud_detail_id')->constrained();
-            $table->foreignId('solicitud_patient_id')->constrained();
-            $table->boolean('is_active')->default(0)->change();
+            $table->string('description');
+            $table->boolean('is_active')->default(1);
+            $table->enum('tipo_input', ['adulto', 'niño', 'ambos']);
+            $table->integer('orden_enum');
             $table->timestamps();
         });
     }
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('solicituds');
+        Schema::dropIfExists('inputs');
     }
 };
