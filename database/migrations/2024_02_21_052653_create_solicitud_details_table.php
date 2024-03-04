@@ -14,17 +14,16 @@ return new class extends Migration
         Schema::create('solicitud_details', function (Blueprint $table) {
             $table->id();
             $table->enum('via_administracion', ['Central', 'Periférica']);
-            $table->integer('tiempo_infusion_min');
-            $table->double('sobrellenado_ml');
-            $table->double('volumen_total');
+            $table->integer('tiempo_infusion_min')->nullable();
+            $table->double('sobrellenado_ml')->nullable();
+            $table->double('volumen_total')->nullable();
             $table->double('suma_volumen')->nullable();
             $table->double('volumen_total_final')->nullable();
             $table->double('suma_volumen_final')->nullable();
             $table->enum('npt', ['RNPT', 'LACT', 'INF', 'ADOL', 'ADUL']);
             $table->string('nombre_medico');
             $table->string('cedula');
-            $table->date('fecha_entrega');
-            $table->time('hora_entrega');
+            $table->dateTime('fecha_hora_entrega');
             $table->string('observaciones')->nullable();
             $table->timestamps();
         });

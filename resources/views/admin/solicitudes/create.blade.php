@@ -7,33 +7,71 @@
         <form action="{{ route('admin.solicitudes.store') }}" method="POST" class="bg-white rounded-lg p-6 shadow-lg">
             @csrf
 
-            <x-validation-errors class="mb-4" />
+
 
             <div class="flex gap-4">
+                <div class="mb-4 flex  items-baseline gap-2">
+                    <x-label class="mb-2">
+                        Paciente Nombre(s)*:
+                    </x-label>
+                    <div class="flex flex-col">
+                        <x-input-solicitud value="{{ old('nombre_paciente') }}" name="nombre_paciente" class=""
+                            placeholder="" />
+                        <!-- Mensaje de error -->
+                        @error('nombre_paciente')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
-                        Paciente*:
+                        Paciente Apellidos*:
                     </x-label>
-                    <x-input-solicitud value="{{ old('nombre_paciente') }}" name="nombre_paciente" class=""
-                        placeholder="" />
+                    <div class="flex flex-col">
+                        <x-input-solicitud value="{{ old('apellidos_paciente') }}" name="apellidos_paciente"
+                            class="" placeholder="" />
+                        <!-- Mensaje de error -->
+                        @error('apellidos_paciente')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
                         Servicio*:
                     </x-label>
-                    <x-input-solicitud value="{{ old('servicio') }}" name="servicio" class="" placeholder="" />
+                    <div class="flex flex-col">
+                        <x-input-solicitud value="{{ old('servicio') }}" name="servicio" class=""
+                            placeholder="" />
+                        <!-- Mensaje de error -->
+                        @error('servicio')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
                         Cama:
                     </x-label>
-                    <x-input-solicitud value="{{ old('cama') }}" name="cama" class="" placeholder="" />
+                    <div class="flex flex-col">
+                        <x-input-solicitud value="{{ old('cama') }}" name="cama" class="" placeholder="" />
+                        <!-- Mensaje de error -->
+                        @error('cama')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
                         Piso:
                     </x-label>
-                    <x-input-solicitud value="{{ old('piso') }}" name="piso" class="" placeholder="" />
+                    <div class="flex flex-col">
+                        <x-input-solicitud value="{{ old('piso') }}" name="piso" class="" placeholder="" />
+                        <!-- Mensaje de error -->
+                        @error('piso')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
             </div>
             <div class="flex gap-4">
@@ -42,6 +80,10 @@
                         Registro:
                     </x-label>
                     <x-input-solicitud value="{{ old('registro') }}" name="registro" class="" placeholder="" />
+                    <!-- Mensaje de error -->
+                    @error('registro')
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
@@ -49,6 +91,10 @@
                     </x-label>
                     <x-input-solicitud value="{{ old('diagnostico') }}" name="diagnostico" class=""
                         placeholder="" />
+                    <!-- Mensaje de error -->
+                    @error('diagnostico')
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
             <div class="flex gap-4">
@@ -56,8 +102,14 @@
                     <x-label class="mb-2">
                         Peso:
                     </x-label>
-                    <x-input-solicitud type="number" value="{{ old('peso') }}" step="0.001" name="peso"
-                        class="" placeholder="" />
+                    <div class="flex flex-col">
+                        <x-input-solicitud type="number" value="{{ old('peso') }}" step="0.001" name="peso"
+                            class="" placeholder="" />
+                        <!-- Mensaje de error -->
+                        @error('peso')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
@@ -67,13 +119,24 @@
                         <option value="Femenino" @if (old('sexo') == 'Femenino') selected @endif>Femenino</option>
                         <option value="Masculino" @if (old('sexo') == 'Masculino') selected @endif>Masculino</option>
                     </x-select>
+                    <!-- Mensaje de error -->
+                    @error('sexo')
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
                         Fecha de nacimiento*:
                     </x-label>
-                    <x-input-solicitud type="date" value="{{ old('fecha_nacimiento') }}" max="{{ date('Y-m-d') }}"
-                        name="fecha_nacimiento" class="" placeholder="" onchange="calcularEdad(this.value)" />
+                    <div class="flex flex-col">
+                        <x-input-solicitud type="date" value="{{ old('fecha_nacimiento') }}"
+                            max="{{ date('Y-m-d') }}" name="fecha_nacimiento" class="" placeholder=""
+                            onchange="calcularEdad(this.value)" />
+                        <!-- Mensaje de error -->
+                        @error('fecha_nacimiento')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
                 {{-- <div id="edad"></div> --}}
 
@@ -88,13 +151,21 @@
                         <option value="Central" @if (old('via_administracion') == 'Central') selected @endif>Central</option>
                         <option value="Periférica" @if (old('via_administracion') == 'Periférica') selected @endif>Periférica</option>
                     </x-select>
+                    <!-- Mensaje de error -->
+                    @error('via_administracion')
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
                         Tiempo de infusión (h):
                     </x-label>
-                    <x-input-solicitud type="number" value="{{ old('tiempo_infusion_min') }}" name="tiempo_infusion_min"
-                        class="" placeholder="" />
+                    <x-input-solicitud type="number" value="{{ old('tiempo_infusion_min') }}"
+                        name="tiempo_infusion_min" class="" placeholder="" />
+                    <!-- Mensaje de error -->
+                    @error('tiempo_infusion_min')
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
             <div class="flex gap-4">
@@ -105,6 +176,10 @@
                         </x-label>
                         <x-input-solicitud type="number" value="{{ old('sobrellenado_ml') }}" step="0.0001"
                             name="sobrellenado_ml" class="" placeholder="" />
+                        <!-- Mensaje de error -->
+                        @error('sobrellenado_ml')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
@@ -113,6 +188,10 @@
                     </x-label>
                     <x-input-solicitud type="number" value="{{ old('volumen_total') }}" name="volumen_total"
                         step="0.0001" class="" placeholder="" />
+                    <!-- Mensaje de error -->
+                    @error('volumen_total')
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
                 </div>
                 <div class="mb-4 flex items-baseline gap-2">
                     <x-label class="mb-2">
@@ -126,6 +205,10 @@
                         <option value="ADOL" @if (old('npt') == 'ADOL') selected @endif>ADOL</option>
                         <option value="ADULT" @if (old('npt') == 'ADULT') selected @endif>ADULT</option>
                     </x-select>
+                    <!-- Mensaje de error -->
+                    @error('npt')
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
 
@@ -134,345 +217,190 @@
             <div class="flex flex-row gap-4 items-center">
                 <div>
                     <h3 class="mt-4">AMINOÁCIDOS</h3>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Aminoácidos Adulto 10%
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_4') }}" name="i_4"
-                                step="0.0001" class="" placeholder="" /><span>g/Kg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Aminoácidos pediátricos 10%
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_5') }}" name="i_5"
-                                step="0.0001" class="" placeholder="" /><span>g/Kg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Aminoácidos de cadena ramificada 8%
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_6') }}" name="i_6"
-                                step="0.0001" class="" placeholder="" /><span>g/Kg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Aminoácidos esenciales 5.4%
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_7') }}" name="i_7"
-                                step="0.0001" class="" placeholder="" /><span>g/Kg</span>
-                        </div>
-                    </div>
+
+                    @foreach ($inputs as $input)
+                        @if ($input->category_id == 1)
+                            <div>
+                                <div class="mb-4 flex items-baseline gap-2">
+                                    <x-label class="mb-2">
+                                        {{ $input->description }}
+                                    </x-label>
+                                    <div class="flex flex-col">
+
+                                        <x-input-solicitud type="number"
+                                            value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
+                                            name="i_{{ $input->input_id }}_{{ $input->unidad }}"
+                                            id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
+                                            placeholder="i_{{ $input->input_id }}_{{ $input->unidad }}" />
+                                        <span>{{ $input->unidad }}</span>
+                                        @error('i_' . $input->input_id . '_' . $input->unidad)
+                                            <div class="text-red-500">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                            </div>
+                        @endif
+                    @endforeach
+                    @foreach ($inputs as $input)
+                        @if ($input->category_id == 8)
+                            <div>
+                                <div class="mb-4 flex items-baseline gap-2">
+                                    <x-label class="mb-2">
+                                        {{ $input->description }}
+                                    </x-label>
+                                    <div class="flex flex-col">
+                                        <x-input-solicitud type="number"
+                                            value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
+                                            name="i_{{ $input->input_id }}_{{ $input->unidad }}"
+                                            id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
+                                            placeholder="i_{{ $input->input_id }}_{{ $input->unidad }}" />
+                                        <span>{{ $input->unidad }}</span>
+                                        @error('i_' . $input->input_id . '_' . $input->unidad)
+                                            <div class="text-red-500">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
                 </div>
                 <div>
                     <h3>CARBOHIDRATOS:</h3>
-                    <div>
-                        <div>
-                            <div class="mb-4 flex items-baseline gap-2">
-                                <x-label class="mb-2">
-                                    Dextrosa 50%
-                                </x-label>
-                                <x-input-solicitud type="number" value="{{ old('i_8') }}" name="i_8"
-                                    step="0.0001" class="" placeholder="" /><span>g/Kg</span>
+                    @foreach ($inputs as $input)
+                        @if ($input->category_id == 2)
+                            <div>
+                                <div class="mb-4 flex items-baseline gap-2">
+                                    <x-label class="mb-2">
+                                        {{ $input->description }}
+                                    </x-label>
+                                    <div class="flex flex-col">
+                                        <x-input-solicitud type="number"
+                                            value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
+                                            name="i_{{ $input->input_id }}_{{ $input->unidad }}"
+                                            id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
+                                            placeholder="i_{{ $input->input_id }}_{{ $input->unidad }}" />
+                                        <span>{{ $input->unidad }}</span>
+                                        @error('i_' . $input->input_id . '_' . $input->unidad)
+                                            <div class="text-red-500">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                        @endif
+                    @endforeach
                     <H3>LÍPIDOS:</H3>
                     <div>
-                        <div>
-                            <div class="mb-4 flex items-baseline gap-2">
-                                <x-label class="mb-2">
-                                    MCT/LCT 20%
-                                </x-label>
-                                <x-input-solicitud type="number" value="{{ old('i_9') }}" name="i_9"
-                                    step="0.0001" class="" placeholder="" /><span>g/Kg</span>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="mb-4 flex items-baseline gap-2">
-                                <x-label class="mb-2">
-                                    SMOF 20%
-                                </x-label>
-                                <x-input-solicitud type="number" value="{{ old('i_10') }}" name="i_10"
-                                    step="0.0001" class="" placeholder="" /><span>g/Kg</span>
-                            </div>
-                        </div>
+                        @foreach ($inputs as $input)
+                            @if ($input->category_id == 3)
+                                <div>
+                                    <div class="mb-4 flex items-baseline gap-2">
+                                        <x-label class="mb-2">
+                                            {{ $input->description }}
+                                        </x-label>
+                                        <div class="flex flex-col">
+                                            <x-input-solicitud type="number"
+                                                value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
+                                                name="i_{{ $input->input_id }}_{{ $input->unidad }}"
+                                                id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
+                                                class=""
+                                                placeholder="i_{{ $input->input_id }}_{{ $input->unidad }}" />
+                                            <span>{{ $input->unidad }}</span>
+                                            @error('i_' . $input->input_id . '_' . $input->unidad)
+                                                <div class="text-red-500">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
                     </div>
                 </div>
             </div>
             <h2 class="mb-4">ELECTROLITOS</h2>
             <hr>
             <div class="flex flex-row gap-4 items-start mt-4">
-                <div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Cloruro de Sodio (3 mEq/mL Na)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_11') }}" name="i_11"
-                                step="0.0001" class="" placeholder="" /><span>mEq/Kg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Acetato de sodio (4 mEq/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_12') }}" name="i_12"
-                                step="0.0001" class="" placeholder="" /><span>mEq/Kg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Fosfato de sodio (4 mEq/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_13') }}" name="i_13"
-                                step="0.0001" class="" placeholder="" /><span>mEq/Kg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Sulfato de Magnesio (0.81mEq/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_14') }}" name="i_14"
-                                step="0.0001" class="" placeholder="" /><span>mEq/Kg</span>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Cloruro de Potasio (4 mEq/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_15') }}" name="i_15"
-                                step="0.0001" class="" placeholder="" /><span>mEq/Kg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Acetato de Potasio (2mEq/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_16') }}" name="i_16"
-                                step="0.0001" class="" placeholder="" /><span>mEq/Kg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Fosfato de Potasio (2mEq/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_17') }}" name="i_17"
-                                step="0.0001" class="" placeholder="" /><span>mEq/Kg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Gluconato de Calcio (0.465 mEq/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_18') }}" name="i_18"
-                                step="0.0001" class="" placeholder="" /><span>mEq/Kg</span>
-                        </div>
-                    </div>
+                <div class="grid grid-cols-2 gap-4">
+                    @foreach ($inputs as $input)
+                        @if ($input->category_id == 4)
+                            <div>
+                                <div class="mb-4 flex items-baseline gap-2">
+                                    <x-label class="mb-2">
+                                        {{ $input->description }}
+                                    </x-label>
+                                    <div class="flex flex-col">
+                                        <x-input-solicitud type="number"
+                                            value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
+                                            name="i_{{ $input->input_id }}_{{ $input->unidad }}"
+                                            id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
+                                            placeholder="i_{{ $input->input_id }}_{{ $input->unidad }}" />
+                                        <span>{{ $input->unidad }}</span>
+                                        @error('i_' . $input->input_id . '_' . $input->unidad)
+                                            <div class="text-red-500">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                            </div>
+                        @endif
+                    @endforeach
                 </div>
             </div>
             <h2 class="mb-4">ADITIVOS:</h2>
             <hr>
             <div class="flex flex-row gap-4 items-start mt-4">
-                <div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Ácidos Grasos Omega 3 10%
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_19') }}" name="i_19"
-                                step="0.0001" class="" placeholder="" /><span>mL</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Albúmina 25% (0.25 g/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_20') }}" name="i_20"
-                                step="0.0001" class="" placeholder="" /><span>g</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Albúmina 20% (0.20 g/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_21') }}" name="i_21"
-                                step="0.0001" class="" placeholder="" /><span>g</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Glutamina 20%
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_22') }}" name="i_22"
-                                step="0.0001" class="" placeholder="" /><span>g</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Cromo (4 mcg/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_23') }}" name="i_23"
-                                step="0.0001" class="" placeholder="" /><span>mcg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Heparina (1000 UI/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_24') }}" name="i_24"
-                                step="0.0001" class="" placeholder="" /><span>UI</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                L-Carnitina (200 mg/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_25') }}" name="i_25"
-                                step="0.0001" class="" placeholder="" /><span>mg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Insulina (100 UI/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_26') }}" name="i_26"
-                                step="0.0001" class="" placeholder="" /><span>UI</span>
-                        </div>
-                    </div>
+                <div class="grid grid-cols-2 gap-4">
+                    @foreach ($inputs as $input)
+                        @if ($input->category_id == 5)
+                            <div>
+                                <div class="mb-4 flex items-baseline gap-2">
+                                    <x-label class="mb-2">
+                                        {{ $input->description }}
+                                    </x-label>
+                                    <div class="flex flex-col">
+                                        <x-input-solicitud type="number"
+                                            value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
+                                            name="i_{{ $input->input_id }}_{{ $input->unidad }}"
+                                            id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
+                                            placeholder="i_{{ $input->input_id }}_{{ $input->unidad }}" />
+                                        <span>{{ $input->unidad }}</span>
+                                        @error('i_' . $input->input_id . '_' . $input->unidad)
+                                            <div class="text-red-500">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
                 </div>
-                <div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Manganeso (100 mcg/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_27') }}" name="i_27"
-                                step="0.0001" class="" placeholder="" /><span>mcg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                MVI
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_28') }}" name="i_28"
-                                step="0.0001" class="" placeholder="" /><span>mL</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Oligoelementos
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_29') }}" name="i_29"
-                                step="0.0001" class="" placeholder="" /><span>mL</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Ácido Folínico (12.5 mg/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_30') }}" name="i_30"
-                                step="0.0001" class="" placeholder="" /><span>mg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Selenio (40 mcg/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_31') }}" name="i_31"
-                                step="0.0001" class="" placeholder="" /><span>mcg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Vitamina C (100 mg/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_32') }}" name="i_32"
-                                step="0.0001" class="" placeholder="" /><span>mg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Vitamina K (10 mg/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_33') }}" name="i_33"
-                                step="0.0001" class="" placeholder="" /><span>mg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                Zinc (1 mg/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_34') }}" name="i_34"
-                                step="0.0001" class="" placeholder="" /><span>mg</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
-                                L-Cisteina (50mg/mL)
-                            </x-label>
-                            <x-input-solicitud type="number" value="{{ old('i_35') }}" name="i_35"
-                                step="0.0001" class="" placeholder="" /><span>mg</span>
-                        </div>
-                    </div>
-                </div>
+
             </div>
             <div class="mb-4">
                 <x-label class="mb-2">
                     OBSERVACIONES
                 </x-label>
-                <textarea class="border-2 border-solid w-full resize-x overflow-auto h-20" value="{{ old('observaciones') }}"
-                    name="observaciones" id=""></textarea>
+                <textarea class="border-2 border-solid w-full resize-x overflow-auto h-20" name="observaciones">{{ old('observaciones') }}</textarea>
+                <!-- Mensaje de error -->
+                @error('observaciones')
+                    <div class="text-red-500 text-sm">{{ $message }}</div>
+                @enderror
             </div>
             <div class="flex flex-row gap-4 items-start">
                 <div>
                     <div>
                         <div class="mb-4 flex items-baseline gap-2">
                             <x-label class="mb-2">
-                                Fecha de entrega:
-                            </x-label>
-                            <x-input-solicitud type="date" value="{{ old('fecha_entrega') }}"
-                                name="fecha_entrega" class="" placeholder="" />
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
-                            <x-label class="mb-2">
                                 Hora de entrega
                             </x-label>
-                            <x-input-solicitud type="time" value="{{ old('hora_entrega') }}" name="hora_entrega"
-                                id="hora_entrega" class="" placeholder="" />
+                            <div class="flex flex-col">
+                                <x-input-solicitud type="datetime-local" value="{{ old('fecha_hora_entrega') }}"
+                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}" name="fecha_hora_entrega"
+                                    class="" placeholder="" />
+                                <!-- Mensaje de error -->
+                                @error('fecha_hora_entrega')
+                                    <div class="text-red-500 text-sm">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -482,8 +410,14 @@
                             <x-label class="mb-2">
                                 NOMBRE DEL MÉDICO*:
                             </x-label>
-                            <x-input-solicitud value="{{ old('nombre_medico') }}" name="nombre_medico"
-                                class="" placeholder="" />
+                            <div class="flex flex-col">
+                                <x-input-solicitud value="{{ old('nombre_medico') }}" name="nombre_medico"
+                                    class="" placeholder="" />
+                                <!-- Mensaje de error -->
+                                @error('nombre_medico')
+                                    <div class="text-red-500 text-sm">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
                     </div>
                     <div>
@@ -491,8 +425,14 @@
                             <x-label class="mb-2">
                                 CÉDULA*:
                             </x-label>
-                            <x-input-solicitud value="{{ old('cedula') }}" name="cedula" class=""
-                                placeholder="" />
+                            <div class="flex flex-col">
+                                <x-input-solicitud value="{{ old('cedula') }}" name="cedula" class=""
+                                    placeholder="" />
+                                <!-- Mensaje de error -->
+                                @error('cedula')
+                                    <div class="text-red-500 text-sm">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -582,6 +522,42 @@
                     return hora24h;
                 }
             });
+
+
+            // Obtener todos los elementos con la clase 'numeric-input'
+            const numericInputs = document.querySelectorAll('.numeric-input');
+
+            // Iterar sobre cada elemento y agregar un listener de evento 'input'
+            numericInputs.forEach(input => {
+                input.addEventListener('input', function(event) {
+                    // Obtener el valor actual del campo de entrada
+                    let inputValue = this.value;
+                    // Reemplazar todos los caracteres que no son números
+                    this.value = inputValue.replace(/\D/g, '');
+                });
+            });
+
+            // Funcion que bloquea un campo si escribimos en otro especificamente
+            // document.addEventListener("DOMContentLoaded", function() {
+            //     var mct_lct = document.getElementById("i_9");
+            //     var smof = document.getElementById("i_10");
+
+            //     mct_lct.addEventListener("input", function() {
+            //         if (mct_lct.value.trim() !== "") {
+            //             smof.disabled = true;
+            //         } else {
+            //             smof.disabled = false;
+            //         }
+            //     });
+
+            //     smof.addEventListener("input", function() {
+            //         if (smof.value.trim() !== "") {
+            //             mct_lct.disabled = true;
+            //         } else {
+            //             mct_lct.disabled = false;
+            //         }
+            //     });
+            // });
         </script>
     @endpush
 </x-admin-layout>

@@ -20,8 +20,7 @@ class SolicitudDetail extends Model
         'npt',
         'nombre_medico',
         'cedula',
-        'fecha_entrega',
-        'hora_entrega',
+        'fecha_hora_entrega',
         'observaciones',
     ];
 

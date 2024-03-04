@@ -11,6 +11,7 @@ class Input extends Model
 
     protected $fillable = [
         'description',
+        'unidad',
         'is_active',
         'tipo_input', 
         'orden_enum',
