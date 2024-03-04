@@ -12,6 +12,7 @@ use App\Models\SolicitudPatient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SolicitudController extends Controller
 {
@@ -243,5 +244,14 @@ class SolicitudController extends Controller
     public function destroy(Solicitud $solicitud)
     {
         //
+    }
+
+
+    public function pdf(){
+
+
+        $ordenPreparacion = "HOlaa";
+        $pdf = Pdf::loadView('pdfs.orden-de-preparacion', \compact('ordenPreparacion'));
+        return $pdf->stream();
     }
 }

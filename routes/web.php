@@ -2,6 +2,7 @@
 
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\App;
 
 /*Definimos todas las rutas del uruario en comun */
 /*
@@ -29,4 +30,9 @@ Route::middleware([
     })->name('dashboard');
 });
 
+Route::get('/pdf', function () {
+    $pdf = App::make('dompdf.wrapper');
+    $pdf->loadHTML('<h1>Hola PDF</h1>');
 
+    return $pdf->stream();
+});

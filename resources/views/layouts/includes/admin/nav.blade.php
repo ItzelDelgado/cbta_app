@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between">
             <div class="flex items-center justify-start rtl:justify-end">
                 <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar"
-                x-on:click="open = !open"    
+                x-on:click="open = !open"
                 aria-controls="logo-sidebar" type="button"
                     class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
                     <span class="sr-only">Open sidebar</span>
@@ -16,8 +16,8 @@
                 </button>
                 <a href="/" class="flex ms-2 md:me-24">
                     {{-- <img src="https://flowbite.com/docs/images/logo.svg" class="h-8 me-3" alt="CBTA" /> --}}
-                    <span
-                        class="self-center text-xl font-semibold sm:text-2xl whitespace-nowrap dark:text-white">CBTA</span>
+                    {{-- <span class="self-center text-xl font-semibold sm:text-2xl whitespace-now rap dark:text-white">CBTA</span> --}}
+                    <img class="w-20 md:w-28" src="{{ asset('img/Centro Biotecnologico de Terapias Avanzadas.png') }}" alt="">
                 </a>
             </div>
             <div class="flex items-center">
