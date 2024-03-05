@@ -48,83 +48,8 @@ class SolicitudController extends Controller
         //return $request->all();
         // $solicitud_paciente->validate(([
 
-        function conversion_to_ml($mult, $valor, $div)
-        {
-            return $mult($valor) / $div;
-        }
-
-        $only_inputs = $request->except(['nombre_paciente', 'apellidos_paciente', 'servicio', 'cama', 'piso', 'registro', 'diagnostico', 'peso', 'fecha_nacimiento', 'sexo', 'via_administracion', 'tiempo_infusion_min', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula']);
-        // return count($only_inputs);
-        //return $only_inputs;
-
-        // $nuevoArreglo = [];
-        // foreach ($only_inputs as $input) {
-        //     if ($input !== null) {
-        //         // Realiza acciones solo si el objeto no es nulo
-        //         // Por ejemplo:
-        //         $nuevoArreglo[] = $input; // Accede a las propiedades del objeto como desees
-        //         echo $input;
-        //     }
-        // }
-
-        $filtered_inputs = array_filter($only_inputs, function ($value) {
-            return $value !== null;
-        });
-
-        foreach ($filtered_inputs as $key => $value) {
-
-            preg_match('/_(\d+)_/', $key, $matches);
-
-            if (isset($matches[1])) {
-                // El número extraído se encuentra en $matches[1]
-                $numero = $matches[1];
-
-                // Realizar acciones con el número extraído
-                // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                $resultado = Input::select('description', 'mult', 'div')->where('id', $numero)->first();
-                echo "Nombre: " . $resultado->description . "<br>";
-                echo "Div: " . $resultado->div . "<br>";
-                echo "Mult: " . $resultado->mult;
-
-                $valor_ml = ($value)*$resultado->mult / $resultado->div;
-
-                echo "El valor en mililitros de " . $resultado->description . " es: " . $valor_ml;
-            }
-            // switch ($ultimas_letras_despues_del_guion) {
-
-            //     case 'g/Kg':
-            //         echo "El valor '$value' sesta en: $ultimas_letras_despues_del_guion <br>";
-            //         break;
-            //     case 'mL':
-            //         echo "El valor '$value' sesta en: $ultimas_letras_despues_del_guion <br>";
-            //         break;
-
-            //     case 'mEq/Kg':
-            //         echo "El valor '$value' sesta en: $ultimas_letras_despues_del_guion <br>";
-            //         break;
-
-            //     case 'g':
-            //         echo "El valor '$value' sesta en: $ultimas_letras_despues_del_guion <br>";
-            //         break;
-
-            //     case 'mcg':
-            //         echo "El valor '$value' sesta en: $ultimas_letras_despues_del_guion <br>";
-            //         break;
-
-            //     case 'UI':
-            //         echo "El valor '$value' sesta en: $ultimas_letras_despues_del_guion <br>";
-            //         break;
-
-            //     case 'mg':
-            //         echo "El valor '$value' sesta en: $ultimas_letras_despues_del_guion <br>";
-            //         break;
-
-            //     default:
-            //         echo "Es otro dato <br>";
-            // }
-        }
-
-        return $filtered_inputs;
+        
+        //return $filtered_inputs;
         // ]));
         $request->validate([
             'nombre_paciente' => 'required|string|max:255',
@@ -152,6 +77,9 @@ class SolicitudController extends Controller
         $validator = Validator::make($request->all(), [
             'i_28_mL' => 'nullable|numeric|mvi_mayor_que_peso:' . $request->input('peso'),
             'i_4_g/Kg' => 'nullable|numeric|aminoacidos_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
+            'i_5_g/Kg' => 'nullable|numeric|aminoacidos_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
+            'i_6_g/Kg' => 'nullable|numeric|aminoacidos_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
+            'i_7_g/Kg' => 'nullable|numeric|aminoacidos_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
             'i_8_g/Kg' => 'nullable|numeric|dextrosa_validaciones:' . $request->input('peso'),
             'i_9_g/Kg' => 'nullable|numeric|lipidos_validaciones:' . $request->input('peso'),
             'i_10_g/Kg' => 'nullable|numeric|lipidos_validaciones:' . $request->input('peso'),
@@ -189,6 +117,8 @@ class SolicitudController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
+
+        
         //El sobrellenado y tiempo 0 y 24
         $solicitud_paciente = $request->only(['nombre_paciente', 'apellidos_paciente', 'servicio', 'cama', 'piso', 'registro', 'diagnostico', 'peso', 'fecha_nacimiento', 'sexo']);
         $solicitud_detalles = $request->only(['via_administracion', 'tiempo_infusion_min', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula']);
@@ -196,12 +126,43 @@ class SolicitudController extends Controller
         $solicitud_detalles_resp = SolicitudDetail::create($solicitud_detalles);
 
         $user = Auth::user();
-        $solicitud_paciente_resp->id;
+        //$solicitud_paciente_resp->id;
         $solicitud['user_id'] = $user->id;
         $solicitud['solicitud_detail_id'] = $solicitud_detalles_resp->id;
         $solicitud['solicitud_patient_id'] = $solicitud_paciente_resp->id;
         //me falto agregarle el atributo de que está aceptada
         $solicitud_nueva = Solicitud::create($solicitud);
+
+        $only_inputs = $request->except(['nombre_paciente', 'apellidos_paciente', 'servicio', 'cama', 'piso', 'registro', 'diagnostico', 'peso', 'fecha_nacimiento', 'sexo', 'via_administracion', 'tiempo_infusion_min', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula']);
+
+        $filtered_inputs = array_filter($only_inputs, function ($value) {
+            return $value !== null;
+        });
+
+        foreach ($filtered_inputs as $key => $value) {
+
+            preg_match('/_(\d+)_/', $key, $matches);
+
+            if (isset($matches[1])) {
+                // El número extraído se encuentra en $matches[1]
+                $numero = $matches[1];
+
+                // Realizar acciones con el número extraído
+                // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
+                $resultado = Input::select('description', 'mult', 'div')->where('id', $numero)->first();
+                // echo "Nombre: " . $resultado->description . "<br>";
+                // echo "Div: " . $resultado->div . "<br>";
+                // echo "Mult: " . $resultado->mult;
+
+                $valor_ml = ($value)*$resultado->mult / $resultado->div;
+                $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
+                $solicitud_inputs['valor'] = $value;
+                $solicitud_inputs['valor_ml'] = $valor_ml;
+                $input_nuevo = SolicitudInput::create($solicitud_inputs);
+                // echo "El valor en mililitros de " . $resultado->description . " es: " . $valor_ml;
+            }
+        }
+
         session()->flash(
             'swal',
             [
@@ -211,6 +172,7 @@ class SolicitudController extends Controller
 
             ]
         );
+
         return redirect()->route('admin.solicitudes.index');
     }
 

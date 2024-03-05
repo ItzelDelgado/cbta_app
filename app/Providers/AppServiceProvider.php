@@ -122,12 +122,12 @@ class AppServiceProvider extends ServiceProvider
             $fosfato_potasio = $parameters[4];
 
             $mensajes = [
-                'RNPT' => 'La suma de cloruro de sodio, acetato de sodio y fosfato de sodio debe estar entre 2 y 6 veces el peso.',
-                'LACT' => 'La suma de cloruro de sodio, acetato de sodio y fosfato de sodio debe estar entre 2 y 4 veces el peso.',
-                'INF' => 'La suma de cloruro de sodio, acetato de sodio y fosfato de sodio debe estar entre 2 y 3 veces el peso.',
-                'ADOL' => 'La suma de cloruro de sodio, acetato de sodio y fosfato de sodio debe estar entre 60 y 150.',
-                'ADULT' => 'La suma de cloruro de sodio, acetato de sodio y fosfato de sodio debe estar entre 60 y 150.',
-                'default' => 'El valor no cumple con los criterios de validación.'
+                'RNPT' => 'El valor de cloruro, acetato y fosfato de potasio debe estar entre 1 y 3 veces el peso.',
+                'LACT' => 'El valor de cloruro, acetato y fosfato de potasio debe estar entre 2 y 3 veces el peso.',
+                'INF' => 'El valor de cloruro, acetato y fosfato de potasio debe estar entre 2 y 3 veces el peso.',
+                'ADOL' => 'El valor de cloruro, acetato y fosfato de potasio debe estar entre 60 y 150.',
+                'ADULT' => 'El valor de cloruro, acetato y fosfato de potasio debe estar entre 60 y 150.',
+                'default' => 'El tipo de paciente no es válido.',
             ];
 
             switch ($npt) {

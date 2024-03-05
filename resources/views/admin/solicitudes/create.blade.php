@@ -439,10 +439,25 @@
             </div>
             <div class="flex justify-end">
                 <x-button>
-                    ENVIAR SOLICITUD
+                    GUARDAR SOLICITUD
+                </x-button>
+                <x-button id="enviarSolicitud">
+                    GUARDAR SOLICITUD SIN VALIDAR
                 </x-button>
             </div>
+
         </form>
+        {{-- <!-- Modal -->
+        <div id="termsModal" class="modal">
+            <div class="modal-content">
+                <h4>Aceptación de Términos</h4>
+                <p>Por favor, lee y acepta los términos antes de enviar la solicitud.</p>
+                <div class="modal-footer">
+                    <button id="acceptTerms" class="waves-effect waves-light btn">Aceptar</button>
+                </div>
+            </div>
+        </div> --}}
+
     </div>
 
 
@@ -558,6 +573,26 @@
             //         }
             //     });
             // });
+            // Mostrar el modal cuando el botón "ENVIAR SOLICITUD" es presionado
+            document.getElementById('enviarSolicitud').addEventListener('click', function() {
+                // Verificar si los términos han sido aceptados
+                var termsAccepted = false; // Aquí debes verificar si los términos han sido aceptados
+
+                if (!termsAccepted) {
+                    // Mostrar el modal si los términos no han sido aceptados
+                    var modal = document.getElementById('termsModal');
+                    modal.style.display = 'block';
+
+                    // Evitar que el formulario sea enviado
+                    event.preventDefault();
+                }
+            });
+
+            // Ocultar el modal cuando se presiona el botón "Aceptar"
+            document.getElementById('acceptTerms').addEventListener('click', function() {
+                var modal = document.getElementById('termsModal');
+                modal.style.display = 'none';
+            });
         </script>
     @endpush
 </x-admin-layout>
