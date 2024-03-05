@@ -252,11 +252,16 @@ class SolicitudController extends Controller
     }
 
 
-    public function pdf(){
-
-
+    public function ordenPreparacion(){
         $ordenPreparacion = "HOlaa";
         $pdf = Pdf::loadView('pdfs.orden-de-preparacion', \compact('ordenPreparacion'));
+
+        return $pdf->stream();
+    }
+
+    public function remision(){
+        $ordenPreparacion = "HOlaa";
+        $pdf = Pdf::loadView('pdfs.remision', \compact('ordenPreparacion'));
 
         return $pdf->stream();
     }
