@@ -214,6 +214,7 @@ class SolicitudController extends Controller
 
         $ordenPreparacion = "HOlaa";
         $pdf = Pdf::loadView('pdfs.orden-de-preparacion', \compact('ordenPreparacion'));
+    
         return $pdf->stream();
     }
 }
