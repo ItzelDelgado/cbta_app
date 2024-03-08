@@ -265,4 +265,11 @@ class SolicitudController extends Controller
 
         return $pdf->stream();
     }
+
+    public function envio(){
+        $ordenPreparacion = "HOlaa";
+        $pdf = Pdf::loadView('pdfs.envio', \compact('ordenPreparacion'));
+
+        return $pdf->stream();
+    }
 }
