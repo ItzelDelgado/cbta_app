@@ -437,7 +437,8 @@
                     </div>
                 </div>
             </div>
-            <div class="flex justify-end">
+            <div class="flex justify-end gap-5">
+                <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas
                 <x-button>
                     GUARDAR SOLICITUD
                 </x-button>

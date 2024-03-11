@@ -50,8 +50,85 @@ class SolicitudController extends Controller
         // $solicitud_paciente->validate(([
 
 
+<<<<<<< HEAD
         //return $filtered_inputs;
+=======
+        $only_inputs = $request->except(['nombre_paciente', 'apellidos_paciente', 'servicio', 'cama', 'piso', 'registro', 'diagnostico', 'peso', 'fecha_nacimiento', 'sexo', 'via_administracion', 'tiempo_infusion_min', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula']);
+        // return count($only_inputs);
+        //return $only_inputs;
+
+        // $nuevoArreglo = [];
+        // foreach ($only_inputs as $input) {
+        //     if ($input !== null) {
+        //         // Realiza acciones solo si el objeto no es nulo
+        //         // Por ejemplo:
+        //         $nuevoArreglo[] = $input; // Accede a las propiedades del objeto como desees
+        //         echo $input;
+        //     }
+        // }
+
+        $filtered_inputs = array_filter($only_inputs, function ($value) {
+            return $value !== null;
+        });
+
+        foreach ($filtered_inputs as $key => $value) {
+
+            preg_match('/_(\d+)_/', $key, $matches);
+
+            if (isset($matches[1])) {
+                // El número extraído se encuentra en $matches[1]
+                $numero = $matches[1];
+
+                // Realizar acciones con el número extraído
+                // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
+                $resultado = Input::select('description', 'mult', 'div')->where('id', $numero)->first();
+                echo "Nombre: " . $resultado->description . "<br>";
+                echo "Div: " . $resultado->div . "<br>";
+                echo "Mult: " . $resultado->mult;
+
+                $valor_ml = ($value)*$resultado->mult / $resultado->div;
+
+                echo "El valor en mililitros de " . $resultado->description . " es: " . $valor_ml;
+            }
+            // switch ($ultimas_letras_despues_del_guion) {
+
+            //     case 'g/Kg':
+            //         echo "El valor '$value' sesta en: $ultimas_letras_despues_del_guion <br>";
+            //         break;
+            //     case 'mL':
+            //         echo "El valor '$value' sesta en: $ultimas_letras_despues_del_guion <br>";
+            //         break;
+
+            //     case 'mEq/Kg':
+            //         echo "El valor '$value' sesta en: $ultimas_letras_despues_del_guion <br>";
+            //         break;
+
+            //     case 'g':
+            //         echo "El valor '$value' sesta en: $ultimas_letras_despues_del_guion <br>";
+            //         break;
+
+            //     case 'mcg':
+            //         echo "El valor '$value' sesta en: $ultimas_letras_despues_del_guion <br>";
+            //         break;
+
+            //     case 'UI':
+            //         echo "El valor '$value' sesta en: $ultimas_letras_despues_del_guion <br>";
+            //         break;
+
+            //     case 'mg':
+            //         echo "El valor '$value' sesta en: $ultimas_letras_despues_del_guion <br>";
+            //         break;
+
+            //     default:
+            //         echo "Es otro dato <br>";
+            // }
+        }
+
+        // return $filtered_inputs;
+>>>>>>> modal
         // ]));
+
+
         $request->validate([
             'nombre_paciente' => 'required|string|max:255',
             'apellidos_paciente' => 'required|string|max:255',
@@ -74,6 +151,9 @@ class SolicitudController extends Controller
             'cedula' => 'required|string|max:50',
         ]);
 
+        if($request->has('terminos')){
+            // Si está marcado, no realizar validaciones y continuar con el proceso de creación de la solicitud
+        }else{
 
         // $validator = Validator::make($request->all(), [
         //     'i_28_mL' => 'nullable|numeric|mvi_mayor_que_peso:' . $request->input('peso'),
@@ -307,6 +387,7 @@ class SolicitudController extends Controller
     }
 
 
+<<<<<<< HEAD
     public function pdf()
     {
 
@@ -314,6 +395,26 @@ class SolicitudController extends Controller
         $ordenPreparacion = "HOlaa";
         $pdf = Pdf::loadView('pdfs.orden-de-preparacion', \compact('ordenPreparacion'));
 
+=======
+    public function ordenPreparacion(){
+        $ordenPreparacion = "HOlaa";
+        $pdf = Pdf::loadView('pdfs.orden-de-preparacion', \compact('ordenPreparacion'));
+
+        return $pdf->stream();
+    }
+
+    public function remision(){
+        $ordenPreparacion = "HOlaa";
+        $pdf = Pdf::loadView('pdfs.remision', \compact('ordenPreparacion'));
+
+        return $pdf->stream();
+    }
+
+    public function envio(){
+        $ordenPreparacion = "HOlaa";
+        $pdf = Pdf::loadView('pdfs.envio', \compact('ordenPreparacion'));
+
+>>>>>>> modal
         return $pdf->stream();
     }
 }
