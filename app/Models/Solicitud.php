@@ -25,4 +25,8 @@ class Solicitud extends Model
     public function solicitud_patient(){
         return $this->belongsTo(SolicitudPatient::class);
     }
+
+    public function input(){
+        return $this->hasMany(SolicitudInput::class);
+    }
 }

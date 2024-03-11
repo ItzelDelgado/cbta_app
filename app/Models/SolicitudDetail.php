@@ -22,6 +22,8 @@ class SolicitudDetail extends Model
         'cedula',
         'fecha_hora_entrega',
         'observaciones',
+        'observaciones',
+        'suma_volumen_sobrellenado'
     ];
 
 

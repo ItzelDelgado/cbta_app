@@ -19,7 +19,7 @@ class SolicitudInput extends Model
         'solicitud_id',
     ];
 
-    //Relacion uno a uno inversa
+    //Relacion uno a muchos inversa
     public function solicitud()
     {
         return $this->belongsTo(Solicitud::class);
