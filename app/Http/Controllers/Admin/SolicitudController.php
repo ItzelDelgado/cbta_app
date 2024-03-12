@@ -230,7 +230,7 @@ class SolicitudController extends Controller
                     ->get();
 
                 $suma_volumen_sobrellenado_ml = 0;
-
+                
                 foreach ($inputs_valores as $input_val) {
                     // dump("Input valorrr----");
                     // dump($input_val);
@@ -308,7 +308,7 @@ class SolicitudController extends Controller
         return redirect()->route('admin.solicitudes.index');
     }
 
-    /**
+      /**
      * Display the specified resource.
      */
     public function show(Solicitud $solicitud)
@@ -340,14 +340,25 @@ class SolicitudController extends Controller
         //
     }
 
-
-    public function pdf()
-    {
-
-
+    public function ordenPreparacion(){
         $ordenPreparacion = "HOlaa";
         $pdf = Pdf::loadView('pdfs.orden-de-preparacion', \compact('ordenPreparacion'));
 
         return $pdf->stream();
     }
+
+    public function remision(){
+        $ordenPreparacion = "HOlaa";
+        $pdf = Pdf::loadView('pdfs.remision', \compact('ordenPreparacion'));
+
+        return $pdf->stream();
+    }
+
+    public function envio(){
+        $ordenPreparacion = "HOlaa";
+        $pdf = Pdf::loadView('pdfs.envio', \compact('ordenPreparacion'));
+
+        return $pdf->stream();
+    }
 }
+
