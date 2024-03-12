@@ -293,7 +293,7 @@
                     <div class="w-full">
                         @foreach ($inputs as $input)
                             @if ($input->category_id == 3)
-                                <div>
+                                <div class="w-full">
                                     <div class="mb-4 flex items-baseline gap-2 w-full">
                                         <x-label class="mb-2 whitespace-nowrap">
                                             {{ $input->description }}
@@ -303,7 +303,7 @@
                                                 value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
                                                 name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                                 id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
-                                                class=""
+                                                class="w-full"
                                                 placeholder="" />
                                             <span>{{ $input->unidad }}</span>
                                             {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
@@ -391,7 +391,7 @@
                     <div class="w-full">
                         <div class="mb-4 flex items-baseline gap-2 w-full">
                             <x-label class="mb-2">
-                                Hora de entrega
+                                Fecha y hora de entrega
                             </x-label>
                             <div class="flex flex-col w-full">
                                 <x-input-solicitud type="datetime-local" value="{{ old('fecha_hora_entrega') }}"
@@ -439,7 +439,7 @@
                 </div>
             </div>
             <div class="flex justify-end gap-5">
-                <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas
+                {{-- <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas --}}
                 <x-button>
                     GUARDAR SOLICITUD
                 </x-button>
