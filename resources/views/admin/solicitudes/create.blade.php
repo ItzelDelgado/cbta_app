@@ -216,7 +216,7 @@
             <h2 class="mb-4">MACRONUTRIENTES:</h2>
             <hr>
             <div class="flex flex-row gap-4 items-center">
-                <div>
+                <div class="w-full">
                     <h3 class="mt-4">AMINOÁCIDOS</h3>
 
                     @foreach ($inputs as $input)
@@ -226,7 +226,7 @@
                                     <x-label class="mb-2 whitespace-nowrap">
                                         {{ $input->description }}
                                     </x-label>
-                                    <div class="flex flex-col w-full">
+                                    <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
                                             value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
                                             name="i_{{ $input->input_id }}_{{ $input->unidad }}"
@@ -246,11 +246,11 @@
                         @if ($input->category_id == 8)
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
-                                    <x-label class="mb-2">
+                                    <x-label class="mb-2 whitespace-nowrap">
                                         {{ $input->description }}
                                     </x-label>
-                                    <div class="flex flex-col w-full">
-                                        <x-input-solicitud type="number"
+                                    <div class="flex  w-full">
+                                        <x-input-solicitud type="number" class="w-full"
                                             value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
                                             name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                             id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
@@ -265,17 +265,17 @@
                         @endif
                     @endforeach
                 </div>
-                <div>
+                <div class="w-full">
                     <h3>CARBOHIDRATOS:</h3>
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 2)
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2">
-                                    <x-label class="mb-2">
+                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                    <x-label class="mb-2 whitespace-nowrap">
                                         {{ $input->description }}
                                     </x-label>
-                                    <div class="flex flex-col">
-                                        <x-input-solicitud type="number"
+                                    <div class="flex w-full">
+                                        <x-input-solicitud type="number" class="w-full"
                                             value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
                                             name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                             id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
@@ -290,20 +290,19 @@
                         @endif
                     @endforeach
                     <H3>LÍPIDOS:</H3>
-                    <div>
+                    <div class="w-full">
                         @foreach ($inputs as $input)
                             @if ($input->category_id == 3)
                                 <div>
-                                    <div class="mb-4 flex items-baseline gap-2">
-                                        <x-label class="mb-2">
+                                    <div class="mb-4 flex items-baseline gap-2 w-full">
+                                        <x-label class="mb-2 whitespace-nowrap">
                                             {{ $input->description }}
                                         </x-label>
-                                        <div class="flex flex-col">
-                                            <x-input-solicitud type="number"
+                                        <div class="flex w-full">
+                                            <x-input-solicitud type="number" class="w-full"
                                                 value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
                                                 name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                                 id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
-                                                class=""
                                                 placeholder="i_{{ $input->input_id }}_{{ $input->unidad }}" />
                                             <span>{{ $input->unidad }}</span>
                                             {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
@@ -324,12 +323,12 @@
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 4)
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2">
-                                    <x-label class="mb-2">
+                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                    <x-label class="mb-2 whitespace-nowrap">
                                         {{ $input->description }}
                                     </x-label>
-                                    <div class="flex flex-col">
-                                        <x-input-solicitud type="number"
+                                    <div class="flex w-full">
+                                        <x-input-solicitud type="number" class="w-full"
                                             value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
                                             name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                             id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
@@ -349,17 +348,17 @@
             <h2 class="mb-4">ADITIVOS:</h2>
             <hr>
             <div class="flex flex-row gap-4 items-start mt-4">
-                <div class="grid grid-rows-9 grid-flow-col gap-4">
+                <div class="grid grid-rows-9 grid-flow-col gap-4 w-full">
                     <div></div>
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 5)
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2">
-                                    <x-label class="mb-2">
+                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                    <x-label class="mb-2 whitespace-nowrap">
                                         {{ $input->description }}
                                     </x-label>
-                                    <div class="flex flex-col">
-                                        <x-input-solicitud type="number"
+                                    <div class="flex w-full">
+                                        <x-input-solicitud type="number" class="w-full"
                                             value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
                                             name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                             id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
@@ -386,14 +385,14 @@
                     <div class="text-red-500 text-sm">{{ $message }}</div>
                 @enderror
             </div>
-            <div class="flex flex-row gap-4 items-start">
-                <div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
+            <div class="flex flex-row gap-4 items-start w-full">
+                <div class="w-full">
+                    <div class="w-full">
+                        <div class="mb-4 flex items-baseline gap-2 w-full">
                             <x-label class="mb-2">
                                 Hora de entrega
                             </x-label>
-                            <div class="flex flex-col">
+                            <div class="flex flex-col w-full">
                                 <x-input-solicitud type="datetime-local" value="{{ old('fecha_hora_entrega') }}"
                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}" name="fecha_hora_entrega"
                                     class="" placeholder="" />
@@ -405,15 +404,15 @@
                         </div>
                     </div>
                 </div>
-                <div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
+                <div class="w-full">
+                    <div class="w-full">
+                        <div class="mb-4 flex items-baseline gap-2 w-full">
                             <x-label class="mb-2">
                                 NOMBRE DEL MÉDICO*:
                             </x-label>
-                            <div class="flex flex-col">
+                            <div class="flex flex-col w-full">
                                 <x-input-solicitud value="{{ old('nombre_medico') }}" name="nombre_medico"
-                                    class="" placeholder="" />
+                                    class="w-full" placeholder="" />
                                 <!-- Mensaje de error -->
                                 @error('nombre_medico')
                                     <div class="text-red-500 text-sm">{{ $message }}</div>
@@ -421,13 +420,13 @@
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <div class="mb-4 flex items-baseline gap-2">
+                    <div class="w-full">
+                        <div class="mb-4 flex items-baseline gap-2 w-full">
                             <x-label class="mb-2">
                                 CÉDULA*:
                             </x-label>
-                            <div class="flex flex-col">
-                                <x-input-solicitud value="{{ old('cedula') }}" name="cedula" class=""
+                            <div class="flex flex-col w-full">
+                                <x-input-solicitud value="{{ old('cedula') }}" name="cedula" class="w-full"
                                     placeholder="" />
                                 <!-- Mensaje de error -->
                                 @error('cedula')
