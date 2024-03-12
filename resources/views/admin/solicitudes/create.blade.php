@@ -231,7 +231,7 @@
                                             value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
                                             name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                             id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
-                                            placeholder="i_{{ $input->input_id }}_{{ $input->unidad }}" />
+                                            placeholder="" />
                                         <span>{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
@@ -254,7 +254,7 @@
                                             value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
                                             name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                             id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
-                                            placeholder="i_{{ $input->input_id }}_{{ $input->unidad }}" />
+                                            placeholder="" />
                                         <span>{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
@@ -279,7 +279,7 @@
                                             value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
                                             name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                             id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
-                                            placeholder="i_{{ $input->input_id }}_{{ $input->unidad }}" />
+                                            placeholder="" />
                                         <span>{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
@@ -304,7 +304,7 @@
                                                 name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                                 id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
                                                 class=""
-                                                placeholder="i_{{ $input->input_id }}_{{ $input->unidad }}" />
+                                                placeholder="" />
                                             <span>{{ $input->unidad }}</span>
                                             {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                                 <div class="text-red-500">{{ $message }}</div>
@@ -333,7 +333,7 @@
                                             value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
                                             name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                             id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
-                                            placeholder="i_{{ $input->input_id }}_{{ $input->unidad }}" />
+                                            placeholder="" />
                                         <span>{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
@@ -362,8 +362,8 @@
                                             value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
                                             name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                             id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
-                                            placeholder="i_{{ $input->input_id }}_{{ $input->unidad }}" />
-                                        <span>{{ $input->unidad }}</span>
+                                            placeholder="" /><span>{{ $input->unidad }}</span>
+                                        
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
                                         @enderror --}}
