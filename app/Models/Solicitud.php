@@ -16,6 +16,11 @@ class Solicitud extends Model
         'is_active',
     ];
 
+
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
+
     //Relacion uno a uno inversa
     public function solicitud_detail(){
         return $this->belongsTo(SolicitudDetail::class);

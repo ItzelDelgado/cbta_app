@@ -40,23 +40,23 @@
                     </th>
                 </tr>
             </thead>
-            {{-- <tbody>
-                @foreach ($hospitals as $hospital)
+            <tbody>
+                @foreach ($solicitudes as $solicitud)
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                         <th scope="row"
                             class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{ $hospital->id }}
+                            {{ $solicitud->id }}
                         </th>
                         <td class="px-6 py-4">
-                            {{ $hospital->name }}
+                            {{ $solicitud->user['name']}}
                         </td>
 
                         <td class="px-6 py-4">
-                            {{ $hospital->adress }}
+                            {{-- {{  }} --}}
                         </td>
 
                         <td class="px-6 py-4">
-                            @if ($hospital->is_active)
+                            @if ($solicitud->is_active)
                                 <div class="flex items-center">
                                     <div class="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Activo
                                 </div>
@@ -67,11 +67,11 @@
                             @endif
                         </td>
                         <td class="px-6 py-4">
-                            <a href="{{ route('admin.hospitals.edit', $hospital) }}">Editar</a>
+                            {{-- <a href="{{ route('admin.hospitals.edit', $hospital) }}">Editar</a> --}}
                         </td>
                     </tr>
                 @endforeach
-            </tbody> --}}
+            </tbody>
         </table>
     </div>
 

@@ -62,7 +62,14 @@ class User extends Authenticatable
     //     'profile_photo_url',
     // ];
     //Relacion uno a uno inversa, por que solo esta asignado a un hospital
-    public function hospital(){
+    public function hospital()
+    {
         return $this->belongsTo(Hospital::class);
+    }
+
+    //Relacion uno a uno
+    public function solicitud()
+    {
+        return $this->hasOne(Solicitud::class);
     }
 }
