@@ -43,10 +43,11 @@ class MedicineController extends Controller
     {
         $request->validate(([
             'denominacion_generica' => 'required|string|max:255',
-            'nombre_comercial' => 'required|string|max:255',
+            'denominacion_comercial' => 'required|string|max:255',
             'descripcion' => 'nullable|string|max:255',
-            'precio_ml' => 'required|numeric|regex:/^[0-9]+(\.[0-9][0-9][0-9]?)?$/',
-            'presentacion_ml' => 'required|string|max:255',
+            'precio_ml' => 'required|numeric',
+            'presentacion' => 'required|string|max:255',
+            'presentacion_ml' => 'required|numeric',
             'category_id' => 'required|exists:categories,id',
             'input_id' => 'required|exists:inputs,id',
         ]));
@@ -89,9 +90,9 @@ class MedicineController extends Controller
     {
         $request->validate(([
             'denominacion_generica' => 'required|string|max:255',
-            'nombre_comercial' => 'required|string|max:255',
+            'denominacion_comercial' => 'required|string|max:255',
             'descripcion' => 'nullable|string|max:255',
-            'precio_ml' => 'required|numeric|regex:/^[0-9]+(\.[0-9][0-9][0-9]?)?$/',
+            'precio_ml' => 'required|numeric',
             'presentacion_ml' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             //'input_id' => 'required|exists:inputs,id',

@@ -18,7 +18,7 @@
             <x-label class="mb-2">
                 Denominación comercial
             </x-label>
-            <x-input value="{{old('nombre_comercial', $medicine->nombre_comercial)}}" name="nombre_comercial" class="w-full" placeholder="Escriba la denominacion comercial del medicamento" />
+            <x-input value="{{old('denominacion_comercial', $medicine->denominacion_comercial)}}" name="denominacion_comercial" class="w-full" placeholder="Escriba la denominacion comercial del medicamento" />
         </div>
 
         <div class="mb-4">
@@ -26,7 +26,7 @@
                 Descripción
             </x-label>
             <x-select class="w-full" name="input_id">
-                
+
                     <option @selected(old('input_id') == $medicine->input["id"]) value="{{ $medicine->input["id"] }}">{{ $medicine->input["description"] }}</option>
             </x-select>
         </div>

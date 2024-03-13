@@ -40,7 +40,7 @@
                         Estado
                     </th> --}}
                     <th scope="col" class="px-6 py-3">
-                        
+
                     </th>
                 </tr>
             </thead>
@@ -55,7 +55,7 @@
                             {{ $medicine->denominacion_generica }}
                         </td>
                         <td class="px-6 py-4">
-                            {{ $medicine->nombre_comercial }}
+                            {{ $medicine->denominacion_comercial }}
                         </td>
                         <td class="px-6 py-4">
                             {{ $medicine->input["description"] }}
