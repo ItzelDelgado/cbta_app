@@ -350,7 +350,7 @@
             <hr>
             <div class="flex flex-row gap-4 items-start mt-4">
                 <div class="grid grid-rows-9 grid-flow-col gap-4 w-full">
-                    <div></div>
+             
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 5)
                             <div>

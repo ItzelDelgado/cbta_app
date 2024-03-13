@@ -4,8 +4,10 @@
     </div>
 
     <div class="flex justify-end mb-4">
-        <a class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" href="{{route('admin.solicitudes.create')}}">Agregar</a>
-        <a class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" href="">pdf</a>
+        <a class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            href="{{ route('admin.solicitudes.create') }}">Agregar</a>
+        <a class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            href="">pdf</a>
     </div>
 
 
@@ -22,10 +24,6 @@
 
                     <th scope="col" class="px-6 py-3">
                         Detalles
-                    </th>
-
-                    <th scope="col" class="px-6 py-3">
-                        Aprobar
                     </th>
 
                     <th scope="col" class="px-6 py-3">
@@ -48,37 +46,62 @@
                             {{ $solicitud->id }}
                         </th>
                         <td class="px-6 py-4">
-                            {{ $solicitud->user['name']}}
+                            {{ $solicitud->user->hospital->name }}
                         </td>
 
-                        <td class="px-6 py-4">
-                            {{-- {{  }} --}}
-                        </td>
+                        <!-- Botón para abrir el modal -->
+                        <td onclick="openModal({{ $solicitud->id }})">Ver Detalles</td>
+
+                        <!-- Modal -->
+                        <div id="modal{{ $solicitud->id }}" class="modal">
+                            <div class="modal-content">
+                                @livewire('solicitud-detalles', ['data' => $solicitud], key($solicitud->id))
+                                <button onclick="closeModal({{ $solicitud->id }})">Cerrar</button>
+                            </div>
+                        </div>
 
                         <td class="px-6 py-4">
-                            @if ($solicitud->is_active)
+                            @if ($solicitud->is_aprobada == 'Aprobada')
                                 <div class="flex items-center">
-                                    <div class="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Activo
+                                    <div class="h-2.5 w-2.5 rounded-full bg-green-500 me-2"></div> Aprobada
                                 </div>
-                            @else
+                            @elseif ($solicitud->is_aprobada == 'No aprobada')
                                 <div class="flex items-center">
-                                    <div class="h-2.5 w-2.5 rounded-full bg-red-500 me-2"></div> Inactivo
+                                    <div class="h-2.5 w-2.5 rounded-full bg-red-500 me-2"></div> No Aprobada
+                                </div>
+                            @elseif ($solicitud->is_aprobada == 'Pendiente')
+                                <div class="flex items-center">
+                                    <div class="h-2.5 w-2.5 rounded-full bg-slate-600 me-2"></div> Pendiente
                                 </div>
                             @endif
                         </td>
-                        <td class="px-6 py-4">
-                            {{-- <a href="{{ route('admin.hospitals.edit', $hospital) }}">Editar</a> --}}
-                        </td>
+                        {{-- <td class="px-6 py-4">
+                            <a href="{{ route('admin.solicitudes.edit', $solicitud->id) }}">Editar</a>
+                        </td> --}}
                     </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
 
-    {{-- <div class="mt-4">
-        {{$hospitals->links()}}
-    </div> --}}
+
+
+
+    <script>
+        function openModal(id) {
+            var modal = document.getElementById('modal' + id);
+            modal.style.display = "block";
+        }
+
+        function closeModal(id) {
+            var modal = document.getElementById('modal' + id);
+            modal.style.display = "none";
+        }
+    </script>
+
 
 
 
 </x-admin-layout>
+@push('js')
+@endpush

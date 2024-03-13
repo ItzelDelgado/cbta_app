@@ -22,8 +22,8 @@ class SolicitudController extends Controller
      */
     public function index()
     {
-        
-        $solicitudes = Solicitud::with('user','solicitud_detail', 'solicitud_patient', 'input')
+
+        $solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
             ->get();
         //return $solicitudes;
         return view('admin.solicitudes.index', compact('solicitudes'));
@@ -230,7 +230,7 @@ class SolicitudController extends Controller
                     ->get();
 
                 $suma_volumen_sobrellenado_ml = 0;
-                
+
                 foreach ($inputs_valores as $input_val) {
                     // dump("Input valorrr----");
                     // dump($input_val);
@@ -308,12 +308,22 @@ class SolicitudController extends Controller
         return redirect()->route('admin.solicitudes.index');
     }
 
-      /**
+    /**
      * Display the specified resource.
      */
-    public function show(Solicitud $solicitud)
+    // public function show(Solicitud $solicitud)
+    // {
+    //     // $solicitud = SolicitudInput::select('id')
+    //     //     ->where('solicitud_id', $id)
+    //     //     ->get();
+    //     // var_dump("Entramos al controller");
+    //     return $solicitud;
+    //     //return response()->json($solicitud);
+    // }
+    public function show($id)
     {
-        //
+        $solicitud = Solicitud::findOrFail($id);
+        return response()->json($solicitud);
     }
 
     /**
@@ -321,7 +331,8 @@ class SolicitudController extends Controller
      */
     public function edit(Solicitud $solicitud)
     {
-        //
+
+        return $solicitud;
     }
 
     /**
@@ -340,25 +351,27 @@ class SolicitudController extends Controller
         //
     }
 
-    public function ordenPreparacion(){
+    public function ordenPreparacion()
+    {
         $ordenPreparacion = "HOlaa";
         $pdf = Pdf::loadView('pdfs.orden-de-preparacion', \compact('ordenPreparacion'));
 
         return $pdf->stream();
     }
 
-    public function remision(){
+    public function remision()
+    {
         $ordenPreparacion = "HOlaa";
         $pdf = Pdf::loadView('pdfs.remision', \compact('ordenPreparacion'));
 
         return $pdf->stream();
     }
 
-    public function envio(){
+    public function envio()
+    {
         $ordenPreparacion = "HOlaa";
         $pdf = Pdf::loadView('pdfs.envio', \compact('ordenPreparacion'));
 
         return $pdf->stream();
     }
 }
-

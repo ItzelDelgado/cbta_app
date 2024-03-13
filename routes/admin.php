@@ -28,6 +28,8 @@ Route::resource('/hospitals', HospitalController::class)
 Route::resource('/medicines', MedicineController::class)
 ->except(['destroy']);
 
+Route::get('/solicitudes/{id}', [SolicitudController::class, 'show'])->name('solicitudes.show');
+
 Route::resource('/solicitudes', SolicitudController::class)
 ->except(['destroy']);
 
