@@ -50,15 +50,9 @@
                         </td>
 
                         <!-- Botón para abrir el modal -->
-                        <td onclick="openModal({{ $solicitud->id }})">Ver Detalles</td>
-
-                        <!-- Modal -->
-                        <div id="modal{{ $solicitud->id }}" class="modal">
-                            <div class="modal-content">
-                                @livewire('solicitud-detalles', ['data' => $solicitud], key($solicitud->id))
-                                <button onclick="closeModal({{ $solicitud->id }})">Cerrar</button>
-                            </div>
-                        </div>
+                        <td class="px-6 py-4">
+                            <a href="{{ route('admin.solicitudes.edit', $solicitud) }}">Editar</a>
+                        </td>
 
                         <td class="px-6 py-4">
                             @if ($solicitud->is_aprobada == 'Aprobada')
@@ -76,7 +70,7 @@
                             @endif
                         </td>
                         {{-- <td class="px-6 py-4">
-                            <a href="{{ route('admin.solicitudes.edit', $solicitud->id) }}">Editar</a>
+                            <a href="{{ route('admin.solicitudes.edit', $solicitud) }}">Editar</a>
                         </td> --}}
                     </tr>
                 @endforeach
@@ -87,21 +81,7 @@
 
 
 
-    <script>
-        function openModal(id) {
-            var modal = document.getElementById('modal' + id);
-            modal.style.display = "block";
-        }
-
-        function closeModal(id) {
-            var modal = document.getElementById('modal' + id);
-            modal.style.display = "none";
-        }
-    </script>
-
 
 
 
 </x-admin-layout>
-@push('js')
-@endpush
