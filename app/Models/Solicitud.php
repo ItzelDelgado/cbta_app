@@ -18,21 +18,38 @@ class Solicitud extends Model
     ];
 
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
     //Relacion uno a uno inversa
-    public function solicitud_detail(){
+    public function solicitud_detail()
+    {
         return $this->belongsTo(SolicitudDetail::class);
     }
 
     //Relacion uno a uno inversa
-    public function solicitud_patient(){
+    public function solicitud_patient()
+    {
         return $this->belongsTo(SolicitudPatient::class);
     }
 
-    public function input(){
+    public function input()
+    {
         return $this->hasMany(SolicitudInput::class);
     }
+
+
+    // public function getInputValue($inputId)
+    // {
+    //     $detail = $this->input->firstWhere('id', $inputId);
+    //     if ($detail) {
+    //         return $detail->value;
+    //     }
+
+    //     return null;
+    // }
+
+    
 }

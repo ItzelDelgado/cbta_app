@@ -331,8 +331,19 @@ class SolicitudController extends Controller
      */
     public function edit(Solicitud $solicitud)
     {
+        //$solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+        // ->get();
+        $solicitud = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+            ->find($solicitud->id);
+        $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
+        //return $inputs_solicitud;
+        $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
+            ->where('inputs.is_active', 1)
+            ->orderBy('orden_enum', 'asc')
+            ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
+            ->get();
 
-        return $solicitud;
+        return view('admin.solicitudes.edit', compact('solicitud', 'inputs', 'inputs_solicitud'));
     }
 
     /**
