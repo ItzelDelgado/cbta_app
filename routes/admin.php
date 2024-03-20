@@ -28,8 +28,7 @@ Route::resource('/hospitals', HospitalController::class)
 Route::resource('/medicines', MedicineController::class)
 ->except(['destroy']);
 
-Route::resource('/solicitudes', SolicitudController::class)
-->except(['destroy']);
+Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy']);
 
 Route::get('/orden-de-preparacion', [SolicitudController::class, 'ordenPreparacion'])->name('preparacion');
 

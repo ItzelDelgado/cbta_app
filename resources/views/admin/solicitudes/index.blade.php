@@ -51,8 +51,16 @@
 
                         <!-- Botón para abrir el modal -->
                         <td class="px-6 py-4">
-                            <a href="{{ route('admin.solicitudes.edit', $solicitud) }}">Editar</a>
+                            <a class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" href="{{ route('admin.solicitudes.edit', $solicitud) }}">Aprobar</a>
                         </td>
+
+                        <!-- Modal -->
+                        {{-- <div id="modal{{ $solicitud->id }}" class="modal">
+                            <div class="modal-content">
+                                @livewire('solicitud-detalles', ['data' => $solicitud], key($solicitud->id))
+                                <button onclick="closeModal({{ $solicitud->id }})">Cerrar</button>
+                            </div>
+                        </div> --}}
 
                         <td class="px-6 py-4">
                             @if ($solicitud->is_aprobada == 'Aprobada')
@@ -70,15 +78,13 @@
                             @endif
                         </td>
                         {{-- <td class="px-6 py-4">
-                            <a href="{{ route('admin.solicitudes.edit', $solicitud) }}">Editar</a>
+                            <a href="{{ route('admin.solicitudes.edit', $solicitud->id) }}">Editar</a>
                         </td> --}}
                     </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
-
-
 
 
 

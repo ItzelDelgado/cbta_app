@@ -320,11 +320,11 @@ class SolicitudController extends Controller
     //     return $solicitud;
     //     //return response()->json($solicitud);
     // }
-    public function show($id)
-    {
-        $solicitud = Solicitud::findOrFail($id);
-        return response()->json($solicitud);
-    }
+    // public function show($id)
+    // {
+    //     $solicitud = Solicitud::findOrFail($id);
+    //     return response()->json($solicitud);
+    // }
 
     /**
      * Show the form for editing the specified resource.

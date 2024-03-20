@@ -14,6 +14,7 @@ class Solicitud extends Model
         'solicitud_detail_id',
         'solicitud_patient_id',
         'is_active',
+        'is_aprobada'
     ];
 
 
