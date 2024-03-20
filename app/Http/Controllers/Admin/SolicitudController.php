@@ -385,4 +385,21 @@ class SolicitudController extends Controller
 
         return $pdf->stream();
     }
+
+    public function etiqueta()
+    {
+        $ordenPreparacion = "HOlaa";
+        $customPaper = [0, 0, 368.50, 255.12]; // 9cm x 13cm en puntos
+        $options = [
+            'margin-top'    => 0,
+            'margin-right'  => 0,
+            'margin-bottom' => 0,
+            'margin-left'   => 0,
+            // Puedes añadir más opciones de configuración según necesites
+        ];
+        $pdf = Pdf::loadView('pdfs.etiqueta', \compact('ordenPreparacion'))
+                ->setPaper($customPaper, 'landscape');
+
+        return $pdf->stream();
+    }
 }
