@@ -1,18 +1,6 @@
 @php
-    // Define una función que utiliza el fragmento de código y toma $input como argumento
-    function renderInputSection($id)
-    {
-        $inputValue = '';
-        foreach ($inputs_solicitud as $inputItem) {
-            if ($inputItem->id == $id) {
-                $inputValue = $inputItem->valor;
-                break;
-            }
-        }
-
-        // Devuelve el valor de $inputValue
-        return $inputValue;
-    }
+    // Incluye manualmente el archivo helpers.php
+    require_once app_path('Helpers/helpers.php');
 @endphp
 
 <x-admin-layout>
@@ -21,10 +9,11 @@
         <div class="mt-2 mb-4">
             <h1 class="text-2xl font-medium text-gray-800 text-center">SOLICITUD DE NUTRICIÓN PARENTERAL</h1>
         </div>
-        <form action="{{ route('admin.solicitudes.store') }}" method="POST" class="bg-white rounded-lg p-6 shadow-lg">
+        <form action="{{ route('admin.solicitudes.update', $solicitud) }}" method="POST" class="bg-white rounded-lg p-6 shadow-lg">
             @csrf
 
-
+            @method('PUT')
+            <x-validation-errors class="mb-4" />
 
             <div class="flex gap-4">
                 <div class="mb-4 flex  items-baseline gap-2 w-full">
@@ -242,7 +231,8 @@
 
             <h2 class="mb-4">MACRONUTRIENTES:</h2>
             <hr>
-            <div class="flex flex-row gap-4 items-center">
+            {{-- agregar flexbox  flex flex-row --}}
+            <div class=" gap-4 items-center">
                 <div class="w-full">
                     <h3 class="mt-4">AMINOÁCIDOS</h3>
 
@@ -255,15 +245,39 @@
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
-                                            value="{{ old('i_' . $input->input_id . '_' . $input->unidad, renderInputSection($input->input_id)) }}"
-                                            name="i_{{ $input->input_id }}_{{ $input->unidad }}"
-                                            id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
+                                            value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                            name="i_{{ $input->input_id }}"
+                                            id="i_{{ $input->input_id }}" step="0.0001"
                                             placeholder="" />
                                         <span>{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
                                         @enderror --}}
                                     </div>
+
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Lote
+                                    </x-label>
+                                    <div class="flex w-full">
+                                        <x-input-solicitud class="w-full"
+                                            value="{{ old('l_' . $input->input_id) }}"
+                                            name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                            step="0.0001" placeholder="" />
+                                    </div>
+
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Caducidad
+                                    </x-label>
+                                    <div class="flex w-full">
+                                        {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
+                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
+                                                class="" placeholder="" /> --}}
+                                        <x-input-solicitud type="date" value="{{ old('c_' . $input->input_id) }}"
+                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                            id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                            class="" placeholder="" />
+                                    </div>
+
                                 </div>
 
                             </div>
@@ -278,14 +292,36 @@
                                     </x-label>
                                     <div class="flex  w-full">
                                         <x-input-solicitud type="number" class="w-full"
-                                            value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
-                                            name="i_{{ $input->input_id }}_{{ $input->unidad }}"
-                                            id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
+                                            value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                            name="i_{{ $input->input_id }}"
+                                            id="i_{{ $input->input_id }}" step="0.0001"
                                             placeholder="" />
                                         <span>{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
                                         @enderror --}}
+                                    </div>
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Lote
+                                    </x-label>
+                                    <div class="flex w-full">
+                                        <x-input-solicitud class="w-full"
+                                            value="{{ old('l_' . $input->input_id) }}"
+                                            name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                            step="0.0001" placeholder="" />
+                                    </div>
+
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Caducidad
+                                    </x-label>
+                                    <div class="flex w-full">
+                                        {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
+                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
+                                                class="" placeholder="" /> --}}
+                                        <x-input-solicitud type="date" value="{{ old('c_' . $input->input_id) }}"
+                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                            id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                            class="" placeholder="" />
                                     </div>
                                 </div>
                             </div>
@@ -303,14 +339,36 @@
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
-                                            value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
-                                            name="i_{{ $input->input_id }}_{{ $input->unidad }}"
-                                            id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
+                                            value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                            name="i_{{ $input->input_id }}"
+                                            id="i_{{ $input->input_id }}" step="0.0001"
                                             placeholder="" />
                                         <span>{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
                                         @enderror --}}
+                                    </div>
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Lote
+                                    </x-label>
+                                    <div class="flex w-full">
+                                        <x-input-solicitud class="w-full"
+                                            value="{{ old('l_' . $input->input_id) }}"
+                                            name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                            step="0.0001" placeholder="" />
+                                    </div>
+
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Caducidad
+                                    </x-label>
+                                    <div class="flex w-full">
+                                        {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
+                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
+                                                class="" placeholder="" /> --}}
+                                        <x-input-solicitud type="date" value="{{ old('c_' . $input->input_id) }}"
+                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                            id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                            class="" placeholder="" />
                                     </div>
                                 </div>
                             </div>
@@ -327,14 +385,36 @@
                                         </x-label>
                                         <div class="flex w-full">
                                             <x-input-solicitud type="number" class="w-full"
-                                                value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
-                                                name="i_{{ $input->input_id }}_{{ $input->unidad }}"
-                                                id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
+                                                value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                                name="i_{{ $input->input_id }}"
+                                                id="i_{{ $input->input_id }}" step="0.0001"
                                                 class="w-full" placeholder="" />
                                             <span>{{ $input->unidad }}</span>
                                             {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                                 <div class="text-red-500">{{ $message }}</div>
                                             @enderror --}}
+                                        </div>
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Lote
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            <x-input-solicitud class="w-full"
+                                                value="{{ old('l_' . $input->input_id) }}"
+                                                name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                                step="0.0001" placeholder="" />
+                                        </div>
+    
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Caducidad
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
+                                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
+                                                    class="" placeholder="" /> --}}
+                                            <x-input-solicitud type="date" value="{{ old('c_' . $input->input_id) }}"
+                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                class="" placeholder="" />
                                         </div>
                                     </div>
                                 </div>
@@ -345,8 +425,9 @@
             </div>
             <h2 class="mb-4">ELECTROLITOS</h2>
             <hr>
-            <div class="flex flex-row gap-4 items-start mt-4">
-                <div class="grid grid-rows-4 grid-flow-col gap-4">
+            <div class="gap-4 items-start mt-4">
+                {{-- agregar grid grid grid-rows-4 --}}
+                <div class=" grid-flow-col gap-4">
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 4)
                             <div>
@@ -356,14 +437,36 @@
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
-                                            value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
-                                            name="i_{{ $input->input_id }}_{{ $input->unidad }}"
-                                            id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
+                                            value="{{ old('i_' . $input->input_id , renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                            name="i_{{ $input->input_id }}"
+                                            id="i_{{ $input->input_id }}" step="0.0001"
                                             placeholder="" />
                                         <span>{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
                                         @enderror --}}
+                                    </div>
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Lote
+                                    </x-label>
+                                    <div class="flex w-full">
+                                        <x-input-solicitud class="w-full"
+                                            value="{{ old('l_' . $input->input_id) }}"
+                                            name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                            step="0.0001" placeholder="" />
+                                    </div>
+
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Caducidad
+                                    </x-label>
+                                    <div class="flex w-full">
+                                        {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
+                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
+                                                class="" placeholder="" /> --}}
+                                        <x-input-solicitud type="date" value="{{ old('c_' . $input->input_id) }}"
+                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                            id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                            class="" placeholder="" />
                                     </div>
                                 </div>
 
@@ -374,8 +477,9 @@
             </div>
             <h2 class="mb-4">ADITIVOS:</h2>
             <hr>
-            <div class="flex flex-row gap-4 items-start mt-4">
-                <div class="grid grid-rows-9 grid-flow-col gap-4 w-full">
+            <div class=" gap-4 items-start mt-4">
+                {{-- agregar grid grid-rows-9 grid-flow-col --}}
+                <div class="  gap-4 w-full">
 
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 5)
@@ -386,14 +490,36 @@
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
-                                            value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
-                                            name="i_{{ $input->input_id }}_{{ $input->unidad }}"
-                                            id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
+                                            value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                            name="i_{{ $input->input_id }}"
+                                            id="i_{{ $input->input_id }}" step="0.0001"
                                             placeholder="" /><span>{{ $input->unidad }}</span>
 
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
                                         @enderror --}}
+                                    </div>
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Lote
+                                    </x-label>
+                                    <div class="flex w-full">
+                                        <x-input-solicitud class="w-full"
+                                            value="{{ old('l_' . $input->input_id) }}"
+                                            name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                            step="0.0001" placeholder="" />
+                                    </div>
+
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Caducidad
+                                    </x-label>
+                                    <div class="flex w-full">
+                                        {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
+                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
+                                                class="" placeholder="" /> --}}
+                                        <x-input-solicitud type="date" value="{{ old('c_' . $input->input_id) }}"
+                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                            id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                            class="" placeholder="" />
                                     </div>
                                 </div>
                             </div>
@@ -406,7 +532,7 @@
                 <x-label class="mb-2">
                     OBSERVACIONES
                 </x-label>
-                <textarea class="border-2 border-solid w-full resize-x overflow-auto h-20" name="observaciones">{{ old('observaciones') }}</textarea>
+                <textarea class="border-2 border-solid w-full resize-x overflow-auto h-20" name="observaciones">{{ old('observaciones', $solicitud->solicitud_detail->observaciones) }}</textarea>
                 <!-- Mensaje de error -->
                 @error('observaciones')
                     <div class="text-red-500 text-sm">{{ $message }}</div>
@@ -420,9 +546,10 @@
                                 Fecha y hora de entrega
                             </x-label>
                             <div class="flex flex-col w-full">
-                                <x-input-solicitud type="datetime-local" value="{{ old('fecha_hora_entrega') }}"
-                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}" name="fecha_hora_entrega"
-                                    class="" placeholder="" />
+                                <x-input-solicitud type="datetime-local"
+                                    value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega) }}"
+                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
+                                    name="fecha_hora_entrega" class="" placeholder="" />
                                 <!-- Mensaje de error -->
                                 @error('fecha_hora_entrega')
                                     <div class="text-red-500 text-sm">{{ $message }}</div>
@@ -438,8 +565,9 @@
                                 NOMBRE DEL MÉDICO*:
                             </x-label>
                             <div class="flex flex-col w-full">
-                                <x-input-solicitud value="{{ old('nombre_medico') }}" name="nombre_medico"
-                                    class="w-full" placeholder="" />
+                                <x-input-solicitud
+                                    value="{{ old('nombre_medico', $solicitud->solicitud_detail->nombre_medico) }}"
+                                    name="nombre_medico" class="w-full" placeholder="" />
                                 <!-- Mensaje de error -->
                                 @error('nombre_medico')
                                     <div class="text-red-500 text-sm">{{ $message }}</div>
@@ -453,8 +581,8 @@
                                 CÉDULA*:
                             </x-label>
                             <div class="flex flex-col w-full">
-                                <x-input-solicitud value="{{ old('cedula') }}" name="cedula" class="w-full"
-                                    placeholder="" />
+                                <x-input-solicitud value="{{ old('cedula', $solicitud->solicitud_detail->cedula) }}"
+                                    name="cedula" class="w-full" placeholder="" />
                                 <!-- Mensaje de error -->
                                 @error('cedula')
                                     <div class="text-red-500 text-sm">{{ $message }}</div>
