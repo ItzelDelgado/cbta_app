@@ -477,7 +477,20 @@ class SolicitudController extends Controller
         //         echo "La clave 'c_{$numero}' no está presente en la tripleta\n";
         //     }
         // }
-        print_r($suma_volumen_ml);
+        // print_r($suma_volumen_ml);
+
+        session()->flash(
+            'swal',
+            [
+                'title' => "¡Bien hecho!",
+                'text' => "La solicitud se ha aprobado con éxito.",
+                'icon' => "success"
+
+            ]
+        );
+
+
+        return redirect()->route('admin.solicitudes.index');
         // //dump($suma_volumen_ml);
         // //dump("Imprimi antes la suma de los valores");
         // if ($registro->sobrellenado_ml != null) {

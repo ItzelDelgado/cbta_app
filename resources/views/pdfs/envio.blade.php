@@ -10,6 +10,10 @@
 
 
     <style>
+        @page {
+            margin: 1rem;
+        }
+
         /* Estilos básicos */
         body {
             margin: 0;
@@ -78,7 +82,6 @@
             overflow: auto;
             /* Hace desplazable el contenido que exceda el tamaño del td */
         }
-
     </style>
 
 </head>
@@ -89,12 +92,13 @@
     <div class="contenedor">
         <!-- Contenedor principal con borde negro -->
         <div>
-            <table class="introduccion" style="width: 650px; margin: 0 auto">
+            <table class="introduccion">
                 <tr>
                     <td>
-                        LOGO
+                        <img style="width: 7rem; margin: 1rem 0" src="{{ asset('img/Centro Biotecnologico de Terapias Avanzadas.png') }}"
+                        alt="">
                     </td>
-                    <td style="text-align: center; padding-right: 2rem">
+                    <td style="text-align: center; padding-right: 171px; font-weight: bold; font-size: 15px">
                         <strong>HOSPITAL ANGELES METROPOLITANO</strong>
                     </td>
                     <td>
@@ -117,64 +121,82 @@
             </table>
             <table style="tabla-format">
                 <tr>
-                    <td style="text-align: center; border-top: 1px solid black; border-bottom: none"><strong>DATOS DEL
+                    <td style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0"><strong>DATOS DEL
                             PACIENTE</strong></td>
                 </tr>
             </table>
             <table style="tabla-format">
                 <tr>
-                    <th style="width: 50%">NOMBRE COMPLETO</th>
-                    <th style="width: 20%">FECHA DE NACIMIENTO</th>
-                    <th style="width: 5%">EDAD(a)</th>
-                    <th style="width: 5%">GENERO</th>
-                    <th style="width: 20%">SUPERFICIE CORPORAL (m2)</th>
+                    <th style="background: #D9E2F3; width: 40%; padding: 8px 0; text-align: center">NOMBRE COMPLETO</th>
+                    <th style="background: #D9E2F3; width: 20%; text-align: center">FECHA DE NACIMIENTO</th>
+                    <th style="background: #D9E2F3; width: 10%; text-align: center">EDAD(a)</th>
+                    <th style="background: #D9E2F3; width: 10%; text-align: center">GENERO</th>
+                    <th style="background: #D9E2F3; width: 20%; text-align: center">SUPERFICIE CORPORAL (m2)</th>
                 </tr>
 
                 <tr>
                     <td>EDA BERNARDA SUAREZ RIOX</td>
                     <td>20/ago/1967</td>
-                    <td>55</td>
-                    <td>F</td>
-                    <td>S/D</td>
+                    <td style="text-align: center">55</td>
+                    <td style="text-align: center">F</td>
+                    <td style="text-align: center">S/D</td>
                 </tr>
             </table>
             <table style="tabla-format">
                 <tr>
-                    <th style="border-top: none; width: 50%">DIAGNOSTICO</th>
-                    <th style="border-top: none; width: 20%">SERVICIOS</th>
-                    <th style="border-top: none; width: 10%%">No. De EXPREDIENTE</th>
-                    <th style="border-top: none; width: 20%">MÉDICO TRATANTE</th>
+                    <th style="background: #D9E2F3; border-top: none; width: 40%; padding: 8px 0; text-align: center">DIAGNOSTICO</th>
+                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center">SERVICIOS</th>
+                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center">No. De EXPREDIENTE</th>
+                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center">MÉDICO TRATANTE</th>
                 </tr>
                 <tr>
                     <td>ENFERMEDAD DE STILL</td>
-                    <td>Medicina interna</td>
-                    <td></td>
-                    <td>Dr.Alfonso Fajardo R</td>
+                    <td style="text-align: center">Medicina interna</td>
+                    <td style="text-align: center"></td>
+                    <td style="text-align: center">Dr.Alfonso Fajardo R</td>
                 </tr>
             </table>
             <table style="tabla-format">
                 <tr>
-                    <td style="border-top: none"><strong>DATOS DE LAS MEZCLAS</strong></td>
+                    <td style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0"><strong>DATOS DE LAS MEZCLAS</strong></td>
                 </tr>
             </table>
             <table style="tabla-format">
                 <tr>
-                    <th style="border-top: none; width: 5%"><strong>No</strong></th>
-                    <th style="border-top: none; width: 25%"><strong>MEDICAMENTO</strong></th>
-                    <th style="border-top: none; width: 10%"><strong>DOSIS</strong></th>
-                    <th style="border-top: none; width: 10%"><strong>VOLUMEN</strong></th>
-                    <th style="border-top: none; width: 10%"><strong>LOTE DE LA MEZCLA</strong></th>
-                    <th style="border-top: none; width: 20%"><strong>FECHA\HORA DE PREPARACIÓN</strong></th>
-                    <th style="border-top: none; width: 20%"><strong>FECHA\HORA DE LIMITE DE USO</strong></th>
+                    <th style="background: #D9E2F3; border-top: none; width: 5%; text-align: center"><strong>No</strong></th>
+                    <th style="background: #D9E2F3; border-top: none; width: 25%; text-align: center"><strong>MEDICAMENTO</strong></th>
+                    <th style="background: #D9E2F3; border-top: none; width: 10%; text-align: center"><strong>DOSIS</strong></th>
+                    <th style="background: #D9E2F3; border-top: none; width: 10%; text-align: center"><strong>VOLUMEN</strong></th>
+                    <th style="background: #D9E2F3; border-top: none; width: 10%; text-align: center"><strong>LOTE DE LA MEZCLA</strong></th>
+                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center"><strong>FECHA\HORA DE PREPARACIÓN</strong></th>
+                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center"><strong>FECHA\HORA DE LIMITE DE USO</strong></th>
                 </tr>
                 <tr>
                     <td>1</td>
-                    <td><strong>AMINOACIDOS 8%CR</strong></td>
-                    <td><strong>70</strong>g</td>
-                    <td>1967,00mL</td>
-                    <td>N16122302</td>
-                    <td>16/dic/2023 16:00h</td>
-                    <td>18/dic/2023 16:00h</td>
+                    <td style="text-align: center"><strong>AMINOACIDOS 8%CR</strong></td>
+                    <td style="text-align: center"><strong>70</strong>g</td>
+                    <td style="text-align: center">1967,00mL</td>
+                    <td style="text-align: center">N16122302</td>
+                    <td style="text-align: center">16/dic/2023 16:00h</td>
+                    <td style="text-align: center">18/dic/2023 16:00h</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td style="text-align: center"><strong>AMINOACIDOS 8%CR</strong></td>
+                    <td style="text-align: center"><strong>70</strong>g</td>
+                    <td style="text-align: center">1967,00mL</td>
+                    <td style="text-align: center">N16122302</td>
+                    <td style="text-align: center">16/dic/2023 16:00h</td>
+                    <td style="text-align: center">18/dic/2023 16:00h</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td style="text-align: center"><strong>AMINOACIDOS 8%CR</strong></td>
+                    <td style="text-align: center"><strong>70</strong>g</td>
+                    <td style="text-align: center">1967,00mL</td>
+                    <td style="text-align: center">N16122302</td>
+                    <td style="text-align: center">16/dic/2023 16:00h</td>
+                    <td style="text-align: center">18/dic/2023 16:00h</td>
                 </tr>
             </table>
             <table>
@@ -189,7 +211,7 @@
                 </tr>
                 <tr>
                     <td style="border: none;">
-                        Fecha: <span style="border-bottom: 1px solid black;">16/20/28</span>
+                        Fecha: <span style="border-bottom: 1px solid black; text-align: center">16/20/28</span>
                     </td>
                 </tr>
                 <tr>

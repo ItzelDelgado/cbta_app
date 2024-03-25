@@ -8,8 +8,11 @@
 
     <title>Orden de preparación</title>
 
-
     <style>
+        @page {
+            margin: 1rem;
+        }
+
         /* Estilos básicos */
         body {
             margin: 0;
@@ -65,18 +68,17 @@
             padding: 0 8px;
         }
 
-        .firmas td{
+        .firmas td {
             border: none;
             text-align: center;
             border-top: 1px solid black;
         }
 
-        .elementos td{
+        .elementos td {
             margin: 0;
             padding: 0 8px;
-            
-        }
 
+        }
     </style>
 
 </head>
@@ -90,9 +92,10 @@
             <table>
                 <tr>
                     <td>
-                        {{ $ordenPreparacion }}
+                        <img style="width: 7rem" src="{{ asset('img/Centro Biotecnologico de Terapias Avanzadas.png') }}"
+                            alt="">
                     </td>
-                    <td style="text-align: center; padding-right: 2rem">
+                    <td style="text-align: center; padding-right: 171px;  font-size: 13px">
                         <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM <br> NUTRICIONES PARENTERALES</strong>
                     </td>
                     <td>
@@ -108,14 +111,15 @@
                 </td>
             </tr>
             <tr style="background-color: #1F4E78; color: white; font-weight: bold;">
-                <td style="text-align: center">ORDEN DE PREPARACIÓN DE NUTRICIÓN PARENTERAL TOTAL</td>
+                <td style="text-align: center;">ORDEN DE PREPARACIÓN DE NUTRICIÓN PARENTERAL TOTAL</td>
             </tr>
         </table>
 
         <table>
             <tr>
                 <td style="border: none; text-align: right"><strong>Fecha de elaboración:</strong>
-                    <span>29-nov-23</span></td>
+                    <span>29-nov-23</span>
+                </td>
             </tr>
             <tr>
                 <td style="border: none;"><strong>LIBERACIÓN DE ÁREA</strong></td>
@@ -212,14 +216,14 @@
         <table class="elementos">
             <thead>
                 <tr>
-                    <th>&nbsp;</th>
-                    <th>Volumen(mL)</th>
-                    <th>Dosis</th>
-                    <th>Denominaci&oacute;n g&eacute;nerica</th>
-                    <th>Denominaci&oacute;n comercial</th>
-                    <th>Presentaci&oacute;n</th>
-                    <th>Lote</th>
-                    <th>Caducidad</th>
+                    <th style="background: #D9E2F3;">&nbsp;</th>
+                    <th style="background: #D9E2F3;">Volumen(mL)</th>
+                    <th style="background: #D9E2F3;">Dosis</th>
+                    <th style="background: #D9E2F3;">Denominaci&oacute;n g&eacute;nerica</th>
+                    <th style="background: #D9E2F3;">Denominaci&oacute;n comercial</th>
+                    <th style="background: #D9E2F3;">Presentaci&oacute;n</th>
+                    <th style="background: #D9E2F3;">Lote</th>
+                    <th style="background: #D9E2F3;">Caducidad</th>
                 </tr>
             </thead>
             <tbody>
@@ -274,11 +278,11 @@
         <p style="padding: 8px; text-align: center; margin: 0;"><strong>Bolsa EVA</strong></p>
         <table>
             <tr>
-                <td></td>
-                <td><strong>No. de lote</strong></td>
-                <td><strong>Caducidad</strong></td>
-                <td><strong>Nombre comercial</strong></td>
-                <td><strong>Nombre genérico</strong></td>
+                <td style="background: #D9E2F3;"></td>
+                <td style="background: #D9E2F3;"><strong>No. de lote</strong></td>
+                <td style="background: #D9E2F3;"><strong>Caducidad</strong></td>
+                <td style="background: #D9E2F3;"><strong>Nombre comercial</strong></td>
+                <td style="background: #D9E2F3;"><strong>Nombre genérico</strong></td>
             </tr>
             <tr>
                 <td>1</td>
@@ -291,11 +295,11 @@
         <p style="padding: 8px; text-align: center; margin: 0;"><strong>Bolsa EVA</strong></p>
         <table>
             <tr>
-                <td></td>
-                <td><strong>No. de lote</strong></td>
-                <td><strong>Caducidad</strong></td>
-                <td><strong>Nombre comercial</strong></td>
-                <td><strong>Nombre genérico</strong></td>
+                <td style="background: #D9E2F3;"></td>
+                <td style="background: #D9E2F3;"><strong>No. de lote</strong></td>
+                <td style="background: #D9E2F3;"><strong>Caducidad</strong></td>
+                <td style="background: #D9E2F3;"><strong>Nombre comercial</strong></td>
+                <td style="background: #D9E2F3;"><strong>Nombre genérico</strong></td>
             </tr>
             <tr>
                 <td>1</td>
