@@ -99,10 +99,53 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>Cliente</td>
+                    <td>Cliente: HOSPITAL ÁNGELES METROPOLITANO</td>
+                    <td>Lote: N17122301</td>
+                </tr>
+                <tr>
+                    <td>Paciente: MARCO ANTONIO PEREZ MORENO</td>
+                    <td>FN: 31-oct-66</td>
+                </tr>
+                <tr>
+                    <td>Médico: Dr. Antonio Faiardo</td>
+                </tr>
+                <tr>
+                    <td>NUTRICIÓN PARENTERAL</td>
                 </tr>
             </table>
-
+            <table>
+                <tr>
+                    <td>COMPONENTES</td>
+                    <td>CONTENIDO</td>
+                </tr>
+                <tr>
+                    <td>AMINOACIDOS  8% CR</td>
+                    <td>52,8 g</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td>Osmolaridad: 1209,823077</td>
+                    <td>Vol. tot: 1572,77</td>
+                </tr>
+                <tr>
+                    <td>Sobrellenado: 0</td>
+                </tr>
+                <tr>
+                    <td>Administrar en: 24</td>
+                    <td>Vel. Infusión: 1,092201389 ml/min</td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td>MANTENER EN REFIGERACIÓN <br>
+                        HASTA UNA HORA ANTES DE SU ADMINISTRACIÓN</td>
+                </tr>
+                <tr>
+                    <td>Fecha y hora de preparación: 17-dic-23 8:30:00</td>
+                    <td>Fecha y hora límite de uso: 19-dic-23 8:30:00</td>
+                </tr>
+            </table>
         </div>
 </body>
 

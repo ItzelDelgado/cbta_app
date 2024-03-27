@@ -34,4 +34,6 @@ Route::get('/orden-de-preparacion', [SolicitudController::class, 'ordenPreparaci
 
 Route::get('/remision', [SolicitudController::class, 'remision'])->name('remision');
 
+Route::get('/envio', [SolicitudController::class, 'envio'])->name('envio');
+
 Route::get('/etiqueta', [SolicitudController::class, 'etiqueta'])->name('etiqueta');
