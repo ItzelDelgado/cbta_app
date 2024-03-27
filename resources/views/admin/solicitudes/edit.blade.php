@@ -9,7 +9,8 @@
         <div class="mt-2 mb-4">
             <h1 class="text-2xl font-medium text-gray-800 text-center">SOLICITUD DE NUTRICIÓN PARENTERAL</h1>
         </div>
-        <form action="{{ route('admin.solicitudes.update', $solicitud) }}" method="POST" class="bg-white rounded-lg p-6 shadow-lg">
+        <form id="solicitudForm" action="{{ route('admin.solicitudes.update', $solicitud) }}" method="POST"
+            class="bg-white rounded-lg p-6 shadow-lg">
             @csrf
 
             @method('PUT')
@@ -163,7 +164,8 @@
                     </x-label>
                     <x-select class="w-full" name="via_administracion">
                         <option value="Central" @if (old('via_administracion', $solicitud->solicitud_detail->via_administracion) == 'Central') selected @endif>Central</option>
-                        <option value="Periférica" @if (old('via_administracion', $solicitud->solicitud_detail->via_administracion) == 'Periférica') selected @endif>Periférica</option>
+                        <option value="Periférica" @if (old('via_administracion', $solicitud->solicitud_detail->via_administracion) == 'Periférica') selected @endif>Periférica
+                        </option>
                     </x-select>
                     <!-- Mensaje de error -->
                     @error('via_administracion')
@@ -246,9 +248,8 @@
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
                                             value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="i_{{ $input->input_id }}"
-                                            id="i_{{ $input->input_id }}" step="0.0001"
-                                            placeholder="" />
+                                            name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                            step="0.0001" placeholder="" />
                                         <span>{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
@@ -259,8 +260,7 @@
                                         Lote
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud class="w-full"
-                                            value="{{ old('l_' . $input->input_id) }}"
+                                        <x-input-solicitud class="w-full" value="{{ old('l_' . $input->input_id) }}"
                                             name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                             step="0.0001" placeholder="" />
                                     </div>
@@ -293,9 +293,8 @@
                                     <div class="flex  w-full">
                                         <x-input-solicitud type="number" class="w-full"
                                             value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="i_{{ $input->input_id }}"
-                                            id="i_{{ $input->input_id }}" step="0.0001"
-                                            placeholder="" />
+                                            name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                            step="0.0001" placeholder="" />
                                         <span>{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
@@ -305,8 +304,7 @@
                                         Lote
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud class="w-full"
-                                            value="{{ old('l_' . $input->input_id) }}"
+                                        <x-input-solicitud class="w-full" value="{{ old('l_' . $input->input_id) }}"
                                             name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                             step="0.0001" placeholder="" />
                                     </div>
@@ -340,9 +338,8 @@
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
                                             value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="i_{{ $input->input_id }}"
-                                            id="i_{{ $input->input_id }}" step="0.0001"
-                                            placeholder="" />
+                                            name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                            step="0.0001" placeholder="" />
                                         <span>{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
@@ -352,8 +349,7 @@
                                         Lote
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud class="w-full"
-                                            value="{{ old('l_' . $input->input_id) }}"
+                                        <x-input-solicitud class="w-full" value="{{ old('l_' . $input->input_id) }}"
                                             name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                             step="0.0001" placeholder="" />
                                     </div>
@@ -386,9 +382,8 @@
                                         <div class="flex w-full">
                                             <x-input-solicitud type="number" class="w-full"
                                                 value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                                name="i_{{ $input->input_id }}"
-                                                id="i_{{ $input->input_id }}" step="0.0001"
-                                                class="w-full" placeholder="" />
+                                                name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                                step="0.0001" class="w-full" placeholder="" />
                                             <span>{{ $input->unidad }}</span>
                                             {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                                 <div class="text-red-500">{{ $message }}</div>
@@ -403,7 +398,7 @@
                                                 name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                                 step="0.0001" placeholder="" />
                                         </div>
-    
+
                                         <x-label class="mb-2 whitespace-nowrap">
                                             Caducidad
                                         </x-label>
@@ -411,7 +406,8 @@
                                             {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
                                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
                                                     class="" placeholder="" /> --}}
-                                            <x-input-solicitud type="date" value="{{ old('c_' . $input->input_id) }}"
+                                            <x-input-solicitud type="date"
+                                                value="{{ old('c_' . $input->input_id) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                 id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                                 class="" placeholder="" />
@@ -437,10 +433,9 @@
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
-                                            value="{{ old('i_' . $input->input_id , renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="i_{{ $input->input_id }}"
-                                            id="i_{{ $input->input_id }}" step="0.0001"
-                                            placeholder="" />
+                                            value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                            name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                            step="0.0001" placeholder="" />
                                         <span>{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
@@ -450,8 +445,7 @@
                                         Lote
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud class="w-full"
-                                            value="{{ old('l_' . $input->input_id) }}"
+                                        <x-input-solicitud class="w-full" value="{{ old('l_' . $input->input_id) }}"
                                             name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                             step="0.0001" placeholder="" />
                                     </div>
@@ -491,9 +485,8 @@
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
                                             value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="i_{{ $input->input_id }}"
-                                            id="i_{{ $input->input_id }}" step="0.0001"
-                                            placeholder="" /><span>{{ $input->unidad }}</span>
+                                            name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                            step="0.0001" placeholder="" /><span>{{ $input->unidad }}</span>
 
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
@@ -503,8 +496,7 @@
                                         Lote
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud class="w-full"
-                                            value="{{ old('l_' . $input->input_id) }}"
+                                        <x-input-solicitud class="w-full" value="{{ old('l_' . $input->input_id) }}"
                                             name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                             step="0.0001" placeholder="" />
                                     </div>
@@ -592,12 +584,26 @@
                     </div>
                 </div>
             </div>
+            <input type="hidden" name="is_aprobada" id="is_aprobada_input" value='Pendiente'>
             <div class="flex justify-end gap-5">
                 {{-- <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas --}}
                 <x-button>
-                    ACTUALIZAR SOLICITUD
+                    ACTUALIZAR
                 </x-button>
 
+            </div>
+            <div class="flex justify-end gap-5">
+                {{-- <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas --}}
+                <x-button type="button" onclick="updateIsAprobada('Aprobada')">
+                    APROBAR
+                </x-button>
+            </div>
+
+            <div class="flex justify-end gap-5">
+                {{-- <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas --}}
+                <x-button type="button" onclick="updateIsAprobada('No Aprobada')">
+                    RECHAZADA
+                </x-button>
             </div>
 
         </form>
@@ -693,6 +699,49 @@
                     this.value = inputValue.replace(/\D/g, '');
                 });
             });
+
+            function updateIsAprobada(value) {
+                if (value == 'Aprobada') {
+                    Swal.fire({
+                        title: "¿Seguro que deseas aprobar esta solicitud?",
+                        showCancelButton: true,
+                        confirmButtonText: "Confirmar",
+                        cancelButtonText: `Cancelar`
+                    }).then((result) => {
+                        /* Read more about isConfirmed, isDenied below */
+                        if (result.isConfirmed) {
+                            //document.getElementById('is_aprobada_input').value = 'Aprobada';
+                            //Swal.fire("Saved!", "", "success");
+                            // Obtener el formulario por su ID
+                            document.getElementById('is_aprobada_input').value = 'Aprobada';
+                            let form = document.getElementById('solicitudForm');
+                            // Enviar el formulario
+                            form.submit();
+                        }
+                    });
+                }else if(value == 'No Aprobada'){
+                    Swal.fire({
+                        title: "¿Seguro que deseas rechazar esta solicitud?",
+                        showCancelButton: true,
+                        confirmButtonText: "Confirmar",
+                        cancelButtonText: `Cancelar`
+                    }).then((result) => {
+                        /* Read more about isConfirmed, isDenied below */
+                        if (result.isConfirmed) {
+                            //document.getElementById('is_aprobada_input').value = 'Aprobada';
+                            //Swal.fire("Saved!", "", "success");
+                            // Obtener el formulario por su ID
+                            document.getElementById('is_aprobada_input').value = 'No Aprobada';
+                            let form = document.getElementById('solicitudForm');
+                            // Enviar el formulario
+                            form.submit();
+                        }
+                    });
+
+                }
+
+            }
         </script>
     @endpush
+
 </x-admin-layout>

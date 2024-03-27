@@ -17,6 +17,7 @@ class SolicitudInput extends Model
         'valor_sobrellenado',
         'valor_ml',
         'solicitud_id',
+        'precio_ml'
     ];
 
     //Relacion uno a muchos inversa

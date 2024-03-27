@@ -140,6 +140,7 @@
                         @enderror
                     </div>
                 </div>
+                
                 {{-- <div id="edad"></div> --}}
 
             </div>
@@ -436,6 +437,7 @@
                             </div>
                         </div>
                     </div>
+                    
                 </div>
             </div>
             <div class="flex justify-end gap-5">
@@ -499,6 +501,7 @@
 
                 //document.getElementById('edad').innerHTML = 'Edad: ' + edad;
                 console.log('Edad: ' + edad);
+                
             }
 
 
