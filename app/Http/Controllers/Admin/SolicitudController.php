@@ -681,27 +681,36 @@ class SolicitudController extends Controller
         return $pdf->stream();
     }
 
-    public function envio()
+    public function envio(Solicitud $solicitud)
     {
+        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
+        ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+        ->get();
+
+        //return $inputs_solicitud;
+        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+            ->find($solicitud->id);
+        //return $solicitud_detalles;
         $ordenPreparacion = "HOlaa";
-        $pdf = Pdf::loadView('pdfs.envio', \compact('ordenPreparacion'));
+        $pdf = Pdf::loadView('pdfs.envio', \compact('solicitud_detalles', 'inputs_solicitud'));
 
         return $pdf->stream();
     }
 
-    public function etiqueta()
+    public function etiqueta(Solicitud $solicitud)
     {
-        $ordenPreparacion = "HOlaa";
+
+        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
+        ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+        ->get();
+
+        //return $inputs_solicitud;
+        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+            ->find($solicitud->id);
+        //return $solicitud_detalles;
         $customPaper = [0, 0, 368.50, 255.12]; // 9cm x 13cm en puntos
-        $options = [
-            'margin-top'    => 0,
-            'margin-right'  => 0,
-            'margin-bottom' => 0,
-            'margin-left'   => 0,
-            // Puedes añadir más opciones de configuración según necesites
-        ];
-        $pdf = Pdf::loadView('pdfs.etiqueta', \compact('ordenPreparacion'))
-            ->setPaper($customPaper, 'landscape');
+        $pdf = Pdf::loadView('pdfs.etiqueta', \compact('solicitud_detalles', 'inputs_solicitud'))
+        ->setPaper($customPaper, 'landscape');
 
         return $pdf->stream();
     }

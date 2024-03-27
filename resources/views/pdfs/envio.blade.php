@@ -95,8 +95,8 @@
             <table class="introduccion">
                 <tr>
                     <td>
-                        <img style="width: 7rem; margin: 1rem 0" src="{{ asset('img/Centro Biotecnologico de Terapias Avanzadas.png') }}"
-                        alt="">
+                        <img style="width: 7rem; margin: 1rem 0"
+                            src="{{ asset('img/Centro Biotecnologico de Terapias Avanzadas.png') }}" alt="">
                     </td>
                     <td style="text-align: center; padding-right: 171px; font-weight: bold; font-size: 15px">
                         <strong>HOSPITAL ANGELES METROPOLITANO</strong>
@@ -121,8 +121,11 @@
             </table>
             <table style="tabla-format">
                 <tr>
-                    <td style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0"><strong>DATOS DEL
-                            PACIENTE</strong></td>
+                    <td
+                        style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0">
+                        <strong>DATOS DEL
+                            PACIENTE</strong>
+                    </td>
                 </tr>
             </table>
             <table style="tabla-format">
@@ -135,69 +138,77 @@
                 </tr>
 
                 <tr>
-                    <td>EDA BERNARDA SUAREZ RIOX</td>
-                    <td>20/ago/1967</td>
-                    <td style="text-align: center">55</td>
-                    <td style="text-align: center">F</td>
+                    <td>{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}</td>
+                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['fecha_nacimiento'] }}</td>
+                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['edad'] }}</td>
+                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['sexo'] }}</td>
                     <td style="text-align: center">S/D</td>
                 </tr>
             </table>
             <table style="tabla-format">
                 <tr>
-                    <th style="background: #D9E2F3; border-top: none; width: 40%; padding: 8px 0; text-align: center">DIAGNOSTICO</th>
+                    <th style="background: #D9E2F3; border-top: none; width: 40%; padding: 8px 0; text-align: center">
+                        DIAGNOSTICO</th>
                     <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center">SERVICIOS</th>
-                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center">No. De EXPREDIENTE</th>
-                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center">MÉDICO TRATANTE</th>
+                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center">No. De EXPREDIENTE
+                    </th>
+                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center">MÉDICO TRATANTE
+                    </th>
                 </tr>
                 <tr>
-                    <td>ENFERMEDAD DE STILL</td>
-                    <td style="text-align: center">Medicina interna</td>
+                    <td>{{ $solicitud_detalles->solicitud_patient['diagnostico'] }}</td>
+                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['servicio'] }}</td>
                     <td style="text-align: center"></td>
-                    <td style="text-align: center">Dr.Alfonso Fajardo R</td>
+                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}</td>
                 </tr>
             </table>
             <table style="tabla-format">
                 <tr>
-                    <td style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0"><strong>DATOS DE LAS MEZCLAS</strong></td>
+                    <td
+                        style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0">
+                        <strong>DATOS DE LAS MEZCLAS</strong>
+                    </td>
                 </tr>
             </table>
             <table style="tabla-format">
                 <tr>
-                    <th style="background: #D9E2F3; border-top: none; width: 5%; text-align: center"><strong>No</strong></th>
-                    <th style="background: #D9E2F3; border-top: none; width: 25%; text-align: center"><strong>MEDICAMENTO</strong></th>
-                    <th style="background: #D9E2F3; border-top: none; width: 10%; text-align: center"><strong>DOSIS</strong></th>
-                    <th style="background: #D9E2F3; border-top: none; width: 10%; text-align: center"><strong>VOLUMEN</strong></th>
-                    <th style="background: #D9E2F3; border-top: none; width: 10%; text-align: center"><strong>LOTE DE LA MEZCLA</strong></th>
-                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center"><strong>FECHA\HORA DE PREPARACIÓN</strong></th>
-                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center"><strong>FECHA\HORA DE LIMITE DE USO</strong></th>
+                    <th style="background: #D9E2F3; border-top: none; width: 5%; text-align: center"><strong>No</strong>
+                    </th>
+                    <th style="background: #D9E2F3; border-top: none; width: 25%; text-align: center">
+                        <strong>MEDICAMENTO</strong>
+                    </th>
+                    <th style="background: #D9E2F3; border-top: none; width: 10%; text-align: center">
+                        <strong>DOSIS</strong>
+                    </th>
+                    <th style="background: #D9E2F3; border-top: none; width: 10%; text-align: center">
+                        <strong>VOLUMEN</strong>
+                    </th>
+                    <th style="background: #D9E2F3; border-top: none; width: 10%; text-align: center"><strong>LOTE DE LA
+                            MEZCLA</strong></th>
+                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center"><strong>FECHA\HORA
+                            DE PREPARACIÓN</strong></th>
+                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center"><strong>FECHA\HORA
+                            DE LIMITE DE USO</strong></th>
                 </tr>
-                <tr>
-                    <td>1</td>
-                    <td style="text-align: center"><strong>AMINOACIDOS 8%CR</strong></td>
-                    <td style="text-align: center"><strong>70</strong>g</td>
-                    <td style="text-align: center">1967,00mL</td>
-                    <td style="text-align: center">N16122302</td>
-                    <td style="text-align: center">16/dic/2023 16:00h</td>
-                    <td style="text-align: center">18/dic/2023 16:00h</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td style="text-align: center"><strong>AMINOACIDOS 8%CR</strong></td>
-                    <td style="text-align: center"><strong>70</strong>g</td>
-                    <td style="text-align: center">1967,00mL</td>
-                    <td style="text-align: center">N16122302</td>
-                    <td style="text-align: center">16/dic/2023 16:00h</td>
-                    <td style="text-align: center">18/dic/2023 16:00h</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td style="text-align: center"><strong>AMINOACIDOS 8%CR</strong></td>
-                    <td style="text-align: center"><strong>70</strong>g</td>
-                    <td style="text-align: center">1967,00mL</td>
-                    <td style="text-align: center">N16122302</td>
-                    <td style="text-align: center">16/dic/2023 16:00h</td>
-                    <td style="text-align: center">18/dic/2023 16:00h</td>
-                </tr>
+                @foreach ($inputs_solicitud as $input_completo)
+                    <tr>
+                        <td>1</td>
+                        <td style="text-align: center">
+                            <strong>
+                                @isset($input_completo->input->medicine)
+                                    {{ $input_completo->input->medicine->denominacion_generica }}
+                                @else
+                                    Medicamento no disponible
+                                @endisset
+                            </strong>
+                        </td>
+                        <td style="text-align: center"><strong>{{ $input_completo['valor_ml'] }}</strong>g</td>
+                        <td style="text-align: center">{{ $input_completo['valor'] }}</td>
+                        <td style="text-align: center">N16122302</td>
+                        <td style="text-align: center">16/dic/2023 16:00h</td>
+                        <td style="text-align: center">18/dic/2023 16:00h</td>
+                    </tr>
+                @endforeach
             </table>
             <table>
                 <tr>
