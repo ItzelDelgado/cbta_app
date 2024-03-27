@@ -81,7 +81,7 @@
                             alt="">
                     </td>
                     <td style="text-align: center; padding-right: 171px; font-weight: bold; font-size: 15px">
-                        <strong>HOSPITAL ANGELES PRDREGAL</strong>
+                        <strong>{{ $solicitud_detalles->user->hospital->name }}</strong>
                     </td>
                     <td>
 
@@ -96,13 +96,15 @@
                 </tr>
                 <tr>
                     <td style="border: none; font-weight: bold">No. 00018</td>
-                    <td style="text-align: right; border: none">Tlacotlalpan 59 Col. Roma Sur, Cuauhtemoc CDMX, 06760
+                    <td style="text-align: right; border: none">{{ $solicitud_detalles->user->hospital->adress }}
                     </td>
                 </tr>
             </table>
             <table>
                 <tr>
-                    <td style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold;"><strong>DATOS DEL
+                    <td
+                        style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold;">
+                        <strong>DATOS DEL
                             PACIENTE</strong></td>
                 </tr>
             </table>
@@ -115,10 +117,11 @@
                     <th style="background: #D9E2F3; width: 20%; text-align: center">SUPERFICIE CORPORAL (m2)</th>
                 </tr>
                 <tr>
-                    <td>EDA BERNARDA SUAREZ RIOX</td>
-                    <td>20/ago/1967</td>
-                    <td>55</td>
-                    <td>F</td>
+                    <td>{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
+                        {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
+                    <td>{{ $solicitud_detalles->solicitud_patient['fecha_nacimiento'] }}</td>
+                    <td>{{ $solicitud_detalles->solicitud_patient['edad'] }}</td>
+                    <td>{{ $solicitud_detalles->solicitud_patient['sexo'] }}</td>
                     <td>S/D</td>
                 </tr>
             </table>
@@ -126,63 +129,75 @@
                 <tr>
                     <th style="border-top: none; background: #D9E2F3; width: 40%; text-align: center">DIAGNOSTICO</th>
                     <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">SERVICIOS</th>
-                    <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">No. De EXPREDIENTE</th>
-                    <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">MÉDICO TRATANTE</th>
+                    <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">No. De EXPREDIENTE
+                    </th>
+                    <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">MÉDICO TRATANTE
+                    </th>
                 </tr>
                 <tr>
-                    <td>ENFERMEDAD DE STILL</td>
-                    <td>Medicina interna</td>
-                    <td></td>
-                    <td>Dr.Alfonso Fajardo R</td>
+                    <td>{{ $solicitud_detalles->solicitud_patient['diagnostico'] }}</td>
+                    <td>{{ $solicitud_detalles->solicitud_patient['servicio'] }}</td>
+                    <td>{{ $solicitud_detalles->solicitud_patient['registro'] }}</td>
+                    <td>{{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}</td>
                 </tr>
             </table>
             <table>
                 <tr>
-                    <td style="border-top: none; width: 50%; text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0"><strong>DATOS DE LAS MEZCLAS</strong></td>
-                    <td style="border-top: none; width: 50%; text-align: center; text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0"><strong>COSTO MEDICAMENTO</strong></td>
+                    <td
+                        style="border-top: none; width: 50%; text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0">
+                        <strong>DATOS DE LAS MEZCLAS</strong></td>
+                    <td
+                        style="border-top: none; width: 50%; text-align: center; text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0">
+                        <strong>COSTO MEDICAMENTO</strong></td>
                 </tr>
             </table>
             <table>
                 <tr>
-                    <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center"><strong>No</strong></th>
-                    <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center"><strong>MEDICAMENTO</strong></th>
-                    <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center"><strong>DOSIS</strong></th>
-                    <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center"><strong>LOTE DE LA MEZCLA</strong></th>
-                    <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center"><strong>PRESENTACIÓN</strong></th>
-                    <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center"><strong>CANTIDAD</strong></th>
-                    <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center"><strong>PRECIO (ml)</strong></th>
-                    <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center"><strong>SUBTOTAL</strong></th>
+                    <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center">
+                        <strong>No</strong></th>
+                    <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">
+                        <strong>MEDICAMENTO</strong></th>
+                    <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center">
+                        <strong>DOSIS</strong></th>
+                    <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center"><strong>LOTE DE LA
+                            MEZCLA</strong></th>
+                    <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
+                        <strong>PRESENTACIÓN</strong></th>
+                    <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
+                        <strong>CANTIDAD</strong></th>
+                    <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center"><strong>PRECIO
+                            (ml)</strong></th>
+                    <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
+                        <strong>SUBTOTAL</strong></th>
                 </tr>
-                <tr>
-                    <td>1</td>
-                    <td><strong>AMINOACIDOS 8%CR</strong></td>
-                    <td><strong>721,8</strong>mL</td>
-                    <td>N10122304</td>
-                    <td>FRASCO 500ML</td>
-                    <td>721,80mL</td>
-                    <td>$5,220</td>
-                    <td>$3.767,80</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td><strong>AMINOACIDOS 8%CR</strong></td>
-                    <td><strong>721,8</strong>mL</td>
-                    <td>N10122304</td>
-                    <td>FRASCO 500ML</td>
-                    <td>721,80mL</td>
-                    <td>$5,220</td>
-                    <td>$3.767,80</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td><strong>AMINOACIDOS 8%CR</strong></td>
-                    <td><strong>721,8</strong>mL</td>
-                    <td>N10122304</td>
-                    <td>FRASCO 500ML</td>
-                    <td>721,80mL</td>
-                    <td>$5,220</td>
-                    <td>$3.767,80</td>
-                </tr>
+                @foreach ($inputs_solicitud as $input_completo)
+                    <tr>
+                        <td>1</td>
+                        <td><strong>@isset($input_completo->input->medicine)
+                            {{ $input_completo->input->medicine->denominacion_generica }}
+                        @else
+                            Medicamento no disponible
+                        @endisset</strong></td>
+                        <td><strong>{{ $input_completo['valor_ml'] }}</strong>mL</td>
+                        <td>N10122304</td>
+                        <td>@isset($input_completo->input->medicine)
+                            {{ $input_completo->input->medicine->presentacion }} ML
+                        @else
+                            Medicamento no disponible
+                        @endisset</td>
+                        <td>{{ $input_completo['valor_ml'] }}mL</td>
+                        <td> @isset($input_completo->input->medicine)
+                            {{ $input_completo->input->medicine->precio_ml }}
+                        @else
+                            Medicamento no disponible
+                        @endisset</td>
+                        <td> @isset($input_completo->precio_ml)
+                            {{ $input_completo->precio_ml }}
+                        @else
+                            Medicamento no disponible
+                        @endisset</td>
+                    </tr>
+                @endforeach
             </table>
             <table>
                 <tr>

@@ -658,18 +658,25 @@ class SolicitudController extends Controller
         //return $inputs_solicitud;
         $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
             ->find($solicitud->id);
-        //$inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-        $ordenPreparacion = $solicitud_detalles->solicitud_patient['nombre_paciente'];
+
         //return $solicitud_detalles;
         $pdf = Pdf::loadView('pdfs.orden-de-preparacion', \compact('solicitud_detalles', 'inputs_solicitud'));
 
         return $pdf->stream();
     }
 
-    public function remision()
+    public function remision(Solicitud $solicitud)
     {
+        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
+        ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+        ->get();
+
+        //return $inputs_solicitud;
+        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+            ->find($solicitud->id);
+        //return $solicitud_detalles;
         $ordenPreparacion = "HOlaa";
-        $pdf = Pdf::loadView('pdfs.remision', \compact('ordenPreparacion'));
+        $pdf = Pdf::loadView('pdfs.remision', \compact('solicitud_detalles', 'inputs_solicitud'));
 
         return $pdf->stream();
     }

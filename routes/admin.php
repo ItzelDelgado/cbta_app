@@ -32,7 +32,7 @@ Route::resource('solicitudes', SolicitudController::class)->parameter('solicitud
 
 Route::get('/solicitudes/orden-de-preparacion/{solicitud}', [SolicitudController::class, 'ordenPreparacion'])->name('solicitudes.ordenPreparacion');
 
-Route::get('/remision', [SolicitudController::class, 'remision'])->name('remision');
+Route::get('/solicitudes/remision/{solicitud}', [SolicitudController::class, 'remision'])->name('solicitudes.remision');
 
 Route::get('/envio', [SolicitudController::class, 'envio'])->name('envio');
 

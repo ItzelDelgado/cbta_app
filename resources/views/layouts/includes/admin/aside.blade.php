@@ -2,11 +2,18 @@
     $links = [
         [
             //Informacion acerca del enlace
-            'name' => 'Dashboard',
-            'url' => route('admin.dashboard'),
-            'active' => request()->routeIs('admin.dashboard'),
-            'icon' => 'fa-solid fa-gauge-high',
+            'name' => 'Solicitudes',
+            'url' => route('admin.solicitudes.index'),
+            'active' => request()->routeIs('admin.solicitudes.*'),
+            'icon' => 'fa-solid fa-file-import',
         ],
+        // [
+        //     //Informacion acerca del enlace
+        //     'name' => 'Dashboard',
+        //     'url' => route('admin.dashboard'),
+        //     'active' => request()->routeIs('admin.dashboard'),
+        //     'icon' => 'fa-solid fa-gauge-high',
+        // ],
         [
             //Informacion acerca del enlace
             'name' => 'Hospitales',
@@ -27,14 +34,8 @@
             'url' => route('admin.medicines.index'),
             'active' => request()->routeIs('admin.medicines.*'),
             'icon' => 'fa-solid fa-prescription-bottle',
-        ],
-        [
-            //Informacion acerca del enlace
-            'name' => 'Solicitudes',
-            'url' => route('admin.solicitudes.index'),
-            'active' => request()->routeIs('admin.solicitudes.*'),
-            'icon' => 'fa-solid fa-file-import',
-        ],
+        ]
+
     ];
 @endphp
 <aside id="logo-sidebar"
