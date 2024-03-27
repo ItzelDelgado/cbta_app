@@ -34,40 +34,41 @@ class SolicitudController extends Controller
         return view('admin.solicitudes.index', compact('solicitudes'));
     }
 
-    
-    function calcularEdad($fechaNacimiento) {
+
+    function calcularEdad($fechaNacimiento)
+    {
         $fechaNacimiento = new DateTime($fechaNacimiento);
         $fechaActual = new DateTime();
-    
+
         $edadAnios = $fechaActual->diff($fechaNacimiento)->y;
         $edadMeses = $fechaActual->diff($fechaNacimiento)->m;
         $edadDias = $fechaActual->diff($fechaNacimiento)->d;
-    
+
         if ($edadDias < 0) {
             $edadMeses--;
             $ultimoDiaMesAnterior = $fechaActual->sub(new DateInterval('P1M'))->format('t');
             $edadDias = $ultimoDiaMesAnterior + $edadDias;
         }
-    
+
         if ($edadMeses < 0) {
             $edadAnios--;
             $edadMeses = 12 + $edadMeses;
         }
-    
+
         $edad = '';
-    
+
         if ($edadAnios > 0) {
             $edad .= $edadAnios . ' año(s) ';
         }
-    
+
         if ($edadMeses > 0) {
             $edad .= $edadMeses . ' mes(es) ';
         }
-    
+
         if ($edadDias > 0) {
             $edad .= $edadDias . ' día(s)';
         }
-    
+
         return $edad;
     }
 
@@ -352,23 +353,6 @@ class SolicitudController extends Controller
         return redirect()->route('admin.solicitudes.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    // public function show(Solicitud $solicitud)
-    // {
-    //     // $solicitud = SolicitudInput::select('id')
-    //     //     ->where('solicitud_id', $id)
-    //     //     ->get();
-    //     // var_dump("Entramos al controller");
-    //     return $solicitud;
-    //     //return response()->json($solicitud);
-    // }
-    // public function show($id)
-    // {
-    //     $solicitud = Solicitud::findOrFail($id);
-    //     return response()->json($solicitud);
-    // }
 
     /**
      * Show the form for editing the specified resource.
@@ -476,10 +460,10 @@ class SolicitudController extends Controller
             $solicitud_inputs['valor'] = $valor_unidad;
             $solicitud_inputs['valor_ml'] = $valor_ml;
             $solicitud_inputs['input_id'] = $numero;
-            $solicitud_inputs['precio_ml'] = $valor_ml*$medicina['precio_ml'];
+            $solicitud_inputs['precio_ml'] = $valor_ml * $medicina['precio_ml'];
             $solicitud_inputs['lote'] = $tripleta["l_{$numero}"];
             $solicitud_inputs['caducidad'] = $tripleta["c_{$numero}"];
-            
+
             SolicitudInput::create($solicitud_inputs);
         }
         //var_dump("Mandamosssss la lista de inputsssssss");
@@ -616,6 +600,7 @@ class SolicitudController extends Controller
                 ]
             );
         } elseif ($solicitud['is_aprobada'] == 'Aprobada') {
+
             session()->flash(
                 'swal',
                 [
@@ -649,17 +634,34 @@ class SolicitudController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Display the specified resource.
      */
-    public function destroy(Solicitud $solicitud)
+    public function show(Solicitud $solicitud)
     {
-        //
+        //$solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+        // ->get();
+        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+            ->find($solicitud->id);
+        // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
+        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
+        return view('admin.solicitudes.show', compact('solicitud', 'solicitud_detalles'));
+        // return $solicitud_detalles;
+
     }
 
-    public function ordenPreparacion()
+    public function ordenPreparacion(Solicitud $solicitud)
     {
-        $ordenPreparacion = "HOlaa";
-        $pdf = Pdf::loadView('pdfs.orden-de-preparacion', \compact('ordenPreparacion'));
+        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
+        ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+        ->get();
+
+        //return $inputs_solicitud;
+        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+            ->find($solicitud->id);
+        //$inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
+        $ordenPreparacion = $solicitud_detalles->solicitud_patient['nombre_paciente'];
+        //return $solicitud_detalles;
+        $pdf = Pdf::loadView('pdfs.orden-de-preparacion', \compact('solicitud_detalles', 'inputs_solicitud'));
 
         return $pdf->stream();
     }
@@ -696,7 +698,4 @@ class SolicitudController extends Controller
 
         return $pdf->stream();
     }
-
-
-
 }

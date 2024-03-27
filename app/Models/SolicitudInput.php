@@ -25,4 +25,10 @@ class SolicitudInput extends Model
     {
         return $this->belongsTo(Solicitud::class);
     }
+
+    //Relacion uno a uno inversa
+    public function input()
+    {
+        return $this->belongsTo(Input::class);
+    }
 }

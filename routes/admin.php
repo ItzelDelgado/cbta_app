@@ -30,7 +30,7 @@ Route::resource('/medicines', MedicineController::class)
 
 Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy']);
 
-Route::get('/orden-de-preparacion', [SolicitudController::class, 'ordenPreparacion'])->name('preparacion');
+Route::get('/solicitudes/orden-de-preparacion/{solicitud}', [SolicitudController::class, 'ordenPreparacion'])->name('solicitudes.ordenPreparacion');
 
 Route::get('/remision', [SolicitudController::class, 'remision'])->name('remision');
 

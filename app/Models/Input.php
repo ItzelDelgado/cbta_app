@@ -13,12 +13,19 @@ class Input extends Model
         'description',
         'unidad',
         'is_active',
-        'tipo_input', 
+        'tipo_input',
         'orden_enum',
     ];
 
     //Relacion uno a muchos, por que una category puede ser asignado a varias medicinas
-    public function medicines(){
-        return $this->hasMany(Medicine::class);
+    public function medicine()
+    {
+        return $this->hasOne(Medicine::class);
+    }
+
+    //Relacion uno a uno
+    public function solicitudInput()
+    {
+        return $this->hasMany(SolicitudInput::class);
     }
 }

@@ -182,26 +182,34 @@
                     PACIENTE</strong></p>
             <table>
                 <tr>
-                    <td style="border: none;"><strong>Nombre:</strong> <span>ALFREDO LOPEZ CARDONA</span></td>
-                    <td style="border: none;"><strong>Médico tratante:</strong> <span>Dr. Alfonso Fajardo R.</span></td>
+                    <td style="border: none;"><strong>Nombre:</strong>
+                        <span>{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
+                            {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</span>
+                    </td>
+                    <td style="border: none;"><strong>Médico tratante:
+                        </strong>{{ $solicitud_detalles->solicitud_patient['nombre_medico'] }}<span>Dr. Alfonso Fajardo
+                            R.</span></td>
                 </tr>
                 <tr>
                     <td style="border: none;"><strong>Registro:</strong> <span
                             style="border-bottom: 2px solid black;">10053619</span></td>
                     <td style="border: none"><strong>Diagnostico:</strong> <span
-                            style="border-bottom: 2px solid black;">SANGRADO DEL TUBO DIGESTIVO ALTO</span></td>
+                            style="border-bottom: 2px solid black;">
+                            {{ $solicitud_detalles->solicitud_patient['diagnostico'] }}</span></td>
                 </tr>
             </table>
             <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                     <td style="border: none"><strong>Fecha de nacimiento:</strong> <span
-                            style="border-bottom: 2px solid black;">14/ago/1976</span></td>
-                    <td style="border: none"><strong>Genero:</strong> <span
-                            style="border-bottom: 2px solid black;">M</span></td>
+                            style="border-bottom: 2px solid black;">{{ $solicitud_detalles->solicitud_patient['fecha_nacimiento'] }}</span>
+                    </td>
+                    <td style="border: none"><strong>Genero:</strong>
+                        {{ $solicitud_detalles->solicitud_patient['sexo'] }}<span
+                            style="border-bottom: 2px solid black;"></span></td>
                     <td style="border: none"><strong>Talla:</strong> <span
                             style="border-bottom: 2px solid black;">S/D</span></td>
-                    <td style="border: none"><strong>Peso:</strong> <span
-                            style="border-bottom: 2px solid black;">S/D</span></td>
+                    <td style="border: none"><strong>Peso:</strong> <span style="border-bottom: 2px solid black;">
+                            {{ $solicitud_detalles->solicitud_patient['peso'] }}</span></td>
                     <td style="border: none"><strong>SC:</strong> <span
                             style="border-bottom: 2px solid black;">S/D</span></td>
                 </tr>
@@ -227,51 +235,41 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>455</td>
-                    <td>455mL</td>
-                    <td>AMINOACIDOS 8%CR</td>
-                    <td>Aminosteril N-Hepa 8%</td>
-                    <td>500 mL</td>
-                    <td>23D0586</td>
-                    <td>31-mar-25</td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td>cell2_2</td>
-                    <td>cell3_2</td>
-                    <td>cell4_2</td>
-                    <td>cell5_2</td>
-                    <td>cell6_2</td>
-                    <td>cell7_2</td>
-                    <td>cell8_2</td>
-                </tr>
-                <tr>
-                    <td>3</td>
-                    <td>cell2_3</td>
-                    <td>cell3_3</td>
-                    <td>cell4_3</td>
-                    <td>cell5_3</td>
-                    <td>cell6_3</td>
-                    <td>cell7_3</td>
-                    <td>cell8_3</td>
-                </tr>
-                <tr>
-                    <td>4</td>
-                    <td>cell2_4</td>
-                    <td>cell3_4</td>
-                    <td>cell4_4</td>
-                    <td>cell5_4</td>
-                    <td>cell6_4</td>
-                    <td>cell7_4</td>
-                    <td>cell8_4</td>
-                </tr>
+                @foreach ($inputs_solicitud as $input_completo)
+                    <tr>
+                        <td>1</td>
+                        <td>{{ $input_completo['valor_ml'] }}</td>
+                        <td>{{ $input_completo['valor'] }}</td>
+                        <td>
+                            @isset($input_completo->input->medicine)
+                                {{ $input_completo->input->medicine->denominacion_generica }}
+                            @else
+                                Medicamento no disponible
+                            @endisset
+                        </td>
+                        <td>
+                            @isset($input_completo->input->medicine)
+                                {{ $input_completo->input->medicine->denominacion_comercial }}
+                            @else
+                                Medicamento no disponible
+                            @endisset
+                        </td>
+                        <td>
+                            @isset($input_completo->input->medicine)
+                                {{ $input_completo->input->medicine->presentacion_ml }} ML
+                            @else
+                                Medicamento no disponible
+                            @endisset
+                        </td>
+                        <td>{{ $input_completo['lote'] }}</td>
+                        <td>{{ $input_completo['caducidad'] }}</td>
+                    </tr>
+                @endforeach
             </tbody>
         </table>
         <table>
             <tr>
-                <td>Volumen Total <span style="border: 2px solid black;">1200 ml</span></td>
+                <td>Volumen Total <span style="border: 2px solid black;">{{ $solicitud_detalles->solicitud_detail['volumen_total_final'] }} ml</span></td>
                 <td>Contenedor <span style="border: 2px solid black;">2000 ml</span></td>
             </tr>
         </table>
