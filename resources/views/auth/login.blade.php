@@ -1,7 +1,16 @@
 <x-guest-layout>
+    <div class="flex justify-evenly items-center bg-azul-prodifem text-white py-4">
+        <div class="w-[300px]">
+            <img src="{{ asset('img/Logo_Prodifem.png') }}" alt="">
+        </div>
+        <p class="text-center font-semibold text-2xl">Si tiene alguna duda no dude <br> en contactarnos</p>
+        <p class="text-center font-semibold text-2xl">Tel: 55 13535412 <br> WatsApp: 55 13535412 <br> Correo:
+            mezclasp@gmail.com</p>
+    </div>
+    <h1 class="font-bold text-3xl text-center pt-20">Acceso al portal para solicitar <br> mezclas oncológicas</h1>
     <x-authentication-card>
         <x-slot name="logo">
-            <x-authentication-card-logo />
+
         </x-slot>
 
         <x-validation-errors class="mb-4" />
@@ -16,25 +25,28 @@
             @csrf
 
             <div>
-                <x-label for="username" value="{{ __('Usuario') }}" />
-                <x-input id="username" class="block mt-1 w-full" type="text" name="username" :value="old('username')" required autofocus autocomplete="username" />
+                <x-label for="username" class="text-white" value="{{ __('Usuario') }}" />
+                <x-input id="username" class="block mt-1 w-full" type="text" name="username" :value="old('username')"
+                    required autofocus autocomplete="username" />
             </div>
 
             <div class="mt-4">
-                <x-label for="password" value="{{ __('Contraseña') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
+                <x-label for="password" class="text-white" value="{{ __('Contraseña') }}" />
+                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required
+                    autocomplete="current-password" />
             </div>
 
             <div class="block mt-4">
-                <label for="remember_me" class="flex items-center">
+                <label for="remember_me" class="flex items-cente">
                     <x-checkbox id="remember_me" name="remember" />
-                    <span class="ms-2 text-sm text-gray-600">{{ __('Recordar Usuario') }}</span>
+                    <span class="ms-2 text-sm text-white">{{ __('Recordar Usuario') }}</span>
                 </label>
             </div>
 
             <div class="flex items-center justify-end mt-4">
                 @if (Route::has('password.request'))
-                    <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
+                    <a class="underline text-sm text-white hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        href="{{ route('password.request') }}">
                         {{ __('¿Has olvidado tu contraseña?') }}
                     </a>
                 @endif
