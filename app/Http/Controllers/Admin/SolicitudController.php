@@ -191,8 +191,6 @@ class SolicitudController extends Controller
         // Recuperar el modelo existente
         $registro = SolicitudDetail::find($solicitud_detalles_resp->id);
 
-
-
         $suma_volumen_ml = 0;
 
         foreach ($filtered_inputs as $key => $value) {
@@ -254,6 +252,7 @@ class SolicitudController extends Controller
                     //dump($registro_input);
 
                     $registro_input->valor_sobrellenado = $valor_sobrellenado_ml;
+                    
                     $registro_input->save();
                     //dump("Imprimimos el registro guardado");
                     //dump($registro_input);
@@ -261,9 +260,11 @@ class SolicitudController extends Controller
                 //dump("Imprimimos la suma total");
                 //dump($suma_volumen_sobrellenado_ml);
 
-                $suma_volumen_sobrellenado_red_ml = round($suma_volumen_sobrellenado_ml, 2);
+                $suma_volumen_sobrellenado_red_ml = $suma_volumen_sobrellenado_ml;
                 $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_red_ml;
                 $registro->volumen_total_final = $suma_volumen_sobrellenado_red_ml;
+                $registro->volumen_total = $suma_volumen_sobrellenado_red_ml;
+                $registro->volumen_total = $suma_volumen_ml;
             } else {
                 //dump("ingresaron un valor en el volumen total");
                 $porcentaje_sobrellenado = ($registro->sobrellenado_ml * 100) / $registro->volumen_total;
@@ -301,7 +302,7 @@ class SolicitudController extends Controller
                 //dump("Imprimimos la suma total");
                 //dump($suma_volumen_sobrellenado_ml);
 
-                $suma_volumen_sobrellenado_red_ml = round($suma_volumen_sobrellenado_ml, 2);
+                $suma_volumen_sobrellenado_red_ml = $suma_volumen_sobrellenado_ml;
                 $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_red_ml;
 
                 $agua_inyectable_ml = ($registro->volumen_total + $registro->sobrellenado_ml) - $suma_volumen_sobrellenado_red_ml;
@@ -329,11 +330,12 @@ class SolicitudController extends Controller
                 $registro->volumen_total_final = $agua_inyectable_ml + $suma_volumen_ml;
                 SolicitudInput::create($solicitud_inputs);
             } else {
+                $registro->volumen_total = $suma_volumen_ml;
                 $registro->volumen_total_final = $suma_volumen_ml;
             }
         }
         // Modificar los atributos del modelo
-        $suma_valores_red_ml = round($suma_volumen_ml, 2);
+        $suma_valores_red_ml = $suma_volumen_ml;
         $registro->suma_volumen = $suma_valores_red_ml;
 
         // Guardar el modelo actualizado
@@ -510,9 +512,10 @@ class SolicitudController extends Controller
                 //dump("Imprimimos la suma total");
                 //dump($suma_volumen_sobrellenado_ml);
 
-                $suma_volumen_sobrellenado_red_ml = round($suma_volumen_sobrellenado_ml, 2);
+                $suma_volumen_sobrellenado_red_ml = $suma_volumen_sobrellenado_ml;
                 $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_red_ml;
                 $registro->volumen_total_final = $suma_volumen_sobrellenado_red_ml;
+                $registro->volumen_total = $suma_volumen_ml;
             } else {
                 //dump("ingresaron un valor en el volumen total");
                 $porcentaje_sobrellenado = ($registro->sobrellenado_ml * 100) / $registro->volumen_total;
@@ -550,7 +553,7 @@ class SolicitudController extends Controller
                 //dump("Imprimimos la suma total");
                 //dump($suma_volumen_sobrellenado_ml);
 
-                $suma_volumen_sobrellenado_red_ml = round($suma_volumen_sobrellenado_ml, 2);
+                $suma_volumen_sobrellenado_red_ml = $suma_volumen_sobrellenado_ml;
                 $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_red_ml;
 
                 $agua_inyectable_ml = ($registro->volumen_total + $registro->sobrellenado_ml) - $suma_volumen_sobrellenado_red_ml;
@@ -578,11 +581,12 @@ class SolicitudController extends Controller
                 $registro->volumen_total_final = $agua_inyectable_ml + $suma_volumen_ml;
                 SolicitudInput::create($solicitud_inputs);
             } else {
+                $registro->volumen_total = $suma_volumen_ml;
                 $registro->volumen_total_final = $suma_volumen_ml;
             }
         }
         // Modificar los atributos del modelo
-        $suma_valores_red_ml = round($suma_volumen_ml, 2);
+        $suma_valores_red_ml = $suma_volumen_ml;
         $registro->suma_volumen = $suma_valores_red_ml;
         $solicitud['is_aprobada'] = $is_aprobada_value;
 

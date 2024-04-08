@@ -54,7 +54,7 @@
             border: 1px solid black;
             text-align: left;
             padding: 2px 3px;
-            font-size: 9px
+            font-size: 7px
         }
 
         th {
@@ -99,15 +99,16 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>Cliente: HOSPITAL ÁNGELES METROPOLITANO</td>
+                    <td>{{ $solicitud_detalles->user->hospital->name }}</td>
                     <td>Lote: N17122301</td>
                 </tr>
                 <tr>
-                    <td>Paciente: MARCO ANTONIO PEREZ MORENO</td>
-                    <td>FN: 31-oct-66</td>
+                    <td>Paciente: {{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
+                        {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
+                    <td>FN: {{ $solicitud_detalles->solicitud_patient['fecha_nacimiento'] }}</td>
                 </tr>
                 <tr>
-                    <td>Médico: Dr. Antonio Faiardo</td>
+                    <td>Médico: {{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}</td>
                 </tr>
                 <tr>
                     <td>NUTRICIÓN PARENTERAL</td>
@@ -118,22 +119,47 @@
                     <td>COMPONENTES</td>
                     <td>CONTENIDO</td>
                 </tr>
-                <tr>
-                    <td>AMINOACIDOS  8% CR</td>
-                    <td>52,8 g</td>
-                </tr>
+                @php
+                    $osmolaridad_total = 0; // Inicializamos la variable total
+                @endphp
+                @foreach ($inputs_solicitud as $input_completo)
+                    <tr>
+                        <td style="border:none">
+                            @isset($input_completo->input->medicine)
+                                {{ $input_completo->input->medicine->denominacion_generica }}
+                                {{ $input_completo->input->medicine->osmolaridad }}
+                                @php
+                                    $osmolaridad_total += $input_completo->input->medicine->osmolaridad; // Sumamos el precio_ml al total
+                                @endphp
+                            @else
+                                Medicamento no disponible
+                                @php
+                                    $total += 0; // Sumamos el precio_ml al total
+                                @endphp
+                            @endisset
+                        </td>
+                        <td style="border:none">{{ $input_completo['valor'] }}
+                            {{ explode('/', $input_completo->input->unidad)[0] }}</td>
+                    </tr>
+                @endforeach
+
             </table>
             <table>
                 <tr>
-                    <td>Osmolaridad: 1209,823077</td>
-                    <td>Vol. tot: 1572,77</td>
+                    <td>Osmolaridad: {{ number_format($osmolaridad_total, 2) }} mOSM/mL</td>
+                    <td>Vol. tot: {{ number_format($solicitud_detalles->solicitud_detail['volumen_total'], 2) }} mL</td>
                 </tr>
                 <tr>
-                    <td>Sobrellenado: 0</td>
+                    <td>Sobrellenado: @isset($solicitud_detalles->solicitud_detail['sobrellenado_ml'])
+                        {{ $solicitud_detalles->solicitud_detail['sobrellenado_ml'] }}
+                    @else
+                        0
+                    @endisset mL</td>
                 </tr>
                 <tr>
-                    <td>Administrar en: 24</td>
-                    <td>Vel. Infusión: 1,092201389 ml/min</td>
+                    <td>Administrar en: {{$solicitud_detalles->solicitud_detail['tiempo_infusion_min']}} h
+                    </td>
+                    <td>Vel. Infusión: {{ number_format($solicitud_detalles->solicitud_detail['volumen_total'] / ($solicitud_detalles->solicitud_detail['tiempo_infusion_min']*60), 2)}} ml/hr</td>
                 </tr>
             </table>
             <table>

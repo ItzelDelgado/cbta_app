@@ -237,9 +237,9 @@
             <tbody>
                 @foreach ($inputs_solicitud as $input_completo)
                     <tr>
-                        <td>1</td>
-                        <td>{{ $input_completo['valor_ml'] }}</td>
-                        <td>{{ $input_completo['valor'] }}</td>
+                        <td>{{ $loop->iteration }}</td>
+                        <td>{{ number_format($input_completo['valor_ml'], 2)}}</td>
+                        <td>{{ $input_completo['valor'] }} {{ explode('/', $input_completo->input->unidad)[0] }}</td>
                         <td>
                             @isset($input_completo->input->medicine)
                                 {{ $input_completo->input->medicine->denominacion_generica }}
@@ -269,8 +269,8 @@
         </table>
         <table>
             <tr>
-                <td>Volumen Total <span style="border: 2px solid black;">{{ $solicitud_detalles->solicitud_detail['volumen_total_final'] }} ml</span></td>
-                <td>Contenedor <span style="border: 2px solid black;">2000 ml</span></td>
+                <td>Volumen Total <span style="font-weight: bold;">{{ number_format($solicitud_detalles->solicitud_detail['volumen_total_final'], 2) }} ml</span></td>
+                <td>Contenedor <span style="font-weight: bold;">2000 ml</span></td>
             </tr>
         </table>
         <p style="padding: 8px; text-align: center; margin: 0;"><strong>Bolsa EVA</strong></p>

@@ -105,7 +105,8 @@
                     <td
                         style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold;">
                         <strong>DATOS DEL
-                            PACIENTE</strong></td>
+                            PACIENTE</strong>
+                    </td>
                 </tr>
             </table>
             <table>
@@ -145,63 +146,83 @@
                 <tr>
                     <td
                         style="border-top: none; width: 50%; text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0">
-                        <strong>DATOS DE LAS MEZCLAS</strong></td>
+                        <strong>DATOS DE LAS MEZCLAS</strong>
+                    </td>
                     <td
                         style="border-top: none; width: 50%; text-align: center; text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0">
-                        <strong>COSTO MEDICAMENTO</strong></td>
+                        <strong>COSTO MEDICAMENTO</strong>
+                    </td>
                 </tr>
             </table>
             <table>
                 <tr>
                     <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center">
-                        <strong>No</strong></th>
+                        <strong>No</strong>
+                    </th>
                     <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">
-                        <strong>MEDICAMENTO</strong></th>
+                        <strong>MEDICAMENTO</strong>
+                    </th>
                     <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center">
-                        <strong>DOSIS</strong></th>
+                        <strong>DOSIS</strong>
+                    </th>
                     <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center"><strong>LOTE DE LA
                             MEZCLA</strong></th>
                     <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
-                        <strong>PRESENTACIÓN</strong></th>
+                        <strong>PRESENTACIÓN</strong>
+                    </th>
                     <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
-                        <strong>CANTIDAD</strong></th>
+                        <strong>CANTIDAD</strong>
+                    </th>
                     <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center"><strong>PRECIO
                             (ml)</strong></th>
                     <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
-                        <strong>SUBTOTAL</strong></th>
+                        <strong>SUBTOTAL</strong>
+                    </th>
                 </tr>
+                @php
+                    $total = 0; // Inicializamos la variable total
+                @endphp
                 @foreach ($inputs_solicitud as $input_completo)
                     <tr>
-                        <td>1</td>
-                        <td><strong>@isset($input_completo->input->medicine)
-                            {{ $input_completo->input->medicine->denominacion_generica }}
-                        @else
-                            Medicamento no disponible
-                        @endisset</strong></td>
-                        <td><strong>{{ $input_completo['valor_ml'] }}</strong>mL</td>
+                        <td>{{ $loop->iteration }}</td>
+                        <td><strong>
+                                @isset($input_completo->input->medicine)
+                                    {{ $input_completo->input->medicine->denominacion_generica }}
+                                @else
+                                    Medicamento no disponible
+                                @endisset
+                            </strong></td>
+                        <td>{{ $input_completo['valor'] }} {{ explode('/', $input_completo->input->unidad)[0] }}</td>
                         <td>N10122304</td>
-                        <td>@isset($input_completo->input->medicine)
-                            {{ $input_completo->input->medicine->presentacion }} ML
-                        @else
-                            Medicamento no disponible
-                        @endisset</td>
-                        <td>{{ $input_completo['valor_ml'] }}mL</td>
+                        <td>
+                            @isset($input_completo->input->medicine)
+                                {{ $input_completo->input->medicine->presentacion }} ML
+                            @else
+                                Medicamento no disponible
+                            @endisset
+                        </td>
+                        <td>{{ number_format($input_completo['valor_ml'], 2) }} mL</td>
                         <td> @isset($input_completo->input->medicine)
-                            {{ $input_completo->input->medicine->precio_ml }}
-                        @else
-                            Medicamento no disponible
-                        @endisset</td>
+                                {{ $input_completo->input->medicine->precio_ml }}
+                            @else
+                                Medicamento no disponible
+                            @endisset
+                        </td>
                         <td> @isset($input_completo->precio_ml)
-                            {{ $input_completo->precio_ml }}
-                        @else
-                            Medicamento no disponible
-                        @endisset</td>
+                                @php
+                                    $total += $input_completo->precio_ml; // Sumamos el precio_ml al total
+                                @endphp
+                                {{ number_format($input_completo->precio_ml, 2) }}
+                            @else
+                                Medicamento no disponible
+                            @endisset
+                        </td>
                     </tr>
                 @endforeach
             </table>
             <table>
                 <tr>
-                    <td style="text-align: right; border-top: none"><strong>Total $12.876,40</strong></td>
+                    <td style="text-align: right; border-top: none"><strong>Total ${{ number_format($total, 2) }}</strong></td>
                 </tr>
             </table>
             <br>

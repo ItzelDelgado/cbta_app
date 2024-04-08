@@ -99,7 +99,7 @@
                             src="{{ asset('img/Centro Biotecnologico de Terapias Avanzadas.png') }}" alt="">
                     </td>
                     <td style="text-align: center; padding-right: 171px; font-weight: bold; font-size: 15px">
-                        <strong>HOSPITAL ANGELES METROPOLITANO</strong>
+                        <strong>{{ $solicitud_detalles->user->hospital->name }}</strong>
                     </td>
                     <td>
                     </td>
@@ -115,7 +115,7 @@
                 </tr>
                 <tr>
                     <td style="border: none; font-weight: bold">No. 00018</td>
-                    <td style="text-align: right; border: none">Tlacotlalpan 59 Col. Roma Sur, Cuauhtemoc CDMX, 06760
+                    <td style="text-align: right; border: none">{{ $solicitud_detalles->user->hospital->adress }}
                     </td>
                 </tr>
             </table>
@@ -138,7 +138,8 @@
                 </tr>
 
                 <tr>
-                    <td>{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}</td>
+                    <td>{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
+                        {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
                     <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['fecha_nacimiento'] }}</td>
                     <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['edad'] }}</td>
                     <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['sexo'] }}</td>
@@ -192,7 +193,7 @@
                 </tr>
                 @foreach ($inputs_solicitud as $input_completo)
                     <tr>
-                        <td>1</td>
+                        <td>{{ $loop->iteration }}</td>
                         <td style="text-align: center">
                             <strong>
                                 @isset($input_completo->input->medicine)
@@ -202,7 +203,7 @@
                                 @endisset
                             </strong>
                         </td>
-                        <td style="text-align: center"><strong>{{ $input_completo['valor_ml'] }}</strong>g</td>
+                        <td style="text-align: center"><strong>{{ $input_completo['valor'] }} {{ explode('/', $input_completo->input->unidad)[0] }} </strong></td>
                         <td style="text-align: center">{{ $input_completo['valor'] }}</td>
                         <td style="text-align: center">N16122302</td>
                         <td style="text-align: center">16/dic/2023 16:00h</td>
