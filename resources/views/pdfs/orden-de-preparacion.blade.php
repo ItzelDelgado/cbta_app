@@ -91,14 +91,14 @@
         <div class="introduccion">
             <table>
                 <tr>
-                    <td>
+                    <td style="width: 20%">
                         <img style="width: 7rem" src="{{ asset('img/Centro Biotecnologico de Terapias Avanzadas.png') }}"
                             alt="">
                     </td>
-                    <td style="text-align: center; padding-right: 171px;  font-size: 13px">
+                    <td style="width: 60%; margin: 0 auto; text-align: center; font-size: 13px">
                         <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM <br> NUTRICIONES PARENTERALES</strong>
                     </td>
-                    <td>
+                    <td style="width: 20%">
 
                     </td>
                 </tr>
@@ -171,51 +171,51 @@
                 <td>Critical 0.2%</td>
             </tr>
         </table>
-        <div style=" border: 2px solid black; margin-bottom: 0.5rem;">
+        <div style=" border: 1px solid black; margin-bottom: 0.5rem;">
             <table>
-                <tr>
-                    <td style="border: none"><strong>No. de lote de la mezcla:</strong> <span>L29112301</span></td>
-                    <td style="border: none"><strong>No. de orden de preparación:</strong> NUT 29112301</td>
+                <tr style="margin: 0; padding: 0">
+                    <td style="border: none;"><strong>No. de lote de la mezcla:</strong> <span>L29112301</span></td>
+                    <td style="border: none;"><strong>No. de orden de preparación:</strong> NUT 29112301</td>
                 </tr>
             </table>
-            <p style="padding: 8px; border-top: 1px solid black; border-bottom: 1px solid black;"><strong>DATOS DEL
+            <p style="padding: 2px 8px; border-top: 1px solid black; border-bottom: 1px solid black;"><strong>DATOS DEL
                     PACIENTE</strong></p>
             <table>
                 <tr>
-                    <td style="border: none;"><strong>Nombre:</strong>
+                    <td style="border: none; padding: 0 auto;"><strong>Nombre:</strong>
                         <span>{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
                             {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</span>
                     </td>
-                    <td style="border: none;"><strong>Médico tratante:
+                    <td style="border: none; padding: 0 auto;"><strong>Médico tratante:
                         </strong>{{ $solicitud_detalles->solicitud_patient['nombre_medico'] }}<span>Dr. Alfonso Fajardo
                             R.</span></td>
                 </tr>
                 <tr>
-                    <td style="border: none;"><strong>Registro:</strong> <span
-                            style="border-bottom: 2px solid black;">10053619</span></td>
-                    <td style="border: none"><strong>Diagnostico:</strong> <span
-                            style="border-bottom: 2px solid black;">
+                    <td style="border: none; padding: 0 auto;"><strong>Registro:</strong> <span
+                            style="">10053619</span></td>
+                    <td style="border: none; padding: 0 auto;"><strong>Diagnostico:</strong> <span
+                            style="">
                             {{ $solicitud_detalles->solicitud_patient['diagnostico'] }}</span></td>
                 </tr>
             </table>
-            <table style="width: 100%; border-collapse: collapse;">
+            <table style="width: 100%; border-collapse: collapse; padding-bottom: 14px">
                 <tr>
-                    <td style="border: none"><strong>Fecha de nacimiento:</strong> <span
-                            style="border-bottom: 2px solid black;">{{ $solicitud_detalles->solicitud_patient['fecha_nacimiento'] }}</span>
+                    <td style="border: none; padding: 0 auto;"><strong>Fecha de nacimiento:</strong> <span
+                            style="">{{ $solicitud_detalles->solicitud_patient['fecha_nacimiento'] }}</span>
                     </td>
-                    <td style="border: none"><strong>Genero:</strong>
+                    <td style="border: none; padding: 0 auto;"><strong>Genero:</strong>
                         {{ $solicitud_detalles->solicitud_patient['sexo'] }}<span
-                            style="border-bottom: 2px solid black;"></span></td>
-                    <td style="border: none"><strong>Talla:</strong> <span
-                            style="border-bottom: 2px solid black;">S/D</span></td>
-                    <td style="border: none"><strong>Peso:</strong> <span style="border-bottom: 2px solid black;">
+                            style=""></span></td>
+                    <td style="border: none; padding: 0 auto;"><strong>Talla:</strong> <span
+                            style="">S/D</span></td>
+                    <td style="border: none; padding: 0 auto;"><strong>Peso:</strong> <span style="">
                             {{ $solicitud_detalles->solicitud_patient['peso'] }}</span></td>
-                    <td style="border: none"><strong>SC:</strong> <span
-                            style="border-bottom: 2px solid black;">S/D</span></td>
+                    <td style="border: none; padding: 0 auto;"><strong>SC:</strong> <span
+                            style="">S/D</span></td>
                 </tr>
                 <tr>
-                    <td style="border: none" colspan="5"><strong>Sitio de procedencia:</strong> <span
-                            style="border-bottom: 2px solid black;">S/D</span></td>
+                    <td style="border: none; padding: 0 auto;" colspan="5"><strong>Sitio de procedencia:</strong> <span
+                            style="">S/D</span></td>
 
                 </tr>
             </table>
@@ -224,7 +224,7 @@
         <table class="elementos">
             <thead>
                 <tr>
-                    <th style="background: #D9E2F3;">&nbsp;</th>
+                    <th style="background: #D9E2F3;">No</th>
                     <th style="background: #D9E2F3;">Volumen(mL)</th>
                     <th style="background: #D9E2F3;">Dosis</th>
                     <th style="background: #D9E2F3;">Denominaci&oacute;n g&eacute;nerica</th>
@@ -237,9 +237,9 @@
             <tbody>
                 @foreach ($inputs_solicitud as $input_completo)
                     <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td>{{ number_format($input_completo['valor_ml'], 2)}}</td>
-                        <td>{{ $input_completo['valor'] }} {{ explode('/', $input_completo->input->unidad)[0] }}</td>
+                        <td style="text-align: center">{{ $loop->iteration }}</td>
+                        <td style="text-align: center">{{ number_format($input_completo['valor_ml'], 2)}}</td>
+                        <td style="text-align: center">{{ $input_completo['valor'] }} {{ explode('/', $input_completo->input->unidad)[0] }}</td>
                         <td>
                             @isset($input_completo->input->medicine)
                                 {{ $input_completo->input->medicine->denominacion_generica }}
@@ -254,7 +254,7 @@
                                 Medicamento no disponible
                             @endisset
                         </td>
-                        <td>
+                        <td style="text-align: center">
                             @isset($input_completo->input->medicine)
                                 {{ $input_completo->input->medicine->presentacion_ml }} ML
                             @else
@@ -269,8 +269,8 @@
         </table>
         <table>
             <tr>
-                <td>Volumen Total <span style="font-weight: bold;">{{ number_format($solicitud_detalles->solicitud_detail['volumen_total_final'], 2) }} ml</span></td>
-                <td>Contenedor <span style="font-weight: bold;">2000 ml</span></td>
+                <td style="border-top: none">Volumen Total <span style="font-weight: bold;">{{ number_format($solicitud_detalles->solicitud_detail['volumen_total_final'], 2) }} ml</span></td>
+                <td style="border-top: none">Contenedor <span style="font-weight: bold;">2000 ml</span></td>
             </tr>
         </table>
         <p style="padding: 8px; text-align: center; margin: 0;"><strong>Bolsa EVA</strong></p>

@@ -4,9 +4,9 @@
     </div>
 
     <div class="flex justify-end mb-4">
-        <a class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
             href="{{ route('admin.solicitudes.create') }}">Agregar</a>
-        <a class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
             href="">pdf</a>
     </div>
 
@@ -51,14 +51,14 @@
 
                         <!-- Botón para abrir el modal -->
                         <td class="px-6 py-4">
-                            
+
                         @if ($solicitud->is_aprobada == 'Pendiente')
                             <div class="flex items-center">
-                                <a class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" href="{{ route('admin.solicitudes.edit', $solicitud) }}">Aprobar</a>
+                                <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800" href="{{ route('admin.solicitudes.edit', $solicitud) }}">Aprobar</a>
                             </div>
                         @else
                             <div class="flex items-center">
-                                
+
                             </div>
                         @endif
                         </td>
@@ -82,14 +82,14 @@
                                 </div>
                             @elseif ($solicitud->is_aprobada == 'Pendiente')
                                 <div class="flex items-center">
-                                    <div class="h-2.5 w-2.5 rounded-full bg-blue-700 me-2"></div> Pendiente
+                                    <div class="h-2.5 w-2.5 rounded-full bg-azul-prodifem me-2"></div> Pendiente
                                 </div>
                             @endif
                         </td>
-                        
+
                         <td class="px-6 py-4">
                             <div class="flex items-center">
-                                <a class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" href="{{ route('admin.solicitudes.show', $solicitud) }}">Ver</a>
+                                <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800" href="{{ route('admin.solicitudes.show', $solicitud) }}">Ver</a>
                             </div>
                         </td>
                         {{-- <td class="px-6 py-4">

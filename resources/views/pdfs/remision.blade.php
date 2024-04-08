@@ -76,14 +76,14 @@
         <div>
             <table class="introduccion">
                 <tr>
-                    <td>
+                    <td style="width: 25%">
                         <img style="width: 7rem" src="{{ asset('img/Centro Biotecnologico de Terapias Avanzadas.png') }}"
                             alt="">
                     </td>
-                    <td style="text-align: center; padding-right: 171px; font-weight: bold; font-size: 15px">
+                    <td style="width: 50%; margin: 0 auto; text-align: center; font-weight: bold; font-size: 15px">
                         <strong>{{ $solicitud_detalles->user->hospital->name }}</strong>
                     </td>
-                    <td>
+                    <td style="width: 25%">
 
                     </td>
                 </tr>
@@ -156,10 +156,10 @@
             </table>
             <table>
                 <tr>
-                    <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center">
+                    <th style="border-top: none; background: #D9E2F3; width: 5%; text-align: center;">
                         <strong>No</strong>
                     </th>
-                    <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">
+                    <th style="border-top: none; background: #D9E2F3; width: 25%; text-align: center">
                         <strong>MEDICAMENTO</strong>
                     </th>
                     <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center">
@@ -167,13 +167,13 @@
                     </th>
                     <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center"><strong>LOTE DE LA
                             MEZCLA</strong></th>
-                    <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
+                    <th style="border-top: none; background: #D9E2F3; width: 17.5%; text-align: center">
                         <strong>PRESENTACIÓN</strong>
                     </th>
                     <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
                         <strong>CANTIDAD</strong>
                     </th>
-                    <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center"><strong>PRECIO
+                    <th style="border-top: none; background: #D9E2F3; width: 7.5%; text-align: center"><strong>PRECIO
                             (ml)</strong></th>
                     <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
                         <strong>SUBTOTAL</strong>
@@ -184,31 +184,31 @@
                 @endphp
                 @foreach ($inputs_solicitud as $input_completo)
                     <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td><strong>
+                        <td style="text-align: center">{{ $loop->iteration }}</td>
+                        <td ><strong>
                                 @isset($input_completo->input->medicine)
                                     {{ $input_completo->input->medicine->denominacion_generica }}
                                 @else
                                     Medicamento no disponible
                                 @endisset
                             </strong></td>
-                        <td>{{ $input_completo['valor'] }} {{ explode('/', $input_completo->input->unidad)[0] }}</td>
-                        <td>N10122304</td>
-                        <td>
+                        <td style="text-align: center">{{ $input_completo['valor'] }} {{ explode('/', $input_completo->input->unidad)[0] }}</td>
+                        <td style="text-align: center">N10122304</td>
+                        <td style="text-align: center">
                             @isset($input_completo->input->medicine)
                                 {{ $input_completo->input->medicine->presentacion }} ML
                             @else
                                 Medicamento no disponible
                             @endisset
                         </td>
-                        <td>{{ number_format($input_completo['valor_ml'], 2) }} mL</td>
-                        <td> @isset($input_completo->input->medicine)
+                        <td style="text-align: center">{{ number_format($input_completo['valor_ml'], 2) }} mL</td>
+                        <td style="text-align: center"> @isset($input_completo->input->medicine)
                                 {{ $input_completo->input->medicine->precio_ml }}
                             @else
                                 Medicamento no disponible
                             @endisset
                         </td>
-                        <td> @isset($input_completo->precio_ml)
+                        <td style="text-align: center"> @isset($input_completo->precio_ml)
                                 @php
                                     $total += $input_completo->precio_ml; // Sumamos el precio_ml al total
                                 @endphp
