@@ -94,14 +94,14 @@
         <div>
             <table class="introduccion">
                 <tr>
-                    <td>
+                    <td style="width: 25%">
                         <img style="width: 7rem; margin: 1rem 0"
                             src="{{ asset('img/Centro Biotecnologico de Terapias Avanzadas.png') }}" alt="">
                     </td>
-                    <td style="text-align: center; padding-right: 171px; font-weight: bold; font-size: 15px">
+                    <td style="width: 50%; margin: 0 auto; text-align: center; font-weight: bold; font-size: 15px">
                         <strong>{{ $solicitud_detalles->user->hospital->name }}</strong>
                     </td>
-                    <td>
+                    <td style="width: 25%">
                     </td>
                 </tr>
             </table>
@@ -173,7 +173,8 @@
             </table>
             <table style="tabla-format">
                 <tr>
-                    <th style="background: #D9E2F3; border-top: none; width: 5%; text-align: center"><strong>No</strong>
+                    <th style="background: #D9E2F3; border-top: none; width: 5%; text-align: center">
+                        <strong>No</strong>
                     </th>
                     <th style="background: #D9E2F3; border-top: none; width: 25%; text-align: center">
                         <strong>MEDICAMENTO</strong>
@@ -206,7 +207,7 @@
                     @endphp
                 @foreach ($inputs_solicitud as $input_completo)
                     <tr>
-                        <td>{{ $loop->iteration }}</td>
+                        <td style="text-align: center">{{ $loop->iteration }}</td>
                         <td style="text-align: center">
                             <strong>
                                 @isset($input_completo->input->medicine)
