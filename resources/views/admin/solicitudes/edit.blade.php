@@ -580,7 +580,23 @@
                             </div>
                         </div>
                     </div>
+                    <div class="w-full">
+                        <div class="w-full">
+                            <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <x-label class="mb-2">
+                                    Fecha y hora de preparación
+                                </x-label>
+                                <div class="flex flex-col w-full">
+                                    <x-input-solicitud type="datetime-local"
+                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
+                                        name="fecha_hora_preparacion" class="" placeholder="" />
+                                    <!-- Mensaje de error -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="w-full">
                     <div class="w-full">
                         <div class="mb-4 flex items-baseline gap-2 w-full">

@@ -386,8 +386,14 @@ class SolicitudController extends Controller
      */
     public function update(Request $request, Solicitud $solicitud)
     {
-        //return $request->all();
+        // return $request->all();
         $fecha_nacimiento = $request->input('fecha_nacimiento');
+        $fecha_hora_preparacion = $request->input('fecha_hora_preparacion');
+        // Crear un objeto Carbon a partir de la fecha y hora proporcionadas
+        $carbonFechaHora = Carbon::parse($fecha_hora_preparacion);
+        // Sumar 48 horas al objeto Carbon
+        $fecha_hora_limite = $carbonFechaHora->addHours(48);
+        return 'Fecha y hora de prepraración' . $fecha_hora_preparacion . 'Fecha y hora limite de uso' . $fecha_hora_limite;
         $edad = $this->calcularEdad($fecha_nacimiento);
         //return $request->all();
         $request->validate([
@@ -461,11 +467,11 @@ class SolicitudController extends Controller
             $resultado = Input::select('description', 'mult', 'div')->where('id', $numero)->first();
             $valor_unidad = $tripleta["i_{$numero}"];
 
-            
+
             $valor_ml = ($valor_unidad) * $resultado->mult / $resultado->div;
             // if($numero == 40){
             //     if($valor_unidad == 1){
-            //         $suma_volumen_ml = $suma_volumen_ml + $valor_ml + 1; 
+            //         $suma_volumen_ml = $suma_volumen_ml + $valor_ml + 1;
             //     }
             // }
             $suma_volumen_ml = $suma_volumen_ml + $valor_ml;
@@ -608,21 +614,21 @@ class SolicitudController extends Controller
             //Si me ponen volumen total pero no sobrellenado
             if ($registro->volumen_total != null || $registro->volumen_total != 0) {
                 //dump($set_infusion);
-                if($set_infusion['i_40'] == "1"){
+                if ($set_infusion['i_40'] == "1") {
                     $agua_inyectable_ml = (($registro->volumen_total) - $suma_volumen_ml) + 1;
-                    
+
                     //dump("Entramos al if");
-                }else{
+                } else {
                     $agua_inyectable_ml = ($registro->volumen_total) - $suma_volumen_ml;
                 }
-                
-                
+
+
                 //dump("Imprimimos el valor de agua");
                 //dump($agua_inyectable_ml);
                 $medicina_agua = Medicine::select('id', 'precio_ml')
                     ->where('input_id', 37) // Condición para input_id igual a 37
                     ->first();
-                
+
                 $solicitud_inputs['solicitud_id'] = $solicitud->id;
                 $solicitud_inputs['valor'] = $agua_inyectable_ml;
                 $solicitud_inputs['valor_ml'] = $agua_inyectable_ml;
