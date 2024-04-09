@@ -118,12 +118,12 @@
                     <th style="background: #D9E2F3; width: 20%; text-align: center">SUPERFICIE CORPORAL (m2)</th>
                 </tr>
                 <tr>
-                    <td>{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
+                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
                         {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
-                    <td>{{ $solicitud_detalles->solicitud_patient['fecha_nacimiento'] }}</td>
-                    <td>{{ $solicitud_detalles->solicitud_patient['edad'] }}</td>
-                    <td>{{ $solicitud_detalles->solicitud_patient['sexo'] }}</td>
-                    <td>S/D</td>
+                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['fecha_nacimiento'] }}</td>
+                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['edad'] }}</td>
+                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['sexo'] }}</td>
+                    <td style="text-align: center">S/D</td>
                 </tr>
             </table>
             <table>
@@ -136,10 +136,10 @@
                     </th>
                 </tr>
                 <tr>
-                    <td>{{ $solicitud_detalles->solicitud_patient['diagnostico'] }}</td>
-                    <td>{{ $solicitud_detalles->solicitud_patient['servicio'] }}</td>
-                    <td>{{ $solicitud_detalles->solicitud_patient['registro'] }}</td>
-                    <td>{{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}</td>
+                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['diagnostico'] }}</td>
+                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['servicio'] }}</td>
+                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['registro'] }}</td>
+                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}</td>
                 </tr>
             </table>
             <table>
@@ -211,7 +211,7 @@
                                 $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == 0
                             ) {
                                 $valor_final = number_format($input_completo['valor_ml'], 2);
-                                
+
                             } else {
                                 $valor_final = number_format($input_completo['valor_sobrellenado'], 2);
                             }
