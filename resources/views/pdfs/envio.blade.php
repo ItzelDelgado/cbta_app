@@ -191,6 +191,19 @@
                     <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center"><strong>FECHA\HORA
                             DE LIMITE DE USO</strong></th>
                 </tr>
+                @php
+                     // Inicializamos la variable total
+                    $vol_total = 0;
+                
+                        if (
+                            $solicitud_detalles->solicitud_detail['volumen_total'] == null ||
+                            $solicitud_detalles->solicitud_detail['volumen_total'] == 0
+                        ) {
+                            $vol_total = floatval($solicitud_detalles->solicitud_detail['suma_volumen']);
+                        } else {
+                            $vol_total = floatval($solicitud_detalles->solicitud_detail['volumen_total']);
+                        }
+                    @endphp
                 @foreach ($inputs_solicitud as $input_completo)
                     <tr>
                         <td>{{ $loop->iteration }}</td>
@@ -204,7 +217,7 @@
                             </strong>
                         </td>
                         <td style="text-align: center"><strong>{{ $input_completo['valor'] }} {{ explode('/', $input_completo->input->unidad)[0] }} </strong></td>
-                        <td style="text-align: center">{{ $input_completo['valor'] }}</td>
+                        <td style="text-align: center">{{ $vol_total }}</td>
                         <td style="text-align: center">N16122302</td>
                         <td style="text-align: center">16/dic/2023 16:00h</td>
                         <td style="text-align: center">18/dic/2023 16:00h</td>

@@ -140,7 +140,7 @@
                         @enderror
                     </div>
                 </div>
-                
+
                 {{-- <div id="edad"></div> --}}
 
             </div>
@@ -304,8 +304,7 @@
                                                 value="{{ old('i_' . $input->input_id . '_' . $input->unidad) }}"
                                                 name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                                 id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
-                                                class="w-full"
-                                                placeholder="" />
+                                                class="w-full" placeholder="" />
                                             <span>{{ $input->unidad }}</span>
                                             {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                                 <div class="text-red-500">{{ $message }}</div>
@@ -351,7 +350,7 @@
             <hr>
             <div class="flex flex-row gap-4 items-start mt-4">
                 <div class="grid grid-rows-9 grid-flow-col gap-4 w-full">
-             
+
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 5)
                             <div>
@@ -365,7 +364,7 @@
                                             name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                             id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
                                             placeholder="" /><span>{{ $input->unidad }}</span>
-                                        
+
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
                                         @enderror --}}
@@ -374,6 +373,40 @@
                             </div>
                         @endif
                     @endforeach
+
+
+                    @foreach ($inputs as $input)
+                        @if ($input->category_id == 10)
+                            <div>
+                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        {{ $input->description }}
+                                    </x-label>
+                                    <div class="flex w-full">
+                                        <x-select class="w-full" name="i_{{ $input->input_id }}_{{ $input->unidad }}" id="i_{{ $input->input_id }}_{{ $input->unidad }}">
+                                            <option value="0" @if (old("i_" . $input->input_id . "_" . $input->unidad ) == '0') selected @endif>No</option>
+                                            <option value="1" @if (old("i_" . $input->input_id . "_" . $input->unidad ) == '1') selected @endif>Si</option>
+                                        </x-select>
+
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
+                    {{--                     
+                    <div class="mb-4 flex items-stretch gap-2 w-full">
+                        <x-label class="mb-2">
+                            Set de infusión:
+                        </x-label>
+                        <x-select class="w-full" name="i_{{ $input->input_id }}_{{ $input->unidad }}" id="i_{{ $input->input_id }}_{{ $input->unidad }}">
+                            <option value="0" @if (old("i_{{ $input->input_id }}_{{ $input->unidad }}") == '0') selected @endif>No</option>
+                            <option value="1" @if (old("i_{{ $input->input_id }}_{{ $input->unidad }}") == '1') selected @endif>Si</option>
+                        </x-select>
+                        <!-- Mensaje de error -->
+                        @error('sexo')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
+                    </div> --}}
                 </div>
 
             </div>
@@ -437,7 +470,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                 </div>
             </div>
             <div class="flex justify-end gap-5">
@@ -501,7 +534,7 @@
 
                 //document.getElementById('edad').innerHTML = 'Edad: ' + edad;
                 console.log('Edad: ' + edad);
-                
+
             }
 
 

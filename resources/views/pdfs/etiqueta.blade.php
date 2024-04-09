@@ -127,14 +127,14 @@
                         <td style="border:none">
                             @isset($input_completo->input->medicine)
                                 {{ $input_completo->input->medicine->denominacion_generica }}
-                                {{ $input_completo->input->medicine->osmolaridad }}
+                               
                                 @php
                                     $osmolaridad_total += $input_completo->input->medicine->osmolaridad; // Sumamos el precio_ml al total
                                 @endphp
                             @else
                                 Medicamento no disponible
                                 @php
-                                    $total += 0; // Sumamos el precio_ml al total
+                                    $osmolaridad_total += 0; // Sumamos el precio_ml al total
                                 @endphp
                             @endisset
                         </td>
@@ -147,19 +147,41 @@
             <table>
                 <tr>
                     <td>Osmolaridad: {{ number_format($osmolaridad_total, 2) }} mOSM/mL</td>
-                    <td>Vol. tot: {{ number_format($solicitud_detalles->solicitud_detail['volumen_total'], 2) }} mL</td>
+                    <td>Vol. tot: @if (
+                        $solicitud_detalles->solicitud_detail['volumen_total'] == null ||
+                            $solicitud_detalles->solicitud_detail['volumen_total'] == 0)
+                            {{ number_format($solicitud_detalles->solicitud_detail['suma_volumen'], 2) }}
+                        @else
+                            {{ number_format($solicitud_detalles->solicitud_detail['volumen_total'], 2) }}
+                        @endif mL
+                    </td>
                 </tr>
                 <tr>
                     <td>Sobrellenado: @isset($solicitud_detalles->solicitud_detail['sobrellenado_ml'])
-                        {{ $solicitud_detalles->solicitud_detail['sobrellenado_ml'] }}
-                    @else
-                        0
-                    @endisset mL</td>
+                            {{ $solicitud_detalles->solicitud_detail['sobrellenado_ml'] }}
+                        @else
+                            0
+                        @endisset mL</td>
                 </tr>
                 <tr>
-                    <td>Administrar en: {{$solicitud_detalles->solicitud_detail['tiempo_infusion_min']}} h
+                    @php
+                     // Inicializamos la variable total
+                    $vol_total = 0;
+                
+                        if (
+                            $solicitud_detalles->solicitud_detail['volumen_total'] == null ||
+                            $solicitud_detalles->solicitud_detail['volumen_total'] == 0
+                        ) {
+                            $vol_total = floatval($solicitud_detalles->solicitud_detail['suma_volumen']);
+                        } else {
+                            $vol_total = floatval($solicitud_detalles->solicitud_detail['volumen_total']);
+                        }
+                    @endphp
+                    <td>Administrar en: {{ $solicitud_detalles->solicitud_detail['tiempo_infusion_min'] }} h
                     </td>
-                    <td>Vel. Infusión: {{ number_format($solicitud_detalles->solicitud_detail['volumen_total'] / ($solicitud_detalles->solicitud_detail['tiempo_infusion_min']*60), 2)}} ml/hr</td>
+                    <td>Vel. Infusión:
+                        {{ number_format($vol_total / ($solicitud_detalles->solicitud_detail['tiempo_infusion_min'] * 60), 2) }}
+                        ml/hr</td>
                 </tr>
             </table>
             <table>

@@ -93,6 +93,7 @@ class SolicitudController extends Controller
     public function store(Request $request)
     {
 
+        //return $request->all();
         $fecha_nacimiento = $request->input('fecha_nacimiento');
         $edad = $this->calcularEdad($fecha_nacimiento);
         //return $filtered_inputs;
@@ -203,12 +204,15 @@ class SolicitudController extends Controller
 
                 // Realizar acciones con el número extraído
                 // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                $resultado = Input::select('description', 'mult', 'div')->where('id', $numero)->first();
+                $resultado = Input::select('id', 'description', 'mult', 'div')->where('id', $numero)->first();
                 //var_dump($resultado);
                 // echo "Nombre: " . $resultado->description . "<br>";
                 // echo "Div: " . $resultado->div . "<br>";
                 // echo "Mult: " . $resultado->mult;
 
+                // if($resultado->id == 40){
+                //     $valor_ml = ($value) * $resultado->mult / $resultado->div;
+                // }
                 $valor_ml = ($value) * $resultado->mult / $resultado->div;
                 $suma_volumen_ml = $suma_volumen_ml + $valor_ml;
                 $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
@@ -252,7 +256,7 @@ class SolicitudController extends Controller
                     //dump($registro_input);
 
                     $registro_input->valor_sobrellenado = $valor_sobrellenado_ml;
-                    
+
                     $registro_input->save();
                     //dump("Imprimimos el registro guardado");
                     //dump($registro_input);
@@ -263,8 +267,8 @@ class SolicitudController extends Controller
                 $suma_volumen_sobrellenado_red_ml = $suma_volumen_sobrellenado_ml;
                 $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_red_ml;
                 $registro->volumen_total_final = $suma_volumen_sobrellenado_red_ml;
-                $registro->volumen_total = $suma_volumen_sobrellenado_red_ml;
-                $registro->volumen_total = $suma_volumen_ml;
+                //$registro->volumen_total = $suma_volumen_sobrellenado_red_ml;
+                //$registro->volumen_total = $suma_volumen_ml;
             } else {
                 //dump("ingresaron un valor en el volumen total");
                 $porcentaje_sobrellenado = ($registro->sobrellenado_ml * 100) / $registro->volumen_total;
@@ -305,7 +309,7 @@ class SolicitudController extends Controller
                 $suma_volumen_sobrellenado_red_ml = $suma_volumen_sobrellenado_ml;
                 $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_red_ml;
 
-                $agua_inyectable_ml = ($registro->volumen_total + $registro->sobrellenado_ml) - $suma_volumen_sobrellenado_red_ml;
+                $agua_inyectable_ml = round(($registro->volumen_total + $registro->sobrellenado_ml) - $suma_volumen_sobrellenado_red_ml, 2);
                 // dump("Imprimimos el valor de agua");
                 // dump($agua_inyectable_ml);
                 $registro->volumen_total_final = $suma_volumen_sobrellenado_red_ml + $agua_inyectable_ml;
@@ -320,7 +324,7 @@ class SolicitudController extends Controller
         } else {
             //Si me ponen volumen total pero no sobrellenado
             if ($registro->volumen_total != null || $registro->volumen_total != 0) {
-                $agua_inyectable_ml = ($registro->volumen_total) - $suma_volumen_ml;
+                $agua_inyectable_ml = round(($registro->volumen_total) - $suma_volumen_ml, 2);
                 //dump("Imprimimos el valor de agua");
                 //dump($agua_inyectable_ml);
                 $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
@@ -330,7 +334,7 @@ class SolicitudController extends Controller
                 $registro->volumen_total_final = $agua_inyectable_ml + $suma_volumen_ml;
                 SolicitudInput::create($solicitud_inputs);
             } else {
-                $registro->volumen_total = $suma_volumen_ml;
+                //$registro->volumen_total = $suma_volumen_ml;
                 $registro->volumen_total_final = $suma_volumen_ml;
             }
         }
@@ -382,6 +386,7 @@ class SolicitudController extends Controller
      */
     public function update(Request $request, Solicitud $solicitud)
     {
+        //return $request->all();
         $fecha_nacimiento = $request->input('fecha_nacimiento');
         $edad = $this->calcularEdad($fecha_nacimiento);
         //return $request->all();
@@ -411,6 +416,7 @@ class SolicitudController extends Controller
         $solicitud_paciente = $request->only(['nombre_paciente', 'apellidos_paciente', 'servicio', 'cama', 'piso', 'registro', 'diagnostico', 'peso', 'fecha_nacimiento', 'sexo']);
         $solicitud_detalles = $request->only(['via_administracion', 'tiempo_infusion_min', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula']);
         $is_aprobada_value = $request->only(['is_aprobada']);
+        $set_infusion = $request->only(['i_40']);
         $solicitud_paciente['edad'] = $edad;
         $solicitud_patient_u = SolicitudPatient::find($solicitud['solicitud_patient_id']);
         $solicitud_detail_u = SolicitudDetail::find($solicitud['solicitud_detail_id']);
@@ -442,7 +448,7 @@ class SolicitudController extends Controller
                 $tripletas[$numero][$c_key] = isset($request2[$c_key]) ? $request2[$c_key] : null;
             }
         }
-        // print_r($tripletas);
+
 
         $registro = SolicitudDetail::find($solicitud['solicitud_detail_id']);
 
@@ -455,8 +461,15 @@ class SolicitudController extends Controller
             $resultado = Input::select('description', 'mult', 'div')->where('id', $numero)->first();
             $valor_unidad = $tripleta["i_{$numero}"];
 
+            
             $valor_ml = ($valor_unidad) * $resultado->mult / $resultado->div;
+            // if($numero == 40){
+            //     if($valor_unidad == 1){
+            //         $suma_volumen_ml = $suma_volumen_ml + $valor_ml + 1; 
+            //     }
+            // }
             $suma_volumen_ml = $suma_volumen_ml + $valor_ml;
+
             $medicina = Medicine::select('id', 'precio_ml')->where('input_id', $numero)->first();
             $solicitud_inputs['solicitud_id'] = $solicitud['id'];
             $solicitud_inputs['valor'] = $valor_unidad;
@@ -483,10 +496,18 @@ class SolicitudController extends Controller
                 //dump("Algoooo");
                 //var_dump($porcentaje_sobrellenado);
                 // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                $inputs_valores = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado')
-                    ->where('solicitud_id', $solicitud->id)
-                    ->get();
+                // $inputs_valores = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado', 'input_id')
+                //     ->where('solicitud_id', $solicitud->id)
+                //     ->get();
 
+                $inputs_valores = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado', 'input_id')
+                    ->where('solicitud_id', $solicitud->id)
+                    ->whereNotIn('input_id', [40]) // Excluir input_id 37 y 40
+                    ->get();
+                // $inputs_valores = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado', 'input_id')
+                // ->where('solicitud_id', $solicitud->id)
+                // ->whereNotIn('input_id', [37, 40]) // Excluir input_id 37 y 40
+                // ->get();
                 $suma_volumen_sobrellenado_ml = 0;
                 //dump($inputs_valores);
                 foreach ($inputs_valores as $input_val) {
@@ -505,33 +526,41 @@ class SolicitudController extends Controller
                     //dump($registro_input);
 
                     $registro_input->valor_sobrellenado = $valor_sobrellenado_ml;
+                    $medicina = Medicine::select('id', 'precio_ml')->where('input_id', $input_val->input_id)->first();
+                    $registro_input->precio_ml = $valor_sobrellenado_ml * $medicina['precio_ml'];
                     $registro_input->save();
                     //dump("Imprimimos el registro guardado");
                     //dump($registro_input);
                 }
                 //dump("Imprimimos la suma total");
                 //dump($suma_volumen_sobrellenado_ml);
-
-                $suma_volumen_sobrellenado_red_ml = $suma_volumen_sobrellenado_ml;
-                $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_red_ml;
-                $registro->volumen_total_final = $suma_volumen_sobrellenado_red_ml;
-                $registro->volumen_total = $suma_volumen_ml;
-            } else {
+                // $input_agua_ml = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado', 'input_id')
+                // ->where('solicitud_id', $solicitud->id)
+                // ->where('input_id', 37) // Obtener solo los registros con input_id igual a 37
+                // ->get();
+                $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_ml;
+                $registro->volumen_total_final = $suma_volumen_sobrellenado_ml;
+                // $registro->volumen_total_final = $suma_volumen_sobrellenado_ml + $input_agua_ml->valor_ml;
+                //$registro->volumen_total = $suma_volumen_ml;
+            } else { //Si tiene sobrellenado y volumen total
                 //dump("ingresaron un valor en el volumen total");
                 $porcentaje_sobrellenado = ($registro->sobrellenado_ml * 100) / $registro->volumen_total;
                 //dump($porcentaje_sobrellenado);
 
                 // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                $inputs_valores = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado')
+                $inputs_valores = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado', 'input_id')
                     ->where('solicitud_id', $solicitud->id)
+                    ->whereNotIn('input_id', [40]) // Excluir input_id 37 y 40
                     ->get();
 
                 $suma_volumen_sobrellenado_ml = 0;
+                $suma_volumen_mls = 0;
 
                 foreach ($inputs_valores as $input_val) {
                     // dump("Input valorrr----");
                     // dump($input_val);
                     $valor_en_ml = $input_val->valor_ml;
+                    $suma_volumen_mls = $suma_volumen_mls + $input_val->valor_ml;
                     //dump($valor_en_ml);
                     $valor_sobrellenado_ml = (($valor_en_ml * $porcentaje_sobrellenado) / 100) + $valor_en_ml;
                     // dump("Valor de sobrellenado del input");
@@ -544,8 +573,10 @@ class SolicitudController extends Controller
                     // dump($suma_volumen_sobrellenado_ml);
                     // dump("Imprimimos el registro de la bd");
                     // dump($registro_input);
-
                     $registro_input->valor_sobrellenado = $valor_sobrellenado_ml;
+                    $medicina = Medicine::select('id', 'precio_ml')->where('input_id', $input_val->input_id)->first();
+                    $registro_input->precio_ml = $valor_sobrellenado_ml * $medicina['precio_ml'];
+
                     $registro_input->save();
                     //dump("Imprimimos el registro guardado");
                     //dump($registro_input);
@@ -553,17 +584,22 @@ class SolicitudController extends Controller
                 //dump("Imprimimos la suma total");
                 //dump($suma_volumen_sobrellenado_ml);
 
-                $suma_volumen_sobrellenado_red_ml = $suma_volumen_sobrellenado_ml;
-                $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_red_ml;
+                $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_ml;
 
-                $agua_inyectable_ml = ($registro->volumen_total + $registro->sobrellenado_ml) - $suma_volumen_sobrellenado_red_ml;
+                $agua_inyectable_ml = round($registro->volumen_total  - $suma_volumen_mls, 2);
                 // dump("Imprimimos el valor de agua");
                 // dump($agua_inyectable_ml);
-                $registro->volumen_total_final = $suma_volumen_sobrellenado_red_ml + $agua_inyectable_ml;
+                $registro->volumen_total_final = $suma_volumen_mls + $agua_inyectable_ml + $registro->sobrellenado_ml;
+                $medicina_agua = Medicine::select('id', 'precio_ml')
+                    ->where('input_id', 37) // Condición para input_id igual a 37
+                    ->first();
+                $agua_valor_sobrellenado = (($agua_inyectable_ml * $porcentaje_sobrellenado) / 100) + $agua_inyectable_ml;
                 $solicitud_inputs['solicitud_id'] = $solicitud->id;
                 $solicitud_inputs['valor'] = $agua_inyectable_ml;
                 $solicitud_inputs['valor_ml'] = $agua_inyectable_ml;
                 $solicitud_inputs['input_id'] = 37;
+                $solicitud_inputs['valor_sobrellenado'] = $agua_valor_sobrellenado;
+                $solicitud_inputs['precio_ml'] = $agua_valor_sobrellenado * $medicina_agua['precio_ml'];
                 SolicitudInput::create($solicitud_inputs);
             }
             //HACEMOS ALGO
@@ -571,17 +607,31 @@ class SolicitudController extends Controller
         } else {
             //Si me ponen volumen total pero no sobrellenado
             if ($registro->volumen_total != null || $registro->volumen_total != 0) {
-                $agua_inyectable_ml = ($registro->volumen_total) - $suma_volumen_ml;
+                //dump($set_infusion);
+                if($set_infusion['i_40'] == "1"){
+                    $agua_inyectable_ml = (($registro->volumen_total) - $suma_volumen_ml) + 1;
+                    
+                    //dump("Entramos al if");
+                }else{
+                    $agua_inyectable_ml = ($registro->volumen_total) - $suma_volumen_ml;
+                }
+                
+                
                 //dump("Imprimimos el valor de agua");
                 //dump($agua_inyectable_ml);
+                $medicina_agua = Medicine::select('id', 'precio_ml')
+                    ->where('input_id', 37) // Condición para input_id igual a 37
+                    ->first();
+                
                 $solicitud_inputs['solicitud_id'] = $solicitud->id;
                 $solicitud_inputs['valor'] = $agua_inyectable_ml;
                 $solicitud_inputs['valor_ml'] = $agua_inyectable_ml;
                 $solicitud_inputs['input_id'] = 37;
+                $solicitud_inputs['precio_ml'] = $agua_inyectable_ml * $medicina_agua['precio_ml'];
                 $registro->volumen_total_final = $agua_inyectable_ml + $suma_volumen_ml;
                 SolicitudInput::create($solicitud_inputs);
             } else {
-                $registro->volumen_total = $suma_volumen_ml;
+                //$registro->volumen_total = $suma_volumen_ml;
                 $registro->volumen_total_final = $suma_volumen_ml;
             }
         }
@@ -647,8 +697,16 @@ class SolicitudController extends Controller
         $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
             ->find($solicitud->id);
         // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
+        //$inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
+        $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
+            ->where('inputs.is_active', 1)
+            ->orderBy('orden_enum', 'asc')
+            ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
+            ->get();
+
+        // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-        return view('admin.solicitudes.show', compact('solicitud', 'solicitud_detalles'));
+        return view('admin.solicitudes.show', compact('solicitud', 'inputs_solicitud', 'solicitud_detalles', 'inputs'));
         // return $solicitud_detalles;
 
     }
@@ -656,8 +714,8 @@ class SolicitudController extends Controller
     public function ordenPreparacion(Solicitud $solicitud)
     {
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
-        ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-        ->get();
+            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->get();
 
         //return $inputs_solicitud;
         $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
@@ -672,8 +730,8 @@ class SolicitudController extends Controller
     public function remision(Solicitud $solicitud)
     {
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
-        ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-        ->get();
+            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->get();
 
         //return $inputs_solicitud;
         $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
@@ -688,14 +746,15 @@ class SolicitudController extends Controller
     public function envio(Solicitud $solicitud)
     {
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
-        ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-        ->get();
+            ->whereNotIn('input_id', [40]) // Excluir input_id 40
+            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->get();
 
         //return $inputs_solicitud;
         $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
             ->find($solicitud->id);
         //return $solicitud_detalles;
-        $ordenPreparacion = "HOlaa";
+
         $pdf = Pdf::loadView('pdfs.envio', \compact('solicitud_detalles', 'inputs_solicitud'));
 
         return $pdf->stream();
@@ -705,8 +764,9 @@ class SolicitudController extends Controller
     {
 
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
-        ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-        ->get();
+            ->whereNotIn('input_id', [40]) // Excluir input_id 40
+            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->get();
 
         //return $inputs_solicitud;
         $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
@@ -714,7 +774,7 @@ class SolicitudController extends Controller
         //return $solicitud_detalles;
         $customPaper = [0, 0, 368.50, 255.12]; // 9cm x 13cm en puntos
         $pdf = Pdf::loadView('pdfs.etiqueta', \compact('solicitud_detalles', 'inputs_solicitud'))
-        ->setPaper($customPaper, 'landscape');
+            ->setPaper($customPaper, 'landscape');
 
         return $pdf->stream();
     }

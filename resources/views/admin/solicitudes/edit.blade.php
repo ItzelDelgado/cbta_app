@@ -260,7 +260,8 @@
                                         Lote
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud class="w-full" value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                        <x-input-solicitud class="w-full"
+                                            value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                             name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                             placeholder="" />
                                     </div>
@@ -272,7 +273,8 @@
                                         {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
                                                 class="" placeholder="" /> --}}
-                                        <x-input-solicitud type="date" value="{{ old('c_' . $input->input_id,renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                        <x-input-solicitud type="date"
+                                            value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                             min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                             id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                             class="" placeholder="" />
@@ -304,7 +306,8 @@
                                         Lote
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud class="w-full" value="{{ old('l_' . $input->input_id,renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                        <x-input-solicitud class="w-full"
+                                            value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                             name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                             step="0.0001" placeholder="" />
                                     </div>
@@ -316,7 +319,8 @@
                                         {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
                                                 class="" placeholder="" /> --}}
-                                        <x-input-solicitud type="date" value="{{ old('c_' . $input->input_id,renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                        <x-input-solicitud type="date"
+                                            value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                             min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                             id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                             class="" placeholder="" />
@@ -349,7 +353,8 @@
                                         Lote
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud class="w-full" value="{{ old('l_' . $input->input_id,renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                        <x-input-solicitud class="w-full"
+                                            value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                             name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                             step="0.0001" placeholder="" />
                                     </div>
@@ -361,7 +366,8 @@
                                         {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
                                                 class="" placeholder="" /> --}}
-                                        <x-input-solicitud type="date" value="{{ old('c_' . $input->input_id,renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                        <x-input-solicitud type="date"
+                                            value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                             min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                             id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                             class="" placeholder="" />
@@ -394,7 +400,7 @@
                                         </x-label>
                                         <div class="flex w-full">
                                             <x-input-solicitud class="w-full"
-                                                value="{{ old('l_' . $input->input_id,renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                                value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                                 step="0.0001" placeholder="" />
                                         </div>
@@ -407,7 +413,7 @@
                                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
                                                     class="" placeholder="" /> --}}
                                             <x-input-solicitud type="date"
-                                                value="{{ old('c_' . $input->input_id,renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                                value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                 id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                                 class="" placeholder="" />
@@ -445,7 +451,8 @@
                                         Lote
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud class="w-full" value="{{ old('l_' . $input->input_id,renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                        <x-input-solicitud class="w-full"
+                                            value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                             name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                             step="0.0001" placeholder="" />
                                     </div>
@@ -457,7 +464,8 @@
                                         {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
                                                 class="" placeholder="" /> --}}
-                                        <x-input-solicitud type="date" value="{{ old('c_' . $input->input_id,renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                        <x-input-solicitud type="date"
+                                            value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                             min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                             id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                             class="" placeholder="" />
@@ -496,7 +504,8 @@
                                         Lote
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud class="w-full" value="{{ old('l_' . $input->input_id,renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                        <x-input-solicitud class="w-full"
+                                            value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                             name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                             step="0.0001" placeholder="" />
                                     </div>
@@ -508,7 +517,8 @@
                                         {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
                                                 class="" placeholder="" /> --}}
-                                        <x-input-solicitud type="date" value="{{ old('c_' . $input->input_id,renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                        <x-input-solicitud type="date"
+                                            value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                             min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                             id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                             class="" placeholder="" />
@@ -518,6 +528,28 @@
                         @endif
                     @endforeach
                 </div>
+
+                @foreach ($inputs as $input)
+                    @if ($input->category_id == 10)
+                        <div>
+                            <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <x-label class="mb-2 whitespace-nowrap">
+                                    {{ $input->description }}
+                                </x-label>
+                                <div class="flex w-full">
+                                    <x-select class="w-full" name="i_{{ $input->input_id }}"
+                                        id="i_{{ $input->input_id }}_{{ $input->unidad }}">
+                                        <option value="0" @if (old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) == '0') selected @endif>No
+                                        </option>
+                                        <option value="1" @if (old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) == '1') selected @endif>Si
+                                        </option>
+                                    </x-select>
+
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                @endforeach
 
             </div>
             <div class="mb-4">
@@ -602,7 +634,7 @@
             <div class="flex justify-end gap-5">
                 {{-- <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas --}}
                 <x-button type="button" onclick="updateIsAprobada('No Aprobada')">
-                    RECHAZADA
+                    RECHAZAR
                 </x-button>
             </div>
 
@@ -719,7 +751,7 @@
                             form.submit();
                         }
                     });
-                }else if(value == 'No Aprobada'){
+                } else if (value == 'No Aprobada') {
                     Swal.fire({
                         title: "¿Seguro que deseas rechazar esta solicitud?",
                         showCancelButton: true,

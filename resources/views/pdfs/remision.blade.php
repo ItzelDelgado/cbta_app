@@ -201,7 +201,23 @@
                                 Medicamento no disponible
                             @endisset
                         </td>
-                        <td>{{ number_format($input_completo['valor_ml'], 2) }} mL</td>
+
+                        @php
+                            // Inicializamos la variable total
+                            $valor_final = 0;
+
+                            if (
+                                $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == null ||
+                                $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == 0
+                            ) {
+                                $valor_final = number_format($input_completo['valor_ml'], 2);
+                                
+                            } else {
+                                $valor_final = number_format($input_completo['valor_sobrellenado'], 2);
+                            }
+                        @endphp
+
+                        <td>{{ $valor_final }} mL</td>
                         <td> @isset($input_completo->input->medicine)
                                 {{ $input_completo->input->medicine->precio_ml }}
                             @else
@@ -222,7 +238,8 @@
             </table>
             <table>
                 <tr>
-                    <td style="text-align: right; border-top: none"><strong>Total ${{ number_format($total, 2) }}</strong></td>
+                    <td style="text-align: right; border-top: none"><strong>Total
+                            ${{ number_format($total, 2) }}</strong></td>
                 </tr>
             </table>
             <br>
