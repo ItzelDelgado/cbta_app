@@ -658,9 +658,6 @@ class SolicitudController extends Controller
             SolicitudAprobada::create($solicitud_aprobadas);
         }
 
-        // SolicitudAprobada::truncate();
-        // DB::statement('ALTER TABLE solicitud_aprobadas AUTO_INCREMENT = 1;');
-
 
         if ($solicitud['is_aprobada'] == 'Pendiente') {
             session()->flash(
