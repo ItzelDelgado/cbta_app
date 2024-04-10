@@ -40,6 +40,10 @@ class Solicitud extends Model
         return $this->hasMany(SolicitudInput::class);
     }
 
+    public function solicitud_aprobada()
+    {
+        return $this->belongsTo(SolicitudAprobada::class);
+    }
 
     // public function getInputValue($inputId)
     // {
@@ -51,5 +55,5 @@ class Solicitud extends Model
     //     return null;
     // }
 
-    
+
 }

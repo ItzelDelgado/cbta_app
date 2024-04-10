@@ -7,6 +7,7 @@ use App\Models\Hospital;
 use App\Models\Input;
 use App\Models\Medicine;
 use App\Models\Solicitud;
+use App\Models\SolicitudAprobada;
 use App\Models\SolicitudDetail;
 use App\Models\SolicitudInput;
 use App\Models\SolicitudPatient;
@@ -17,6 +18,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use DateInterval;
 use DateTime;
+use Illuminate\Support\Facades\DB;
 use Spatie\LaravelIgnition\Recorders\DumpRecorder\Dump;
 
 
@@ -393,7 +395,6 @@ class SolicitudController extends Controller
         $carbonFechaHora = Carbon::parse($fecha_hora_preparacion);
         // Sumar 48 horas al objeto Carbon
         $fecha_hora_limite = $carbonFechaHora->addHours(48);
-        return 'Fecha y hora de prepraración' . $fecha_hora_preparacion . 'Fecha y hora limite de uso' . $fecha_hora_limite;
         $edad = $this->calcularEdad($fecha_nacimiento);
         //return $request->all();
         $request->validate([
@@ -649,6 +650,18 @@ class SolicitudController extends Controller
         // Guardar el modelo actualizado
         $registro->save();
         $solicitud->update($solicitud['is_aprobada']);
+
+        if($solicitud['is_aprobada']) {
+            $solicitud_aprobadas['solicitud_id'] = $solicitud->id;
+            $solicitud_aprobadas['fecha_hora_preparacion'] = $fecha_hora_preparacion;
+            $solicitud_aprobadas['fecha_hora_limite_uso'] = $fecha_hora_limite;
+            SolicitudAprobada::create($solicitud_aprobadas);
+        }
+
+        // SolicitudAprobada::truncate();
+        // DB::statement('ALTER TABLE solicitud_aprobadas AUTO_INCREMENT = 1;');
+
+
         if ($solicitud['is_aprobada'] == 'Pendiente') {
             session()->flash(
                 'swal',
