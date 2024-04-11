@@ -14,7 +14,7 @@
             @csrf
 
             @method('PUT')
-            <x-validation-errors class="mb-4" />
+            {{-- <x-validation-errors class="mb-4" /> --}}
 
             <div class="flex gap-4">
                 <div class="mb-4 flex  items-baseline gap-2 w-full">
@@ -591,6 +591,9 @@
                                         min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
                                         name="fecha_hora_preparacion" class="" placeholder="" />
                                     <!-- Mensaje de error -->
+                                    @error('fecha_hora_preparacion')
+                                    <div class="text-red-500 text-sm">{{ $message }}</div>
+                                @enderror
                                 </div>
                             </div>
                         </div>

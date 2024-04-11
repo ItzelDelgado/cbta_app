@@ -20,6 +20,7 @@ use DateInterval;
 use DateTime;
 use Illuminate\Support\Facades\DB;
 use Spatie\LaravelIgnition\Recorders\DumpRecorder\Dump;
+use Illuminate\Support\Facades\Session;
 
 
 class SolicitudController extends Controller
@@ -417,6 +418,7 @@ class SolicitudController extends Controller
             'fecha_hora_entrega' => 'required|date_format:Y-m-d\TH:i',
             'nombre_medico' => 'required|string|max:255',
             'cedula' => 'required|string|max:50',
+            'fecha_hora_preparacion' => 'required|date_format:Y-m-d\TH:i',
         ]);
 
 
@@ -651,11 +653,25 @@ class SolicitudController extends Controller
         $registro->save();
         $solicitud->update($solicitud['is_aprobada']);
 
-        if($solicitud['is_aprobada']) {
+        if ($solicitud['is_aprobada']) {
             $solicitud_aprobadas['solicitud_id'] = $solicitud->id;
             $solicitud_aprobadas['fecha_hora_preparacion'] = $fecha_hora_preparacion;
             $solicitud_aprobadas['fecha_hora_limite_uso'] = $fecha_hora_limite;
+
+            $solicitudes = SolicitudAprobada::whereDate('created_at', today())
+                ->orderBy('id')
+                ->get();
+
+            $count = $solicitudes->count();
+            $fechaDeHoy = Carbon::today();
+
+            $numeroFormateado = str_pad($count+1, 3, '00', STR_PAD_LEFT);
+            $fechaFormateada = 'L' . $fechaDeHoy->format('dmy') . $numeroFormateado;
+
+            $solicitud_aprobadas['lote'] = $fechaFormateada;
+
             SolicitudAprobada::create($solicitud_aprobadas);
+           
         }
 
 
@@ -693,6 +709,7 @@ class SolicitudController extends Controller
         }
 
         //METER TODO DENTRO DE ESTOS IF PARA MANEJAR QUE PASA
+
 
         return redirect()->route('admin.solicitudes.index');
         // print_r($solicitud['id']);
