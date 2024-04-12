@@ -17,7 +17,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::paginate();
+        //$users = User::paginate();
+        $users = User::select('id','name','lastname','username', 'is_active', 'hospital_id')->paginate();
         return view('admin.users.index', compact('users'));
     }
 
@@ -95,16 +96,20 @@ class UserController extends Controller
             'hospital_id' => 'exists:hospitals,id',
         ]));
 
+        $us_bd = User::find($user->id);
+
         $user->name = $request->name;
         $user->lastname = $request->lastname;
         $user->username = $request->username;
         $user->hospital_id = $request->hospital_id;
 
-        if($user->password){
+        if($request->password){
             $user->password = bcrypt($request->password);
+        }else{
+            $user->password = $us_bd->password;
         }
 
-        $user->save() ;
+        $user->save();
         // if ($request->filled('password')) {
         //     $password = Hash::make($request->password);
         //     $request->merge(['password' => $password]);

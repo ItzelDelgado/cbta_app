@@ -671,7 +671,7 @@ class SolicitudController extends Controller
             $solicitud_aprobadas['lote'] = $fechaFormateada;
 
             SolicitudAprobada::create($solicitud_aprobadas);
-           
+
         }
 
 
