@@ -8,6 +8,7 @@ use App\Models\Hospital;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -26,7 +27,8 @@ class UserController extends Controller
     public function create()
     {
         $hospitals = Hospital::all();
-        return view('admin.users.create', compact('hospitals'));
+        $roles = Role::all();
+        return view('admin.users.create', compact('hospitals', 'roles'));
     }
 
     /**
@@ -38,15 +40,17 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'lastname' => 'required|string|max:255',
             'username' => 'required|string|max:255',
-            'password' => 'required|string|max:12',
+            'password' => 'required|string|max:12|confirmed',
             'hospital_id' => 'required|exists:hospitals,id',
+            'roles' => 'nullable|array',
         ]));
-
 
         $password = Hash::make($request->password);
         $request->merge(['password' => $password]);
 
-        User::create($request->all());
+        $user = User::create($request->all());
+
+        $user->roles()->sync($request->roles);
 
         session()->flash(
             'swal',
@@ -73,9 +77,9 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-
+        $roles = Role::all();
         $hospitals = Hospital::all();
-        return view('admin.users.edit', compact('user', 'hospitals'));
+        return view('admin.users.edit', compact('user', 'hospitals','roles'));
     }
 
     /**
@@ -87,17 +91,28 @@ class UserController extends Controller
             'name' => 'string|max:255',
             'lastname' => 'string|max:255',
             'username' => 'string|max:255',
-            'password' => 'string',
+            'password' => 'nullable|string|confirmed',
             'hospital_id' => 'exists:hospitals,id',
         ]));
 
-        if ($request->filled('password')) {
-            $password = Hash::make($request->password);
-            $request->merge(['password' => $password]);
+        $user->name = $request->name;
+        $user->lastname = $request->lastname;
+        $user->username = $request->username;
+        $user->hospital_id = $request->hospital_id;
+
+        if($user->password){
+            $user->password = bcrypt($request->password);
         }
 
+        $user->save() ;
+        // if ($request->filled('password')) {
+        //     $password = Hash::make($request->password);
+        //     $request->merge(['password' => $password]);
+        // }
         //User::create($request->all());
-        $user->update($request->all());
+        $user->roles()->sync($request->roles);
+
+        // $user->update($request->all());
         session()->flash(
             'swal',
             [

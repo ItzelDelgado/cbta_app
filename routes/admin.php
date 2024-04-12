@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\HospitalController;
 use App\Http\Controllers\Admin\InputController;
 use App\Http\Controllers\Admin\MedicineController;
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SolicitudController;
 use App\Http\Controllers\Admin\UserController;
 use App\Models\Solicitud;
@@ -21,6 +23,13 @@ Route::get('/', function(){
 
 
 Route::resource('/users', UserController::class);
+
+Route::resource('/roles', RoleController::class)
+->except('show');
+
+Route::resource('/permissions', PermissionController::class)
+->except('show');
+
 
 Route::resource('/hospitals', HospitalController::class)
 ->except(['show','destroy']);

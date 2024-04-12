@@ -33,6 +33,13 @@
         </div>
         <div class="mb-4">
             <x-label class="mb-2">
+                Cofirmar Contraseña
+            </x-label>
+            <x-input type="password" value="" name="password_confirmation" class="w-full"
+                placeholder="Repita la contraseña del usuario" />
+        </div>
+        <div class="mb-4">
+            <x-label class="mb-2">
                 Hospital
             </x-label>
             <x-select class="w-full" name="hospital_id">
@@ -40,6 +47,22 @@
                     <option @selected(old('hospital_id') == $hospital->id) value="{{ $hospital->id }}">{{ $hospital->name }}</option>
                 @endforeach
             </x-select>
+        </div>
+        <div class="mb-4">
+            <ul>
+                @foreach ($roles as $role)
+                    <li>
+                        <label for="">
+                            <x-checkbox type="checkbox"
+                                name="roles[]"
+                                value="{{ $role->id }}"
+                                :checked="in_array($role->id, old('roles', []),
+                                )" />
+                            {{ $role->name }}
+                        </label>
+                    </li>
+                @endforeach
+            </ul>
         </div>
         <div class="flex justify-end">
             <x-button>
