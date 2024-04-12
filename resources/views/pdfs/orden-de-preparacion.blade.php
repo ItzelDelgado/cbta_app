@@ -193,8 +193,7 @@
                 <tr>
                     <td style="border: none; padding: 0 auto;"><strong>Registro:</strong> <span
                             style="">10053619</span></td>
-                    <td style="border: none; padding: 0 auto;"><strong>Diagnostico:</strong> <span
-                            style="">
+                    <td style="border: none; padding: 0 auto;"><strong>Diagnostico:</strong> <span style="">
                             {{ $solicitud_detalles->solicitud_patient['diagnostico'] }}</span></td>
                 </tr>
             </table>
@@ -204,18 +203,17 @@
                             style="">{{ $solicitud_detalles->solicitud_patient['fecha_nacimiento'] }}</span>
                     </td>
                     <td style="border: none; padding: 0 auto;"><strong>Genero:</strong>
-                        {{ $solicitud_detalles->solicitud_patient['sexo'] }}<span
-                            style=""></span></td>
-                    <td style="border: none; padding: 0 auto;"><strong>Talla:</strong> <span
-                            style="">S/D</span></td>
+                        {{ $solicitud_detalles->solicitud_patient['sexo'] }}<span style=""></span></td>
+                    <td style="border: none; padding: 0 auto;"><strong>Talla:</strong> <span style="">S/D</span>
+                    </td>
                     <td style="border: none; padding: 0 auto;"><strong>Peso:</strong> <span style="">
                             {{ $solicitud_detalles->solicitud_patient['peso'] }}</span></td>
-                    <td style="border: none; padding: 0 auto;"><strong>SC:</strong> <span
-                            style="">S/D</span></td>
+                    <td style="border: none; padding: 0 auto;"><strong>SC:</strong> <span style="">S/D</span></td>
                 </tr>
                 <tr>
-                    <td style="border: none; padding: 0 auto;" colspan="5"><strong>Sitio de procedencia:</strong> <span
-                            style="">S/D</span></td>
+                    <td style="border: none; padding: 0 auto;" colspan="5"><strong>Sitio de procedencia:</strong>
+                        <span style="">S/D</span>
+                    </td>
 
                 </tr>
             </table>
@@ -236,40 +234,45 @@
             </thead>
             <tbody>
                 @foreach ($inputs_solicitud as $input_completo)
-                    <tr>
-                        <td style="text-align: center">{{ $loop->iteration }}</td>
-                        <td style="text-align: center">{{ number_format($input_completo['valor_ml'], 2)}}</td>
-                        <td style="text-align: center">{{ $input_completo['valor'] }} {{ explode('/', $input_completo->input->unidad)[0] }}</td>
-                        <td>
-                            @isset($input_completo->input->medicine)
-                                {{ $input_completo->input->medicine->denominacion_generica }}
-                            @else
-                                Medicamento no disponible
-                            @endisset
-                        </td>
-                        <td>
-                            @isset($input_completo->input->medicine)
-                                {{ $input_completo->input->medicine->denominacion_comercial }}
-                            @else
-                                Medicamento no disponible
-                            @endisset
-                        </td>
-                        <td style="text-align: center">
-                            @isset($input_completo->input->medicine)
-                                {{ $input_completo->input->medicine->presentacion_ml }} ML
-                            @else
-                                Medicamento no disponible
-                            @endisset
-                        </td>
-                        <td>{{ $input_completo['lote'] }}</td>
-                        <td>{{ $input_completo['caducidad'] }}</td>
-                    </tr>
+                    @if ($input_completo->input_id != 40)
+                        <tr>
+                            <td style="text-align: center">{{ $loop->iteration }}</td>
+                            <td style="text-align: center">{{ number_format($input_completo['valor_ml'], 2) }}</td>
+                            <td style="text-align: center">{{ $input_completo['valor'] }}
+                                {{ explode('/', $input_completo->input->unidad)[0] }}</td>
+                            <td>
+                                @isset($input_completo->input->medicine)
+                                    {{ $input_completo->input->medicine->denominacion_generica }}
+                                @else
+                                    Medicamento no disponible
+                                @endisset
+                            </td>
+                            <td>
+                                @isset($input_completo->input->medicine)
+                                    {{ $input_completo->input->medicine->denominacion_comercial }}
+                                @else
+                                    Medicamento no disponible
+                                @endisset
+                            </td>
+                            <td style="text-align: center">
+                                @isset($input_completo->input->medicine)
+                                    {{ $input_completo->input->medicine->presentacion_ml }} ML
+                                @else
+                                    Medicamento no disponible
+                                @endisset
+                            </td>
+                            <td>{{ $input_completo['lote'] }}</td>
+                            <td>{{ $input_completo['caducidad'] }}</td>
+                        </tr>
+                    @endif
                 @endforeach
             </tbody>
         </table>
         <table>
             <tr>
-                <td style="border-top: none">Volumen Total <span style="font-weight: bold;">{{ number_format($solicitud_detalles->solicitud_detail['volumen_total_final'], 2) }} ml</span></td>
+                <td style="border-top: none">Volumen Total <span
+                        style="font-weight: bold;">{{ number_format($solicitud_detalles->solicitud_detail['volumen_total_final'], 2) }}
+                        ml</span></td>
                 <td style="border-top: none">Contenedor <span style="font-weight: bold;">2000 ml</span></td>
             </tr>
         </table>

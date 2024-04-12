@@ -31,7 +31,8 @@ class SolicitudController extends Controller
     public function index()
     {
 
-        $solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+        $solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
+            ->latest()
             ->get();
         //return $solicitudes;
         return view('admin.solicitudes.index', compact('solicitudes'));
@@ -204,26 +205,50 @@ class SolicitudController extends Controller
             if (isset($matches[1])) {
                 // El número extraído se encuentra en $matches[1]
                 $numero = $matches[1];
+                if ($numero == 40) {
+                    if ($value == 1) {
+                        // Realizar acciones con el número extraído
+                        // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
+                        $resultado = Input::select('id', 'description', 'mult', 'div')->where('id', $numero)->first();
+                        //var_dump($resultado);
+                        // echo "Nombre: " . $resultado->description . "<br>";
+                        // echo "Div: " . $resultado->div . "<br>";
+                        // echo "Mult: " . $resultado->mult;
 
-                // Realizar acciones con el número extraído
-                // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                $resultado = Input::select('id', 'description', 'mult', 'div')->where('id', $numero)->first();
-                //var_dump($resultado);
-                // echo "Nombre: " . $resultado->description . "<br>";
-                // echo "Div: " . $resultado->div . "<br>";
-                // echo "Mult: " . $resultado->mult;
+                        // if($resultado->id == 40){
+                        //     $valor_ml = ($value) * $resultado->mult / $resultado->div;
+                        // }
+                        $valor_ml = ($value) * $resultado->mult / $resultado->div;
+                        $suma_volumen_ml = $suma_volumen_ml + $valor_ml;
+                        $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
+                        $solicitud_inputs['valor'] = $value;
+                        $solicitud_inputs['valor_ml'] = $valor_ml;
+                        $solicitud_inputs['input_id'] = $numero;
+                        SolicitudInput::create($solicitud_inputs);
+                        // echo "El valor en mililitros de " . $resultado->description . " es: " . $valor_ml;
+                    }
+                } else {
 
-                // if($resultado->id == 40){
-                //     $valor_ml = ($value) * $resultado->mult / $resultado->div;
-                // }
-                $valor_ml = ($value) * $resultado->mult / $resultado->div;
-                $suma_volumen_ml = $suma_volumen_ml + $valor_ml;
-                $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
-                $solicitud_inputs['valor'] = $value;
-                $solicitud_inputs['valor_ml'] = $valor_ml;
-                $solicitud_inputs['input_id'] = $numero;
-                SolicitudInput::create($solicitud_inputs);
-                // echo "El valor en mililitros de " . $resultado->description . " es: " . $valor_ml;
+                    // Realizar acciones con el número extraído
+                    // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
+                    $resultado = Input::select('id', 'description', 'mult', 'div')->where('id', $numero)->first();
+                    //var_dump($resultado);
+                    // echo "Nombre: " . $resultado->description . "<br>";
+                    // echo "Div: " . $resultado->div . "<br>";
+                    // echo "Mult: " . $resultado->mult;
+
+                    // if($resultado->id == 40){
+                    //     $valor_ml = ($value) * $resultado->mult / $resultado->div;
+                    // }
+                    $valor_ml = ($value) * $resultado->mult / $resultado->div;
+                    $suma_volumen_ml = $suma_volumen_ml + $valor_ml;
+                    $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
+                    $solicitud_inputs['valor'] = $value;
+                    $solicitud_inputs['valor_ml'] = $valor_ml;
+                    $solicitud_inputs['input_id'] = $numero;
+                    SolicitudInput::create($solicitud_inputs);
+                    // echo "El valor en mililitros de " . $resultado->description . " es: " . $valor_ml;
+                }
             }
         }
 
@@ -389,7 +414,7 @@ class SolicitudController extends Controller
      */
     public function update(Request $request, Solicitud $solicitud)
     {
-        // return $request->all();
+        //return $request->all();
         $fecha_nacimiento = $request->input('fecha_nacimiento');
         $fecha_hora_preparacion = $request->input('fecha_hora_preparacion');
         // Crear un objeto Carbon a partir de la fecha y hora proporcionadas
@@ -444,17 +469,33 @@ class SolicitudController extends Controller
             // Verificar si la clave sigue el patrón 'i_numero' y si el valor no es null
             if (preg_match('/^i_[0-9]+$/', $key) && $value !== null) {
                 $numero = explode('_', $key)[1]; // Obtener el número después del primer guion bajo
-                $tripletas[$numero]["i_$numero"] = $value;
+                if ($numero == 40) {
+                    if ($value == 1) {
+                        $tripletas[$numero]["i_$numero"] = $value;
 
-                // Verificar si existen los valores de 'l_numero' y 'c_numero' correspondientes y guardarlos si no son null
-                $l_key = "l_$numero";
-                $c_key = "c_$numero";
+                        // Verificar si existen los valores de 'l_numero' y 'c_numero' correspondientes y guardarlos si no son null
+                        $l_key = "l_$numero";
+                        $c_key = "c_$numero";
 
-                // Establecer 'l_numero' como null si no existe o es null
-                $tripletas[$numero][$l_key] = isset($request2[$l_key]) ? $request2[$l_key] : null;
+                        // Establecer 'l_numero' como null si no existe o es null
+                        $tripletas[$numero][$l_key] = isset($request2[$l_key]) ? $request2[$l_key] : null;
 
-                // Establecer 'c_numero' como null si no existe o es null
-                $tripletas[$numero][$c_key] = isset($request2[$c_key]) ? $request2[$c_key] : null;
+                        // Establecer 'c_numero' como null si no existe o es null
+                        $tripletas[$numero][$c_key] = isset($request2[$c_key]) ? $request2[$c_key] : null;
+                    }
+                } else {
+                    $tripletas[$numero]["i_$numero"] = $value;
+
+                    // Verificar si existen los valores de 'l_numero' y 'c_numero' correspondientes y guardarlos si no son null
+                    $l_key = "l_$numero";
+                    $c_key = "c_$numero";
+
+                    // Establecer 'l_numero' como null si no existe o es null
+                    $tripletas[$numero][$l_key] = isset($request2[$l_key]) ? $request2[$l_key] : null;
+
+                    // Establecer 'c_numero' como null si no existe o es null
+                    $tripletas[$numero][$c_key] = isset($request2[$c_key]) ? $request2[$c_key] : null;
+                }
             }
         }
 
@@ -653,27 +694,6 @@ class SolicitudController extends Controller
         $registro->save();
         $solicitud->update($solicitud['is_aprobada']);
 
-        if ($solicitud['is_aprobada']) {
-            $solicitud_aprobadas['solicitud_id'] = $solicitud->id;
-            $solicitud_aprobadas['fecha_hora_preparacion'] = $fecha_hora_preparacion;
-            $solicitud_aprobadas['fecha_hora_limite_uso'] = $fecha_hora_limite;
-
-            $solicitudes = SolicitudAprobada::whereDate('created_at', today())
-                ->orderBy('id')
-                ->get();
-
-            $count = $solicitudes->count();
-            $fechaDeHoy = Carbon::today();
-
-            $numeroFormateado = str_pad($count+1, 3, '00', STR_PAD_LEFT);
-            $fechaFormateada = 'L' . $fechaDeHoy->format('dmy') . $numeroFormateado;
-
-            $solicitud_aprobadas['lote'] = $fechaFormateada;
-
-            SolicitudAprobada::create($solicitud_aprobadas);
-           
-        }
-
 
         if ($solicitud['is_aprobada'] == 'Pendiente') {
             session()->flash(
@@ -686,6 +706,23 @@ class SolicitudController extends Controller
                 ]
             );
         } elseif ($solicitud['is_aprobada'] == 'Aprobada') {
+            $solicitud_aprobadas['solicitud_id'] = $solicitud->id;
+            $solicitud_aprobadas['fecha_hora_preparacion'] = $fecha_hora_preparacion;
+            $solicitud_aprobadas['fecha_hora_limite_uso'] = $fecha_hora_limite;
+
+            $solicitudes = SolicitudAprobada::whereDate('created_at', today())
+                ->orderBy('id')
+                ->get();
+
+            $count = $solicitudes->count();
+            $fechaDeHoy = Carbon::today();
+
+            $numeroFormateado = str_pad($count + 1, 3, '00', STR_PAD_LEFT);
+            $fechaFormateada = 'L' . $fechaDeHoy->format('dmy') . $numeroFormateado;
+
+            $solicitud_aprobadas['lote'] = $fechaFormateada;
+
+            SolicitudAprobada::create($solicitud_aprobadas);
 
             session()->flash(
                 'swal',
@@ -727,7 +764,7 @@ class SolicitudController extends Controller
     {
         //$solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
         // ->get();
-        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
             ->find($solicitud->id);
         // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
         //$inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
@@ -740,8 +777,6 @@ class SolicitudController extends Controller
         // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
         return view('admin.solicitudes.show', compact('solicitud', 'inputs_solicitud', 'solicitud_detalles', 'inputs'));
-        // return $solicitud_detalles;
-
     }
 
     public function ordenPreparacion(Solicitud $solicitud)

@@ -387,7 +387,6 @@
                                             <option value="0" @if (old("i_" . $input->input_id . "_" . $input->unidad ) == '0') selected @endif>No</option>
                                             <option value="1" @if (old("i_" . $input->input_id . "_" . $input->unidad ) == '1') selected @endif>Si</option>
                                         </x-select>
-
                                     </div>
                                 </div>
                             </div>

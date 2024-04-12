@@ -19,7 +19,8 @@ class SolicitudAprobada extends Model
 
     public function solicitud()
     {
-        return $this->hasOne(Solicitud::class);
+        return $this->belongsTo(Solicitud::class);
+        
     }
 
 

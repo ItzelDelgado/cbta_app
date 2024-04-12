@@ -42,18 +42,7 @@ class Solicitud extends Model
 
     public function solicitud_aprobada()
     {
-        return $this->belongsTo(SolicitudAprobada::class);
+        return $this->hasOne(SolicitudAprobada::class);
     }
-
-    // public function getInputValue($inputId)
-    // {
-    //     $detail = $this->input->firstWhere('id', $inputId);
-    //     if ($detail) {
-    //         return $detail->value;
-    //     }
-
-    //     return null;
-    // }
-
 
 }

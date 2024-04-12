@@ -544,7 +544,29 @@
                                         <option value="1" @if (old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) == '1') selected @endif>Si
                                         </option>
                                     </x-select>
+                                </div>
+                                <x-label class="mb-2 whitespace-nowrap">
+                                    Lote
+                                </x-label>
+                                <div class="flex w-full">
+                                    <x-input-solicitud class="w-full"
+                                        value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                        name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                        step="0.0001" placeholder="" />
+                                </div>
 
+                                <x-label class="mb-2 whitespace-nowrap">
+                                    Caducidad
+                                </x-label>
+                                <div class="flex w-full">
+                                    {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
+                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
+                                            class="" placeholder="" /> --}}
+                                    <x-input-solicitud type="date"
+                                        value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                        id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                        class="" placeholder="" />
                                 </div>
                             </div>
                         </div>
@@ -592,8 +614,8 @@
                                         name="fecha_hora_preparacion" class="" placeholder="" />
                                     <!-- Mensaje de error -->
                                     @error('fecha_hora_preparacion')
-                                    <div class="text-red-500 text-sm">{{ $message }}</div>
-                                @enderror
+                                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
