@@ -694,7 +694,6 @@ class SolicitudController extends Controller
         $registro->save();
         $solicitud->update($solicitud['is_aprobada']);
 
-
         if ($solicitud['is_aprobada'] == 'Pendiente') {
             session()->flash(
                 'swal',

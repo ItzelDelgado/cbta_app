@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\HospitalController;
 use App\Http\Controllers\Admin\InputController;
 use App\Http\Controllers\Admin\MedicineController;
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SolicitudController;
 use App\Http\Controllers\Admin\UserController;
 use App\Models\Solicitud;
@@ -20,20 +22,38 @@ Route::get('/', function(){
 })->name('dashboard');
 
 
-Route::resource('/users', UserController::class);
+
+Route::resource('/users', UserController::class)
+    ->middleware(['can:usuarios']);
+
+Route::resource('/roles', RoleController::class)
+    ->except('show')
+    ->middleware(['can:roles']);
+
+Route::resource('/permissions', PermissionController::class)
+    ->except('show')
+    ->middleware(['can:permisos']);
+
 
 Route::resource('/hospitals', HospitalController::class)
-->except(['show','destroy']);
+    ->except(['show','destroy'])
+    ->middleware(['can:hospitales']);
 
 Route::resource('/medicines', MedicineController::class)
-->except(['destroy']);
+    ->except(['destroy'])
+    ->middleware(['can:medicamentos']);
 
-Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy']);
+Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy'])
+    ->middleware(['can:solicitudes']);
 
-Route::get('/solicitudes/orden-de-preparacion/{solicitud}', [SolicitudController::class, 'ordenPreparacion'])->name('solicitudes.ordenPreparacion');
+Route::get('/solicitudes/orden-de-preparacion/{solicitud}', [SolicitudController::class, 'ordenPreparacion'])->name('solicitudes.ordenPreparacion')
+    ->middleware(['can:solicitudes']);
 
-Route::get('/solicitudes/remision/{solicitud}', [SolicitudController::class, 'remision'])->name('solicitudes.remision');
+Route::get('/solicitudes/remision/{solicitud}', [SolicitudController::class, 'remision'])->name('solicitudes.remision')
+    ->middleware(['can:solicitudes']);
 
-Route::get('/solicitudes/envio/{solicitud}', [SolicitudController::class, 'envio'])->name('solicitudes.envio');
+Route::get('/solicitudes/envio/{solicitud}', [SolicitudController::class, 'envio'])->name('solicitudes.envio')
+    ->middleware(['can:solicitudes']);
 
-Route::get('/solicitudes/etiqueta/{solicitud}', [SolicitudController::class, 'etiqueta'])->name('solicitudes.etiqueta');
+Route::get('/solicitudes/etiqueta/{solicitud}', [SolicitudController::class, 'etiqueta'])->name('solicitudes.etiqueta')
+    ->middleware(['can:solicitudes']);

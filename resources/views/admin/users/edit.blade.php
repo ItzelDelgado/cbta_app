@@ -12,25 +12,36 @@
             <x-label class="mb-2">
                 Nombre
             </x-label>
-            <x-input value="{{old('name',$user->name)}}" name="name" class="w-full" placeholder="Escriba el nombre del usuario" />
+            <x-input value="{{ old('name', $user->name) }}" name="name" class="w-full"
+                placeholder="Escriba el nombre del usuario" />
         </div>
         <div class="mb-4">
             <x-label class="mb-2">
                 Apellidos
             </x-label>
-            <x-input value="{{old('lastname',$user->lastname)}}" name="lastname" class="w-full" placeholder="Escriba los apellido del usuario" />
+            <x-input value="{{ old('lastname', $user->lastname) }}" name="lastname" class="w-full"
+                placeholder="Escriba los apellido del usuario" />
         </div>
         <div class="mb-4">
             <x-label class="mb-2">
                 Nombre de usuario
             </x-label>
-            <x-input value="{{old('username',$user->username)}}" name="username" class="w-full" placeholder="Escriba el nombre del usuario" />
+            <x-input value="{{ old('username', $user->username) }}" name="username" class="w-full"
+                placeholder="Escriba el nombre del usuario" />
         </div>
         <div class="mb-4">
             <x-label class="mb-2">
                 Contraseña
             </x-label>
-            <x-input type="password" value="{{old('password',$user->password)}}" name="password" class="w-full" placeholder="Escriba la contraseña del usuario" />
+            <x-input type="password" value="" name="password" class="w-full"
+                placeholder="Escriba la contraseña del usuario" />
+        </div>
+        <div class="mb-4">
+            <x-label class="mb-2">
+                Cofirmar Contraseña
+            </x-label>
+            <x-input type="password" value="" name="password_confirmation" class="w-full"
+                placeholder="Repita la contraseña del usuario" />
         </div>
         <div class="mb-4">
             <x-label class="mb-2">
@@ -41,6 +52,22 @@
                     <option @selected(old('hospital_id', $user->hospital_id) == $hospital->id) value="{{ $hospital->id }}">{{ $hospital->name }}</option>
                 @endforeach
             </x-select>
+        </div>
+        <div class="mb-4">
+            <ul>
+                @foreach ($roles as $role)
+                    <li>
+                        <label for="">
+                            <x-checkbox type="checkbox"
+                                name="roles[]"
+                                value="{{ $role->id }}"
+                                :checked="in_array($role->id, old('roles', $user->roles()->pluck('id')->toArray()),
+                                )" />
+                            {{ $role->name }}
+                        </label>
+                    </li>
+                @endforeach
+            </ul>
         </div>
         <div class="flex justify-end">
             <x-button>
