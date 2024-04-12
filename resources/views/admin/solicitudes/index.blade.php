@@ -29,15 +29,19 @@
                     <th scope="col" class="px-6 py-3">
                         Hospital
                     </th>
-                    <th scope="col" class="px-6 py-3">
-                        Modificar
-                    </th>
+                    @hasanyrole('Admin|Super Admin')
+                        <th scope="col" class="px-6 py-3">
+                            Modificar
+                        </th>
+                    @endhasanyrole
                     <th scope="col" class="px-6 py-3">
                         Estado
                     </th>
-                    <th scope="col" class="px-6 py-3">
-                        Detalles
-                    </th>
+                    @hasanyrole('Admin|Super Admin')
+                        <th scope="col" class="px-6 py-3">
+                            Detalles
+                        </th>
+                    @endhasanyrole
                     <th scope="col" class="px-6 py-3">
                         Remisión
                     </th>
@@ -58,19 +62,20 @@
                             {{ $solicitud->user->hospital->name }}
                         </td>
 
-                        <td class="px-6 py-4">
+                        @hasanyrole('Admin|Super Admin')
+                            <td class="px-6 py-4">
+                                @if ($solicitud->is_aprobada == 'Pendiente')
+                                    <div class="flex items-center">
+                                        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                                            href="{{ route('admin.solicitudes.edit', $solicitud) }}">Aprobar</a>
+                                    </div>
+                                @else
+                                    <div class="flex items-center">
 
-                            @if ($solicitud->is_aprobada == 'Pendiente')
-                                <div class="flex items-center">
-                                    <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                                        href="{{ route('admin.solicitudes.edit', $solicitud) }}">Aprobar</a>
-                                </div>
-                            @else
-                                <div class="flex items-center">
-
-                                </div>
-                            @endif
-                        </td>
+                                    </div>
+                                @endif
+                            </td>
+                        @endhasanyrole
 
                         <td class="px-6 py-4">
                             @if ($solicitud->is_aprobada == 'Aprobada')
@@ -87,13 +92,14 @@
                                 </div>
                             @endif
                         </td>
-
-                        <td class="px-6 py-4">
-                            <div class="flex items-center">
-                                <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                                    href="{{ route('admin.solicitudes.show', $solicitud) }}">Ver</a>
-                            </div>
-                        </td>
+                        @hasanyrole('Admin|Super Admin')
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                                        href="{{ route('admin.solicitudes.show', $solicitud) }}">Ver</a>
+                                </div>
+                            </td>
+                        @endhasanyrole
                         <td class="px-6 py-4">
                             @isset($solicitud->solicitud_aprobada)
                                 {{ $solicitud->solicitud_aprobada->id }}
@@ -113,12 +119,12 @@
         </table>
     </div>
 
-    
+
 
     <script>
         $(document).ready(function() {
             $('#miTabla').DataTable();
         });
     </script>
-    
+
 </x-admin-layout>

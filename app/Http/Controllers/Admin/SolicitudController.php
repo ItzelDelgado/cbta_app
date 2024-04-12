@@ -27,16 +27,26 @@ class SolicitudController extends Controller
 {
     /**
      * Display a listing of the resource.
-     */
-    public function index()
+     */ public function index()
     {
+        $user = Auth::user(); // Obtener el usuario actual
+        $role = $user->roles[0]->name;
+        if ($role === 'Admin' or $role === 'Super Admin') {
+            // Si el usuario es un administrador, cargar todas las solicitudes
+            $solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
+                ->latest()
+                ->get();
+        } elseif($role === 'Cliente') {
+            // Si el usuario es un cliente, cargar solo sus propias solicitudes
+            $solicitudes = Solicitud::where('user_id', $user->id)
+                ->with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
+                ->latest()
+                ->get();
+        }
 
-        $solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
-            ->latest()
-            ->get();
-        //return $solicitudes;
         return view('admin.solicitudes.index', compact('solicitudes'));
     }
+
 
 
     function calcularEdad($fechaNacimiento)

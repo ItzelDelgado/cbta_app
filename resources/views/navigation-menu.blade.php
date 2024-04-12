@@ -3,9 +3,9 @@
     $links = [
         [
             //Informacion acerca del enlace
-            'name' => 'Dashboard',
-            'url' => route('dashboard'),
-            'active' => request()->routeIs('dashboard'),
+            'name' => 'solicitudes',
+            'url' => route('admin.solicitudes.index'),
+            'active' => request()->routeIs('admin.solicitudes.index'),
         ],
     ];
 @endphp
@@ -17,7 +17,7 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center w-28">
-                    <a href="{{ route('dashboard') }}">
+                    <a href="{{ route('admin.solicitudes.index') }}">
                         <x-application-mark class="block h-9 w-auto" />
                     </a>
                 </div>
@@ -86,12 +86,12 @@
                     </div>
                 @else
                     @auth
-                        <a href="{{ url('/dashboard') }}"
-                            class="font-semibold text-gray-600 hover:text-gray-900 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Dashboard</a>
+                        <a href="{{ url('/admin/solicitudes') }}"
+                            class="font-semibold text-gray-600 hover:text-gray-900 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Solicitudes</a>
                     @else
                         <div class="sm:fixed sm:top-0 sm:right-0 p-6 text-right z-10">
                             @auth
-                                <a href="{{ url('/dashboard') }}"
+                                <a href="{{ url('/admin/solicitudes') }}"
                                     class="font-semibold text-gray-600 hover:text-gray-900 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">Dashboard</a>
                             @else
                                 <a href="{{ route('login') }}"
