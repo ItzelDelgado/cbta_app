@@ -42,6 +42,7 @@ class SolicitudController extends Controller
                 ->with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
                 ->latest()
                 ->get();
+            //return $solicitudes;
         }
 
         return view('admin.solicitudes.index', compact('solicitudes'));

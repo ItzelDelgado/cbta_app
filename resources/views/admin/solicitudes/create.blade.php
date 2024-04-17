@@ -12,7 +12,7 @@
             <div class="flex gap-4">
                 <div class="mb-4 flex  items-baseline gap-2 w-full">
                     <x-label class="mb-2 whitespace-nowrap">
-                        Paciente Nombre(s)*:
+                        Paciente Nombre(s):
                     </x-label>
                     <div class="flex flex-col w-full">
                         <x-input-solicitud value="{{ old('nombre_paciente') }}" name="nombre_paciente" class="w-full"
@@ -25,7 +25,7 @@
                 </div>
                 <div class="mb-4 flex items-baseline gap-2 w-full">
                     <x-label class="mb-2 whitespace-nowrap">
-                        Paciente Apellidos*:
+                        Paciente Apellidos:
                     </x-label>
                     <div class="flex flex-col w-full">
                         <x-input-solicitud value="{{ old('apellidos_paciente') }}" name="apellidos_paciente"
@@ -40,7 +40,7 @@
             <div class="flex gap-4 ">
                 <div class="mb-4 flex items-baseline gap-2 w-full">
                     <x-label class="mb-2">
-                        Servicio*:
+                        Servicio:
                     </x-label>
                     <div class="flex flex-col w-full">
                         <x-input-solicitud value="{{ old('servicio') }}" name="servicio" class=""
@@ -128,7 +128,7 @@
                 </div>
                 <div class="mb-4 flex items-baseline gap-2 w-full">
                     <x-label class="mb-2 whitespace-nowrap">
-                        Fecha de nacimiento*:
+                        Fecha de nacimiento:
                     </x-label>
                     <div class="flex flex-col">
                         <x-input-solicitud type="date" value="{{ old('fecha_nacimiento') }}"
@@ -147,7 +147,7 @@
             <div class="flex gap-4">
                 <div class="mb-4 flex items-stretch gap-2 w-full">
                     <x-label class="mb-2 whitespace-nowrap">
-                        Vía de administración*:
+                        Vía de administración:
                     </x-label>
                     <x-select class="w-full" name="via_administracion">
                         <option value="Central" @if (old('via_administracion') == 'Central') selected @endif>Central</option>
@@ -174,7 +174,7 @@
                 <div>
                     <div class="mb-4 flex items-baseline gap-2 w-full">
                         <x-label class="mb-2 whitespace-nowrap">
-                            Sobrellenado* (mL):
+                            Sobrellenado (mL):
                         </x-label>
                         <x-input-solicitud type="number" value="{{ old('sobrellenado_ml') }}" step="0.0001"
                             name="sobrellenado_ml" class="w-32" placeholder="" />
@@ -186,7 +186,7 @@
                 </div>
                 <div class="mb-4 flex items-baseline gap-2 w-full">
                     <x-label class="mb-2 whitespace-nowrap">
-                        Vol. Total* (mL):
+                        Volumen total (mL):
                     </x-label>
                     <x-input-solicitud type="number" value="{{ old('volumen_total') }}" name="volumen_total"
                         step="0.0001" class="w-full" placeholder="" />
@@ -197,10 +197,10 @@
                 </div>
                 <div class="mb-4 flex items-stretch gap-2 w-full">
                     <x-label class="mb-2">
-                        NPT*:
+                        NPT:
                     </x-label>
                     <x-select class="w-full" name="npt">
-
+                        <option value="" disabled selected>Seleccionar NPT</option>
                         <option value="RNPT" @if (old('npt') == 'RNPT') selected @endif>RNPT</option>
                         <option value="LACT" @if (old('npt') == 'LACT') selected @endif>LACT</option>
                         <option value="INF" @if (old('npt') == 'INF') selected @endif>INF</option>
@@ -225,7 +225,7 @@
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}
+                                        {{ $input->description }}:
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
@@ -248,7 +248,7 @@
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}
+                                        {{ $input->description }}:
                                     </x-label>
                                     <div class="flex  w-full">
                                         <x-input-solicitud type="number" class="w-full"
@@ -273,7 +273,7 @@
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}
+                                        {{ $input->description }}:
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
@@ -297,7 +297,7 @@
                                 <div class="w-full">
                                     <div class="mb-4 flex items-baseline gap-2 w-full">
                                         <x-label class="mb-2 whitespace-nowrap">
-                                            {{ $input->description }}
+                                            {{ $input->description }}:
                                         </x-label>
                                         <div class="flex w-full">
                                             <x-input-solicitud type="number" class="w-full"
@@ -326,7 +326,7 @@
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}
+                                        {{ $input->description }}:
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
@@ -356,7 +356,7 @@
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}
+                                        {{ $input->description }}:
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
@@ -380,7 +380,7 @@
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}
+                                        {{ $input->description }}:
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-select class="w-full" name="i_{{ $input->input_id }}_{{ $input->unidad }}" id="i_{{ $input->input_id }}_{{ $input->unidad }}">
@@ -424,7 +424,7 @@
                     <div class="w-full">
                         <div class="mb-4 flex items-baseline gap-2 w-full">
                             <x-label class="mb-2">
-                                Fecha y hora de entrega
+                                Fecha y hora de entrega:
                             </x-label>
                             <div class="flex flex-col w-full">
                                 <x-input-solicitud type="datetime-local" value="{{ old('fecha_hora_entrega') }}"
@@ -442,7 +442,7 @@
                     <div class="w-full">
                         <div class="mb-4 flex items-baseline gap-2 w-full">
                             <x-label class="mb-2">
-                                NOMBRE DEL MÉDICO*:
+                                Nombre del médico:
                             </x-label>
                             <div class="flex flex-col w-full">
                                 <x-input-solicitud value="{{ old('nombre_medico') }}" name="nombre_medico"
@@ -457,7 +457,7 @@
                     <div class="w-full">
                         <div class="mb-4 flex items-baseline gap-2 w-full">
                             <x-label class="mb-2">
-                                CÉDULA*:
+                                Cédula profesional:
                             </x-label>
                             <div class="flex flex-col w-full">
                                 <x-input-solicitud value="{{ old('cedula') }}" name="cedula" class="w-full"

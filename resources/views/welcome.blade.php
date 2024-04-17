@@ -7,6 +7,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
+    {{-- Font Awesome --}}
+    <script src="https://kit.fontawesome.com/b023f039d3.js" crossorigin="anonymous"></script>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -24,8 +26,8 @@
         <div class="w-[300px]">
             <img src="{{ asset('img/Logo_Prodifem.png') }}" alt="">
         </div>
-        <p class="text-center font-semibold text-2xl">Si tiene alguna duda no dude <br> en contactarnos</p>
-        <p class="text-center font-semibold text-2xl">Tel: 55 13535412 <br> WatsApp: 55 13535412 <br> Correo:
+        <p class="text-center font-semibold text-2xl">Para cualquier pregunta, contáctenos.</p>
+        <p class="text-center font-semibold text-2xl"><i class="fa-solid fa-phone" style="color: #ffffff;"></i> 5513535412 <br> <i class="fa-brands fa-whatsapp"></i> 5513535412 <br> <i class="fa-solid fa-envelope"></i>
             mezclasp@gmail.com</p>
     </div>
     <div class="max-w-[600px] mx-auto text-center mt-36">

@@ -19,7 +19,7 @@
             <div class="flex gap-4">
                 <div class="mb-4 flex  items-baseline gap-2 w-full">
                     <x-label class="mb-2 whitespace-nowrap">
-                        Paciente Nombre(s)*:
+                        Paciente Nombre(s):
                     </x-label>
                     <div class="flex flex-col w-full">
                         <x-input-solicitud
@@ -33,7 +33,7 @@
                 </div>
                 <div class="mb-4 flex items-baseline gap-2 w-full">
                     <x-label class="mb-2 whitespace-nowrap">
-                        Paciente Apellidos*:
+                        Paciente Apellidos:
                     </x-label>
                     <div class="flex flex-col w-full">
                         <x-input-solicitud
@@ -49,7 +49,7 @@
             <div class="flex gap-4 ">
                 <div class="mb-4 flex items-baseline gap-2 w-full">
                     <x-label class="mb-2">
-                        Servicio*:
+                        Servicio:
                     </x-label>
                     <div class="flex flex-col w-full">
                         <x-input-solicitud value="{{ old('servicio', $solicitud->solicitud_patient->servicio) }}"
@@ -160,7 +160,7 @@
             <div class="flex gap-4">
                 <div class="mb-4 flex items-stretch gap-2 w-full">
                     <x-label class="mb-2 whitespace-nowrap">
-                        Vía de administración*:
+                        Vía de administración:
                     </x-label>
                     <x-select class="w-full" name="via_administracion">
                         <option value="Central" @if (old('via_administracion', $solicitud->solicitud_detail->via_administracion) == 'Central') selected @endif>Central</option>
@@ -189,7 +189,7 @@
                 <div>
                     <div class="mb-4 flex items-baseline gap-2 w-full">
                         <x-label class="mb-2 whitespace-nowrap">
-                            Sobrellenado* (mL):
+                            Sobrellenado (mL):
                         </x-label>
                         <x-input-solicitud type="number"
                             value="{{ old('sobrellenado_ml', $solicitud->solicitud_detail->sobrellenado_ml) }}"
@@ -202,7 +202,7 @@
                 </div>
                 <div class="mb-4 flex items-baseline gap-2 w-full">
                     <x-label class="mb-2 whitespace-nowrap">
-                        Vol. Total* (mL):
+                        Volumen total (mL):
                     </x-label>
                     <x-input-solicitud type="number"
                         value="{{ old('volumen_total', $solicitud->solicitud_detail->volumen_total) }}"
@@ -217,7 +217,7 @@
                         NPT*:
                     </x-label>
                     <x-select class="w-full" name="npt">
-
+                        <option value="" disabled selected>Seleccionar NPT</option>
                         <option value="RNPT" @if (old('npt', $solicitud->solicitud_detail->npt) == 'RNPT') selected @endif>RNPT</option>
                         <option value="LACT" @if (old('npt', $solicitud->solicitud_detail->npt) == 'LACT') selected @endif>LACT</option>
                         <option value="INF" @if (old('npt', $solicitud->solicitud_detail->npt) == 'INF') selected @endif>INF</option>
@@ -243,7 +243,7 @@
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}
+                                        {{ $input->description }}:
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
@@ -255,9 +255,13 @@
                                             <div class="text-red-500">{{ $message }}</div>
                                         @enderror --}}
                                     </div>
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Valor en mL:
+                                    </x-label>
+                                    <p class="flex">{{renderInputMLSection($input->input_id, $inputs_solicitud)}}</p>
 
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        Lote
+                                        Lote:
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud class="w-full"
@@ -267,7 +271,7 @@
                                     </div>
 
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        Caducidad
+                                        Caducidad:
                                     </x-label>
                                     <div class="flex w-full">
                                         {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
@@ -290,7 +294,7 @@
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}
+                                        {{ $input->description }}:
                                     </x-label>
                                     <div class="flex  w-full">
                                         <x-input-solicitud type="number" class="w-full"
@@ -303,7 +307,11 @@
                                         @enderror --}}
                                     </div>
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        Lote
+                                        Valor en mL:
+                                    </x-label>
+                                    <p class="flex">{{renderInputMLSection($input->input_id, $inputs_solicitud)}}</p>
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Lote:
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud class="w-full"
@@ -313,7 +321,7 @@
                                     </div>
 
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        Caducidad
+                                        Caducidad:
                                     </x-label>
                                     <div class="flex w-full">
                                         {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
@@ -337,7 +345,7 @@
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}
+                                        {{ $input->description }}:
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
@@ -350,7 +358,11 @@
                                         @enderror --}}
                                     </div>
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        Lote
+                                        Valor en mL:
+                                    </x-label>
+                                    <p class="flex">{{renderInputMLSection($input->input_id, $inputs_solicitud)}}</p>
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Lote:
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud class="w-full"
@@ -360,7 +372,7 @@
                                     </div>
 
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        Caducidad
+                                        Caducidad:
                                     </x-label>
                                     <div class="flex w-full">
                                         {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
@@ -383,7 +395,7 @@
                                 <div class="w-full">
                                     <div class="mb-4 flex items-baseline gap-2 w-full">
                                         <x-label class="mb-2 whitespace-nowrap">
-                                            {{ $input->description }}
+                                            {{ $input->description }}:
                                         </x-label>
                                         <div class="flex w-full">
                                             <x-input-solicitud type="number" class="w-full"
@@ -396,7 +408,11 @@
                                             @enderror --}}
                                         </div>
                                         <x-label class="mb-2 whitespace-nowrap">
-                                            Lote
+                                            Valor en mL:
+                                        </x-label>
+                                        <p class="flex">{{renderInputMLSection($input->input_id, $inputs_solicitud)}}</p>
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Lote:
                                         </x-label>
                                         <div class="flex w-full">
                                             <x-input-solicitud class="w-full"
@@ -406,7 +422,7 @@
                                         </div>
 
                                         <x-label class="mb-2 whitespace-nowrap">
-                                            Caducidad
+                                            Caducidad:
                                         </x-label>
                                         <div class="flex w-full">
                                             {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
@@ -435,7 +451,7 @@
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}
+                                        {{ $input->description }}:
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
@@ -448,7 +464,11 @@
                                         @enderror --}}
                                     </div>
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        Lote
+                                        Valor en mL:
+                                    </x-label>
+                                    <p class="flex">{{renderInputMLSection($input->input_id, $inputs_solicitud)}}</p>
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Lote:
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud class="w-full"
@@ -458,7 +478,7 @@
                                     </div>
 
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        Caducidad
+                                        Caducidad:
                                     </x-label>
                                     <div class="flex w-full">
                                         {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
@@ -488,7 +508,7 @@
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}
+                                        {{ $input->description }}:
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud type="number" class="w-full"
@@ -501,7 +521,11 @@
                                         @enderror --}}
                                     </div>
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        Lote
+                                        Valor en mL:
+                                    </x-label>
+                                    <p class="flex">{{renderInputMLSection($input->input_id, $inputs_solicitud)}}</p>
+                                    <x-label class="mb-2 whitespace-nowrap">
+                                        Lote:
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud class="w-full"
@@ -511,7 +535,7 @@
                                     </div>
 
                                     <x-label class="mb-2 whitespace-nowrap">
-                                        Caducidad
+                                        Caducidad:
                                     </x-label>
                                     <div class="flex w-full">
                                         {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
@@ -534,7 +558,7 @@
                         <div>
                             <div class="mb-4 flex items-baseline gap-2 w-full">
                                 <x-label class="mb-2 whitespace-nowrap">
-                                    {{ $input->description }}
+                                    {{ $input->description }}:
                                 </x-label>
                                 <div class="flex w-full">
                                     <x-select class="w-full" name="i_{{ $input->input_id }}"
@@ -546,7 +570,7 @@
                                     </x-select>
                                 </div>
                                 <x-label class="mb-2 whitespace-nowrap">
-                                    Lote
+                                    Lote:
                                 </x-label>
                                 <div class="flex w-full">
                                     <x-input-solicitud class="w-full"
@@ -556,7 +580,7 @@
                                 </div>
 
                                 <x-label class="mb-2 whitespace-nowrap">
-                                    Caducidad
+                                    Caducidad:
                                 </x-label>
                                 <div class="flex w-full">
                                     {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
@@ -588,7 +612,7 @@
                     <div class="w-full">
                         <div class="mb-4 flex items-baseline gap-2 w-full">
                             <x-label class="mb-2">
-                                Fecha y hora de entrega
+                                Fecha y hora de entrega:
                             </x-label>
                             <div class="flex flex-col w-full">
                                 <x-input-solicitud type="datetime-local"
@@ -606,7 +630,7 @@
                         <div class="w-full">
                             <div class="mb-4 flex items-baseline gap-2 w-full">
                                 <x-label class="mb-2">
-                                    Fecha y hora de preparación
+                                    Fecha y hora de preparación:
                                 </x-label>
                                 <div class="flex flex-col w-full">
                                     <x-input-solicitud type="datetime-local"
@@ -626,7 +650,7 @@
                     <div class="w-full">
                         <div class="mb-4 flex items-baseline gap-2 w-full">
                             <x-label class="mb-2">
-                                NOMBRE DEL MÉDICO*:
+                                Nombre del médico:
                             </x-label>
                             <div class="flex flex-col w-full">
                                 <x-input-solicitud
@@ -642,7 +666,7 @@
                     <div class="w-full">
                         <div class="mb-4 flex items-baseline gap-2 w-full">
                             <x-label class="mb-2">
-                                CÉDULA*:
+                                Cédula profesional:
                             </x-label>
                             <div class="flex flex-col w-full">
                                 <x-input-solicitud value="{{ old('cedula', $solicitud->solicitud_detail->cedula) }}"
@@ -657,14 +681,14 @@
                 </div>
             </div>
             <input type="hidden" name="is_aprobada" id="is_aprobada_input" value='Pendiente'>
-            <div class="flex justify-end gap-5">
+            <div class="flex justify-end gap-5 mb-3">
                 {{-- <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas --}}
                 <x-button>
                     ACTUALIZAR
                 </x-button>
 
             </div>
-            <div class="flex justify-end gap-5">
+            <div class="flex justify-end gap-5 mb-3">
                 {{-- <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas --}}
                 <x-button type="button" onclick="updateIsAprobada('Aprobada')">
                     APROBAR
