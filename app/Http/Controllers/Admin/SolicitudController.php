@@ -711,8 +711,8 @@ class SolicitudController extends Controller
                     ->where('input_id', $bolsa_eva) // Condición para input_id igual a 37
                     ->first();
         $solicitud_inputs_be['solicitud_id'] = $solicitud->id;
-        $solicitud_inputs_be['valor'] = 1;
-        $solicitud_inputs_be['valor_ml'] = 1;
+        $solicitud_inputs_be['valor'] = 0;
+        $solicitud_inputs_be['valor_ml'] = 0;
         $solicitud_inputs_be['input_id'] = $bolsa_eva;
         $solicitud_inputs_be['lote'] = $lote_bolsa_eva;
         $solicitud_inputs_be['caducidad'] = $caducidad_bolsa_eva;
