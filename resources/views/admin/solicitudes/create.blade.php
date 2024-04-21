@@ -118,6 +118,7 @@
                         Sexo:
                     </x-label>
                     <x-select class="w-full" name="sexo">
+                        <option value="" disabled selected>Seleccionar Sexo</option>
                         <option value="Femenino" @if (old('sexo') == 'Femenino') selected @endif>Femenino</option>
                         <option value="Masculino" @if (old('sexo') == 'Masculino') selected @endif>Masculino</option>
                     </x-select>
@@ -392,6 +393,7 @@
                             </div>
                         @endif
                     @endforeach
+
                     {{--                     
                     <div class="mb-4 flex items-stretch gap-2 w-full">
                         <x-label class="mb-2">

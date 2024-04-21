@@ -5,10 +5,24 @@
 
 <x-admin-layout>
 
+
     <div class="flex flex-col items-center">
         <div class="mt-2 mb-4">
             <h1 class="text-2xl font-medium text-gray-800 text-center">SOLICITUD DE NUTRICIÓN PARENTERAL</h1>
         </div>
+
+        <p>Volumen total ingresado por el usuario: {{ $solicitud->solicitud_detail->volumen_total }}</p>
+        <p>Suma de elementos en mL: {{ $solicitud->solicitud_detail->suma_volumen }}</p>
+
+        @if ($solicitud->solicitud_detail->volumen_total !== null)
+            @if ($solicitud->solicitud_detail->volumen_total < $solicitud->solicitud_detail->suma_volumen)
+                <h2 class="text-red-500">El volumen total en mL que ingresó el usuario es menor a la suma total en mL de
+                    los
+                    elementos calculada. <br>
+                    Verifica los valores o el cálculo del agua será negativo.</h2>
+            @endif
+        @endif
+
         <form id="solicitudForm" action="{{ route('admin.solicitudes.update', $solicitud) }}" method="POST"
             class="bg-white rounded-lg p-6 shadow-lg">
             @csrf
@@ -78,8 +92,8 @@
                         Piso:
                     </x-label>
                     <div class="flex flex-col w-full">
-                        <x-input-solicitud value="{{ old('piso', $solicitud->solicitud_patient->piso) }}" name="piso"
-                            class="" placeholder="" />
+                        <x-input-solicitud value="{{ old('piso', $solicitud->solicitud_patient->piso) }}"
+                            name="piso" class="" placeholder="" />
                         <!-- Mensaje de error -->
                         @error('piso')
                             <div class="text-red-500 text-sm">{{ $message }}</div>
@@ -131,6 +145,7 @@
                         Sexo:
                     </x-label>
                     <x-select class="w-full" name="sexo">
+                        <option value="" disabled selected>Seleccionar Sexo</option>
                         <option value="Femenino" @if (old('sexo', $solicitud->solicitud_patient->sexo) == 'Femenino') selected @endif>Femenino</option>
                         <option value="Masculino" @if (old('sexo', $solicitud->solicitud_patient->sexo) == 'Masculino') selected @endif>Masculino</option>
                     </x-select>
@@ -258,7 +273,8 @@
                                     <x-label class="mb-2 whitespace-nowrap">
                                         Valor en mL:
                                     </x-label>
-                                    <p class="flex">{{renderInputMLSection($input->input_id, $inputs_solicitud)}}</p>
+                                    <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                    </p>
 
                                     <x-label class="mb-2 whitespace-nowrap">
                                         Lote:
@@ -309,7 +325,8 @@
                                     <x-label class="mb-2 whitespace-nowrap">
                                         Valor en mL:
                                     </x-label>
-                                    <p class="flex">{{renderInputMLSection($input->input_id, $inputs_solicitud)}}</p>
+                                    <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                    </p>
                                     <x-label class="mb-2 whitespace-nowrap">
                                         Lote:
                                     </x-label>
@@ -360,7 +377,8 @@
                                     <x-label class="mb-2 whitespace-nowrap">
                                         Valor en mL:
                                     </x-label>
-                                    <p class="flex">{{renderInputMLSection($input->input_id, $inputs_solicitud)}}</p>
+                                    <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                    </p>
                                     <x-label class="mb-2 whitespace-nowrap">
                                         Lote:
                                     </x-label>
@@ -410,7 +428,8 @@
                                         <x-label class="mb-2 whitespace-nowrap">
                                             Valor en mL:
                                         </x-label>
-                                        <p class="flex">{{renderInputMLSection($input->input_id, $inputs_solicitud)}}</p>
+                                        <p class="flex">
+                                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}</p>
                                         <x-label class="mb-2 whitespace-nowrap">
                                             Lote:
                                         </x-label>
@@ -466,7 +485,8 @@
                                     <x-label class="mb-2 whitespace-nowrap">
                                         Valor en mL:
                                     </x-label>
-                                    <p class="flex">{{renderInputMLSection($input->input_id, $inputs_solicitud)}}</p>
+                                    <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                    </p>
                                     <x-label class="mb-2 whitespace-nowrap">
                                         Lote:
                                     </x-label>
@@ -523,7 +543,8 @@
                                     <x-label class="mb-2 whitespace-nowrap">
                                         Valor en mL:
                                     </x-label>
-                                    <p class="flex">{{renderInputMLSection($input->input_id, $inputs_solicitud)}}</p>
+                                    <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                    </p>
                                     <x-label class="mb-2 whitespace-nowrap">
                                         Lote:
                                     </x-label>
@@ -596,6 +617,53 @@
                         </div>
                     @endif
                 @endforeach
+
+                <div>
+                    <div>
+                        <x-label class="mb-2 whitespace-nowrap">
+                            Bolsa Eva:
+                        </x-label>
+                        <div class="flex w-full">
+                            <x-select class="w-full" name="bolsa_eva" id="bolsa_eva">
+                                <option value="" disabled selected>Seleccionar Bolsa Eva</option>
+                                @foreach ($inputs as $input)
+                                    @if ($input->category_id == 6)
+                                        <option value="{{ $input->input_id }}"
+                                            @if (old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) == $input->input_id) selected @endif>
+                                            {{ $input->description }}
+                                        </option>
+                                    @endif
+                                @endforeach
+                            </x-select>
+                        </div>
+                        <!-- Mensaje de error -->
+                        @error('bolsa_eva')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <x-label class="mb-2 whitespace-nowrap">
+                            Lote:
+                        </x-label>
+                        <div class="flex w-full">
+                            <x-input-solicitud class="w-full" value="{{ old('lote') }}" name="lote_bolsa_eva"
+                                id="lote" step="0.0001" placeholder="" />
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <x-label class="mb-2 whitespace-nowrap">
+                        Caducidad:
+                    </x-label>
+                    <div class="flex w-full">
+                        <x-input-solicitud type="date" value="{{ old('caducidad') }}"
+                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="caducidad_bolsa_eva"
+                            class="" placeholder="" />
+                    </div>
+                </div>
+
             </div>
             <div class="mb-4">
                 <x-label class="mb-2">

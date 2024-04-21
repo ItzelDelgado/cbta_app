@@ -455,8 +455,14 @@ class SolicitudController extends Controller
             'nombre_medico' => 'required|string|max:255',
             'cedula' => 'required|string|max:50',
             'fecha_hora_preparacion' => 'required|date_format:Y-m-d\TH:i',
+            'bolsa_eva' => 'required',
+            'lote_bolsa_eva' => 'required',
+            'caducidad_bolsa_eva' => 'required'
         ]);
 
+        $bolsa_eva = $request->input('bolsa_eva');
+        $lote_bolsa_eva = $request->input('lote_bolsa_eva');
+        $caducidad_bolsa_eva = $request->input('caducidad_bolsa_eva');
 
         $solicitud_paciente = $request->only(['nombre_paciente', 'apellidos_paciente', 'servicio', 'cama', 'piso', 'registro', 'diagnostico', 'peso', 'fecha_nacimiento', 'sexo']);
         $solicitud_detalles = $request->only(['via_administracion', 'tiempo_infusion_min', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula']);
@@ -701,6 +707,19 @@ class SolicitudController extends Controller
         $registro->suma_volumen = $suma_valores_red_ml;
         $solicitud['is_aprobada'] = $is_aprobada_value;
 
+        $medicina_bolsa_eva = Medicine::select('id', 'precio_ml')
+                    ->where('input_id', $bolsa_eva) // Condición para input_id igual a 37
+                    ->first();
+        $solicitud_inputs_be['solicitud_id'] = $solicitud->id;
+        $solicitud_inputs_be['valor'] = 1;
+        $solicitud_inputs_be['valor_ml'] = 1;
+        $solicitud_inputs_be['input_id'] = $bolsa_eva;
+        $solicitud_inputs_be['lote'] = $lote_bolsa_eva;
+        $solicitud_inputs_be['caducidad'] = $caducidad_bolsa_eva;
+        $solicitud_inputs_be['precio_ml'] = $medicina_bolsa_eva['precio_ml'];
+        SolicitudInput::create($solicitud_inputs_be);
+
+        
         // Guardar el modelo actualizado
         $registro->save();
         $solicitud->update($solicitud['is_aprobada']);
