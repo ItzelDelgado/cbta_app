@@ -11,16 +11,20 @@
             <h1 class="text-2xl font-medium text-gray-800 text-center">SOLICITUD DE NUTRICIÓN PARENTERAL</h1>
         </div>
 
-        <p>Volumen total ingresado por el usuario: {{ $solicitud->solicitud_detail->volumen_total }}</p>
-        <p>Suma de elementos en mL: {{ $solicitud->solicitud_detail->suma_volumen }}</p>
+
 
         @if ($solicitud->solicitud_detail->volumen_total !== null)
+            <p>Volumen total ingresado por el usuario: {{ $solicitud->solicitud_detail->volumen_total }}</p>
+            <p>Suma de elementos en mL: {{ $solicitud->solicitud_detail->suma_volumen }}</p>
             @if ($solicitud->solicitud_detail->volumen_total < $solicitud->solicitud_detail->suma_volumen)
                 <h2 class="text-red-500">El volumen total en mL que ingresó el usuario es menor a la suma total en mL de
                     los
                     elementos calculada. <br>
                     Verifica los valores o el cálculo del agua será negativo.</h2>
             @endif
+        @else
+            <p>El usuario no ingreso un volumen total.</p>
+            <p>Suma de elementos en mL: {{ $solicitud->solicitud_detail->suma_volumen }}</p>
         @endif
 
         <form id="solicitudForm" action="{{ route('admin.solicitudes.update', $solicitud) }}" method="POST"
