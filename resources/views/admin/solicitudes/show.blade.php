@@ -54,6 +54,19 @@
         <div class="mt-2 mb-4">
             <h1 class="text-2xl font-medium text-gray-800 text-center">SOLICITUD DE NUTRICIÓN PARENTERAL</h1>
         </div>
+        @if ($solicitud->solicitud_detail->volumen_total !== null)
+            <p>Volumen total ingresado por el usuario: {{ $solicitud->solicitud_detail->volumen_total }}</p>
+            <p>Suma de elementos en mL: {{ $solicitud->solicitud_detail->suma_volumen }}</p>
+            @if ($solicitud->solicitud_detail->volumen_total < $solicitud->solicitud_detail->suma_volumen)
+                <h2 class="text-red-500">El volumen total en mL que ingresó el usuario es menor a la suma total en mL de
+                    los
+                    elementos calculada. <br>
+                    Verifica los valores o el cálculo del agua será negativo.</h2>
+            @endif
+        @else
+            <p>El usuario no ingreso un volumen total.</p>
+            <p>Suma de elementos en mL: {{ $solicitud->solicitud_detail->suma_volumen }}</p>
+        @endif
         <form id="solicitudForm" class="bg-white rounded-lg p-6 shadow-lg">
             @csrf
 
@@ -97,8 +110,8 @@
                         Cama:
                     </x-label>
                     <div class="flex flex-col w-full">
-                        <x-input-solicitud value="{{ old('cama', $solicitud->solicitud_patient->cama) }}" name="cama"
-                            class="" placeholder="" readonly />
+                        <x-input-solicitud value="{{ old('cama', $solicitud->solicitud_patient->cama) }}"
+                            name="cama" class="" placeholder="" readonly />
                     </div>
                 </div>
                 <div class="mb-4 flex items-baseline gap-2 w-full">
@@ -106,8 +119,8 @@
                         Piso:
                     </x-label>
                     <div class="flex flex-col w-full">
-                        <x-input-solicitud value="{{ old('piso', $solicitud->solicitud_patient->piso) }}" name="piso"
-                            class="" placeholder="" readonly />
+                        <x-input-solicitud value="{{ old('piso', $solicitud->solicitud_patient->piso) }}"
+                            name="piso" class="" placeholder="" readonly />
                     </div>
                 </div>
             </div>
@@ -558,6 +571,62 @@
                     </div>
                 @endif
             @endforeach
+            <div>
+
+                <div>
+                    <x-label class="mb-2 whitespace-nowrap">
+                        Bolsa Eva:
+                    </x-label>
+                    <div class="flex w-full">
+                        <x-select class="w-full" name="bolsa_eva" id="bolsa_eva">
+
+                            @foreach ($inputs as $input)
+                                @if ($input->category_id == 6)
+                                    <option value="{{ $input->input_id }}"
+                                        @if (old('bolsa_eva', renderBolsaEvaInputSection($input->input_id, $inputs_solicitud)) == $input->input_id) selected @endif>
+                                        {{ $input->description }}
+                                    </option>
+                                @endif
+                            @endforeach
+                        </x-select>
+                    </div>
+                    <!-- Mensaje de error -->
+                    @error('bolsa_eva')
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div>
+                    <x-label class="mb-2 whitespace-nowrap">
+                        Lote:
+                    </x-label>
+                    <div class="flex w-full">
+                        <x-input-solicitud class="w-full"
+                            value="{{ old('lote_bolsa_eva', renderLoteBolsaEvaSection($inputs_solicitud)) }}"
+                            name="lote_bolsa_eva" id="lote_bolsa_eva" step="0.0001" placeholder="" />
+                    </div>
+                    @error('lote_bolsa_eva')
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
+                </div>
+
+
+                <div>
+                    <x-label class="mb-2 whitespace-nowrap">
+                        Caducidad:
+                    </x-label>
+                    <div class="flex w-full">
+                        <x-input-solicitud type="date"
+                            value="{{ old('caducidad_bolsa_eva', renderCaducidadBolsaEvaSection($inputs_solicitud)) }}"
+                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="caducidad_bolsa_eva"
+                            id="caducidad_bolsa_eva" class="" placeholder="" />
+                    </div>
+                    @error('caducidad_bolsa_eva')
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+
             <div class="mb-4">
                 <x-label class="mb-2">
                     OBSERVACIONES

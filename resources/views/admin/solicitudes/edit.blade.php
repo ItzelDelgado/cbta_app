@@ -83,8 +83,8 @@
                         Cama:
                     </x-label>
                     <div class="flex flex-col w-full">
-                        <x-input-solicitud value="{{ old('cama', $solicitud->solicitud_patient->cama) }}" name="cama"
-                            class="" placeholder="" />
+                        <x-input-solicitud value="{{ old('cama', $solicitud->solicitud_patient->cama) }}"
+                            name="cama" class="" placeholder="" />
                         <!-- Mensaje de error -->
                         @error('cama')
                             <div class="text-red-500 text-sm">{{ $message }}</div>
@@ -665,7 +665,7 @@
                         </x-label>
                         <div class="flex w-full">
                             <x-select class="w-full" name="bolsa_eva" id="bolsa_eva">
-                                
+
                                 @foreach ($inputs as $input)
                                     @if ($input->category_id == 6)
                                         <option value="{{ $input->input_id }}"
@@ -687,8 +687,9 @@
                             Lote:
                         </x-label>
                         <div class="flex w-full">
-                            <x-input-solicitud class="w-full" value="{{ old('lote_bolsa_eva', renderLoteBolsaEvaSection($inputs_solicitud)) }}" name="lote_bolsa_eva"
-                                id="lote_bolsa_eva" step="0.0001" placeholder="" />
+                            <x-input-solicitud class="w-full"
+                                value="{{ old('lote_bolsa_eva', renderLoteBolsaEvaSection($inputs_solicitud)) }}"
+                                name="lote_bolsa_eva" id="lote_bolsa_eva" step="0.0001" placeholder="" />
                         </div>
                         @error('lote_bolsa_eva')
                             <div class="text-red-500 text-sm">{{ $message }}</div>
@@ -701,13 +702,14 @@
                         Caducidad:
                     </x-label>
                     <div class="flex w-full">
-                        <x-input-solicitud type="date" value="{{ old('caducidad_bolsa_eva', renderCaducidadBolsaEvaSection($inputs_solicitud)) }}"
-                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="caducidad_bolsa_eva" id="caducidad_bolsa_eva"
-                            class="" placeholder="" />
+                        <x-input-solicitud type="date"
+                            value="{{ old('caducidad_bolsa_eva', renderCaducidadBolsaEvaSection($inputs_solicitud)) }}"
+                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="caducidad_bolsa_eva"
+                            id="caducidad_bolsa_eva" class="" placeholder="" />
                     </div>
                     @error('caducidad_bolsa_eva')
-                            <div class="text-red-500 text-sm">{{ $message }}</div>
-                        @enderror
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
                 </div>
 
             </div>
@@ -748,7 +750,7 @@
                                 </x-label>
                                 <div class="flex flex-col w-full">
                                     <x-input-solicitud type="datetime-local"
-                                    value="{{ old('fecha_hora_preparacion') }}"
+                                        value="{{ old('fecha_hora_preparacion') }}"
                                         min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
                                         name="fecha_hora_preparacion" class="" placeholder="" />
                                     <!-- Mensaje de error -->
