@@ -688,15 +688,21 @@
                         </div>
                     </div>
                     <div class="w-full">
-                        <div class="mb-4 flex items-baseline gap-2 w-full">
-                            <x-label class="mb-2 font-bold">
-                                Fecha y hora de preparación:
-                            </x-label>
-                            <div class="flex flex-col w-full">
-                                <x-input-solicitud type="datetime-local"
-                                    value="{{ old('fecha_hora_preparacion', $solicitud->solicitud_detail->fecha_hora_preparacion) }}"
-                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
-                                    name="fecha_hora_preparacion" class="" placeholder="" readonly/>
+                        <div class="w-full">
+                            <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <x-label class="mb-2 font-bold">
+                                    Fecha y hora de preparación:
+                                </x-label>
+                                <div class="flex flex-col w-full">
+                                    <x-input-solicitud type="datetime-local"
+                                        value="{{ old('fecha_hora_preparacion', $solicitud->solicitud_aprobada->fecha_hora_preparacion) }}"
+                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
+                                        name="fecha_hora_preparacion" class="" placeholder="" readonly/>
+                                    <!-- Mensaje de error -->
+                                    @error('fecha_hora_preparacion')
+                                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
                         </div>
                     </div>
