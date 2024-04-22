@@ -74,13 +74,13 @@ Route::put('solicitudes/{solicitud}', [SolicitudController::class, 'update'])->n
 
 
 Route::get('/solicitudes/orden-de-preparacion/{solicitud}', [SolicitudController::class, 'ordenPreparacion'])->name('solicitudes.ordenPreparacion')
-    ->middleware(['can:solicitudes']);
+    ->middleware(['can:solicitudes_index']);
 
 Route::get('/solicitudes/remision/{solicitud}', [SolicitudController::class, 'remision'])->name('solicitudes.remision')
-    ->middleware(['can:solicitudes']);
+    ->middleware(['can:solicitudes_index']);
 
 Route::get('/solicitudes/envio/{solicitud}', [SolicitudController::class, 'envio'])->name('solicitudes.envio')
-    ->middleware(['can:solicitudes']);
+    ->middleware(['can:solicitudes_index']);
 
 Route::get('/solicitudes/etiqueta/{solicitud}', [SolicitudController::class, 'etiqueta'])->name('solicitudes.etiqueta')
-    ->middleware(['can:solicitudes']);
+    ->middleware(['can:solicitudes_index']);
