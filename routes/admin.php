@@ -43,8 +43,31 @@ Route::resource('/medicines', MedicineController::class)
     ->except(['destroy'])
     ->middleware(['can:medicamentos']);
 
-Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy'])
-    ->middleware(['can:solicitudes']);
+// Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy'])
+//     ->middleware(['can:solicitudes']);
+
+    // Ruta para mostrar todas las solicitudes
+Route::get('solicitudes', [SolicitudController::class, 'index'])->name('solicitudes.index')
+->middleware(['can:solicitudes_index']);
+// Ruta para mostrar el formulario de creación de solicitud
+Route::get('solicitudes/create', [SolicitudController::class, 'create'])->name('solicitudes.create')
+->middleware(['can:solicitudes_create']);
+
+// Ruta para almacenar una nueva solicitud
+Route::post('solicitudes', [SolicitudController::class, 'store'])->name('solicitudes.store');
+
+// Ruta para mostrar una solicitud específica
+Route::get('solicitudes/{solicitud}', [SolicitudController::class, 'show'])->name('solicitudes.show');
+
+// Ruta para mostrar el formulario de edición de una solicitud
+Route::get('solicitudes/{solicitud}/edit', [SolicitudController::class, 'edit'])->name('solicitudes.edit');
+
+// Ruta para actualizar una solicitud específica
+Route::put('solicitudes/{solicitud}', [SolicitudController::class, 'update'])->name('solicitudes.update');
+
+// También puedes excluir la ruta de eliminación
+// Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy']);
+
 
 Route::get('/solicitudes/orden-de-preparacion/{solicitud}', [SolicitudController::class, 'ordenPreparacion'])->name('solicitudes.ordenPreparacion')
     ->middleware(['can:solicitudes']);

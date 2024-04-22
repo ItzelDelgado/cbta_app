@@ -25,10 +25,12 @@ use Illuminate\Support\Facades\Session;
 
 class SolicitudController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      */ public function index()
     {
+
         $user = Auth::user(); // Obtener el usuario actual
         $role = $user->roles[0]->name;
         if ($role === 'Admin' or $role === 'Super Admin') {
@@ -36,7 +38,7 @@ class SolicitudController extends Controller
             $solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
                 ->latest()
                 ->get();
-        } elseif($role === 'Cliente') {
+        } elseif ($role === 'Cliente') {
             // Si el usuario es un cliente, cargar solo sus propias solicitudes
             $solicitudes = Solicitud::where('user_id', $user->id)
                 ->with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
@@ -404,10 +406,19 @@ class SolicitudController extends Controller
      */
     public function edit(Solicitud $solicitud)
     {
+        $user = Auth::user(); // Obtener el usuario actual
+        $role = $user->roles[0]->name;
+        if ($role === 'Admin' or $role === 'Super Admin') {
+            $solicitud = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+            ->find($solicitud->id);
+        } elseif ($role === 'Cliente') {
+            $solicitud = Solicitud::where('user_id', $user->id)
+            ->with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+            ->find($solicitud->id);
+        }
         //$solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
         // ->get();
-        $solicitud = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
-            ->find($solicitud->id);
+
         // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
         //return $inputs_solicitud;
@@ -708,8 +719,8 @@ class SolicitudController extends Controller
         $solicitud['is_aprobada'] = $is_aprobada_value;
 
         $medicina_bolsa_eva = Medicine::select('id', 'precio_ml')
-                    ->where('input_id', $bolsa_eva) // Condición para input_id igual a 37
-                    ->first();
+            ->where('input_id', $bolsa_eva) // Condición para input_id igual a 37
+            ->first();
         $solicitud_inputs_be['solicitud_id'] = $solicitud->id;
         $solicitud_inputs_be['valor'] = 1;
         $solicitud_inputs_be['valor_ml'] = 1;
@@ -719,7 +730,7 @@ class SolicitudController extends Controller
         $solicitud_inputs_be['precio_ml'] = $medicina_bolsa_eva['precio_ml'];
         SolicitudInput::create($solicitud_inputs_be);
 
-        
+
         // Guardar el modelo actualizado
         $registro->save();
         $solicitud->update($solicitud['is_aprobada']);
