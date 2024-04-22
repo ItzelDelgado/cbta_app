@@ -21,6 +21,7 @@ use DateTime;
 use Illuminate\Support\Facades\DB;
 use Spatie\LaravelIgnition\Recorders\DumpRecorder\Dump;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Http\Response;
 
 
 class SolicitudController extends Controller
@@ -802,21 +803,47 @@ class SolicitudController extends Controller
      */
     public function show(Solicitud $solicitud)
     {
-        //$solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
-        // ->get();
-        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
+        $user = Auth::user(); // Obtener el usuario actual
+        $role = $user->roles[0]->name;
+        if ($role === 'Admin' or $role === 'Super Admin') {
+            $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
+            ->where('user_id', $user->id) // Filtrar por el ID del usuario autenticado actual
             ->find($solicitud->id);
-        // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
-        //$inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-        $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
-            ->where('inputs.is_active', 1)
-            ->orderBy('orden_enum', 'asc')
-            ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
-            ->get();
 
-        // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
-        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-        return view('admin.solicitudes.show', compact('solicitud', 'inputs_solicitud', 'solicitud_detalles', 'inputs'));
+
+            // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
+            //$inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
+            $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
+                ->where('inputs.is_active', 1)
+                ->orderBy('orden_enum', 'asc')
+                ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
+                ->get();
+
+            // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
+            $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
+            return view('admin.solicitudes.show', compact('solicitud', 'inputs_solicitud', 'solicitud_detalles', 'inputs'));
+        }else{
+            if ($solicitud->user_id == $user->id){
+                $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
+                ->where('user_id', $user->id) // Filtrar por el ID del usuario autenticado actual
+                ->find($solicitud->id);
+
+
+            // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
+            //$inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
+            $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
+                ->where('inputs.is_active', 1)
+                ->orderBy('orden_enum', 'asc')
+                ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
+                ->get();
+
+            // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
+            $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
+            return view('admin.solicitudes.show', compact('solicitud', 'inputs_solicitud', 'solicitud_detalles', 'inputs'));
+            } else{
+                abort(Response::HTTP_NOT_FOUND, 'Página no encontrada');
+            }
+        }
     }
 
     public function ordenPreparacion(Solicitud $solicitud)

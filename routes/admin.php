@@ -66,7 +66,8 @@ Route::get('solicitudes/{solicitud}/edit', [SolicitudController::class, 'edit'])
 ->middleware(['can:solicitudes_edit']);
 
 // Ruta para actualizar una solicitud específica
-Route::put('solicitudes/{solicitud}', [SolicitudController::class, 'update'])->name('solicitudes.update');
+Route::put('solicitudes/{solicitud}', [SolicitudController::class, 'update'])->name('solicitudes.update')
+->middleware(['can:solicitudes_update']);
 
 // También puedes excluir la ruta de eliminación
 // Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy']);

@@ -6,7 +6,7 @@
             'url' => route('admin.solicitudes.index'),
             'active' => request()->routeIs('admin.solicitudes.*'),
             'icon' => 'fa-solid fa-file-import',
-            'can' => 'solicitudes',
+            'can' => 'solicitudes_index',
         ],
         // [
         //     //Informacion acerca del enlace
