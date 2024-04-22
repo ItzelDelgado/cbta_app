@@ -664,16 +664,6 @@
                     @endif
                 @endforeach
 
-                <div class="flex w-full">
-                    <x-select class="w-full" name="i_{{ $input->input_id }}"
-                        id="i_{{ $input->input_id }}_{{ $input->unidad }}">
-                        <option value="0" @if (old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) == '0') selected @endif>No
-                        </option>
-                        <option value="1" @if (old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) == '1') selected @endif>Si
-                        </option>
-                    </x-select>
-                </div>
-
                 <div class="flex">
                     <div class="flex items-center w-6/12">
                         <x-label class="mb-2 whitespace-nowrap">
@@ -681,7 +671,7 @@
                         </x-label>
                         <div class="flex w-full">
                             <x-select class="w-full" name="bolsa_eva" id="bolsa_eva">
-
+                                <option value="" disabled selected>Seleccionar Bolsa Eva</option>
                                 @foreach ($inputs as $input)
                                     @if ($input->category_id == 6)
                                         <option value="{{ $input->input_id }}"

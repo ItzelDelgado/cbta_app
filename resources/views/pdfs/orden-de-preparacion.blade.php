@@ -237,7 +237,21 @@
                     @if ($input_completo->input_id != 40)
                         <tr>
                             <td style="text-align: center">{{ $loop->iteration }}</td>
-                            <td style="text-align: center">{{ number_format($input_completo['valor_ml'], 2) }}</td>
+                            @php
+                                // Inicializamos la variable total
+                                $valor_final = 0;
+
+                                if (
+                                    $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == null ||
+                                    $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == 0
+                                ) {
+                                    $valor_final = number_format($input_completo['valor_ml'], 2);
+                                } else {
+                                    $valor_final = number_format($input_completo['valor_sobrellenado'], 2);
+                                }
+                            @endphp
+
+                            <td>{{ $valor_final }} mL</td>
                             <td style="text-align: center">{{ $input_completo['valor'] }}
                                 {{ explode('/', $input_completo->input->unidad)[0] }}</td>
                             <td>
@@ -273,7 +287,8 @@
                 <td style="border-top: none">Volumen Total <span
                         style="font-weight: bold;">{{ number_format($solicitud_detalles->solicitud_detail['volumen_total_final'], 2) }}
                         ml</span></td>
-                <td style="border-top: none">Contenedor <span style="font-weight: bold;">2000 ml</span></td>
+                <td style="border-top: none">Contenedor <span
+                        style="font-weight: bold;">{{ $bolsa_eva->input->medicine->presentacion_ml }} mL</span></td>
             </tr>
         </table>
         <p style="padding: 8px; text-align: center; margin: 0;"><strong>Bolsa EVA</strong></p>
@@ -287,13 +302,13 @@
             </tr>
             <tr>
                 <td>1</td>
-                <td>10C3</td>
-                <td>01/abr/2023</td>
-                <td>BOLSA EVA IPM</td>
-                <td>BOLSA EVA 3000mL</td>
+                <td>{{ $bolsa_eva->lote }}</td>
+                <td>{{ $bolsa_eva->caducidad }}</td>
+                <td>{{ $bolsa_eva->input->medicine->denominacion_comercial }}</td>
+                <td>{{ $bolsa_eva->input->medicine->denominacion_generica }}</td>
             </tr>
         </table>
-        <p style="padding: 8px; text-align: center; margin: 0;"><strong>Bolsa EVA</strong></p>
+        <p style="padding: 8px; text-align: center; margin: 0;"><strong>Set de infusión</strong></p>
         <table>
             <tr>
                 <td style="background: #D9E2F3;"></td>
@@ -304,10 +319,34 @@
             </tr>
             <tr>
                 <td>1</td>
-                <td>N/A</td>
-                <td>N/A</td>
-                <td>N/A</td>
-                <td>N/A</td>
+                <td>
+                    @isset($set_infusion)
+                        {{ $set_infusion->lote }}
+                    @else
+                        N/A
+                    @endisset
+                </td>
+                <td>
+                    @isset($set_infusion)
+                        {{ $set_infusion->caducidad }}
+                    @else
+                        N/A
+                    @endisset
+                </td>
+                <td>
+                    @isset($set_infusion)
+                        {{ $set_infusion->input->medicine->denominacion_comercial }}
+                    @else
+                        N/A
+                    @endisset
+                </td>
+                <td>
+                    @isset($set_infusion)
+                        {{ $set_infusion->input->medicine->denominacion_generica }}
+                    @else
+                        N/A
+                    @endisset
+                </td>
             </tr>
         </table>
         <br>
