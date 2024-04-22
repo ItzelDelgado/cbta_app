@@ -238,46 +238,51 @@
                         @if ($input->category_id == 1)
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}:
-                                    </x-label>
-                                    <div class="flex w-full">
-                                        <x-input-solicitud type="number" class="w-full"
-                                            value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                            step="0.0001" placeholder="" readonly />
-                                        <span>{{ $input->unidad }}</span>
+                                    <div class="flex w-4/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            {{ $input->description }}:
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            <x-input-solicitud type="number" class="w-full"
+                                                value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                                name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                                step="0.0001" placeholder="" readonly />
+                                            <span>{{ $input->unidad }}</span>
 
+                                        </div>
                                     </div>
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Valor en mL:
-                                    </x-label>
-                                    <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
-                                    </p>
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Lote:
-                                    </x-label>
-                                    <div class="flex w-full">
-                                        <x-input-solicitud class="w-full"
-                                            value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                            placeholder="" readonly />
+                                    <div class="flex w-2/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Valor en mL:
+                                        </x-label>
+                                        <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                        </p>
                                     </div>
-
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Caducidad:
-                                    </x-label>
-                                    <div class="flex w-full">
-
-                                        <x-input-solicitud type="date"
-                                            value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
-                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                            id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                            class="" placeholder="" readonly />
+                                    <div class="flex w-3/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Lote:
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            <x-input-solicitud class="w-full"
+                                                value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                                name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                                placeholder="" readonly />
+                                        </div>
                                     </div>
+                                    <div class="flex w-3/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Caducidad:
+                                        </x-label>
+                                        <div class="flex w-full">
 
+                                            <x-input-solicitud type="date"
+                                                value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                class="" placeholder="" readonly />
+                                        </div>
+                                    </div>
                                 </div>
-
                             </div>
                         @endif
                     @endforeach
@@ -285,41 +290,48 @@
                         @if ($input->category_id == 8)
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}:
-                                    </x-label>
-                                    <div class="flex  w-full">
-                                        <x-input-solicitud type="number" class="w-full"
-                                            value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                            step="0.0001" placeholder="" readonly />
-                                        <span>{{ $input->unidad }}</span>
+                                    <div class="flex w-4/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            {{ $input->description }}:
+                                        </x-label>
+                                        <div class="flex  w-full">
+                                            <x-input-solicitud type="number" class="w-full"
+                                                value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                                name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                                step="0.0001" placeholder="" readonly />
+                                            <span>{{ $input->unidad }}</span>
+                                        </div>
                                     </div>
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Valor en mL:
-                                    </x-label>
-                                    <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
-                                    </p>
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Lote:
-                                    </x-label>
-                                    <div class="flex w-full">
-                                        <x-input-solicitud class="w-full"
-                                            value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                            step="0.0001" placeholder="" readonly />
+                                    <div class="flex w-2/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Valor en mL:
+                                        </x-label>
+                                        <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                        </p>
                                     </div>
+                                    <div class="flex w-3/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Lote:
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            <x-input-solicitud class="w-full"
+                                                value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                                name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                                step="0.0001" placeholder="" readonly />
+                                        </div>
+                                    </div>
+                                    <div class="flex w-3/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Caducidad:
+                                        </x-label>
+                                        <div class="flex w-full">
 
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Caducidad:
-                                    </x-label>
-                                    <div class="flex w-full">
-
-                                        <x-input-solicitud type="date"
-                                            value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
-                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                            id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                            class="" placeholder="" readonly />
+                                            <x-input-solicitud type="date"
+                                                value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                class="" placeholder="" readonly />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -332,42 +344,49 @@
                         @if ($input->category_id == 2)
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}:
-                                    </x-label>
-                                    <div class="flex w-full">
-                                        <x-input-solicitud type="number" class="w-full"
-                                            value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                            step="0.0001" placeholder="" readonly />
-                                        <span>{{ $input->unidad }}</span>
+                                    <div class="flex w-4/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            {{ $input->description }}:
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            <x-input-solicitud type="number" class="w-full"
+                                                value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                                name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                                step="0.0001" placeholder="" readonly />
+                                            <span>{{ $input->unidad }}</span>
 
+                                        </div>
                                     </div>
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Valor en mL:
-                                    </x-label>
-                                    <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
-                                    </p>
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Lote:
-                                    </x-label>
-                                    <div class="flex w-full">
-                                        <x-input-solicitud class="w-full"
-                                            value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                            step="0.0001" placeholder="" readonly />
+                                    <div class="flex w-2/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Valor en mL:
+                                        </x-label>
+                                        <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                        </p>
                                     </div>
+                                    <div class="flex w-3/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Lote:
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            <x-input-solicitud class="w-full"
+                                                value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                                name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                                step="0.0001" placeholder="" readonly />
+                                        </div>
+                                    </div>
+                                    <div class="flex w-3/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Caducidad:
+                                        </x-label>
+                                        <div class="flex w-full">
 
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Caducidad:
-                                    </x-label>
-                                    <div class="flex w-full">
-
-                                        <x-input-solicitud type="date"
-                                            value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
-                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                            id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                            class="" placeholder="" readonly />
+                                            <x-input-solicitud type="date"
+                                                value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                class="" placeholder="" readonly />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -379,42 +398,48 @@
                             @if ($input->category_id == 3)
                                 <div class="w-full">
                                     <div class="mb-4 flex items-baseline gap-2 w-full">
-                                        <x-label class="mb-2 whitespace-nowrap">
-                                            {{ $input->description }}:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            <x-input-solicitud type="number" class="w-full"
-                                                value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                                name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                                step="0.0001" class="w-full" placeholder="" readonly />
-                                            <span>{{ $input->unidad }}</span>
-
+                                        <div class="flex w-4/12">
+                                            <x-label class="mb-2 whitespace-nowrap">
+                                                {{ $input->description }}:
+                                            </x-label>
+                                            <div class="flex w-full">
+                                                <x-input-solicitud type="number" class="w-full"
+                                                    value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                                    name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                                    step="0.0001" class="w-full" placeholder="" readonly />
+                                                <span>{{ $input->unidad }}</span>
+                                            </div>
                                         </div>
-                                        <x-label class="mb-2 whitespace-nowrap">
-                                            Valor en mL:
-                                        </x-label>
-                                        <p class="flex">
-                                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}</p>
-                                        <x-label class="mb-2 whitespace-nowrap">
-                                            Lote:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            <x-input-solicitud class="w-full"
-                                                value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
-                                                name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" readonly />
+                                        <div class="flex w-2/12">
+                                            <x-label class="mb-2 whitespace-nowrap">
+                                                Valor en mL:
+                                            </x-label>
+                                            <p class="flex">
+                                                {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}</p>
                                         </div>
+                                        <div class="flex w-3/12">
+                                            <x-label class="mb-2 whitespace-nowrap">
+                                                Lote:
+                                            </x-label>
+                                            <div class="flex w-full">
+                                                <x-input-solicitud class="w-full"
+                                                    value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                                    name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                                    step="0.0001" placeholder="" readonly />
+                                            </div>
+                                        </div>
+                                        <div class="flex w-3/12">
+                                            <x-label class="mb-2 whitespace-nowrap">
+                                                Caducidad:
+                                            </x-label>
+                                            <div class="flex w-full">
 
-                                        <x-label class="mb-2 whitespace-nowrap">
-                                            Caducidad:
-                                        </x-label>
-                                        <div class="flex w-full">
-
-                                            <x-input-solicitud type="date"
-                                                value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
-                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                                id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder="" readonly />
+                                                <x-input-solicitud type="date"
+                                                    value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                    id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                    class="" placeholder="" readonly />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -432,42 +457,49 @@
                         @if ($input->category_id == 4)
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}:
-                                    </x-label>
-                                    <div class="flex w-full">
-                                        <x-input-solicitud type="number" class="w-full"
-                                            value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                            step="0.0001" placeholder="" readonly />
-                                        <span>{{ $input->unidad }}</span>
+                                    <div class="flex w-4/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            {{ $input->description }}:
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            <x-input-solicitud type="number" class="w-full"
+                                                value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                                name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                                step="0.0001" placeholder="" readonly />
+                                            <span>{{ $input->unidad }}</span>
 
+                                        </div>
                                     </div>
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Valor en mL:
-                                    </x-label>
-                                    <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
-                                    </p>
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Lote:
-                                    </x-label>
-                                    <div class="flex w-full">
-                                        <x-input-solicitud class="w-full"
-                                            value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                            step="0.0001" placeholder="" readonly />
+                                    <div class="flex w-2/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Valor en mL:
+                                        </x-label>
+                                        <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                        </p>
                                     </div>
+                                    <div class="flex w-3/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Lote:
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            <x-input-solicitud class="w-full"
+                                                value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                                name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                                step="0.0001" placeholder="" readonly />
+                                        </div>
+                                    </div>
+                                    <div class="flex w-3/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Caducidad:
+                                        </x-label>
+                                        <div class="flex w-full">
 
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Caducidad:
-                                    </x-label>
-                                    <div class="flex w-full">
-
-                                        <x-input-solicitud type="date"
-                                            value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
-                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                            id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                            class="" placeholder="" readonly />
+                                            <x-input-solicitud type="date"
+                                                value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                class="" placeholder="" readonly />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -486,40 +518,47 @@
                         @if ($input->category_id == 5)
                             <div>
                                 <div class="mb-4 flex items-baseline gap-2 w-full">
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        {{ $input->description }}:
-                                    </x-label>
-                                    <div class="flex w-full">
-                                        <x-input-solicitud type="number" class="w-full"
-                                            value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                            step="0.0001" placeholder=""
-                                            readonly /><span>{{ $input->unidad }}</span>
+                                    <div class="flex w-4/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            {{ $input->description }}:
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            <x-input-solicitud type="number" class="w-full"
+                                                value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                                name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                                step="0.0001" placeholder=""
+                                                readonly /><span>{{ $input->unidad }}</span>
+                                        </div>
                                     </div>
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Valor en mL:
-                                    </x-label>
-                                    <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
-                                    </p>
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Lote:
-                                    </x-label>
-                                    <div class="flex w-full">
-                                        <x-input-solicitud class="w-full"
-                                            value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
-                                            name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                            step="0.0001" placeholder="" readonly />
+                                    <div class="flex w-2/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Valor en mL:
+                                        </x-label>
+                                        <p class="flex">{{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                        </p>
                                     </div>
-
-                                    <x-label class="mb-2 whitespace-nowrap">
-                                        Caducidad:
-                                    </x-label>
-                                    <div class="flex w-full">
-                                        <x-input-solicitud type="date"
-                                            value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
-                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                            id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                            class="" placeholder="" readonly />
+                                    <div class="flex w-3/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Lote:
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            <x-input-solicitud class="w-full"
+                                                value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                                name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                                step="0.0001" placeholder="" readonly />
+                                        </div>
+                                    </div>
+                                    <div class="flex w-3/12">
+                                        <x-label class="mb-2 whitespace-nowrap">
+                                            Caducidad:
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            <x-input-solicitud type="date"
+                                                value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                class="" placeholder="" readonly />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -645,6 +684,19 @@
                                     value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega) }}"
                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
                                     name="fecha_hora_entrega" class="" placeholder="" readonly />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full">
+                        <div class="mb-4 flex items-baseline gap-2 w-full">
+                            <x-label class="mb-2 font-bold">
+                                Fecha y hora de preparación:
+                            </x-label>
+                            <div class="flex flex-col w-full">
+                                <x-input-solicitud type="datetime-local"
+                                    value="{{ old('fecha_hora_preparacion', $solicitud->solicitud_detail->fecha_hora_preparacion) }}"
+                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
+                                    name="fecha_hora_preparacion" class="" placeholder="" readonly/>
                             </div>
                         </div>
                     </div>
