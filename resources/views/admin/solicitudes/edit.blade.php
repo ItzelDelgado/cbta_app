@@ -636,18 +636,28 @@
                     @endif
                 @endforeach
 
+                <div class="flex w-full">
+                    <x-select class="w-full" name="i_{{ $input->input_id }}"
+                        id="i_{{ $input->input_id }}_{{ $input->unidad }}">
+                        <option value="0" @if (old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) == '0') selected @endif>No
+                        </option>
+                        <option value="1" @if (old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) == '1') selected @endif>Si
+                        </option>
+                    </x-select>
+                </div>
                 <div>
+
                     <div>
                         <x-label class="mb-2 whitespace-nowrap">
                             Bolsa Eva:
                         </x-label>
                         <div class="flex w-full">
                             <x-select class="w-full" name="bolsa_eva" id="bolsa_eva">
-                                <option value="" disabled selected>Seleccionar Bolsa Eva</option>
+
                                 @foreach ($inputs as $input)
                                     @if ($input->category_id == 6)
                                         <option value="{{ $input->input_id }}"
-                                            @if (old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) == $input->input_id) selected @endif>
+                                            @if (old('bolsa_eva', renderBolsaEvaInputSection($input->input_id, $inputs_solicitud)) == $input->input_id) selected @endif>
                                             {{ $input->description }}
                                         </option>
                                     @endif
@@ -665,9 +675,13 @@
                             Lote:
                         </x-label>
                         <div class="flex w-full">
-                            <x-input-solicitud class="w-full" value="{{ old('lote') }}" name="lote_bolsa_eva"
-                                id="lote" step="0.0001" placeholder="" />
+                            <x-input-solicitud class="w-full"
+                                value="{{ old('lote_bolsa_eva', renderLoteBolsaEvaSection($inputs_solicitud)) }}"
+                                name="lote_bolsa_eva" id="lote_bolsa_eva" step="0.0001" placeholder="" />
                         </div>
+                        @error('lote_bolsa_eva')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
 
@@ -676,10 +690,14 @@
                         Caducidad:
                     </x-label>
                     <div class="flex w-full">
-                        <x-input-solicitud type="date" value="{{ old('caducidad') }}"
+                        <x-input-solicitud type="date"
+                            value="{{ old('caducidad_bolsa_eva', renderCaducidadBolsaEvaSection($inputs_solicitud)) }}"
                             min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="caducidad_bolsa_eva"
-                            class="" placeholder="" />
+                            id="caducidad_bolsa_eva" class="" placeholder="" />
                     </div>
+                    @error('caducidad_bolsa_eva')
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
                 </div>
 
             </div>
@@ -720,6 +738,7 @@
                                 </x-label>
                                 <div class="flex flex-col w-full">
                                     <x-input-solicitud type="datetime-local"
+                                        value="{{ old('fecha_hora_preparacion') }}"
                                         min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
                                         name="fecha_hora_preparacion" class="" placeholder="" />
                                     <!-- Mensaje de error -->
