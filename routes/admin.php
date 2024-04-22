@@ -54,13 +54,16 @@ Route::get('solicitudes/create', [SolicitudController::class, 'create'])->name('
 ->middleware(['can:solicitudes_create']);
 
 // Ruta para almacenar una nueva solicitud
-Route::post('solicitudes', [SolicitudController::class, 'store'])->name('solicitudes.store');
+Route::post('solicitudes', [SolicitudController::class, 'store'])->name('solicitudes.store')
+->middleware(['can:solicitudes_store']);
 
 // Ruta para mostrar una solicitud específica
-Route::get('solicitudes/{solicitud}', [SolicitudController::class, 'show'])->name('solicitudes.show');
+Route::get('solicitudes/{solicitud}', [SolicitudController::class, 'show'])->name('solicitudes.show')
+->middleware(['can:solicitudes_show']);
 
 // Ruta para mostrar el formulario de edición de una solicitud
-Route::get('solicitudes/{solicitud}/edit', [SolicitudController::class, 'edit'])->name('solicitudes.edit');
+Route::get('solicitudes/{solicitud}/edit', [SolicitudController::class, 'edit'])->name('solicitudes.edit')
+->middleware(['can:solicitudes_edit']);
 
 // Ruta para actualizar una solicitud específica
 Route::put('solicitudes/{solicitud}', [SolicitudController::class, 'update'])->name('solicitudes.update');
