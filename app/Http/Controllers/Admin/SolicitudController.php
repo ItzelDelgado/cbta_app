@@ -901,6 +901,8 @@ class SolicitudController extends Controller
             ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
             ->first();
 
+
+
         //return $solicitud_detalles;
         $pdf = Pdf::loadView('pdfs.orden-de-preparacion', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion'));
 
@@ -910,15 +912,34 @@ class SolicitudController extends Controller
     public function remision(Solicitud $solicitud)
     {
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
+            ->whereNotIn('input_id', function ($query) {
+                $query->select('id')
+                    ->from('inputs')
+                    ->where('category_id', '=', 6); // Ajusta el nombre de la columna si es diferente
+            })
+            ->whereNotIn('input_id', [40]) // Excluir input_id 40
             ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
             ->get();
-
+        //print_r($inputs_solicitud);
         //return $inputs_solicitud;
         $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
             ->find($solicitud->id);
-        //return $solicitud_detalles;
-        $ordenPreparacion = "HOlaa";
-        $pdf = Pdf::loadView('pdfs.remision', \compact('solicitud_detalles', 'inputs_solicitud'));
+
+        $bolsa_eva = SolicitudInput::where('solicitud_id', $solicitud['id'])
+            ->whereIn('input_id', function ($query) {
+                $query->select('id')
+                    ->from('inputs')
+                    ->where('category_id', '=', 6); // Solo incluir input_id asociados con category_id igual a 6
+            })
+            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->first();
+        $set_infusion = SolicitudInput::where('solicitud_id', $solicitud['id'])
+            ->where('input_id', 40) // Filtrar por input_id igual a 40
+            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->first();
+
+        $servicio_preparacion = Medicine::where('id', 38)->first();
+        $pdf = Pdf::loadView('pdfs.remision', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion', 'servicio_preparacion'));
 
         return $pdf->stream();
     }
@@ -926,16 +947,29 @@ class SolicitudController extends Controller
     public function envio(Solicitud $solicitud)
     {
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
+            ->whereNotIn('input_id', function ($query) {
+                $query->select('id')
+                    ->from('inputs')
+                    ->where('category_id', '=', 6); // Ajusta el nombre de la columna si es diferente
+            })
             ->whereNotIn('input_id', [40]) // Excluir input_id 40
             ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
             ->get();
-
+        //print_r($inputs_solicitud);
         //return $inputs_solicitud;
         $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
             ->find($solicitud->id);
-        //return $solicitud_detalles;
 
-        $pdf = Pdf::loadView('pdfs.envio', \compact('solicitud_detalles', 'inputs_solicitud'));
+        $bolsa_eva = SolicitudInput::where('solicitud_id', $solicitud['id'])
+            ->whereIn('input_id', function ($query) {
+                $query->select('id')
+                    ->from('inputs')
+                    ->where('category_id', '=', 6); // Solo incluir input_id asociados con category_id igual a 6
+            })
+            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->first();
+
+        $pdf = Pdf::loadView('pdfs.envio', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva'));
 
         return $pdf->stream();
     }
@@ -944,9 +978,14 @@ class SolicitudController extends Controller
     {
 
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
-            ->whereNotIn('input_id', [40]) // Excluir input_id 40
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-            ->get();
+        ->whereNotIn('input_id', function ($query) {
+            $query->select('id')
+                ->from('inputs')
+                ->where('category_id', '=', 6); // Ajusta el nombre de la columna si es diferente
+        })
+        ->whereNotIn('input_id', [40]) // Excluir input_id 40
+        ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+        ->get();
 
         //return $inputs_solicitud;
         $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')

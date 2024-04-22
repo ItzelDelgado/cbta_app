@@ -90,12 +90,14 @@
             </table>
             <table>
                 <tr>
-                    <td style="border: none; border-top: 1px solid black; font-weight: bold">Fecha de envío:</td>
+                    <td style="border: none; border-top: 1px solid black; font-weight: bold">Fecha de envío:
+                        {{ date('Y-m-d', strtotime($solicitud_detalles->solicitud_detail['fecha_hora_entrega'])) }}</td>
                     <td style="text-align: right; border: none; border-top: 1px solid black; ">DOMICILIO CLIENTE
                         RECEPTOR:</td>
                 </tr>
                 <tr>
-                    <td style="border: none; font-weight: bold">No. 00018</td>
+                    <td style="border: none; font-weight: bold">No.
+                        {{ str_pad($solicitud_detalles->solicitud_aprobada['id'], 6, '0', STR_PAD_LEFT) }}</td>
                     <td style="text-align: right; border: none">{{ $solicitud_detalles->user->hospital->adress }}
                     </td>
                 </tr>
@@ -181,19 +183,25 @@
                 </tr>
                 @php
                     $total = 0; // Inicializamos la variable total
+                    $contador = 0;
                 @endphp
                 @foreach ($inputs_solicitud as $input_completo)
                     <tr>
-                        <td style="text-align: center">{{ $loop->iteration }}</td>
-                        <td ><strong>
+                        <td style="text-align: center">{{ $loop->iteration }}
+                            @php
+                                $contador = $loop->iteration; // Sumamos el precio_ml al total
+                            @endphp
+                        </td>
+                        <td><strong>
                                 @isset($input_completo->input->medicine)
                                     {{ $input_completo->input->medicine->denominacion_generica }}
                                 @else
                                     Medicamento no disponible
                                 @endisset
                             </strong></td>
-                        <td style="text-align: center">{{ $input_completo['valor'] }} {{ explode('/', $input_completo->input->unidad)[0] }}</td>
-                        <td style="text-align: center">N10122304</td>
+                        <td style="text-align: center">{{ $input_completo['valor'] }}
+                            {{ explode('/', $input_completo->input->unidad)[0] }}</td>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</td>
                         <td style="text-align: center">
                             @isset($input_completo->input->medicine)
                                 {{ $input_completo->input->medicine->presentacion }} ML
@@ -211,7 +219,6 @@
                                 $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == 0
                             ) {
                                 $valor_final = number_format($input_completo['valor_ml'], 2);
-
                             } else {
                                 $valor_final = number_format($input_completo['valor_sobrellenado'], 2);
                             }
@@ -219,7 +226,7 @@
 
                         <td>{{ $valor_final }} mL</td>
                         <td> @isset($input_completo->input->medicine)
-                                {{ $input_completo->input->medicine->precio_ml }}
+                                ${{ $input_completo->input->medicine->precio_ml }}
                             @else
                                 Medicamento no disponible
                             @endisset
@@ -228,13 +235,107 @@
                                 @php
                                     $total += $input_completo->precio_ml; // Sumamos el precio_ml al total
                                 @endphp
-                                {{ number_format($input_completo->precio_ml, 2) }}
+                                ${{ number_format($input_completo->precio_ml, 2) }}
                             @else
                                 Medicamento no disponible
                             @endisset
                         </td>
                     </tr>
                 @endforeach
+                <tr>
+                    @php
+                        $contador = $contador + 1; // Sumamos el precio_ml al total
+                    @endphp
+                    <td style="text-align: center">{{ $contador }}</td>
+                    <td><strong>
+                            @isset($bolsa_eva)
+                                {{ $bolsa_eva->input->medicine->denominacion_generica }}
+                            @else
+                                Medicamento no disponible
+                            @endisset
+                        </strong></td>
+                    <td style="text-align: center"></td>
+                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</td>
+                    <td style="text-align: center">
+
+                    </td>
+
+                    <td>1 pza</td>
+                    <td> @isset($bolsa_eva)
+                            ${{ $bolsa_eva->input->medicine->precio_ml }}
+                        @else
+                            Medicamento no disponible
+                        @endisset
+                    </td>
+                    <td style="text-align: center"> @isset($bolsa_eva)
+                            @php
+                                $total += $bolsa_eva->input->medicine->precio_ml; // Sumamos el precio_ml al total
+                            @endphp
+                            ${{ number_format($bolsa_eva->input->medicine->precio_ml, 2) }}
+                        @else
+                            Medicamento no disponible
+                        @endisset
+                    </td>
+                </tr>
+
+                @isset($set_infusion)
+                    <tr>
+                        @php
+                            $contador = $contador + 1; // Sumamos el precio_ml al total
+                        @endphp
+                        <td style="text-align: center">{{ $contador }}</td>
+                        <td><strong>
+                                {{ $set_infusion->input->medicine->denominacion_generica }}
+                            </strong></td>
+                        <td style="text-align: center"></td>
+                        <td style="text-align: center"></td>
+                        <td style="text-align: center">
+
+                        </td>
+
+                        <td>1 pza</td>
+                        <td>
+                            ${{ $set_infusion->input->medicine->precio_ml }}
+                        </td>
+                        <td style="text-align: center">
+                            @php
+                                $total += $set_infusion->input->medicine->precio_ml; // Sumamos el precio_ml al total
+                            @endphp
+                            ${{ number_format($set_infusion->input->medicine->precio_ml, 2) }}
+
+                        </td>
+                    </tr>
+                @else
+                @endisset
+
+                <tr> 
+                    @php
+                        $contador = $contador + 1; // Sumamos el precio_ml al total
+                    @endphp
+                    <td style="text-align: center">{{ $contador }}</td>
+                    <td><strong>
+                            {{ $servicio_preparacion->denominacion_generica}}
+                        </strong></td>
+                    <td style="text-align: center"></td>
+                    <td style="text-align: center"></td>
+                    <td style="text-align: center">
+
+                    </td>
+
+                    <td>1 serv</td>
+                    <td>
+                        ${{ $servicio_preparacion->precio_ml }}
+                    </td>
+                    <td style="text-align: center">
+                        @php
+                            $total += $servicio_preparacion->precio_ml; // Sumamos el precio_ml al total
+                        @endphp
+                        ${{ number_format($servicio_preparacion->precio_ml, 2) }}
+
+                    </td>
+                </tr>
+
+
             </table>
             <table>
                 <tr>
@@ -243,7 +344,7 @@
                 </tr>
             </table>
             <br>
-            <table>
+            <table style="padding-top: 5rem">
                 <tr>
                     <td style="border: none;">
                         <hr style="width: 170px;  background-color: black; margin: 0; padding: 0; margin: 0 auto">

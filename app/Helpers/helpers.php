@@ -20,7 +20,7 @@ function renderInputMLSection($id, $inputs_solicitud)
     $inputValue = '';
     foreach ($inputs_solicitud as $inputItem) {
         if ($inputItem->input_id == $id) {
-            $inputValue = $inputItem->valor_ml;
+            $inputValue = number_format($inputItem->valor_ml, 2);
             break;
         }
     }

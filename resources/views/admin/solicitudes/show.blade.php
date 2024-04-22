@@ -65,7 +65,7 @@
             @endif
         @else
             <p>El usuario no ingreso un volumen total.</p>
-            <p>Suma de elementos en mL: {{ $solicitud->solicitud_detail->suma_volumen }}</p>
+            <p>Suma de elementos en mL: {{ number_format($solicitud->solicitud_detail->suma_volumen, 3) }}</p>
         @endif
         <form id="solicitudForm" class="bg-white rounded-lg p-6 shadow-lg">
             @csrf

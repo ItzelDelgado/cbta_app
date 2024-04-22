@@ -100,7 +100,7 @@
                 </tr>
                 <tr>
                     <td>{{ $solicitud_detalles->user->hospital->name }}</td>
-                    <td>Lote: N17122301</td>
+                    <td>{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</td>
                 </tr>
                 <tr>
                     <td>Paciente: {{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
@@ -186,12 +186,17 @@
             </table>
             <table>
                 <tr>
-                    <td>MANTENER EN REFIGERACIÓN <br>
+                    <td>MANTENER EN REFIGERACIÓN
                         HASTA UNA HORA ANTES DE SU ADMINISTRACIÓN</td>
                 </tr>
                 <tr>
-                    <td>Fecha y hora de preparación: 17-dic-23 8:30:00</td>
-                    <td>Fecha y hora límite de uso: 19-dic-23 8:30:00</td>
+                    <td>Fecha y hora de preparación: {{ date('Y-m-d H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Fecha y hora límite de uso: {{ date('Y-m-d H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_limite_uso'])) }}h
+                    </td>
                 </tr>
             </table>
         </div>

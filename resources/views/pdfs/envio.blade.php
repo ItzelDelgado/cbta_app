@@ -108,13 +108,13 @@
             <table>
                 <tr>
                     <td style="border: none; border-top: 1px solid black; font-weight: bold">Fecha de envío:
-                        <span>08-mar-24</span>
+                        <span>{{ date('Y-m-d', strtotime($solicitud_detalles->solicitud_detail['fecha_hora_entrega'])) }}</span>
                     </td>
                     <td style="text-align: right; border: none; border-top: 1px solid black; ">DOMICILIO CLIENTE
                         RECEPTOR:</td>
                 </tr>
                 <tr>
-                    <td style="border: none; font-weight: bold">No. 00018</td>
+                    <td style="border: none; font-weight: bold">No. {{ str_pad($solicitud_detalles->solicitud_aprobada['id'], 6, '0', STR_PAD_LEFT) }}</td>
                     <td style="text-align: right; border: none">{{ $solicitud_detalles->user->hospital->adress }}
                     </td>
                 </tr>
@@ -218,10 +218,10 @@
                             </strong>
                         </td>
                         <td style="text-align: center"><strong>{{ $input_completo['valor'] }} {{ explode('/', $input_completo->input->unidad)[0] }} </strong></td>
-                        <td style="text-align: center">{{ $vol_total }}</td>
-                        <td style="text-align: center">N16122302</td>
-                        <td style="text-align: center">16/dic/2023 16:00h</td>
-                        <td style="text-align: center">18/dic/2023 16:00h</td>
+                        <td style="text-align: center">{{ number_format($vol_total, 2) }} mL</td>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</td>
+                        <td style="text-align: center">{{ date('Y-m-d H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h</td>
+                        <td style="text-align: center">{{ date('Y-m-d H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_limite_uso'])) }}h</td>
                     </tr>
                 @endforeach
             </table>
@@ -237,7 +237,7 @@
                 </tr>
                 <tr>
                     <td style="border: none;">
-                        Fecha: <span style="border-bottom: 1px solid black; text-align: center">16/20/28</span>
+                        Fecha: <span style="border-bottom: 1px solid black; text-align: center"></span>
                     </td>
                 </tr>
                 <tr>

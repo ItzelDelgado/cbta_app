@@ -118,7 +118,7 @@
         <table>
             <tr>
                 <td style="border: none; text-align: right"><strong>Fecha de elaboración:</strong>
-                    <span>29-nov-23</span>
+                    <span>{{ date('Y-m-d', strtotime($solicitud_detalles->solicitud_aprobada['created_at'])) }}</span>
                 </td>
             </tr>
             <tr>
@@ -174,8 +174,8 @@
         <div style=" border: 1px solid black; margin-bottom: 0.5rem;">
             <table>
                 <tr style="margin: 0; padding: 0">
-                    <td style="border: none;"><strong>No. de lote de la mezcla:</strong> <span>L29112301</span></td>
-                    <td style="border: none;"><strong>No. de orden de preparación:</strong> NUT 29112301</td>
+                    <td style="border: none;"><strong>No. de lote de la mezcla:</strong> <span>{{$solicitud_detalles->solicitud_aprobada['lote']}}</span></td>
+                    <td style="border: none;"><strong>No. de orden de preparación:</strong> NUT{{substr($solicitud_detalles->solicitud_aprobada['lote'],1)}}</td>
                 </tr>
             </table>
             <p style="padding: 2px 8px; border-top: 1px solid black; border-bottom: 1px solid black;"><strong>DATOS DEL
