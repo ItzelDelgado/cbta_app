@@ -21,14 +21,17 @@ use DateTime;
 use Illuminate\Support\Facades\DB;
 use Spatie\LaravelIgnition\Recorders\DumpRecorder\Dump;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Http\Response;
 
 
 class SolicitudController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      */ public function index()
     {
+
         $user = Auth::user(); // Obtener el usuario actual
         $role = $user->roles[0]->name;
         if ($role === 'Admin' or $role === 'Super Admin') {
@@ -404,10 +407,19 @@ class SolicitudController extends Controller
      */
     public function edit(Solicitud $solicitud)
     {
+        $user = Auth::user(); // Obtener el usuario actual
+        $role = $user->roles[0]->name;
+        if ($role === 'Admin' or $role === 'Super Admin') {
+            $solicitud = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+            ->find($solicitud->id);
+        } elseif ($role === 'Cliente') {
+            $solicitud = Solicitud::where('user_id', $user->id)
+            ->with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+            ->find($solicitud->id);
+        }
         //$solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
         // ->get();
-        $solicitud = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
-            ->find($solicitud->id);
+
         // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
         //return $inputs_solicitud;
@@ -791,59 +803,61 @@ class SolicitudController extends Controller
      */
     public function show(Solicitud $solicitud)
     {
-        //$solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
-        // ->get();
-        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
+        $user = Auth::user(); // Obtener el usuario actual
+        $role = $user->roles[0]->name;
+        if ($role === 'Admin' or $role === 'Super Admin') {
+            $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
+            ->where('user_id', $user->id) // Filtrar por el ID del usuario autenticado actual
             ->find($solicitud->id);
-        // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
-        //$inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-        $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
-            ->where('inputs.is_active', 1)
-            ->orderBy('orden_enum', 'asc')
-            ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
-            ->get();
 
-        // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
-        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-        return view('admin.solicitudes.show', compact('solicitud', 'inputs_solicitud', 'solicitud_detalles', 'inputs'));
+
+            // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
+            //$inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
+            $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
+                ->where('inputs.is_active', 1)
+                ->orderBy('orden_enum', 'asc')
+                ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
+                ->get();
+
+            // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
+            $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
+            return view('admin.solicitudes.show', compact('solicitud', 'inputs_solicitud', 'solicitud_detalles', 'inputs'));
+        }else{
+            if ($solicitud->user_id == $user->id){
+                $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
+                ->where('user_id', $user->id) // Filtrar por el ID del usuario autenticado actual
+                ->find($solicitud->id);
+
+
+            // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
+            //$inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
+            $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
+                ->where('inputs.is_active', 1)
+                ->orderBy('orden_enum', 'asc')
+                ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
+                ->get();
+
+            // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
+            $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
+            return view('admin.solicitudes.show', compact('solicitud', 'inputs_solicitud', 'solicitud_detalles', 'inputs'));
+            } else{
+                abort(Response::HTTP_NOT_FOUND, 'Página no encontrada');
+            }
+        }
     }
 
     public function ordenPreparacion(Solicitud $solicitud)
     {
-        // $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
-        //     ->whereNotIn('input_id', [40]) // Excluir input_id 40    
-        //     ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-        //     ->get();
-
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
-            ->whereNotIn('input_id', function ($query) {
-                $query->select('id')
-                    ->from('inputs')
-                    ->where('category_id', '=', 6); // Ajusta el nombre de la columna si es diferente
-            })
-            ->whereNotIn('input_id', [40]) // Excluir input_id 40
             ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
             ->get();
-        //print_r($inputs_solicitud);
+
         //return $inputs_solicitud;
         $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
             ->find($solicitud->id);
 
-        $bolsa_eva = SolicitudInput::where('solicitud_id', $solicitud['id'])
-            ->whereIn('input_id', function ($query) {
-                $query->select('id')
-                    ->from('inputs')
-                    ->where('category_id', '=', 6); // Solo incluir input_id asociados con category_id igual a 6
-            })
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-            ->first();
-        $set_infusion = SolicitudInput::where('solicitud_id', $solicitud['id'])
-            ->where('input_id', 40) // Filtrar por input_id igual a 40
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-            ->first();
-
         //return $solicitud_detalles;
-        $pdf = Pdf::loadView('pdfs.orden-de-preparacion', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion'));
+        $pdf = Pdf::loadView('pdfs.orden-de-preparacion', \compact('solicitud_detalles', 'inputs_solicitud'));
 
         return $pdf->stream();
     }
