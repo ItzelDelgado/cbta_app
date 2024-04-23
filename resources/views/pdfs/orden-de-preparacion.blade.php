@@ -118,7 +118,7 @@
         <table>
             <tr>
                 <td style="border: none; text-align: right"><strong>Fecha de elaboración:</strong>
-                    <span>{{ date('Y-m-d', strtotime($solicitud_detalles->solicitud_aprobada['created_at'])) }}</span>
+                    <span>{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_aprobada['created_at'])) }}</span>
                 </td>
             </tr>
             <tr>
@@ -200,7 +200,7 @@
             <table style="width: 100%; border-collapse: collapse; padding-bottom: 14px">
                 <tr>
                     <td style="border: none; padding: 0 auto;"><strong>Fecha de nacimiento:</strong> <span
-                            style="">{{ $solicitud_detalles->solicitud_patient['fecha_nacimiento'] }}</span>
+                            style="">{{  date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</span>
                     </td>
                     <td style="border: none; padding: 0 auto;"><strong>Genero:</strong>
                         {{ $solicitud_detalles->solicitud_patient['sexo'] }}<span style=""></span></td>
@@ -276,7 +276,7 @@
                                 @endisset
                             </td>
                             <td>{{ $input_completo['lote'] }}</td>
-                            <td>{{ $input_completo['caducidad'] }}</td>
+                            <td>{{  date('d-m-Y', strtotime($input_completo['caducidad'])) }}</td>
                         </tr>
                     @endif
                 @endforeach
@@ -303,7 +303,7 @@
             <tr>
                 <td>1</td>
                 <td>{{ $bolsa_eva->lote }}</td>
-                <td>{{ $bolsa_eva->caducidad }}</td>
+                <td>{{  date('d-m-Y', strtotime($bolsa_eva->caducidad)) }}</td>
                 <td>{{ $bolsa_eva->input->medicine->denominacion_comercial }}</td>
                 <td>{{ $bolsa_eva->input->medicine->denominacion_generica }}</td>
             </tr>
@@ -328,7 +328,7 @@
                 </td>
                 <td>
                     @isset($set_infusion)
-                        {{ $set_infusion->caducidad }}
+                        {{  date('d-m-Y', strtotime($set_infusion->caducidad)) }}
                     @else
                         N/A
                     @endisset

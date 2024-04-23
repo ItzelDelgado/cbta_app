@@ -105,7 +105,7 @@
                 <tr>
                     <td>Paciente: {{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
                         {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
-                    <td>FN: {{ $solicitud_detalles->solicitud_patient['fecha_nacimiento'] }}</td>
+                    <td>FN: {{  date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</td>
                 </tr>
                 <tr>
                     <td>Médico: {{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}</td>
@@ -190,12 +190,12 @@
                         HASTA UNA HORA ANTES DE SU ADMINISTRACIÓN</td>
                 </tr>
                 <tr>
-                    <td>Fecha y hora de preparación: {{ date('Y-m-d H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h
+                    <td>Fecha y hora de preparación: {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        Fecha y hora límite de uso: {{ date('Y-m-d H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_limite_uso'])) }}h
+                        Fecha y hora límite de uso: {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_limite_uso'])) }}h
                     </td>
                 </tr>
             </table>

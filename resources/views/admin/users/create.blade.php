@@ -27,7 +27,7 @@
         </div>
         <div class="mb-4">
             <x-label class="mb-2">
-                Contraseña
+                Contraseña (La contraseña debe constar de máximo 12 caracteres.)
             </x-label>
             <x-input type="password" value="{{old('password')}}" name="password" class="w-full" placeholder="Escriba la contraseña del usuario" />
         </div>

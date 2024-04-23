@@ -91,7 +91,7 @@
             <table>
                 <tr>
                     <td style="border: none; border-top: 1px solid black; font-weight: bold">Fecha de envío:
-                        {{ date('Y-m-d', strtotime($solicitud_detalles->solicitud_detail['fecha_hora_entrega'])) }}</td>
+                        {{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_detail['fecha_hora_entrega'])) }}</td>
                     <td style="text-align: right; border: none; border-top: 1px solid black; ">DOMICILIO CLIENTE
                         RECEPTOR:</td>
                 </tr>
@@ -122,7 +122,7 @@
                 <tr>
                     <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
                         {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
-                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['fecha_nacimiento'] }}</td>
+                    <td style="text-align: center">{{  date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</td>
                     <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['edad'] }}</td>
                     <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['sexo'] }}</td>
                     <td style="text-align: center">S/D</td>
@@ -204,7 +204,7 @@
                         <td style="text-align: center">{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</td>
                         <td style="text-align: center">
                             @isset($input_completo->input->medicine)
-                                {{ $input_completo->input->medicine->presentacion }} ML
+                                {{ $input_completo->input->medicine->presentacion }}
                             @else
                                 Medicamento no disponible
                             @endisset

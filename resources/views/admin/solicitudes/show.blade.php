@@ -420,7 +420,8 @@
                                             <x-label class="mb-2 whitespace-nowrap">
                                                 Valor en mL:
                                             </x-label>
-                                            <p class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                            <p
+                                                class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
                                                 {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
                                             </p>
                                         </div>
@@ -701,14 +702,16 @@
                                     Fecha y hora de preparación:
                                 </x-label>
                                 <div class="flex flex-col w-full">
-                                    <x-input-solicitud type="datetime-local"
-                                        value="{{ old('fecha_hora_preparacion', $solicitud->solicitud_aprobada->fecha_hora_preparacion) }}"
-                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
-                                        name="fecha_hora_preparacion" class="" placeholder="" readonly />
-                                    <!-- Mensaje de error -->
-                                    @error('fecha_hora_preparacion')
-                                        <div class="text-red-500 text-sm">{{ $message }}</div>
-                                    @enderror
+                                    @if (isset($solicitud->solicitud_aprobada->fecha_hora_preparacion))
+                                        <x-input-solicitud type="datetime-local"
+                                            value="{{ old('fecha_hora_preparacion', $solicitud->solicitud_aprobada->fecha_hora_preparacion) }}"
+                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
+                                            name="fecha_hora_preparacion" class="" placeholder="" readonly />
+                                    @else
+                                        <x-input-solicitud type="datetime-local" value=""
+                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
+                                            name="fecha_hora_preparacion" class="" placeholder="" readonly />
+                                    @endif
                                 </div>
                             </div>
                         </div>

@@ -39,7 +39,7 @@ class UserController extends Controller
         $request->validate(([
             'name' => 'required|string|max:255',
             'lastname' => 'required|string|max:255',
-            'username' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users',
             'password' => 'required|string|max:12|confirmed',
             'hospital_id' => 'required|exists:hospitals,id',
             'roles' => 'nullable|array',

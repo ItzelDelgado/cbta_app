@@ -108,7 +108,7 @@
             <table>
                 <tr>
                     <td style="border: none; border-top: 1px solid black; font-weight: bold">Fecha de envío:
-                        <span>{{ date('Y-m-d', strtotime($solicitud_detalles->solicitud_detail['fecha_hora_entrega'])) }}</span>
+                        <span>{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_detail['fecha_hora_entrega'])) }}</span>
                     </td>
                     <td style="text-align: right; border: none; border-top: 1px solid black; ">DOMICILIO CLIENTE
                         RECEPTOR:</td>
@@ -140,7 +140,7 @@
                 <tr>
                     <td>{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
                         {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
-                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['fecha_nacimiento'] }}</td>
+                    <td style="text-align: center">{{  date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</td>
                     <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['edad'] }}</td>
                     <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['sexo'] }}</td>
                     <td style="text-align: center">S/D</td>
@@ -220,8 +220,8 @@
                         <td style="text-align: center"><strong>{{ $input_completo['valor'] }} {{ explode('/', $input_completo->input->unidad)[0] }} </strong></td>
                         <td style="text-align: center">{{ number_format($vol_total, 2) }} mL</td>
                         <td style="text-align: center">{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</td>
-                        <td style="text-align: center">{{ date('Y-m-d H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h</td>
-                        <td style="text-align: center">{{ date('Y-m-d H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_limite_uso'])) }}h</td>
+                        <td style="text-align: center">{{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h</td>
+                        <td style="text-align: center">{{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_limite_uso'])) }}h</td>
                     </tr>
                 @endforeach
             </table>
