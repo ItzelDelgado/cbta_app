@@ -96,7 +96,7 @@
                 <tr>
                     <td style="width: 25%">
                         <img style="width: 7rem; margin: 1rem 0"
-                            src="{{ asset('img/Centro Biotecnologico de Terapias Avanzadas.png') }}" alt="">
+                            src="{{ asset('img/logo-cbta.png') }}" alt="">
                     </td>
                     <td style="width: 50%; margin: 0 auto; text-align: center; font-weight: bold; font-size: 15px">
                         <strong>{{ $solicitud_detalles->user->hospital->name }}</strong>
@@ -195,7 +195,7 @@
                 @php
                      // Inicializamos la variable total
                     $vol_total = 0;
-                
+
                         if (
                             $solicitud_detalles->solicitud_detail['volumen_total'] == null ||
                             $solicitud_detalles->solicitud_detail['volumen_total'] == 0

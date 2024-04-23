@@ -256,20 +256,31 @@
 
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 1)
-                            <div class="mb-4 flex items-baseline gap-2 w-full">
+                            @php
+                                $inputValue = old(
+                                    'i_' . $input->input_id,
+                                    renderInputSection($input->input_id, $inputs_solicitud),
+                                );
+                                $loteValue = old(
+                                    'l_' . $input->input_id,
+                                    renderLoteSection($input->input_id, $inputs_solicitud),
+                                );
+                                $caducidadValue = old(
+                                    'c_' . $input->input_id,
+                                    renderCaducidadSection($input->input_id, $inputs_solicitud),
+                                );
+                                $hasData = $inputValue || $loteValue || $caducidadValue;
+                            @endphp
+                            <div class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'border-2 border-dashed border-green-500' : '' }}">
                                 <div class="flex w-[40%]">
                                     <x-label class="mb-2 whitespace-nowrap font-bold">
                                         {{ $input->description }}:
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud type="number" class="w-full"
-                                            value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                        <x-input-solicitud type="number" class="w-full" value="{{ $inputValue }}"
                                             name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
                                             step="0.0001" placeholder="" />
                                         <span>{{ $input->unidad }}</span>
-                                        {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
-                                                <div class="text-red-500">{{ $message }}</div>
-                                            @enderror --}}
                                     </div>
                                 </div>
                                 <div class="flex w-[15%] justify-center items-stretch">
@@ -286,8 +297,7 @@
                                         Lote:
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud class="w-full"
-                                            value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                        <x-input-solicitud class="w-full" value="{{ $loteValue }}"
                                             name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                             placeholder="" />
                                     </div>
@@ -297,16 +307,16 @@
                                         Caducidad:
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud type="date"
-                                            value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                        <x-input-solicitud type="date" value="{{ $caducidadValue }}"
                                             min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                             id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                            class="" placeholder="" />
+                                            placeholder="" />
                                     </div>
                                 </div>
                             </div>
                         @endif
                     @endforeach
+
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 8)
                             <div>

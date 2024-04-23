@@ -6,9 +6,6 @@
         </div>
         <form action="{{ route('admin.solicitudes.store') }}" method="POST" class="bg-white rounded-lg p-6 shadow-lg">
             @csrf
-
-
-
             <div class="flex gap-4">
                 <div class="mb-4 flex  items-baseline gap-2 w-full">
                     <x-label class="mb-2 whitespace-nowrap">
@@ -165,6 +162,17 @@
                     </x-label>
                     <x-input-solicitud type="number" value="{{ old('tiempo_infusion_min') }}"
                         name="tiempo_infusion_min" class="w-full" placeholder="" />
+                    <!-- Mensaje de error -->
+                    @error('tiempo_infusion_min')
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="mb-4 flex items-baseline gap-2 w-full">
+                    <x-label class="mb-2 whitespace-nowrap">
+                        Velocidad de infusión ml/hr:
+                    </x-label>
+                    <x-input-solicitud type="number" value="" name="velocidad_infusion_min" class="w-full"
+                        placeholder="" />
                     <!-- Mensaje de error -->
                     @error('tiempo_infusion_min')
                         <div class="text-red-500 text-sm">{{ $message }}</div>
@@ -384,9 +392,13 @@
                                         {{ $input->description }}:
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-select class="w-full" name="i_{{ $input->input_id }}_{{ $input->unidad }}" id="i_{{ $input->input_id }}_{{ $input->unidad }}">
-                                            <option value="0" @if (old("i_" . $input->input_id . "_" . $input->unidad ) == '0') selected @endif>No</option>
-                                            <option value="1" @if (old("i_" . $input->input_id . "_" . $input->unidad ) == '1') selected @endif>Si</option>
+                                        <x-select class="w-full"
+                                            name="i_{{ $input->input_id }}_{{ $input->unidad }}"
+                                            id="i_{{ $input->input_id }}_{{ $input->unidad }}">
+                                            <option value="0" @if (old('i_' . $input->input_id . '_' . $input->unidad) == '0') selected @endif>
+                                                No</option>
+                                            <option value="1" @if (old('i_' . $input->input_id . '_' . $input->unidad) == '1') selected @endif>
+                                                Si</option>
                                         </x-select>
                                     </div>
                                 </div>
@@ -394,7 +406,7 @@
                         @endif
                     @endforeach
 
-                    {{--                     
+                    {{--
                     <div class="mb-4 flex items-stretch gap-2 w-full">
                         <x-label class="mb-2">
                             Set de infusión:
@@ -610,6 +622,23 @@
             //         }
             //     });
             // });
+
+            const inputTiempo = document.querySelector('input[name="tiempo_infusion_min"]');
+            const inputVelocidad = document.querySelector('input[name="velocidad_infusion_min"]');
+
+            function toggleInputState() {
+                if (inputTiempo.value) {
+                    inputVelocidad.disabled = true;
+                } else if (inputVelocidad.value) {
+                    inputTiempo.disabled = true;
+                } else {
+                    inputVelocidad.disabled = false;
+                    inputTiempo.disabled = false;
+                }
+            }
+
+            inputTiempo.addEventListener('input', toggleInputState);
+            inputVelocidad.addEventListener('input', toggleInputState);
         </script>
     @endpush
 </x-admin-layout>

@@ -77,7 +77,7 @@
             <table class="introduccion">
                 <tr>
                     <td style="width: 25%">
-                        <img style="width: 7rem" src="{{ asset('img/Centro Biotecnologico de Terapias Avanzadas.png') }}"
+                        <img style="width: 7rem" src="{{ asset('img/logo-cbta.png') }}"
                             alt="">
                     </td>
                     <td style="width: 50%; margin: 0 auto; text-align: center; font-weight: bold; font-size: 15px">
@@ -308,7 +308,7 @@
                 @else
                 @endisset
 
-                <tr> 
+                <tr>
                     @php
                         $contador = $contador + 1; // Sumamos el precio_ml al total
                     @endphp

@@ -92,8 +92,7 @@
             <table>
                 <tr>
                     <td style="width: 20%">
-                        <img style="width: 7rem" src="{{ asset('img/Centro Biotecnologico de Terapias Avanzadas.png') }}"
-                            alt="">
+                        <img style="width: 7rem" src="{{ asset('img/logo-cbta.png') }}" alt="">
                     </td>
                     <td style="width: 60%; margin: 0 auto; text-align: center; font-size: 13px">
                         <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM <br> NUTRICIONES PARENTERALES</strong>
