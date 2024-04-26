@@ -261,17 +261,10 @@
                                     'i_' . $input->input_id,
                                     renderInputSection($input->input_id, $inputs_solicitud),
                                 );
-                                $loteValue = old(
-                                    'l_' . $input->input_id,
-                                    renderLoteSection($input->input_id, $inputs_solicitud),
-                                );
-                                $caducidadValue = old(
-                                    'c_' . $input->input_id,
-                                    renderCaducidadSection($input->input_id, $inputs_solicitud),
-                                );
-                                $hasData = $inputValue || $loteValue || $caducidadValue;
+                                $hasData = $inputValue;
                             @endphp
-                            <div class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'border-2 border-dashed border-green-500' : '' }}">
+                            <div
+                                class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                 <div class="flex w-[40%]">
                                     <x-label class="mb-2 whitespace-nowrap font-bold">
                                         {{ $input->description }}:
@@ -297,9 +290,8 @@
                                         Lote:
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud class="w-full" value="{{ $loteValue }}"
-                                            name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                            placeholder="" />
+                                        <x-input-solicitud class="w-full" name="l_{{ $input->input_id }}"
+                                            id="l_{{ $input->input_id }}" placeholder="" />
                                     </div>
                                 </div>
                                 <div class="flex w-[25%]">
@@ -307,7 +299,7 @@
                                         Caducidad:
                                     </x-label>
                                     <div class="flex w-full">
-                                        <x-input-solicitud type="date" value="{{ $caducidadValue }}"
+                                        <x-input-solicitud type="date"
                                             min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                             id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                             placeholder="" />
@@ -319,8 +311,16 @@
 
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 8)
+                            @php
+                                $inputValue = old(
+                                    'i_' . $input->input_id,
+                                    renderInputSection($input->input_id, $inputs_solicitud),
+                                );
+                                $hasData = $inputValue;
+                            @endphp
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <div
+                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                     <div class="flex w-[40%]">
                                         <x-label class="mb-2 whitespace-nowrap font-bold">
                                             {{ $input->description }}:
@@ -380,8 +380,16 @@
                     <h3 class="font-bold">CARBOHIDRATOS:</h3>
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 2)
+                            @php
+                                $inputValue = old(
+                                    'i_' . $input->input_id,
+                                    renderInputSection($input->input_id, $inputs_solicitud),
+                                );
+                                $hasData = $inputValue;
+                            @endphp
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <div
+                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                     <div class="flex w-[40%]">
                                         <x-label class="mb-2 whitespace-nowrap font-bold">
                                             {{ $input->description }}:
@@ -440,8 +448,16 @@
                     <div class="w-full">
                         @foreach ($inputs as $input)
                             @if ($input->category_id == 3)
+                                @php
+                                    $inputValue = old(
+                                        'i_' . $input->input_id,
+                                        renderInputSection($input->input_id, $inputs_solicitud),
+                                    );
+                                    $hasData = $inputValue;
+                                @endphp
                                 <div class="w-full">
-                                    <div class="mb-4 flex items-baseline gap-2 w-full">
+                                    <div
+                                        class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                         <div class="flex w-[40%]">
                                             <x-label class="mb-2 whitespace-nowrap font-bold">
                                                 {{ $input->description }}:
@@ -506,8 +522,16 @@
                 <div class=" grid-flow-col gap-4">
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 4)
+                            @php
+                                $inputValue = old(
+                                    'i_' . $input->input_id,
+                                    renderInputSection($input->input_id, $inputs_solicitud),
+                                );
+                                $hasData = $inputValue;
+                            @endphp
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <div
+                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                     <div class="flex w-[40%]">
                                         <x-label class="mb-2 whitespace-nowrap font-bold">
                                             {{ $input->description }}:
@@ -573,8 +597,15 @@
 
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 5)
+                            @php
+                                $inputValue = old(
+                                    'i_' . $input->input_id,
+                                    renderInputSection($input->input_id, $inputs_solicitud),
+                                );
+                                $hasData = $inputValue;
+                            @endphp
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <div class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                     <div class="flex w-[40%]">
                                         <x-label class="mb-2 whitespace-nowrap font-bold">
                                             {{ $input->description }}:

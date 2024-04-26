@@ -867,10 +867,18 @@ class SolicitudController extends Controller
         }
     }
 
+    public function solicitud(Solicitud $solicitud){
+
+        $hola = "hola";
+
+        $pdf = Pdf::loadView('pdfs.solicitud', \compact('hola'));
+
+        return $pdf->stream();
+    }
     public function ordenPreparacion(Solicitud $solicitud)
     {
         // $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
-        //     ->whereNotIn('input_id', [40]) // Excluir input_id 40    
+        //     ->whereNotIn('input_id', [40]) // Excluir input_id 40
         //     ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
         //     ->get();
 

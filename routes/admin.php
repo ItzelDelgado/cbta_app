@@ -72,6 +72,8 @@ Route::put('solicitudes/{solicitud}', [SolicitudController::class, 'update'])->n
 // También puedes excluir la ruta de eliminación
 // Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy']);
 
+Route::get('/solicitudes/solicitud/{solicitud}', [SolicitudController::class, 'solicitud'])->name('solicitudes.solicitud')
+    ->middleware(['can:solicitudes_index']);
 
 Route::get('/solicitudes/orden-de-preparacion/{solicitud}', [SolicitudController::class, 'ordenPreparacion'])->name('solicitudes.ordenPreparacion')
     ->middleware(['can:solicitudes_index']);
