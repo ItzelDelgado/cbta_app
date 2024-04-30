@@ -56,16 +56,23 @@
         <div class="mb-4">
             <ul>
                 @foreach ($roles as $role)
-                    <li>
-                        <label for="">
-                            <x-checkbox type="checkbox"
-                                name="roles[]"
-                                value="{{ $role->id }}"
-                                :checked="in_array($role->id, old('roles', $user->roles()->pluck('id')->toArray()),
-                                )" />
-                            {{ $role->name }}
-                        </label>
-                    </li>
+                <li>
+                    <label>
+                        <input
+                        type="checkbox"
+                        name="roles[]"
+                        value="{{ $role->id }}"
+                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                        @if($userRoleName !== 'Super Admin')
+                            disabled
+                        @endif
+                        @if(in_array($role->id, old('roles', $user->roles()->pluck('id')->toArray())))
+                            checked
+                        @endif
+                        >
+                        {{ $role->name }}
+                    </label>
+                </li>
                 @endforeach
             </ul>
         </div>

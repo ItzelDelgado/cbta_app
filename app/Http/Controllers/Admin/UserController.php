@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Hospital;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
@@ -83,7 +84,11 @@ class UserController extends Controller
     {
         $roles = Role::all();
         $hospitals = Hospital::all();
-        return view('admin.users.edit', compact('user', 'hospitals', 'roles'));
+        $authenticatedUser = Auth::user();
+        // Obtenemos el nombre del rol del usuario autenticado
+        $userRoleName = $authenticatedUser->roles->pluck('name')->first();
+
+        return view('admin.users.edit', compact('user', 'hospitals', 'roles', 'userRoleName'));
     }
 
     /**

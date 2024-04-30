@@ -4,7 +4,8 @@
     </div>
 
     <div class="flex justify-end mb-4">
-        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800" href="{{route('admin.users.create')}}"><i class="fa-solid fa-plus pr-1"></i> Agregar</a>
+        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+            href="{{ route('admin.users.create') }}"><i class="fa-solid fa-plus pr-1"></i> Agregar</a>
     </div>
 
 
@@ -15,7 +16,7 @@
                     <th scope="col" class="px-6 py-3">
                         Id
                     </th>
-                    
+
                     <th scope="col" class="px-6 py-3">
                         Nombre
                     </th>
@@ -35,39 +36,75 @@
             </thead>
             <tbody>
                 @foreach ($users as $user)
-                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <th scope="row"
-                            class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{ $user->id }}
-                        </th>
-                        <td class="px-6 py-4">
-                            {{ $user->name }} {{$user->lastname}}
-                        </td>
-                        <td class="px-6 py-4">
-                            {{ $user->username }}
-                        </td>
-                        <td class="px-6 py-4">
-                            {{ $user->hospital["name"] }}
-                        </td>
-                        <td>
-                            @foreach ($user->roles as $role)
-                                {{ $role->name }}
-                            @endforeach
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center">
-                                <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                                href="{{ route('admin.users.edit', $user) }}"> <i class="fa-solid fa-pen pr-1"></i> Editar</a>
-                            </div>
-                        </td>
-                    </tr>
+                    @foreach ($user->roles as $role)
+                        @hasanyrole('Admin')
+                            @if ($role->name == 'Cliente')
+                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        {{ $user->id }}
+                                    </th>
+                                    <td class="px-6 py-4">
+                                        {{ $user->name }} {{ $user->lastname }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {{ $user->username }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {{ $user->hospital['name'] }}
+                                    </td>
+                                    <td>
+                                        @foreach ($user->roles as $role)
+                                            {{ $role->name }}
+                                        @endforeach
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                                                href="{{ route('admin.users.edit', $user) }}"> <i
+                                                    class="fa-solid fa-pen pr-1"></i> Editar</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endif
+                        @endhasanyrole
+                        @hasanyrole('Super Admin')
+                            <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                <th scope="row"
+                                    class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                    {{ $user->id }}
+                                </th>
+                                <td class="px-6 py-4">
+                                    {{ $user->name }} {{ $user->lastname }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ $user->username }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ $user->hospital['name'] }}
+                                </td>
+                                <td>
+                                    @foreach ($user->roles as $role)
+                                        {{ $role->name }}
+                                    @endforeach
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                                            href="{{ route('admin.users.edit', $user) }}"> <i
+                                                class="fa-solid fa-pen pr-1"></i> Editar</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endhasanyrole
+                    @endforeach
                 @endforeach
             </tbody>
         </table>
     </div>
 
     <div class="mt-4">
-        {{$users->links()}}
+        {{ $users->links() }}
     </div>
 
 
