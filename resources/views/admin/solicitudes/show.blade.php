@@ -82,7 +82,7 @@
                     <div class="flex flex-col w-full">
                         <x-input-solicitud
                             value="{{ old('nombre_paciente', $solicitud->solicitud_patient->nombre_paciente) }}"
-                            name="nombre_paciente" class="w-full" placeholder="" readonly />
+                            name="nombre_paciente" class="w-full" placeholder="" disabled />
                     </div>
                 </div>
                 <div class="mb-4 flex items-baseline gap-2 w-full">
@@ -92,7 +92,7 @@
                     <div class="flex flex-col w-full">
                         <x-input-solicitud
                             value="{{ old('apellidos_paciente', $solicitud->solicitud_patient->apellidos_paciente) }}"
-                            name="apellidos_paciente" class="w-full" placeholder="" readonly />
+                            name="apellidos_paciente" class="w-full" placeholder="" disabled />
                     </div>
                 </div>
             </div>
@@ -103,7 +103,7 @@
                     </x-label>
                     <div class="flex flex-col w-full">
                         <x-input-solicitud value="{{ old('servicio', $solicitud->solicitud_patient->servicio) }}"
-                            name="servicio" class="" placeholder="" readonly />
+                            name="servicio" class="" placeholder="" disabled />
                     </div>
                 </div>
                 <div class="mb-4 flex items-baseline gap-2 w-full">
@@ -112,7 +112,7 @@
                     </x-label>
                     <div class="flex flex-col w-full">
                         <x-input-solicitud value="{{ old('cama', $solicitud->solicitud_patient->cama) }}"
-                            name="cama" class="" placeholder="" readonly />
+                            name="cama" class="" placeholder="" disabled />
                     </div>
                 </div>
                 <div class="mb-4 flex items-baseline gap-2 w-full">
@@ -121,7 +121,7 @@
                     </x-label>
                     <div class="flex flex-col w-full">
                         <x-input-solicitud value="{{ old('piso', $solicitud->solicitud_patient->piso) }}"
-                            name="piso" class="" placeholder="" readonly />
+                            name="piso" class="" placeholder="" disabled />
                     </div>
                 </div>
             </div>
@@ -131,14 +131,14 @@
                         Registro:
                     </x-label>
                     <x-input-solicitud value="{{ old('registro', $solicitud->solicitud_patient->registro) }}"
-                        name="registro" class="w-full" placeholder="" readonly />
+                        name="registro" class="w-full" placeholder="" disabled />
                 </div>
                 <div class="mb-4 flex items-baseline gap-2 w-full">
                     <x-label class="mb-2">
                         Diagnóstico:
                     </x-label>
                     <x-input-solicitud value="{{ old('diagnostico', $solicitud->solicitud_patient->diagnostico) }}"
-                        name="diagnostico" class="w-full" placeholder="" readonly />
+                        name="diagnostico" class="w-full" placeholder="" disabled />
                 </div>
             </div>
             <div class="flex gap-4">
@@ -149,7 +149,7 @@
                     <div class="flex flex-col w-full">
                         <x-input-solicitud type="number"
                             value="{{ old('peso', $solicitud->solicitud_patient->peso) }}" step="0.001"
-                            name="peso" class="w-full" placeholder="" readonly />
+                            name="peso" class="w-full" placeholder="" disabled />
                     </div>
                 </div>
                 <div class="mb-4 flex items-stretch gap-2 w-full">
@@ -169,7 +169,7 @@
                         <x-input-solicitud type="date"
                             value="{{ old('fecha_nacimiento', $solicitud->solicitud_patient->fecha_nacimiento) }}"
                             max="{{ date('Y-m-d') }}" name="fecha_nacimiento" class="" placeholder=""
-                            onchange="calcularEdad(this.value)" readonly />
+                            onchange="calcularEdad(this.value)" disabled />
                     </div>
                 </div>
 
@@ -191,7 +191,7 @@
                     </x-label>
                     <x-input-solicitud type="number"
                         value="{{ old('tiempo_infusion_min', $solicitud->solicitud_detail->tiempo_infusion_min) }}"
-                        name="tiempo_infusion_min" class="w-full" placeholder="" readonly />
+                        name="tiempo_infusion_min" class="w-full" placeholder="" disabled />
                 </div>
             </div>
             <div class="flex gap-4">
@@ -202,7 +202,7 @@
                         </x-label>
                         <x-input-solicitud type="number"
                             value="{{ old('sobrellenado_ml', $solicitud->solicitud_detail->sobrellenado_ml) }}"
-                            step="0.0001" name="sobrellenado_ml" class="w-32" placeholder="" readonly />
+                            step="0.0001" name="sobrellenado_ml" class="w-32" placeholder="" disabled />
                     </div>
                 </div>
                 <div class="mb-4 flex items-baseline gap-2 w-full">
@@ -211,7 +211,7 @@
                     </x-label>
                     <x-input-solicitud type="number"
                         value="{{ old('volumen_total', $solicitud->solicitud_detail->volumen_total) }}"
-                        name="volumen_total" step="0.0001" class="w-full" placeholder="" readonly />
+                        name="volumen_total" step="0.0001" class="w-full" placeholder="" disabled />
                 </div>
                 <div class="mb-4 flex items-stretch gap-2 w-full">
                     <x-label class="mb-2">
@@ -237,8 +237,16 @@
 
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 1)
+                            @php
+                                $inputValue = old(
+                                    'i_' . $input->input_id,
+                                    renderInputSection($input->input_id, $inputs_solicitud),
+                                );
+                                $hasData = $inputValue;
+                            @endphp
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <div
+                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                     <div class="flex w-[40%]">
                                         <x-label class="mb-2 whitespace-nowrap">
                                             {{ $input->description }}:
@@ -247,7 +255,7 @@
                                             <x-input-solicitud type="number" class="w-full"
                                                 value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" readonly />
+                                                step="0.0001" placeholder="" disabled />
                                             <span>{{ $input->unidad }}</span>
 
                                         </div>
@@ -269,7 +277,7 @@
                                             <x-input-solicitud class="w-full"
                                                 value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                placeholder="" readonly />
+                                                placeholder="" disabled />
                                         </div>
                                     </div>
                                     <div class="flex w-[25%]">
@@ -282,7 +290,7 @@
                                                 value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                 id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder="" readonly />
+                                                class="" placeholder="" disabled />
                                         </div>
                                     </div>
                                 </div>
@@ -291,8 +299,16 @@
                     @endforeach
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 8)
+                            @php
+                                $inputValue = old(
+                                    'i_' . $input->input_id,
+                                    renderInputSection($input->input_id, $inputs_solicitud),
+                                );
+                                $hasData = $inputValue;
+                            @endphp
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <div
+                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                     <div class="flex w-[40%]">
                                         <x-label class="mb-2 whitespace-nowrap">
                                             {{ $input->description }}:
@@ -301,7 +317,7 @@
                                             <x-input-solicitud type="number" class="w-full"
                                                 value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" readonly />
+                                                step="0.0001" placeholder="" disabled />
                                             <span>{{ $input->unidad }}</span>
                                         </div>
                                     </div>
@@ -322,7 +338,7 @@
                                             <x-input-solicitud class="w-full"
                                                 value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" readonly />
+                                                step="0.0001" placeholder="" disabled />
                                         </div>
                                     </div>
                                     <div class="flex w-[25%]">
@@ -335,7 +351,7 @@
                                                 value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                 id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder="" readonly />
+                                                class="" placeholder="" disabled />
                                         </div>
                                     </div>
                                 </div>
@@ -347,8 +363,16 @@
                     <h3 class="mt-4 font-medium">CARBOHIDRATOS:</h3>
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 2)
+                            @php
+                                $inputValue = old(
+                                    'i_' . $input->input_id,
+                                    renderInputSection($input->input_id, $inputs_solicitud),
+                                );
+                                $hasData = $inputValue;
+                            @endphp
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <div
+                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                     <div class="flex w-[40%]">
                                         <x-label class="mb-2 whitespace-nowrap">
                                             {{ $input->description }}:
@@ -357,7 +381,7 @@
                                             <x-input-solicitud type="number" class="w-full"
                                                 value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" readonly />
+                                                step="0.0001" placeholder="" disabled />
                                             <span>{{ $input->unidad }}</span>
 
                                         </div>
@@ -379,7 +403,7 @@
                                             <x-input-solicitud class="w-full"
                                                 value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" readonly />
+                                                step="0.0001" placeholder="" disabled />
                                         </div>
                                     </div>
                                     <div class="flex w-[25%]">
@@ -392,7 +416,7 @@
                                                 value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                 id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder="" readonly />
+                                                class="" placeholder="" disabled />
                                         </div>
                                     </div>
                                 </div>
@@ -403,8 +427,16 @@
                     <div class="w-full">
                         @foreach ($inputs as $input)
                             @if ($input->category_id == 3)
+                                @php
+                                    $inputValue = old(
+                                        'i_' . $input->input_id,
+                                        renderInputSection($input->input_id, $inputs_solicitud),
+                                    );
+                                    $hasData = $inputValue;
+                                @endphp
                                 <div class="w-full">
-                                    <div class="mb-4 flex items-baseline gap-2 w-full">
+                                    <div
+                                        class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                         <div class="flex w-[40%]">
                                             <x-label class="mb-2 whitespace-nowrap">
                                                 {{ $input->description }}:
@@ -413,7 +445,7 @@
                                                 <x-input-solicitud type="number" class="w-full"
                                                     value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
                                                     name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                                    step="0.0001" class="w-full" placeholder="" readonly />
+                                                    step="0.0001" class="w-full" placeholder="" disabled />
                                                 <span>{{ $input->unidad }}</span>
                                             </div>
                                         </div>
@@ -434,7 +466,7 @@
                                                 <x-input-solicitud class="w-full"
                                                     value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                     name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                    step="0.0001" placeholder="" readonly />
+                                                    step="0.0001" placeholder="" disabled />
                                             </div>
                                         </div>
                                         <div class="flex w-[25%]">
@@ -447,7 +479,7 @@
                                                     value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                     id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                    class="" placeholder="" readonly />
+                                                    class="" placeholder="" disabled />
                                             </div>
                                         </div>
                                     </div>
@@ -464,8 +496,15 @@
                 <div class=" grid-flow-col gap-4">
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 4)
+                            @php
+                                $inputValue = old(
+                                    'i_' . $input->input_id,
+                                    renderInputSection($input->input_id, $inputs_solicitud),
+                                );
+                                $hasData = $inputValue;
+                            @endphp
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <div class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                     <div class="flex w-[40%]">
                                         <x-label class="mb-2 whitespace-nowrap">
                                             {{ $input->description }}:
@@ -474,7 +513,7 @@
                                             <x-input-solicitud type="number" class="w-full"
                                                 value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" readonly />
+                                                step="0.0001" placeholder="" disabled />
                                             <span>{{ $input->unidad }}</span>
 
                                         </div>
@@ -496,7 +535,7 @@
                                             <x-input-solicitud class="w-full"
                                                 value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" readonly />
+                                                step="0.0001" placeholder="" disabled />
                                         </div>
                                     </div>
                                     <div class="flex w-[25%]">
@@ -509,7 +548,7 @@
                                                 value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                 id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder="" readonly />
+                                                class="" placeholder="" disabled />
                                         </div>
                                     </div>
                                 </div>
@@ -527,8 +566,15 @@
 
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 5)
+                        @php
+                                $inputValue = old(
+                                    'i_' . $input->input_id,
+                                    renderInputSection($input->input_id, $inputs_solicitud),
+                                );
+                                $hasData = $inputValue;
+                            @endphp
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <div class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                     <div class="flex w-[40%]">
                                         <x-label class="mb-2 whitespace-nowrap">
                                             {{ $input->description }}:
@@ -538,7 +584,7 @@
                                                 value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
                                                 step="0.0001" placeholder=""
-                                                readonly /><span>{{ $input->unidad }}</span>
+                                                disabled /><span>{{ $input->unidad }}</span>
                                         </div>
                                     </div>
                                     <div class="flex w-[15%]">
@@ -558,7 +604,7 @@
                                             <x-input-solicitud class="w-full"
                                                 value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" readonly />
+                                                step="0.0001" placeholder="" disabled />
                                         </div>
                                     </div>
                                     <div class="flex w-[25%]">
@@ -570,7 +616,7 @@
                                                 value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                 id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder="" readonly />
+                                                class="" placeholder="" disabled />
                                         </div>
                                     </div>
                                 </div>
@@ -629,7 +675,7 @@
                         Bolsa Eva:
                     </x-label>
                     <div class="flex w-full">
-                        <x-select class="w-full" name="bolsa_eva" id="bolsa_eva">
+                        <x-select class="w-full" name="bolsa_eva" id="bolsa_eva" disabled>
 
                             @foreach ($inputs as $input)
                                 @if ($input->category_id == 6)
@@ -653,7 +699,7 @@
                     <div class="flex w-full">
                         <x-input-solicitud class="w-full"
                             value="{{ old('lote_bolsa_eva', renderLoteBolsaEvaSection($inputs_solicitud)) }}"
-                            name="lote_bolsa_eva" id="lote_bolsa_eva" step="0.0001" placeholder="" />
+                            name="lote_bolsa_eva" id="lote_bolsa_eva" step="0.0001" placeholder="" disabled />
                     </div>
                     @error('lote_bolsa_eva')
                         <div class="text-red-500 text-sm">{{ $message }}</div>
@@ -667,7 +713,7 @@
                         <x-input-solicitud type="date"
                             value="{{ old('caducidad_bolsa_eva', renderCaducidadBolsaEvaSection($inputs_solicitud)) }}"
                             min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="caducidad_bolsa_eva"
-                            id="caducidad_bolsa_eva" class="" placeholder="" />
+                            id="caducidad_bolsa_eva" class="" placeholder="" disabled />
                     </div>
                     @error('caducidad_bolsa_eva')
                         <div class="text-red-500 text-sm">{{ $message }}</div>
@@ -679,7 +725,7 @@
                 <x-label class="mb-2">
                     OBSERVACIONES
                 </x-label>
-                <textarea class="border-2 border-solid w-full resize-x overflow-auto h-20" name="observaciones" readonly>{{ old('observaciones', $solicitud->solicitud_detail->observaciones) }}</textarea>
+                <textarea class="border-2 border-solid w-full resize-x overflow-auto h-20" name="observaciones" disabled>{{ old('observaciones', $solicitud->solicitud_detail->observaciones) }}</textarea>
             </div>
             <div class="flex flex-row gap-4 items-start w-full">
                 <div class="w-full">
@@ -692,7 +738,7 @@
                                 <x-input-solicitud type="datetime-local"
                                     value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega) }}"
                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
-                                    name="fecha_hora_entrega" class="" placeholder="" readonly />
+                                    name="fecha_hora_entrega" class="" placeholder="" disabled />
                             </div>
                         </div>
                     </div>
@@ -707,11 +753,11 @@
                                         <x-input-solicitud type="datetime-local"
                                             value="{{ old('fecha_hora_preparacion', $solicitud->solicitud_aprobada->fecha_hora_preparacion) }}"
                                             min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
-                                            name="fecha_hora_preparacion" class="" placeholder="" readonly />
+                                            name="fecha_hora_preparacion" class="" placeholder="" disabled />
                                     @else
                                         <x-input-solicitud type="datetime-local" value=""
                                             min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
-                                            name="fecha_hora_preparacion" class="" placeholder="" readonly />
+                                            name="fecha_hora_preparacion" class="" placeholder="" disabled />
                                     @endif
                                 </div>
                             </div>
@@ -727,7 +773,7 @@
                             <div class="flex flex-col w-full">
                                 <x-input-solicitud
                                     value="{{ old('nombre_medico', $solicitud->solicitud_detail->nombre_medico) }}"
-                                    name="nombre_medico" class="w-full" placeholder="" readonly />
+                                    name="nombre_medico" class="w-full" placeholder="" disabled />
                             </div>
                         </div>
                     </div>
@@ -738,7 +784,7 @@
                             </x-label>
                             <div class="flex flex-col w-full">
                                 <x-input-solicitud value="{{ old('cedula', $solicitud->solicitud_detail->cedula) }}"
-                                    name="cedula" class="w-full" placeholder="" readonly />
+                                    name="cedula" class="w-full" placeholder="" disabled />
                             </div>
                         </div>
                     </div>

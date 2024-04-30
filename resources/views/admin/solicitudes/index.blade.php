@@ -15,7 +15,7 @@
 
     <div class="flex justify-end mb-4">
         <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-            href="{{ route('admin.solicitudes.create') }}">Agregar</a>
+            href="{{ route('admin.solicitudes.create') }}"><i class="fa-solid fa-plus pr-1"></i> Agregar</a>
     </div>
 
 
@@ -71,7 +71,7 @@
                                 @if ($solicitud->is_aprobada == 'Pendiente')
                                     <div class="flex items-center">
                                         <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                                            href="{{ route('admin.solicitudes.edit', $solicitud) }}">Aprobar</a>
+                                            href="{{ route('admin.solicitudes.edit', $solicitud) }}"><i class="fa-solid fa-pen pr-1"></i> Aprobar</a>
                                     </div>
                                 @else
                                     <div class="flex items-center">
@@ -100,7 +100,7 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center">
                                 <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                                    href="{{ route('admin.solicitudes.show', $solicitud) }}">Ver</a>
+                                    href="{{ route('admin.solicitudes.show', $solicitud) }}"><i class="fa-solid fa-eye pr-1"></i> Ver</a>
                             </div>
                         </td>
 

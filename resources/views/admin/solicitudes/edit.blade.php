@@ -708,7 +708,7 @@
 
                 <div class="flex">
                     <div class="flex items-center w-6/12">
-                        <div>
+                        
                             <x-label class="mb-2 whitespace-nowrap">
                                 Bolsa Eva:
                             </x-label>
@@ -729,7 +729,7 @@
                             @error('bolsa_eva')
                                 <div class="text-red-500 text-sm">{{ $message }}</div>
                             @enderror
-                        </div>
+                        
                     </div>
                     <div class="flex items-center w-3/12">
                         <x-label class="mb-2 whitespace-nowrap">

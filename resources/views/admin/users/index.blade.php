@@ -4,7 +4,7 @@
     </div>
 
     <div class="flex justify-end mb-4">
-        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800" href="{{route('admin.users.create')}}">Agregar</a>
+        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800" href="{{route('admin.users.create')}}"><i class="fa-solid fa-plus pr-1"></i> Agregar</a>
     </div>
 
 
@@ -23,6 +23,9 @@
                     </th>
                     <th scope="col" class="px-6 py-3">
                         Hospital
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Roles
                     </th>
                     <th scope="col" class="px-6 py-3">
 
@@ -45,8 +48,16 @@
                         <td class="px-6 py-4">
                             {{ $user->hospital["name"] }}
                         </td>
+                        <td>
+                            @foreach ($user->roles as $role)
+                                {{ $role->name }}
+                            @endforeach
+                        </td>
                         <td class="px-6 py-4">
-                            <a href="{{ route('admin.users.edit', $user) }}">Editar</a>
+                            <div class="flex items-center">
+                                <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                                href="{{ route('admin.users.edit', $user) }}"> <i class="fa-solid fa-pen pr-1"></i> Editar</a>
+                            </div>
                         </td>
                     </tr>
                 @endforeach

@@ -17,7 +17,11 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::select('id','name','lastname','username', 'is_active', 'hospital_id')->paginate();
+        $users = User::select('id', 'name', 'lastname', 'username', 'is_active', 'hospital_id')
+            ->with('roles:name') // Cargar los roles de los usuarios
+            ->paginate();
+
+        //return $users;
         return view('admin.users.index', compact('users'));
     }
 
@@ -79,7 +83,7 @@ class UserController extends Controller
     {
         $roles = Role::all();
         $hospitals = Hospital::all();
-        return view('admin.users.edit', compact('user', 'hospitals','roles'));
+        return view('admin.users.edit', compact('user', 'hospitals', 'roles'));
     }
 
     /**
@@ -102,9 +106,9 @@ class UserController extends Controller
         $user->username = $request->username;
         $user->hospital_id = $request->hospital_id;
 
-        if($request->password){
+        if ($request->password) {
             $user->password = bcrypt($request->password);
-        }else{
+        } else {
             $user->password = $us_bd->password;
         }
 
