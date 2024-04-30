@@ -23,7 +23,9 @@ class SolicitudDetail extends Model
         'fecha_hora_entrega',
         'observaciones',
         'observaciones',
-        'suma_volumen_sobrellenado'
+        'suma_volumen_sobrellenado',
+        'velocidad_infusion'
+
     ];
 
 

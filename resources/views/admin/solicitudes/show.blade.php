@@ -185,13 +185,28 @@
                         </option>
                     </x-select>
                 </div>
+                @php
+                    $inputValue = old('velocidad_infusion', $solicitud->solicitud_detail->velocidad_infusion);
+                    $hasData = $inputValue ? true : false;
+                @endphp
                 <div class="mb-4 flex items-baseline gap-2 w-full">
-                    <x-label class="mb-2 whitespace-nowrap">
+                    <x-label class="mb-2 whitespace-nowrap font-bold">
                         Tiempo de infusión (h):
                     </x-label>
                     <x-input-solicitud type="number"
-                        value="{{ old('tiempo_infusion_min', $solicitud->solicitud_detail->tiempo_infusion_min) }}"
-                        name="tiempo_infusion_min" class="w-full" placeholder="" disabled />
+                        value="{{ $hasData ? '' : old('tiempo_infusion_min', $solicitud->solicitud_detail->tiempo_infusion_min) }}"
+                        name="tiempo_infusion_min" class="w-full" placeholder="" disabled/>
+                    <!-- Mensaje de error -->
+                    
+                </div>
+                <div class="mb-4 flex items-baseline gap-2 w-full">
+                    <x-label class="mb-2 whitespace-nowrap">
+                        Velocidad de infusión ml/hr:
+                    </x-label>
+                    <x-input-solicitud type="number"
+                        value="{{ old('velocidad_infusion', $solicitud->solicitud_detail->velocidad_infusion) }}"
+                        step="0.001" name="velocidad_infusion" class="w-full" placeholder="" disabled/>
+                    
                 </div>
             </div>
             <div class="flex gap-4">
