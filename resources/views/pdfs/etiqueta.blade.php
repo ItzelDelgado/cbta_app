@@ -92,12 +92,14 @@
     <div class="contenedor">
         <!-- Contenedor principal con borde negro -->
         <div>
-            <table class="introduccion">
+            <table>
                 <tr>
-                    <td style="text-align: center; padding-right: 2rem">
+                    <td style="text-align: center; width: 100%">
                         <strong>CENTRO DE MEZCLAS ESTÉRILES PRODIFEM</strong>
                     </td>
                 </tr>
+            </table>
+            <table class="introduccion">
                 <tr>
                     <td>{{ $solicitud_detalles->user->hospital->name }}</td>
                     <td>{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</td>
@@ -105,7 +107,8 @@
                 <tr>
                     <td>Paciente: {{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
                         {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
-                    <td>FN: {{  date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</td>
+                    <td>FN: {{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}
+                    </td>
                 </tr>
                 <tr>
                     <td>Médico: {{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}</td>
@@ -127,7 +130,7 @@
                         <td style="border:none">
                             @isset($input_completo->input->medicine)
                                 {{ $input_completo->input->medicine->denominacion_generica }}
-                               
+
                                 @php
                                     $osmolaridad_total += $input_completo->input->medicine->osmolaridad; // Sumamos el precio_ml al total
                                 @endphp
@@ -165,9 +168,9 @@
                 </tr>
                 <tr>
                     @php
-                     // Inicializamos la variable total
-                    $vol_total = 0;
-                
+                        // Inicializamos la variable total
+                        $vol_total = 0;
+
                         if (
                             $solicitud_detalles->solicitud_detail['volumen_total'] == null ||
                             $solicitud_detalles->solicitud_detail['volumen_total'] == 0
@@ -177,10 +180,20 @@
                             $vol_total = floatval($solicitud_detalles->solicitud_detail['volumen_total']);
                         }
                     @endphp
-                    <td>Administrar en: {{ $solicitud_detalles->solicitud_detail['tiempo_infusion_min'] }} h
+                    <td>Administrar en:
+                        @isset($solicitud_detalles->solicitud_detail['velocidad_infusion'])
+                            {{ ceil($vol_total / $solicitud_detalles->solicitud_detail['velocidad_infusion']) }} h
+                        @else
+                            {{ $solicitud_detalles->solicitud_detail['tiempo_infusion_min'] }} h
+                        @endisset
                     </td>
                     <td>Vel. Infusión:
-                        {{ number_format($vol_total / ($solicitud_detalles->solicitud_detail['tiempo_infusion_min'] * 60), 2) }}
+                        @isset($solicitud_detalles->solicitud_detail['velocidad_infusion'])
+                            {{ $solicitud_detalles->solicitud_detail['velocidad_infusion'] }}
+                        @else
+                            {{ number_format($vol_total / $solicitud_detalles->solicitud_detail['tiempo_infusion_min'], 2) }}
+                        @endisset
+
                         ml/hr</td>
                 </tr>
             </table>
@@ -190,12 +203,14 @@
                         HASTA UNA HORA ANTES DE SU ADMINISTRACIÓN</td>
                 </tr>
                 <tr>
-                    <td>Fecha y hora de preparación: {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h
+                    <td>Fecha y hora de preparación:
+                        {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        Fecha y hora límite de uso: {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_limite_uso'])) }}h
+                        Fecha y hora límite de uso:
+                        {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_limite_uso'])) }}h
                     </td>
                 </tr>
             </table>
