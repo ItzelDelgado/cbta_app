@@ -171,10 +171,10 @@
                     <x-label class="mb-2 whitespace-nowrap">
                         Velocidad de infusión ml/hr:
                     </x-label>
-                    <x-input-solicitud type="number" value="" name="velocidad_infusion_min" class="w-full"
+                    <x-input-solicitud type="number" value="{{ old('velocidad_infusion') }}" step="0.001" name="velocidad_infusion" class="w-full"
                         placeholder="" />
                     <!-- Mensaje de error -->
-                    @error('tiempo_infusion_min')
+                    @error('velocidad_infusion')
                         <div class="text-red-500 text-sm">{{ $message }}</div>
                     @enderror
                 </div>
@@ -624,7 +624,7 @@
             // });
 
             const inputTiempo = document.querySelector('input[name="tiempo_infusion_min"]');
-            const inputVelocidad = document.querySelector('input[name="velocidad_infusion_min"]');
+            const inputVelocidad = document.querySelector('input[name="velocidad_infusion"]');
 
             function toggleInputState() {
                 if (inputTiempo.value) {

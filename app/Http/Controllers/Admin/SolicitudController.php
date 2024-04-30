@@ -137,6 +137,7 @@ class SolicitudController extends Controller
             'fecha_hora_entrega' => 'required|date_format:Y-m-d\TH:i',
             'nombre_medico' => 'required|string|max:255',
             'cedula' => 'required|string|max:50',
+            'velocidad_infusion' => 'nullable|numeric'
         ]);
 
 
@@ -187,7 +188,7 @@ class SolicitudController extends Controller
 
         //El sobrellenado y tiempo 0 y 24
         $solicitud_paciente = $request->only(['nombre_paciente', 'apellidos_paciente', 'servicio', 'cama', 'piso', 'registro', 'diagnostico', 'peso', 'fecha_nacimiento', 'sexo']);
-        $solicitud_detalles = $request->only(['via_administracion', 'tiempo_infusion_min', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula']);
+        $solicitud_detalles = $request->only(['via_administracion', 'tiempo_infusion_min', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula', 'velocidad_infusion']);
         $solicitud_paciente['edad'] = $edad;
         $solicitud_paciente_resp = SolicitudPatient::create($solicitud_paciente);
         $solicitud_detalles_resp = SolicitudDetail::create($solicitud_detalles);
@@ -490,18 +491,27 @@ class SolicitudController extends Controller
             'fecha_hora_preparacion' => 'required|date_format:Y-m-d\TH:i',
             'bolsa_eva' => 'required',
             'lote_bolsa_eva' => 'required',
-            'caducidad_bolsa_eva' => 'required'
+            'caducidad_bolsa_eva' => 'required',
+            'velocidad_infusion' => 'nullable|numeric'
+
         ]);
 
         $bolsa_eva = $request->input('bolsa_eva');
         $lote_bolsa_eva = $request->input('lote_bolsa_eva');
         $caducidad_bolsa_eva = $request->input('caducidad_bolsa_eva');
+        $tiempo_infusion_min = $request->input('tiempo_infusion_min');
+        //return $tiempo_infusion_min;
+        if ($tiempo_infusion_min == '') {
+            $tiempo_infusion_min = 24;
+            //return 'hola';
+        }
 
         $solicitud_paciente = $request->only(['nombre_paciente', 'apellidos_paciente', 'servicio', 'cama', 'piso', 'registro', 'diagnostico', 'peso', 'fecha_nacimiento', 'sexo']);
-        $solicitud_detalles = $request->only(['via_administracion', 'tiempo_infusion_min', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula']);
+        $solicitud_detalles = $request->only(['via_administracion', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula','velocidad_infusion']);
         $is_aprobada_value = $request->only(['is_aprobada']);
         $set_infusion = $request->only(['i_40']);
         $solicitud_paciente['edad'] = $edad;
+        $solicitud_detalles['tiempo_infusion_min'] = $tiempo_infusion_min;
         $solicitud_patient_u = SolicitudPatient::find($solicitud['solicitud_patient_id']);
         $solicitud_detail_u = SolicitudDetail::find($solicitud['solicitud_detail_id']);
         $solicitud_patient_u->update($solicitud_paciente);
@@ -867,7 +877,8 @@ class SolicitudController extends Controller
         }
     }
 
-    public function solicitud(Solicitud $solicitud){
+    public function solicitud(Solicitud $solicitud)
+    {
 
         $hola = "hola";
 
@@ -986,14 +997,14 @@ class SolicitudController extends Controller
     {
 
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
-        ->whereNotIn('input_id', function ($query) {
-            $query->select('id')
-                ->from('inputs')
-                ->where('category_id', '=', 6); // Ajusta el nombre de la columna si es diferente
-        })
-        ->whereNotIn('input_id', [40]) // Excluir input_id 40
-        ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-        ->get();
+            ->whereNotIn('input_id', function ($query) {
+                $query->select('id')
+                    ->from('inputs')
+                    ->where('category_id', '=', 6); // Ajusta el nombre de la columna si es diferente
+            })
+            ->whereNotIn('input_id', [40]) // Excluir input_id 40
+            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->get();
 
         //return $inputs_solicitud;
         $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')

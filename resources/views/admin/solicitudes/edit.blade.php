@@ -188,15 +188,32 @@
                         <div class="text-red-500 text-sm">{{ $message }}</div>
                     @enderror
                 </div>
+                @php
+                    $inputValue = old('velocidad_infusion', $solicitud->solicitud_detail->velocidad_infusion);
+                    $hasData = $inputValue ? true : false;
+                @endphp
                 <div class="mb-4 flex items-baseline gap-2 w-full">
                     <x-label class="mb-2 whitespace-nowrap font-bold">
                         Tiempo de infusión (h):
                     </x-label>
                     <x-input-solicitud type="number"
-                        value="{{ old('tiempo_infusion_min', $solicitud->solicitud_detail->tiempo_infusion_min) }}"
+                        value="{{ $hasData ? '' : old('tiempo_infusion_min', $solicitud->solicitud_detail->tiempo_infusion_min) }}"
                         name="tiempo_infusion_min" class="w-full" placeholder="" />
                     <!-- Mensaje de error -->
                     @error('tiempo_infusion_min')
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="mb-4 flex items-baseline gap-2 w-full">
+                    <x-label class="mb-2 whitespace-nowrap">
+                        Velocidad de infusión ml/hr:
+                    </x-label>
+                    <x-input-solicitud type="number"
+                        value="{{ old('velocidad_infusion', $solicitud->solicitud_detail->velocidad_infusion) }}"
+                        step="0.001" name="velocidad_infusion" class="w-full" placeholder="" />
+                    <!-- Mensaje de error -->
+                    @error('velocidad_infusion')
                         <div class="text-red-500 text-sm">{{ $message }}</div>
                     @enderror
                 </div>
@@ -263,8 +280,7 @@
                                 );
                                 $hasData = $inputValue;
                             @endphp
-                            <div
-                                class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
+                            <div class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                 <div class="flex w-[40%]">
                                     <x-label class="mb-2 whitespace-nowrap font-bold">
                                         {{ $input->description }}:
@@ -605,7 +621,8 @@
                                 $hasData = $inputValue;
                             @endphp
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
+                                <div
+                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                     <div class="flex w-[40%]">
                                         <x-label class="mb-2 whitespace-nowrap font-bold">
                                             {{ $input->description }}:
@@ -708,28 +725,28 @@
 
                 <div class="flex">
                     <div class="flex items-center w-6/12">
-                        
-                            <x-label class="mb-2 whitespace-nowrap">
-                                Bolsa Eva:
-                            </x-label>
-                            <div class="flex w-full">
-                                <x-select class="w-full" name="bolsa_eva" id="bolsa_eva">
-                                    <option value="" disabled selected>Seleccionar Bolsa Eva</option>
-                                    @foreach ($inputs as $input)
-                                        @if ($input->category_id == 6)
-                                            <option value="{{ $input->input_id }}"
-                                                @if (old('bolsa_eva', renderBolsaEvaInputSection($input->input_id, $inputs_solicitud)) == $input->input_id) selected @endif>
-                                                {{ $input->description }}
-                                            </option>
-                                        @endif
-                                    @endforeach
-                                </x-select>
-                            </div>
-                            <!-- Mensaje de error -->
-                            @error('bolsa_eva')
-                                <div class="text-red-500 text-sm">{{ $message }}</div>
-                            @enderror
-                        
+
+                        <x-label class="mb-2 whitespace-nowrap">
+                            Bolsa Eva:
+                        </x-label>
+                        <div class="flex w-full">
+                            <x-select class="w-full" name="bolsa_eva" id="bolsa_eva">
+                                <option value="" disabled selected>Seleccionar Bolsa Eva</option>
+                                @foreach ($inputs as $input)
+                                    @if ($input->category_id == 6)
+                                        <option value="{{ $input->input_id }}"
+                                            @if (old('bolsa_eva', renderBolsaEvaInputSection($input->input_id, $inputs_solicitud)) == $input->input_id) selected @endif>
+                                            {{ $input->description }}
+                                        </option>
+                                    @endif
+                                @endforeach
+                            </x-select>
+                        </div>
+                        <!-- Mensaje de error -->
+                        @error('bolsa_eva')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
+
                     </div>
                     <div class="flex items-center w-3/12">
                         <x-label class="mb-2 whitespace-nowrap">
@@ -1000,6 +1017,29 @@
                 }
 
             }
+
+            document.addEventListener("DOMContentLoaded", function() {
+                const inputTiempo = document.querySelector('input[name="tiempo_infusion_min"]');
+                const inputVelocidad = document.querySelector('input[name="velocidad_infusion"]');
+
+                function toggleInputState() {
+                    if (inputTiempo.value) {
+                        inputVelocidad.disabled = true;
+                    } else if (inputVelocidad.value) {
+                        inputTiempo.disabled = true;
+                    } else {
+                        inputVelocidad.disabled = false;
+                        inputTiempo.disabled = false;
+                    }
+                }
+
+                // Llamar a la función toggleInputState cuando la página se carga
+                toggleInputState();
+
+                // Agregar escuchadores de eventos para cambiar el estado de los campos dinámicamente
+                inputTiempo.addEventListener('input', toggleInputState);
+                inputVelocidad.addEventListener('input', toggleInputState);
+            });
         </script>
     @endpush
 
