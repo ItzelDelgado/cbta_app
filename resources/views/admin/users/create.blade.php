@@ -11,25 +11,29 @@
             <x-label class="mb-2">
                 Nombre
             </x-label>
-            <x-input value="{{old('name')}}" name="name" class="w-full" placeholder="Escriba el nombre del usuario" />
+            <x-input value="{{ old('name') }}" name="name" class="w-full"
+                placeholder="Escriba el nombre del usuario" />
         </div>
         <div class="mb-4">
             <x-label class="mb-2">
                 Apellidos
             </x-label>
-            <x-input value="{{old('lastname')}}" name="lastname" class="w-full" placeholder="Escriba los apellido del usuario" />
+            <x-input value="{{ old('lastname') }}" name="lastname" class="w-full"
+                placeholder="Escriba los apellido del usuario" />
         </div>
         <div class="mb-4">
             <x-label class="mb-2">
                 Nombre de usuario
             </x-label>
-            <x-input value="{{old('username')}}" name="username" class="w-full" placeholder="Escriba el nombre del usuario" />
+            <x-input value="{{ old('username') }}" name="username" class="w-full"
+                placeholder="Escriba el nombre del usuario" />
         </div>
         <div class="mb-4">
             <x-label class="mb-2">
                 Contraseña (La contraseña debe constar de máximo 12 caracteres.)
             </x-label>
-            <x-input type="password" value="{{old('password')}}" name="password" class="w-full" placeholder="Escriba la contraseña del usuario" />
+            <x-input type="password" value="{{ old('password') }}" name="password" class="w-full"
+                placeholder="Escriba la contraseña del usuario" />
         </div>
         <div class="mb-4">
             <x-label class="mb-2">
@@ -51,16 +55,25 @@
         <div class="mb-4">
             <ul>
                 @foreach ($roles as $role)
-                    <li>
-                        <label for="">
-                            <x-checkbox type="checkbox"
-                                name="roles[]"
-                                value="{{ $role->id }}"
-                                :checked="in_array($role->id, old('roles', []),
-                                )" />
-                            {{ $role->name }}
-                        </label>
-                    </li>
+                    @hasanyrole('Admin')
+                        @if ($role->name !== 'Super Admin')
+                            <li>
+                                <label for="">
+                                    <x-checkbox type="checkbox" name="roles[]" value="{{ $role->id }}"
+                                        :checked="in_array($role->id, old('roles', []))" />
+                                    {{ $role->name }}
+                                </label>
+                            </li>
+                        @endif
+                    @endhasanyrole
+                    @hasanyrole('Super Admin')
+                        <li>
+                            <label for="">
+                                <x-checkbox type="checkbox" name="roles[]" value="{{ $role->id }}" :checked="in_array($role->id, old('roles', []))" />
+                                {{ $role->name }}
+                            </label>
+                        </li>
+                    @endhasanyrole
                 @endforeach
             </ul>
         </div>
