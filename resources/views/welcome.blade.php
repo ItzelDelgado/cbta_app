@@ -27,7 +27,8 @@
             <img src="{{ asset('img/Logo_Prodifem.png') }}" alt="">
         </div>
         <p class="text-center font-semibold text-2xl">Para cualquier pregunta, contáctenos.</p>
-        <p class="text-center font-semibold text-2xl"><i class="fa-solid fa-phone" style="color: #ffffff;"></i> 5513535412 <br> <i class="fa-brands fa-whatsapp"></i> 5513535412 <br> <i class="fa-solid fa-envelope"></i>
+        <p class="text-center font-semibold text-2xl"><i class="fa-solid fa-phone" style="color: #ffffff;"></i>
+            5513535412 <br> <i class="fa-brands fa-whatsapp"></i> 5513535412 <br> <i class="fa-solid fa-envelope"></i>
             mezclasp@gmail.com</p>
     </div>
     <div class="max-w-[600px] mx-auto text-center mt-36">
@@ -36,11 +37,11 @@
         <p class="font-semibold text-xl mb-8">¿Qué tipo de mezcla necesitas?</p>
         <p class="text-lg mb-8">Elija una opción entre mezclas de nutrición parenteral y mezclas oncológicas</p>
         <div class="flex flex-col max-w-96 mx-auto gap-8">
-            <button class="bg-azul-prodifem p-4 rounded-xl text-2xl"><a class="text-white" href="{{ route('admin.solicitudes.index') }}">Mezclas de
-                    nutrición
-                    parenteral</a></button>
-            <button class="bg-azul-prodifem p-4 rounded-xl text-2xl"><a class="text-white" href="">Mezclas
-                    oncológicas</a></button>
+            <a class="text-white bg-azul-prodifem rounded-xl " href="{{ route('admin.solicitudes.index') }}"><button
+                    class=" p-4 text-2xl">Mezclas de nutrición
+                    parenteral</button></a>
+            <a class="text-white bg-azul-prodifem rounded-xl " href=""><button class=" p-4 text-2xl">Mezclas
+                    oncológicas</button></a>
         </div>
     </div>
 

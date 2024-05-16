@@ -23,9 +23,11 @@
         <table id="miTabla" class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
-                    <th scope="col" class="px-6 py-3">
-                        ID
-                    </th>
+                    @hasanyrole('Admin|Super Admin')
+                        <th scope="col" class="px-6 py-3">
+                            ID
+                        </th>
+                    @endhasanyrole
                     <th scope="col" class="px-6 py-3">
                         Hospital
                     </th>
@@ -34,6 +36,12 @@
                             Modificar
                         </th>
                     @endhasanyrole
+                    <th scope="col" class="px-6 py-3">
+                        Fecha y hora solicitud
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Fecha y hora entrega
+                    </th>
                     <th scope="col" class="px-6 py-3">
                         Estado
                     </th>
@@ -58,10 +66,12 @@
             <tbody>
                 @foreach ($solicitudes as $solicitud)
                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <th scope="row"
-                            class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{ $solicitud->id }}
-                        </th>
+                        @hasanyrole('Admin|Super Admin')
+                            <th scope="row"
+                                class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                {{ $solicitud->id }}
+                            </th>
+                        @endhasanyrole
                         <td class="px-6 py-4">
                             {{ $solicitud->user->hospital->name }}
                         </td>
@@ -71,7 +81,8 @@
                                 @if ($solicitud->is_aprobada == 'Pendiente')
                                     <div class="flex items-center">
                                         <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                                            href="{{ route('admin.solicitudes.edit', $solicitud) }}"><i class="fa-solid fa-pen pr-1"></i> Aprobar</a>
+                                            href="{{ route('admin.solicitudes.edit', $solicitud) }}"><i
+                                                class="fa-solid fa-pen pr-1"></i> Aprobar</a>
                                     </div>
                                 @else
                                     <div class="flex items-center">
@@ -80,7 +91,12 @@
                                 @endif
                             </td>
                         @endhasanyrole
-
+                        <td class="px-6 py-4">
+                            {{ $solicitud->created_at }}
+                        </td>
+                        <td class="px-6 py-4">
+                            {{ $solicitud->solicitud_detail->fecha_hora_entrega }}
+                        </td>
                         <td class="px-6 py-4">
                             @if ($solicitud->is_aprobada == 'Aprobada')
                                 <div class="flex items-center">
@@ -100,7 +116,8 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center">
                                 <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                                    href="{{ route('admin.solicitudes.show', $solicitud) }}"><i class="fa-solid fa-eye pr-1"></i> Ver</a>
+                                    href="{{ route('admin.solicitudes.show', $solicitud) }}"><i
+                                        class="fa-solid fa-eye pr-1"></i> Ver</a>
                             </div>
                         </td>
 
@@ -120,7 +137,6 @@
                                 @endisset
                             </td>
                         @endhasanyrole
-
                     </tr>
                 @endforeach
             </tbody>

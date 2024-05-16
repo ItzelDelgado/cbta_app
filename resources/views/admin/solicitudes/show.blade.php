@@ -19,10 +19,10 @@
     @hasanyrole('Admin|Super Admin')
         @if ($solicitud->is_aprobada == 'Aprobada')
             <div class="flex mb-8 justify-end">
-                <div class="mt-4">
+                {{-- <div class="mt-4">
                     <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
                         href="{{ route('admin.solicitudes.solicitud', $solicitud) }}" target="_blank">Solicitud</a>
-                </div>
+                </div> --}}
                 <div class="mt-4">
                     <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
                         href="{{ route('admin.solicitudes.ordenPreparacion', $solicitud) }}" target="_blank">Orden de
@@ -197,7 +197,7 @@
                         value="{{ $hasData ? '' : old('tiempo_infusion_min', $solicitud->solicitud_detail->tiempo_infusion_min) }}"
                         name="tiempo_infusion_min" class="w-full" placeholder="" disabled/>
                     <!-- Mensaje de error -->
-                    
+
                 </div>
                 <div class="mb-4 flex items-baseline gap-2 w-full">
                     <x-label class="mb-2 whitespace-nowrap">
@@ -206,7 +206,7 @@
                     <x-input-solicitud type="number"
                         value="{{ old('velocidad_infusion', $solicitud->solicitud_detail->velocidad_infusion) }}"
                         step="0.001" name="velocidad_infusion" class="w-full" placeholder="" disabled/>
-                    
+
                 </div>
             </div>
             <div class="flex gap-4">

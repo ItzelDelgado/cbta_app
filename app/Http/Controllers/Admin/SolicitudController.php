@@ -507,7 +507,7 @@ class SolicitudController extends Controller
         }
 
         $solicitud_paciente = $request->only(['nombre_paciente', 'apellidos_paciente', 'servicio', 'cama', 'piso', 'registro', 'diagnostico', 'peso', 'fecha_nacimiento', 'sexo']);
-        $solicitud_detalles = $request->only(['via_administracion', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula','velocidad_infusion']);
+        $solicitud_detalles = $request->only(['via_administracion', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula', 'velocidad_infusion']);
         $is_aprobada_value = $request->only(['is_aprobada']);
         $set_infusion = $request->only(['i_40']);
         $solicitud_paciente['edad'] = $edad;
@@ -879,12 +879,26 @@ class SolicitudController extends Controller
 
     public function solicitud(Solicitud $solicitud)
     {
+        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
+            ->whereNotIn('input_id', function ($query) {
+                $query->select('id')
+                    ->from('inputs')
+                    ->where('category_id', '=', 6); // Ajusta el nombre de la columna si es diferente
+            })
+            ->whereNotIn('input_id', [40]) // Excluir input_id 40
+            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->get();
+        //print_r($inputs_solicitud);
+        //return $inputs_solicitud;
+        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+            ->find($solicitud->id);
 
-        $hola = "hola";
+        return $inputs_solicitud;
 
-        $pdf = Pdf::loadView('pdfs.solicitud', \compact('hola'));
+        $pdf = Pdf::loadView('pdfs.solicitud', \compact('solicitud_detalles', 'inputs_solicitud'));
 
         return $pdf->stream();
+
     }
     public function ordenPreparacion(Solicitud $solicitud)
     {

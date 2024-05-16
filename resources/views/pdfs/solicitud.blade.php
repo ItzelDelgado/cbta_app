@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Orden de preparación</title>
+    <title>Solicitud</title>
     <style>
         @page {
             margin: 1rem;
@@ -101,42 +101,43 @@
             </table>
             <table>
                 <tr class="border-top">
-                    <td style="width: 50%; border-right: 1px solid #000;">Cliente/hospital:<span>Hospita Angeles</span></td>
+                    <td style="width: 50%; border-right: 1px solid #000;">Cliente/hospital:<span>{{ $solicitud_detalles->user->hospital->name }}</span></td>
                     <td style="width: 50%">Fecha:<span>20/08/1998</span></td>
                 </tr>
             </table>
             <table>
                 <tr class="border-bottom">
-                    <td style="width: 40%; border-right: 1px solid #000;">Paciente: Luis Angel Rojas Espinoza</td>
-                    <td style="width: 20%; border-right: 1px solid #000;">servicio:</td>
-                    <td style="width: 20%; border-right: 1px solid #000;">Cama:</td>
-                    <td style="width: 20%">Piso:</td>
+                    <td style="width: 40%; border-right: 1px solid #000;">Paciente: {{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
+                        {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
+                    <td style="width: 20%; border-right: 1px solid #000;">servicio: {{ $solicitud_detalles->solicitud_patient['servicio'] }}</td>
+                    <td style="width: 20%; border-right: 1px solid #000;">Cama: {{$solicitud_detalles->solicitud_patient['cama']}}</td>
+                    <td style="width: 20%">Piso: {{$solicitud_detalles->solicitud_patient['piso']}}</td>
                 </tr>
             </table>
             <table>
                 <tr class="border-bottom">
-                    <td style="width: 50%; border-right: 1px solid #000;">Registro:</td>
-                    <td style="width: 50%">Diagnóstico:</td>
+                    <td style="width: 50%; border-right: 1px solid #000;">Registro: {{$solicitud_detalles->solicitud_patient['registro']}}</td>
+                    <td style="width: 50%">Diagnóstico: {{$solicitud_detalles->solicitud_patient['diagnostico']}}</td>
                 </tr>
             </table>
             <table>
                 <tr class="border-bottom">
-                    <td style="width: 25%; border-right: 1px solid #000;">Edad:</td>
-                    <td style="width: 25%; border-right: 1px solid #000;">Peso:</td>
-                    <td style="width: 25%; border-right: 1px solid #000;">Sexo:</td>
-                    <td style="width: 25%">Fecha de nacimiento:</td>
+                    <td style="width: 25%; border-right: 1px solid #000;">Edad: {{$solicitud_detalles->solicitud_patient['edad']}}</td>
+                    <td style="width: 25%; border-right: 1px solid #000;">Peso: {{$solicitud_detalles->solicitud_patient['peso']}} kg</td>
+                    <td style="width: 25%; border-right: 1px solid #000;">Sexo: {{$solicitud_detalles->solicitud_patient['sexo']}}</td>
+                    <td style="width: 25%">Fecha de nacimiento: {{  date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</td>
                 </tr>
             </table>
             <table>
                 <tr class="border-bottom">
-                    <td style="width: 33.33%; border-right: 1px solid #000;">Vía de administración:</td>
-                    <td style="width: 33.33%; border-right: 1px solid #000;">Tiempo de infusión:</td>
-                    <td style="width: 33.33%">No. Bolsa:</td>
+                    <td style="width: 33.33%; border-right: 1px solid #000;">Vía de administración: {{$solicitud_detalles->solicitud_patient['via_administracion']}}</td>
+                    <td style="width: 33.33%; border-right: 1px solid #000;">Tiempo de infusión: {{$solicitud_detalles->solicitud_patient['tiempo_infusion_min']}}</td>
+                    <td style="width: 33.33%">No. Bolsa: 1</td>
                 </tr>
                 <tr class="border-bottom">
-                    <td style="width: 33.33%; border-right: 1px solid #000;">Sobrellenado:</td>
-                    <td style="width: 33.33%; border-right: 1px solid #000;">Vol. Total:</td>
-                    <td style="width: 33.33%">NPT:</td>
+                    <td style="width: 33.33%; border-right: 1px solid #000;">Sobrellenado: {{$solicitud_detalles->solicitud_detail['sobrellenado_ml']}}</td>
+                    <td style="width: 33.33%; border-right: 1px solid #000;">Vol. Total: {{$solicitud_detalles->solicitud_detail['volumen_total']}}</td>
+                    <td style="width: 33.33%">NPT: {{$solicitud_detalles->solicitud_detail['npt']}}</td>
                 </tr>
             </table>
             <table>
@@ -151,8 +152,10 @@
                     <td class="bold" style="width: 50%">CARBOHIDRATOS:</td>
                 </tr>
                 <tr>
-                    <td style="width: 50%">Aminoácidos Adulto 10%</td>
-                    <td style="width: 50%">Dextrosa 50%</td>
+                    @foreach ($inputs_solicitud as $input_completo)
+                        <td style="width: 50%">Aminoácidos Adulto 10% </td>
+                        <td style="width: 50%">Dextrosa 50% </td>
+                    @endforeach
                 </tr>
             </table>
             <table>
