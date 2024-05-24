@@ -21,6 +21,7 @@
                 </a>
             </div>
             <div class="flex items-center">
+                @livewire('notifications')
                 <!-- Settings Dropdown - SOLO APARECERA SI ESTAMOS LOGEADOS-->
                 <div class="ms-3 relative">
                     <x-dropdown align="right" width="48">

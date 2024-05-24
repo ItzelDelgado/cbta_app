@@ -69,11 +69,12 @@
                 @endforeach
             </tbody>
         </table>
+        <div class="mt-4">
+            {{ $hospitals->links() }}
+        </div>
+
     </div>
 
-    <div class="mt-4">
-        {{ $hospitals->links() }}
-    </div>
 
 
 

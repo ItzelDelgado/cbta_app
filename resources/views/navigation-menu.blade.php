@@ -35,6 +35,7 @@
 
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 @auth
+
                     <!-- Settings Dropdown - SOLO APARECERA SI ESTAMOS LOGEADOS-->
                     <div class="ms-3 relative">
                         <x-dropdown align="right" width="48">

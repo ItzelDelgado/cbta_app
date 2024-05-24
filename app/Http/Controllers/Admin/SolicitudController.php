@@ -11,6 +11,9 @@ use App\Models\SolicitudAprobada;
 use App\Models\SolicitudDetail;
 use App\Models\SolicitudInput;
 use App\Models\SolicitudPatient;
+use App\Models\Message;
+use App\Models\User;
+use App\Notifications\MessageSent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -22,7 +25,7 @@ use Illuminate\Support\Facades\DB;
 use Spatie\LaravelIgnition\Recorders\DumpRecorder\Dump;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Response;
-
+use Illuminate\Support\Facades\Notification;
 
 class SolicitudController extends Controller
 {
@@ -32,23 +35,7 @@ class SolicitudController extends Controller
      */ public function index()
     {
 
-        $user = Auth::user(); // Obtener el usuario actual
-        $role = $user->roles[0]->name;
-        if ($role === 'Admin' or $role === 'Super Admin') {
-            // Si el usuario es un administrador, cargar todas las solicitudes
-            $solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
-                ->latest()
-                ->get();
-        } elseif ($role === 'Cliente') {
-            // Si el usuario es un cliente, cargar solo sus propias solicitudes
-            $solicitudes = Solicitud::where('user_id', $user->id)
-                ->with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
-                ->latest()
-                ->get();
-            //return $solicitudes;
-        }
-
-        return view('admin.solicitudes.index', compact('solicitudes'));
+        return view('admin.solicitudes.index');
     }
 
 
@@ -111,7 +98,6 @@ class SolicitudController extends Controller
     public function store(Request $request)
     {
 
-        //return $request->all();
         $fecha_nacimiento = $request->input('fecha_nacimiento');
         $edad = $this->calcularEdad($fecha_nacimiento);
         //return $filtered_inputs;
@@ -387,6 +373,26 @@ class SolicitudController extends Controller
 
         // Guardar el modelo actualizado
         $registro->save();
+
+        $user = Auth::user(); // Obtener el usuario actual
+
+        $solicitudes = Solicitud::where('user_id', $user->id)
+        ->with('user', 'user.hospital')
+        ->latest()
+        ->first();
+
+        $message = Message::create([
+            'sender_id' => auth()->id(),
+            'subject' => 'Hay una nueva solicitud',
+            'body' => $solicitudes->user->hospital->name
+        ]);
+
+        Notification::route('mail', 'angelrojas@ciencias.unam.mx')->notify(new MessageSent($message));
+
+        $administradores = User::role('Admin')->get();
+        $notification = new MessageSent($message);
+
+        Notification::send($administradores, $notification);
 
         session()->flash(
             'swal',

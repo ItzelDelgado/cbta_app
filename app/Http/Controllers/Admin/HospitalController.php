@@ -13,7 +13,7 @@ class HospitalController extends Controller
      */
     public function index()
     {
-        $hospitals = Hospital::latest()->paginate();
+        $hospitals = Hospital::latest()->paginate(10);
         return view('admin.hospitals.index', compact('hospitals'));
     }
 
@@ -45,7 +45,7 @@ class HospitalController extends Controller
             'title'=>"¡Bien hecho!",
             'text'=>"El hospital se ha creado con éxito.",
             'icon'=>"success"
-            
+
             ]
         );
         return redirect()->route('admin.hospitals.index');

@@ -50,8 +50,19 @@
             Swal.fire(@json(session('swal')));
         </script>
     @endif
+    @auth
+        <script>
+            window.onload=function(){
+                Echo.private('App.Models.User.' + {{auth()->id()}})
+                    .notification((notification) => {
+                        console.log(notification.type);
+                    });
+            }
+        </script>
 
+    @endauth
     @stack('js')
+
 </body>
 
 </html>
