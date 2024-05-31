@@ -18,10 +18,7 @@
             href="{{ route('admin.solicitudes.create') }}"><i class="fa-solid fa-plus pr-1"></i> Agregar</a>
     </div>
 
-
     @livewire('solicituds')
-
-
 
     <script>
         $(document).ready(function() {

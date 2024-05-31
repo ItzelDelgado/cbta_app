@@ -47,4 +47,16 @@ class Solicituds extends Component
         }
         return redirect()->route('admin.solicitudes.show', $id);
     }
+
+    public function readSolicitudEdit($id)
+    {
+        $user = Auth::user();
+        $role = $user->roles[0]->name;
+        if ($role === 'Admin' or $role === 'Super Admin') {
+            $solicitud = Solicitud::find($id);
+            $solicitud->read_at = now();
+            $solicitud->save();
+        }
+        return redirect()->route('admin.solicitudes.edit', $id);
+    }
 }

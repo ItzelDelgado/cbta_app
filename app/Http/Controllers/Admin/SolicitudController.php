@@ -894,14 +894,29 @@ class SolicitudController extends Controller
             ->whereNotIn('input_id', [40]) // Excluir input_id 40
             ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
             ->get();
+
+        $arreglo_resultado = [];
+        foreach ( $inputs_solicitud as $resultado){
+            $input_id = $resultado['input_id'];
+            $valor = $resultado['valor'];
+            $descripcion = $resultado['input']['description'];
+
+            $arreglo_resultado[] = [
+                'input_id' => $input_id,
+                'valor' => $valor,
+                'descripcion' => $descripcion
+            ];
+        }
+
+        // return $arreglo_resultado;
         //print_r($inputs_solicitud);
         //return $inputs_solicitud;
         $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
             ->find($solicitud->id);
 
-        return $inputs_solicitud;
 
-        $pdf = Pdf::loadView('pdfs.solicitud', \compact('solicitud_detalles', 'inputs_solicitud'));
+        // return $solicitud_detalles;
+        $pdf = Pdf::loadView('pdfs.solicitud', \compact('solicitud_detalles', 'arreglo_resultado'));
 
         return $pdf->stream();
 

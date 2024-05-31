@@ -44,7 +44,22 @@
         </thead>
         <tbody>
             @foreach ($solicitudes as $solicitud)
-                <tr class="{{ $solicitud->read_at ? 'bg-white' : 'bg-[#fde047ab]' }} border-b dark:bg-gray-800 dark:border-gray-700">
+                <tr class="
+                    @if ($solicitud->read_at)
+                        bg-white
+                    @else
+                        @auth
+                            @if (auth()->user()->roles->contains('name', 'Admin'))
+                                bg-[#fde047ab]
+                            @else
+                                bg-white
+                            @endif
+                        @else
+                            bg-white
+                        @endauth
+                    @endif
+                    border-b dark:bg-gray-800 dark:border-gray-700
+                ">
                     @hasanyrole('Admin|Super Admin')
                         <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                             {{ $solicitud->id }}
@@ -58,7 +73,8 @@
                             @if ($solicitud->is_aprobada == 'Pendiente')
                                 <div class="flex items-center">
                                     <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                                        href="{{ route('admin.solicitudes.edit', $solicitud) }}">
+                                        href="{{ route('admin.solicitudes.edit', $solicitud) }}"
+                                        wire:click.prevent="readSolicitudEdit('{{ $solicitud->id }}')">
                                         <i class="fa-solid fa-pen pr-1"></i> Aprobar
                                     </a>
                                 </div>
