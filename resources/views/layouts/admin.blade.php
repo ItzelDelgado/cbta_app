@@ -18,6 +18,8 @@
     <!-- Scripts sweetalert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Styles -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css" />
+
     @livewireStyles
 
     @stack('css')
@@ -52,16 +54,20 @@
     @endif
     @auth
         <script>
-            window.onload=function(){
-                Echo.private('App.Models.User.' + {{auth()->id()}})
+            window.onload = function() {
+                Echo.private('App.Models.User.' + {{ auth()->id() }})
                     .notification((notification) => {
                         console.log(notification.type);
                     });
             }
+
         </script>
 
     @endauth
     @stack('js')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script><font></font>
+
 
 </body>
 

@@ -15,25 +15,7 @@ class Solicituds extends Component
 
     public function render()
     {
-        $user = Auth::user(); // Obtener el usuario actual
-        $role = $user->roles[0]->name;
-        if ($role === 'Admin' or $role === 'Super Admin') {
-            // Si el usuario es un administrador, cargar todas las solicitudes
-            $solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
-                ->latest()
-                ->paginate(10);
-        } elseif ($role === 'Cliente') {
-            // Si el usuario es un cliente, cargar solo sus propias solicitudes
-            $solicitudes = Solicitud::where('user_id', $user->id)
-                ->with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
-                ->latest()
-                ->paginate(10);
-            //return $solicitudes;
-        }
- // Ajusta el número según la cantidad de registros que quieras mostrar por página
-        return view('livewire.solicituds', [
-            'solicitudes' => $solicitudes,
-        ]);
+
     }
 
     public function readSolicitud($id)

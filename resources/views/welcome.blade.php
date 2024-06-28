@@ -40,8 +40,8 @@
             <a class="text-white bg-azul-prodifem rounded-xl " href="{{ route('admin.solicitudes.index') }}"><button
                     class=" p-4 text-2xl">Mezclas de nutrición
                     parenteral</button></a>
-            <a class="text-white bg-azul-prodifem rounded-xl " href=""><button class=" p-4 text-2xl">Mezclas
-                    oncológicas</button></a>
+            {{-- <a class="text-white bg-azul-prodifem rounded-xl " href=""><button class=" p-4 text-2xl">Mezclas
+                    oncológicas</button></a> --}}
         </div>
     </div>
 

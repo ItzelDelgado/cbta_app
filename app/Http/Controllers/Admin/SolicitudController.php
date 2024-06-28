@@ -34,8 +34,23 @@ class SolicitudController extends Controller
      * Display a listing of the resource.
      */ public function index()
     {
+        $user = Auth::user(); // Obtener el usuario actual
+        $role = $user->roles[0]->name;
+        if ($role === 'Admin' or $role === 'Super Admin') {
+            // Si el usuario es un administrador, cargar todas las solicitudes
+            $solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
+                ->latest()
+                ->paginate(10);
+        } elseif ($role === 'Cliente') {
+            // Si el usuario es un cliente, cargar solo sus propias solicitudes
+            $solicitudes = Solicitud::where('user_id', $user->id)
+                ->with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
+                ->latest()
+                ->paginate(10);
+            //return $solicitudes;
+        }
 
-        return view('admin.solicitudes.index');
+        return view('admin.solicitudes.index', compact('solicitudes'));
     }
 
 
@@ -387,7 +402,7 @@ class SolicitudController extends Controller
             'body' => $solicitudes->user->hospital->name
         ]);
 
-        Notification::route('mail', 'angelrojas@ciencias.unam.mx')->notify(new MessageSent($message));
+        // Notification::route('mail', 'angelrojas@ciencias.unam.mx')->notify(new MessageSent($message));
 
         $administradores = User::role('Admin')->get();
         $notification = new MessageSent($message);
