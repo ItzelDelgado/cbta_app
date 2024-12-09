@@ -319,11 +319,17 @@
             <table>
                 <tr>
                     <td>Fecha y hora de entrega: {{ $solicitud_detalles->solicitud_detail->fecha_hora_entrega }}</td>
+                    <td>Cédula profesional: {{ $solicitud_detalles->solicitud_detail->cedula }}</td>
+                </tr>
+                <tr>
+                     <td>Nombre de quien entrega:</td>
                     <td>Nombre del médico: {{ $solicitud_detalles->solicitud_detail->nombre_medico }}</td>
                 </tr>
                 <tr>
-                    <td>Cédula profesional: {{ $solicitud_detalles->solicitud_detail->cedula }}</td>
+                    <td>Temperatura en la que se entrega:</td>
+                    <td></td>
                 </tr>
+
             </table>
         </div>
     </div>

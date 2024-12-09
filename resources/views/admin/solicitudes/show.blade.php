@@ -16,38 +16,40 @@
             href="">pdf</a>
     </div> --}}
 
-    @hasanyrole('Admin|Super Admin')
+    @hasanyrole('Admin|Super Admin|Cliente')
         @if ($solicitud->is_aprobada == 'Aprobada')
-            <div class="flex mb-8 justify-end">
+            <div class="flex mb-8 justify-end items-baseline">
                 <div class="mt-4">
                     <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
                         href="{{ route('admin.solicitudes.solicitud', $solicitud) }}" target="_blank">Solicitud</a>
                 </div>
-                <div class="mt-4">
-                    <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                        href="{{ route('admin.solicitudes.ordenPreparacion', $solicitud) }}" target="_blank">Orden de
-                        preparación</a>
-                </div>
-                <div class="mt-5">
-                    <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                        href="{{ route('admin.solicitudes.remision', $solicitud) }}" target="_blank">Remisión</a>
-                </div>
-                <div class="mt-5">
-                    <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                        href="{{ route('admin.solicitudes.envio', $solicitud) }}" target="_blank">Envío</a>
-                </div>
-                <div class="mt-5">
-                    <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                        href="{{ route('admin.solicitudes.etiqueta', $solicitud) }}" target="_blank">Etiqueta</a>
-                </div>
+                @hasanyrole('Admin|Super Admin')
+                    <div class="mt-4">
+                        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                            href="{{ route('admin.solicitudes.ordenPreparacion', $solicitud) }}" target="_blank">Orden de
+                            preparación</a>
+                    </div>
+                    <div class="mt-5">
+                        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                            href="{{ route('admin.solicitudes.remision', $solicitud) }}" target="_blank">Remisión</a>
+                    </div>
+                    <div class="mt-5">
+                        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                            href="{{ route('admin.solicitudes.envio', $solicitud) }}" target="_blank">Envío</a>
+                    </div>
+                    <div class="mt-5">
+                        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                            href="{{ route('admin.solicitudes.etiqueta', $solicitud) }}" target="_blank">Etiqueta</a>
+                    </div>
+                @endhasanyrole
             </div>
         @else
             <div class="flex items-center">
-
+                <!-- Contenido para solicitudes no aprobadas -->
             </div>
         @endif
-
     @endhasanyrole
+
 
     {{-- Para visualizar la solicitud en cualquier caso, es decir, si fue aceptada o no, no se puede editar --}}
 
@@ -195,7 +197,7 @@
                     </x-label>
                     <x-input-solicitud type="number"
                         value="{{ $hasData ? '' : old('tiempo_infusion_min', $solicitud->solicitud_detail->tiempo_infusion_min) }}"
-                        name="tiempo_infusion_min" class="w-full" placeholder="" disabled/>
+                        name="tiempo_infusion_min" class="w-full" placeholder="" disabled />
                     <!-- Mensaje de error -->
 
                 </div>
@@ -205,7 +207,7 @@
                     </x-label>
                     <x-input-solicitud type="number"
                         value="{{ old('velocidad_infusion', $solicitud->solicitud_detail->velocidad_infusion) }}"
-                        step="0.001" name="velocidad_infusion" class="w-full" placeholder="" disabled/>
+                        step="0.001" name="velocidad_infusion" class="w-full" placeholder="" disabled />
 
                 </div>
             </div>
@@ -519,7 +521,8 @@
                                 $hasData = $inputValue;
                             @endphp
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
+                                <div
+                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                     <div class="flex w-[40%]">
                                         <x-label class="mb-2 whitespace-nowrap">
                                             {{ $input->description }}:
@@ -581,7 +584,7 @@
 
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 5)
-                        @php
+                            @php
                                 $inputValue = old(
                                     'i_' . $input->input_id,
                                     renderInputSection($input->input_id, $inputs_solicitud),
@@ -589,7 +592,8 @@
                                 $hasData = $inputValue;
                             @endphp
                             <div>
-                                <div class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
+                                <div
+                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                     <div class="flex w-[40%]">
                                         <x-label class="mb-2 whitespace-nowrap">
                                             {{ $input->description }}:

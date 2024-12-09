@@ -28,8 +28,8 @@
         </div>
         <p class="text-center font-semibold text-2xl">Para cualquier pregunta, contáctenos.</p>
         <p class="text-center font-semibold text-2xl"><i class="fa-solid fa-phone" style="color: #ffffff;"></i>
-            5513535412 <br> <i class="fa-brands fa-whatsapp"></i> 5513535412 <br> <i class="fa-solid fa-envelope"></i>
-            mezclasp@gmail.com</p>
+            5591862620 <br> <i class="fa-brands fa-whatsapp"></i> 5591862620 <br> <i class="fa-solid fa-envelope"></i>
+            contacto@prodifem.com.mx</p>
     </div>
     <div class="max-w-[600px] mx-auto text-center mt-36">
         <h1 class="font-bold text-2xl mb-8 mt-8">¡Bienvenido al portal de solicitud de mezclas estériles de PRODIFEM!
