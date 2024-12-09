@@ -166,6 +166,7 @@
                         paging: false, // Desactivar paginación de DataTables
                         searching: true,
                         info: false,
+                        order: [[0, 'desc']], // Ordenar la primera columna (ID) de manera descendente
                         language: {
                             lengthMenu: "Mostrar _MENU_ registros por página",
                             zeroRecords: "Nada encontrado - lo siento",

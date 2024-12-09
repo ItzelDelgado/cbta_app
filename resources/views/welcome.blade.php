@@ -31,7 +31,7 @@
             5591862620 <br> <i class="fa-brands fa-whatsapp"></i> 5591862620 <br> <i class="fa-solid fa-envelope"></i>
             contacto@prodifem.com.mx</p>
     </div>
-    <div class="max-w-[600px] mx-auto text-center mt-36">
+    <div class="max-w-[600px] mx-auto text-center mt-24">
         <h1 class="font-bold text-2xl mb-8 mt-8">¡Bienvenido al portal de solicitud de mezclas estériles de PRODIFEM!
         </h1>
         <p class="font-semibold text-xl mb-8">¿Qué tipo de mezcla necesitas?</p>
@@ -43,6 +43,9 @@
             {{-- <a class="text-white bg-azul-prodifem rounded-xl " href=""><button class=" p-4 text-2xl">Mezclas
                     oncológicas</button></a> --}}
         </div>
+    </div>
+    <div class="h-32 w-full bg-azul-prodifem mt-24">
+        <img class="w-72" src="{{ asset('img/ssllogo.png') }}" alt="">
     </div>
 
     @stack('modals')
