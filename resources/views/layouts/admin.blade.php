@@ -48,8 +48,19 @@
 
     @if (session('swal'))
         <script>
-            // Swal.fire({!! json_encode(session('swal')) !!});
-            Swal.fire(@json(session('swal')));
+            let swalConfig = @json(session('swal'));
+            swalConfig = {
+                ...swalConfig, // Extiende la configuración existente
+                confirmButtonText: 'Aceptar',
+                cancelButtonText: 'Cancelar',
+                showCancelButton: true, // Habilita el botón de cancelar si es necesario
+                customClass: {
+                    confirmButton: 'swal-button-confirm',
+                    cancelButton: 'swal-button-cancel'
+                }
+            };
+
+            Swal.fire(swalConfig);
         </script>
     @endif
     @auth
@@ -60,13 +71,15 @@
                         console.log(notification.type);
                     });
             }
-
         </script>
 
     @endauth
     @stack('js')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script><font></font>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
+    <font></font>
 
 
 </body>

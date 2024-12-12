@@ -8,3 +8,14 @@
     display: none;
 }
 
+.swal-button-confirm {
+    background-color: #3498db !important; /* Cambiar el color aquí */
+    color: white !important;
+    border-radius: 8px !important;
+}
+
+.swal-button-cancel {
+    background-color: #e74c3c !important; /* Cambiar el color aquí */
+    color: white !important;
+    border-radius: 8px !important;
+}
