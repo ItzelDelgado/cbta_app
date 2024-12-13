@@ -101,12 +101,18 @@
             </table>
             <table>
                 <tr>
-                    <td style="border-top: 2px solid black; text-align: right; color: blue;">
+                    <td style="border-top: 2px solid black; text-align: left; color: blue; width: 50%;">
+                        No. {{ $solicitud_detalles->id }}
+                    </td>
+                    <td style="border-top: 2px solid black; text-align: right; color: blue; width: 50%;">
                         FTO-NPT-023-005
                     </td>
                 </tr>
+            </table>
+            <table>
+
                 <tr style="background-color: #1F4E78; color: white; font-weight: bold;">
-                    <td style="text-align: center;">SOLICITUD DE NUTRICIÓN PARENTERAL</td>
+                    <td style="text-align: center; ">SOLICITUD DE NUTRICIÓN PARENTERAL</td>
                 </tr>
             </table>
             <table>

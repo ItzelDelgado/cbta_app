@@ -44,7 +44,7 @@
                     </th>
 
                     @hasanyrole('Admin|Super Admin')
-                        <th scope="col" class="px-6 py-3">
+                        <th scope="col" class="px-6 py-3 text-center">
                             Remisión
                         </th>
                     @endhasanyrole
@@ -132,7 +132,7 @@
                             </div>
                         </td>
                         @hasanyrole('Admin|Super Admin')
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4" style="text-align: center">
                                 @isset($solicitud->solicitud_aprobada)
                                     {{ $solicitud->solicitud_aprobada->id }}
                                 @else
