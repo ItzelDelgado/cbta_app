@@ -19,3 +19,7 @@
     color: white !important;
     border-radius: 8px !important;
 }
+
+.dt-input{
+    width: 65px;
+}
