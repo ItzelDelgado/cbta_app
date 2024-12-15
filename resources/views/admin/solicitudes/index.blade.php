@@ -14,12 +14,15 @@
             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
                     @hasanyrole('Admin|Super Admin')
-                        <th scope="col" class="px-6 py-3">
+                        <th scope="col" class="px-6 py-3 ">
                             ID
                         </th>
                     @endhasanyrole
                     <th scope="col" class="px-6 py-3">
                         Hospital
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Paciente
                     </th>
                     @hasanyrole('Admin|Super Admin')
                         <th scope="col" class="px-6 py-3">
@@ -41,7 +44,7 @@
                     </th>
 
                     @hasanyrole('Admin|Super Admin')
-                        <th scope="col" class="px-6 py-3">
+                        <th scope="col" class="px-6 py-3 text-center">
                             Remisión
                         </th>
                     @endhasanyrole
@@ -71,13 +74,16 @@
                         border-b dark:bg-gray-800 dark:border-gray-700
                     ">
                         @hasanyrole('Admin|Super Admin')
-                            <th scope="row"
-                                class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            <td scope="row"
+                                class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white text-center">
                                 {{ $solicitud->id }}
-                            </th>
+                            </td>
                         @endhasanyrole
                         <td class="px-6 py-4">
                             {{ $solicitud->user->hospital->name }}
+                        </td>
+                        <td class="px-6 py-4">
+                            {{ $solicitud->solicitud_patient->nombre_paciente ?? 'N/A'}} {{ $solicitud->solicitud_patient->apellidos_paciente ?? 'N/A'}}
                         </td>
                         @hasanyrole('Admin|Super Admin')
                             <td class="px-6 py-4">
@@ -126,7 +132,7 @@
                             </div>
                         </td>
                         @hasanyrole('Admin|Super Admin')
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4" style="text-align: center">
                                 @isset($solicitud->solicitud_aprobada)
                                     {{ $solicitud->solicitud_aprobada->id }}
                                 @else

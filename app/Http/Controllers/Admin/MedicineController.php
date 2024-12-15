@@ -15,7 +15,7 @@ class MedicineController extends Controller
      */
     public function index()
     {
-        $medicines = Medicine::latest()->paginate(10);
+        $medicines = Medicine::latest()->get();
         return view('admin.medicines.index', compact('medicines'));
     }
 

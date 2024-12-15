@@ -75,6 +75,7 @@
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 let table = new DataTable('#hospitalsTable', {
+                    order: [[0, 'desc']], // Ordenar la primera columna (ID) de manera descendente
                     language: {
                         lengthMenu: "Mostrar _MENU_ registros por página",
                         zeroRecords: "Nada encontrado - lo siento",

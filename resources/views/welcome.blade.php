@@ -22,30 +22,44 @@
 </head>
 
 <body class="font-sans antialiased">
-    <div class="flex justify-evenly items-center bg-azul-prodifem text-white py-4">
-        <div class="w-[300px]">
-            <img src="{{ asset('img/Logo_Prodifem.png') }}" alt="">
+    <div class="h-screen">
+        <div class="flex flex-col h-full justify-between">
+            <div class="flex flex-col md:flex-row justify-evenly items-center bg-azul-prodifem text-white py-4">
+                <div class="w-[300px]">
+                    <img src="{{ asset('img/Logo_Prodifem.png') }}" alt="">
+                </div>
+                <p class="text-center font-semibold text-2xl mt-2 md:mt-0">Para cualquier pregunta, contáctenos.</p>
+                <p class="text-center font-semibold text-2xl"><i class="fa-solid fa-phone" style="color: #ffffff;"></i>
+                    5591862620 <br> <i class="fa-brands fa-whatsapp"></i> 5591862620 <br> <i
+                        class="fa-solid fa-envelope"></i>
+                    contacto@prodifem.com.mx</p>
+            </div>
+            <div class="max-w-[600px] mx-auto text-center">
+                <h1 class="font-bold text-2xl mb-8 mt-8">¡Bienvenido al portal de solicitud de mezclas estériles de
+                    PRODIFEM!
+                </h1>
+                <p class="font-semibold text-xl mb-8">¿Qué tipo de mezcla necesitas?</p>
+                <p class="text-lg mb-8">Elija una opción entre mezclas de nutrición parenteral y mezclas oncológicas</p>
+                <div class="flex flex-col max-w-96 mx-auto gap-8">
+                    <a class="text-white bg-azul-prodifem rounded-xl "
+                        href="{{ route('admin.solicitudes.index') }}"><button class=" p-4 text-2xl">Mezclas de nutrición
+                            parenteral</button></a>
+                    {{-- <a class="text-white bg-azul-prodifem rounded-xl " href=""><button class=" p-4 text-2xl">Mezclas
+                        oncológicas</button></a> --}}
+                </div>
+            </div>
+
+            <div class="h-32 w-full bg-azul-prodifem flex justify-center">
+                <div class="flex items-center w-full">
+                    <div class="w-1/3 text-center"></div>
+                    <p class="text-white w-1/3 text-center text-xl"><a href="{{ url('aviso-de-privacidad') }}">Aviso de
+                            privacidad</a></p>
+                    <div class="w-1/3 flex justify-end">
+                        <img class="w-72 text-center" src="{{ asset('img/ssllogo.png') }}" alt="">
+                    </div>
+                </div>
+            </div>
         </div>
-        <p class="text-center font-semibold text-2xl">Para cualquier pregunta, contáctenos.</p>
-        <p class="text-center font-semibold text-2xl"><i class="fa-solid fa-phone" style="color: #ffffff;"></i>
-            5591862620 <br> <i class="fa-brands fa-whatsapp"></i> 5591862620 <br> <i class="fa-solid fa-envelope"></i>
-            contacto@prodifem.com.mx</p>
-    </div>
-    <div class="max-w-[600px] mx-auto text-center mt-24">
-        <h1 class="font-bold text-2xl mb-8 mt-8">¡Bienvenido al portal de solicitud de mezclas estériles de PRODIFEM!
-        </h1>
-        <p class="font-semibold text-xl mb-8">¿Qué tipo de mezcla necesitas?</p>
-        <p class="text-lg mb-8">Elija una opción entre mezclas de nutrición parenteral y mezclas oncológicas</p>
-        <div class="flex flex-col max-w-96 mx-auto gap-8">
-            <a class="text-white bg-azul-prodifem rounded-xl " href="{{ route('admin.solicitudes.index') }}"><button
-                    class=" p-4 text-2xl">Mezclas de nutrición
-                    parenteral</button></a>
-            {{-- <a class="text-white bg-azul-prodifem rounded-xl " href=""><button class=" p-4 text-2xl">Mezclas
-                    oncológicas</button></a> --}}
-        </div>
-    </div>
-    <div class="h-32 w-full bg-azul-prodifem mt-24">
-        <img class="w-72" src="{{ asset('img/ssllogo.png') }}" alt="">
     </div>
 
     @stack('modals')
