@@ -268,7 +268,7 @@
                 </tr>
                 <tr>
                     <td>Albúmina 25% (0.25 g/mL): {{ isset($variables['variable20']) ? $variables['variable20'] : '' }}</td>
-                    <td>MVI: {{ isset($variables['variable29']) ? $variables['variable29'] : '' }}</td>
+                    <td>Oligoelementos:{{ isset($variables['variable29']) ? $variables['variable29'] : '' }}</td>
                 </tr>
                 <tr>
                     <td>Albúmina 20% (0.20 g/mL): {{ isset($variables['variable21']) ? $variables['variable21'] : '' }}</td>

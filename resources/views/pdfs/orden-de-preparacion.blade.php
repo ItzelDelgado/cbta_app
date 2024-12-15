@@ -355,7 +355,11 @@
                 <td>Validó <br> Nombre y firma</td>
                 <td>Preparó <br> Nombre y firma</td>
             </tr>
+
         </table>
+
+        <p style="padding: 8px; text-align: center; margin: 0;">{{$solicitud_detalles}}</p>
+        <p style="padding: 8px; text-align: center; margin: 0;">{{$inputs_solicitud}}</p>
     </div>
 
 
