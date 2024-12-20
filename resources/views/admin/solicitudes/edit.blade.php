@@ -998,7 +998,11 @@
                         title: "¿Seguro que deseas aprobar esta solicitud?",
                         showCancelButton: true,
                         confirmButtonText: "Confirmar",
-                        cancelButtonText: `Cancelar`
+                        cancelButtonText: `Cancelar`,
+                        customClass: {
+                            confirmButton: 'swal-button-confirm',
+                            cancelButton: 'swal-button-cancel'
+                        }
                     }).then((result) => {
                         /* Read more about isConfirmed, isDenied below */
                         if (result.isConfirmed) {
@@ -1016,7 +1020,11 @@
                         title: "¿Seguro que deseas rechazar esta solicitud?",
                         showCancelButton: true,
                         confirmButtonText: "Confirmar",
-                        cancelButtonText: `Cancelar`
+                        cancelButtonText: `Cancelar`,
+                        customClass: {
+                            confirmButton: 'swal-button-confirm',
+                            cancelButton: 'swal-button-cancel'
+                        }
                     }).then((result) => {
                         /* Read more about isConfirmed, isDenied below */
                         if (result.isConfirmed) {
