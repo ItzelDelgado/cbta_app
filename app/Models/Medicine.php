@@ -17,8 +17,10 @@ class Medicine extends Model
         'presentacion_ml',
         'is_active',
         'osmolaridad',
-        'category_id', 
+        'category_id',
         'input_id',
+        'lote', // Agregar lote
+        'caducidad', // Agregar caducidad
     ];
 
     //Relacion uno a muchos inversa

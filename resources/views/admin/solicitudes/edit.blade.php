@@ -249,13 +249,13 @@
                     <x-label class="mb-2 font-bold">
                         NPT*:
                     </x-label>
-                    <x-select class="w-full" name="npt">
-                        <option value="" disabled selected>Seleccionar NPT</option>
-                        <option value="RNPT" @if (old('npt', $solicitud->solicitud_detail->npt) == 'RNPT') selected @endif>RNPT</option>
-                        <option value="LACT" @if (old('npt', $solicitud->solicitud_detail->npt) == 'LACT') selected @endif>LACT</option>
-                        <option value="INF" @if (old('npt', $solicitud->solicitud_detail->npt) == 'INF') selected @endif>INF</option>
-                        <option value="ADOL" @if (old('npt', $solicitud->solicitud_detail->npt) == 'ADOL') selected @endif>ADOL</option>
-                        <option value="ADULT" @if (old('npt', $solicitud->solicitud_detail->npt) == 'ADULT') selected @endif>ADULT</option>
+                    <x-select class="w-full" name="npt" id="npt-select">
+                        {{-- <option value="" disabled selected>Seleccionar NPT</option>
+                        {{-- <option value="RNPT" @if (old('npt', $solicitud->solicitud_detail->npt) == 'RNPT') selected @endif>RNPT</option>
+                        <option value="LACT" @if (old('npt', $solicitud->solicitud_detail->npt) == 'LACT') selected @endif>LACT</option> --}}
+                        <option value="INF" @if (old('npt', $solicitud->solicitud_detail->npt) == 'INF') selected @endif>PEDIÁTRICO</option>
+                        {{-- <option value="ADOL" @if (old('npt', $solicitud->solicitud_detail->npt) == 'ADOL') selected @endif>ADOL</option> --}}
+                        <option value="ADULT" @if (old('npt', $solicitud->solicitud_detail->npt) == 'ADULT') selected @endif>ADULTO</option> --}}
                     </x-select>
                     <!-- Mensaje de error -->
                     @error('npt')
@@ -289,7 +289,8 @@
                                         <x-input-solicitud type="number" class="w-full" value="{{ $inputValue }}"
                                             name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
                                             step="0.0001" placeholder="" />
-                                        <span>{{ $input->unidad }}</span>
+                                        <span data-original-unidad="{{ $input->unidad }}"
+                                            class="unidad-span">{{ $input->unidad }}</span>
                                     </div>
                                 </div>
                                 <div class="flex w-[15%] justify-center items-stretch">
@@ -307,7 +308,8 @@
                                     </x-label>
                                     <div class="flex w-full">
                                         <x-input-solicitud class="w-full" name="l_{{ $input->input_id }}"
-                                            id="l_{{ $input->input_id }}" placeholder="" />
+                                            id="l_{{ $input->input_id }}" placeholder=""
+                                            value="{{ $input->medicine->lote ?? '' }}" />
                                     </div>
                                 </div>
                                 <div class="flex w-[25%]">
@@ -318,7 +320,7 @@
                                         <x-input-solicitud type="date"
                                             min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                             id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                            placeholder="" />
+                                            placeholder="" value="{{ $input->medicine->caducidad ?? '' }}" />
                                     </div>
                                 </div>
                             </div>
@@ -369,7 +371,8 @@
                                             <x-input-solicitud class="w-full"
                                                 value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" />
+                                                step="0.0001" placeholder=""
+                                                value="{{ $input->medicine->lote ?? '' }}" />
                                         </div>
                                     </div>
                                     <div class="flex w-[25%]">
@@ -384,7 +387,8 @@
                                                 value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                 id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder="" />
+                                                class="" placeholder=""
+                                                value="{{ $input->medicine->caducidad ?? '' }}" />
                                         </div>
                                     </div>
                                 </div>
@@ -415,7 +419,8 @@
                                                 value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
                                                 step="0.0001" placeholder="" />
-                                            <span>{{ $input->unidad }}</span>
+                                            <span data-original-unidad="{{ $input->unidad }}"
+                                                class="unidad-span">{{ $input->unidad }}</span>
                                             {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                                 <div class="text-red-500">{{ $message }}</div>
                                             @enderror --}}
@@ -438,7 +443,8 @@
                                             <x-input-solicitud class="w-full"
                                                 value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" />
+                                                step="0.0001" placeholder=""
+                                                value="{{ $input->medicine->lote ?? '' }}" />
                                         </div>
                                     </div>
                                     <div class="flex w-[25%]">
@@ -453,7 +459,8 @@
                                                 value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                 id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder="" />
+                                                class="" placeholder=""
+                                                value="{{ $input->medicine->caducidad ?? '' }}" />
                                         </div>
                                     </div>
                                 </div>
@@ -483,7 +490,8 @@
                                                     value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
                                                     name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
                                                     step="0.0001" class="w-full" placeholder="" />
-                                                <span>{{ $input->unidad }}</span>
+                                                <span data-original-unidad="{{ $input->unidad }}"
+                                                    class="unidad-span">{{ $input->unidad }}</span>
                                                 {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                                     <div class="text-red-500">{{ $message }}</div>
                                                 @enderror --}}
@@ -506,7 +514,8 @@
                                                 <x-input-solicitud class="w-full"
                                                     value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                     name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                    step="0.0001" placeholder="" />
+                                                    step="0.0001" placeholder=""
+                                                    value="{{ $input->medicine->lote ?? '' }}" />
                                             </div>
                                         </div>
                                         <div class="flex w-[25%]">
@@ -521,7 +530,8 @@
                                                     value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                     id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                    class="" placeholder="" />
+                                                    class="" placeholder=""
+                                                    value="{{ $input->medicine->caducidad ?? '' }}" />
                                             </div>
                                         </div>
                                     </div>
@@ -557,7 +567,8 @@
                                                 value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
                                                 step="0.0001" placeholder="" />
-                                            <span>{{ $input->unidad }}</span>
+                                            <span data-original-unidad="{{ $input->unidad }}"
+                                                class="unidad-span-electrolitos">{{ $input->unidad }}</span>
                                             {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                                 <div class="text-red-500">{{ $message }}</div>
                                             @enderror --}}
@@ -580,7 +591,8 @@
                                             <x-input-solicitud class="w-full"
                                                 value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" />
+                                                step="0.0001" placeholder=""
+                                                value="{{ $input->medicine->lote ?? '' }}" />
                                         </div>
                                     </div>
                                     <div class="flex w-[25%]">
@@ -595,7 +607,8 @@
                                                 value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                 id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder="" />
+                                                class="" placeholder=""
+                                                value="{{ $input->medicine->caducidad ?? '' }}" />
                                         </div>
                                     </div>
                                 </div>
@@ -655,7 +668,8 @@
                                             <x-input-solicitud class="w-full"
                                                 value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                 name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" />
+                                                step="0.0001" placeholder=""
+                                                value="{{ $input->medicine->lote ?? '' }}" />
                                         </div>
                                     </div>
                                     <div class="flex w-[25%]">
@@ -670,7 +684,8 @@
                                                 value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                 min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                 id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder="" />
+                                                class="" placeholder=""
+                                                value="{{ $input->medicine->caducidad ?? '' }}" />
                                         </div>
                                     </div>
                                 </div>
@@ -702,7 +717,7 @@
                                     <x-input-solicitud class="w-full"
                                         value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                         name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                        step="0.0001" placeholder="" />
+                                        step="0.0001" placeholder="" value="{{ $input->medicine->lote ?? '' }}" />
                                 </div>
 
                                 <x-label class="mb-2 whitespace-nowrap font-bold">
@@ -716,7 +731,8 @@
                                         value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                         min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                         id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                        class="" placeholder="" />
+                                        class="" placeholder=""
+                                        value="{{ $input->medicine->caducidad ?? '' }}" />
                                 </div>
                             </div>
                         </div>
@@ -926,41 +942,41 @@
             }
 
 
-            document.addEventListener('DOMContentLoaded', function() {
-                var inputHoraEntrega = document.getElementById('hora_entrega');
+            // document.addEventListener('DOMContentLoaded', function() {
+            //     var inputHoraEntrega = document.getElementById('hora_entrega');
 
-                // Escuchar el evento 'change' del campo de entrada
-                inputHoraEntrega.addEventListener('change', function() {
-                    // Obtener el valor del campo de entrada
-                    var hora = this.value;
+            //     // Escuchar el evento 'change' del campo de entrada
+            //     inputHoraEntrega.addEventListener('change', function() {
+            //         // Obtener el valor del campo de entrada
+            //         var hora = this.value;
 
-                    // Convertir la hora al formato de 24 horas
-                    var hora24h = convertirHoraA24(hora);
+            //         // Convertir la hora al formato de 24 horas
+            //         var hora24h = convertirHoraA24(hora);
 
-                    // Establecer el valor convertido en el campo de entrada
-                    this.value = hora24h;
-                });
+            //         // Establecer el valor convertido en el campo de entrada
+            //         this.value = hora24h;
+            //     });
 
-                // Función para convertir la hora al formato de 24 horas
-                function convertirHoraA24(hora12h) {
-                    var partes = hora12h.split(':'); // Dividir la hora en horas y minutos
-                    var horas = parseInt(partes[0]); // Convertir las horas a un número entero
+            //     // Función para convertir la hora al formato de 24 horas
+            //     function convertirHoraA24(hora12h) {
+            //         var partes = hora12h.split(':'); // Dividir la hora en horas y minutos
+            //         var horas = parseInt(partes[0]); // Convertir las horas a un número entero
 
-                    // Si el sufijo es 'p.m.' y las horas no son 12, sumar 12 para convertir a formato de 24 horas
-                    if (hora12h.includes('p.m.') && horas !== 12) {
-                        horas += 12;
-                    }
-                    // Si el sufijo es 'a.m.' y las horas son 12, establecer las horas a 0 para convertir a formato de 24 horas
-                    else if (hora12h.includes('a.m.') && horas === 12) {
-                        horas = 0;
-                    }
+            //         // Si el sufijo es 'p.m.' y las horas no son 12, sumar 12 para convertir a formato de 24 horas
+            //         if (hora12h.includes('p.m.') && horas !== 12) {
+            //             horas += 12;
+            //         }
+            //         // Si el sufijo es 'a.m.' y las horas son 12, establecer las horas a 0 para convertir a formato de 24 horas
+            //         else if (hora12h.includes('a.m.') && horas === 12) {
+            //             horas = 0;
+            //         }
 
-                    // Formatear la hora como 'HH:mm' (formato de 24 horas)
-                    var hora24h = horas.toString().padStart(2, '0') + ':' + partes[1];
+            //         // Formatear la hora como 'HH:mm' (formato de 24 horas)
+            //         var hora24h = horas.toString().padStart(2, '0') + ':' + partes[1];
 
-                    return hora24h;
-                }
-            });
+            //         return hora24h;
+            //     }
+            // });
 
 
             // Obtener todos los elementos con la clase 'numeric-input'
@@ -1040,6 +1056,63 @@
                 inputTiempo.addEventListener('input', toggleInputState);
                 inputVelocidad.addEventListener('input', toggleInputState);
             });
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const selectNPT = document.getElementById('npt-select');
+                const unidades = document.querySelectorAll('.unidad-span');
+
+                function actualizarUnidades(valorSeleccionado) {
+
+                    unidades.forEach((unidad) => {
+                        if (valorSeleccionado === 'ADULT') {
+                            unidad.textContent = 'g/día';
+
+                        } else if (valorSeleccionado === 'INF') {
+                            unidad.textContent = unidad.getAttribute('data-original-unidad');
+
+                        }
+                    });
+                }
+
+                // Inicializa las unidades según el valor cargado
+                actualizarUnidades(selectNPT.value);
+
+                // Escucha cambios en el select
+                selectNPT.addEventListener('change', function() {
+                    actualizarUnidades(selectNPT.value);
+
+                });
+            });
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const selectNPT = document.getElementById('npt-select');
+                const unidades = document.querySelectorAll('.unidad-span-electrolitos');
+
+                function actualizarUnidades(valorSeleccionado) {
+
+                    unidades.forEach((unidad) => {
+                        if (valorSeleccionado === 'ADULT') {
+                            unidad.textContent = 'mEq/día';
+
+                        } else if (valorSeleccionado === 'INF') {
+                            unidad.textContent = unidad.getAttribute('data-original-unidad');
+
+                        }
+                    });
+                }
+
+                // Inicializa las unidades según el valor cargado
+                actualizarUnidades(selectNPT.value);
+
+                // Escucha cambios en el select
+                selectNPT.addEventListener('change', function() {
+                    actualizarUnidades(selectNPT.value);
+
+                });
+            });
+
+
+
         </script>
     @endpush
 

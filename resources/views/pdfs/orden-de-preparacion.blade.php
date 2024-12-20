@@ -52,7 +52,7 @@
             border: 1px solid black;
             text-align: left;
             padding: 8px;
-            font-size: 10px
+            font-size: 9px
         }
 
         th {
@@ -60,7 +60,7 @@
         }
 
         p {
-            font-size: 10px
+            font-size: 9px
         }
 
         .liberacion-area td {
@@ -173,8 +173,10 @@
         <div style=" border: 1px solid black; margin-bottom: 0.5rem;">
             <table>
                 <tr style="margin: 0; padding: 0">
-                    <td style="border: none;"><strong>No. de lote de la mezcla:</strong> <span>{{$solicitud_detalles->solicitud_aprobada['lote']}}</span></td>
-                    <td style="border: none;"><strong>No. de orden de preparación:</strong> NUT{{substr($solicitud_detalles->solicitud_aprobada['lote'],1)}}</td>
+                    <td style="border: none;"><strong>No. de lote de la mezcla:</strong>
+                        <span>{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</span></td>
+                    <td style="border: none;"><strong>No. de orden de preparación:</strong>
+                        NUT{{ substr($solicitud_detalles->solicitud_aprobada['lote'], 1) }}</td>
                 </tr>
             </table>
             <p style="padding: 2px 8px; border-top: 1px solid black; border-bottom: 1px solid black;"><strong>DATOS DEL
@@ -199,7 +201,7 @@
             <table style="width: 100%; border-collapse: collapse; padding-bottom: 14px">
                 <tr>
                     <td style="border: none; padding: 0 auto;"><strong>Fecha de nacimiento:</strong> <span
-                            style="">{{  date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</span>
+                            style="">{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</span>
                     </td>
                     <td style="border: none; padding: 0 auto;"><strong>Genero:</strong>
                         {{ $solicitud_detalles->solicitud_patient['sexo'] }}<span style=""></span></td>
@@ -274,8 +276,11 @@
                                     Medicamento no disponible
                                 @endisset
                             </td>
-                            <td>{{ $input_completo['lote'] }}</td>
-                            <td>{{  date('d-m-Y', strtotime($input_completo['caducidad'])) }}</td>
+                            {{-- <td>{{ $input_completo['lote'] }}</td>
+                            <td>{{  date('d-m-Y', strtotime($input_completo['caducidad'])) }}</td> --}}
+                            <td>{{ $input_completo['lote'] ? $input_completo['lote'] : '' }}</td>
+                            <td>{{ $input_completo['caducidad'] ? date('d-m-Y', strtotime($input_completo['caducidad'])) : '' }}
+                            </td>
                         </tr>
                     @endif
                 @endforeach
@@ -302,7 +307,7 @@
             <tr>
                 <td>1</td>
                 <td>{{ $bolsa_eva->lote }}</td>
-                <td>{{  date('d-m-Y', strtotime($bolsa_eva->caducidad)) }}</td>
+                <td>{{ date('d-m-Y', strtotime($bolsa_eva->caducidad)) }}</td>
                 <td>{{ $bolsa_eva->input->medicine->denominacion_comercial }}</td>
                 <td>{{ $bolsa_eva->input->medicine->denominacion_generica }}</td>
             </tr>
@@ -327,7 +332,7 @@
                 </td>
                 <td>
                     @isset($set_infusion)
-                        {{  date('d-m-Y', strtotime($set_infusion->caducidad)) }}
+                        {{ date('d-m-Y', strtotime($set_infusion->caducidad)) }}
                     @else
                         N/A
                     @endisset
@@ -358,8 +363,6 @@
 
         </table>
 
-        <p style="padding: 8px; text-align: center; margin: 0;">{{$solicitud_detalles}}</p>
-        <p style="padding: 8px; text-align: center; margin: 0;">{{$inputs_solicitud}}</p>
     </div>
 
 

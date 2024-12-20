@@ -171,8 +171,8 @@
                     <x-label class="mb-2 whitespace-nowrap font-bold">
                         Velocidad de infusión ml/hr:
                     </x-label>
-                    <x-input-solicitud type="number" value="{{ old('velocidad_infusion') }}" step="0.001" name="velocidad_infusion" class="w-full"
-                        placeholder="" />
+                    <x-input-solicitud type="number" value="{{ old('velocidad_infusion') }}" step="0.001"
+                        name="velocidad_infusion" class="w-full" placeholder="" />
                     <!-- Mensaje de error -->
                     @error('velocidad_infusion')
                         <div class="text-red-500 text-sm">{{ $message }}</div>
@@ -208,13 +208,14 @@
                     <x-label class="mb-2 font-bold">
                         NPT:*
                     </x-label>
-                    <x-select class="w-full" name="npt">
+                    <x-select class="w-full" name="npt" id="npt-select">
                         <option value="" disabled selected>Seleccionar NPT</option>
-                        <option value="RNPT" @if (old('npt') == 'RNPT') selected @endif>RNPT</option>
-                        <option value="LACT" @if (old('npt') == 'LACT') selected @endif>LACT</option>
-                        <option value="INF" @if (old('npt') == 'INF') selected @endif>INF</option>
-                        <option value="ADOL" @if (old('npt') == 'ADOL') selected @endif>ADOL</option>
-                        <option value="ADULT" @if (old('npt') == 'ADULT') selected @endif>ADULT</option>
+                        {{-- <option value="RNPT" @if (old('npt') == 'RNPT') selected @endif>RNPT</option>
+                        <option value="LACT" @if (old('npt') == 'LACT') selected @endif>LACT</option> --}}
+                        {{-- Voy a tomar el INF como pediátrico para no tener que modificar mi  --}}
+                        <option value="INF" @if (old('npt') == 'INF') selected @endif>PEDIÁTRICO</option>
+                        {{-- <option value="ADOL" @if (old('npt') == 'ADOL') selected @endif>ADOL</option> --}}
+                        <option value="ADULT" @if (old('npt') == 'ADULT') selected @endif>ADULTO</option>
                     </x-select>
                     <!-- Mensaje de error -->
                     @error('npt')
@@ -242,7 +243,8 @@
                                             name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                             id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
                                             placeholder="" />
-                                        <span>{{ $input->unidad }}</span>
+                                        <span data-original-unidad="{{ $input->unidad }}"
+                                            class="unidad-span">{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
                                         @enderror --}}
@@ -290,7 +292,8 @@
                                             name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                             id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
                                             placeholder="" />
-                                        <span>{{ $input->unidad }}</span>
+                                        <span data-original-unidad="{{ $input->unidad }}"
+                                            class="unidad-span">{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
                                         @enderror --}}
@@ -314,7 +317,8 @@
                                                 name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                                 id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
                                                 class="w-full" placeholder="" />
-                                            <span>{{ $input->unidad }}</span>
+                                            <span data-original-unidad="{{ $input->unidad }}"
+                                                class="unidad-span">{{ $input->unidad }}</span>
                                             {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                                 <div class="text-red-500">{{ $message }}</div>
                                             @enderror --}}
@@ -343,7 +347,8 @@
                                             name="i_{{ $input->input_id }}_{{ $input->unidad }}"
                                             id="i_{{ $input->input_id }}_{{ $input->unidad }}" step="0.0001"
                                             placeholder="" />
-                                        <span>{{ $input->unidad }}</span>
+                                        <span data-original-unidad="{{ $input->unidad }}"
+                                                class="unidad-span-electrolitos">{{ $input->unidad }}</span>
                                         {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                             <div class="text-red-500">{{ $message }}</div>
                                         @enderror --}}
@@ -551,41 +556,41 @@
             }
 
 
-            document.addEventListener('DOMContentLoaded', function() {
-                var inputHoraEntrega = document.getElementById('hora_entrega');
+            // document.addEventListener('DOMContentLoaded', function() {
+            //     var inputHoraEntrega = document.getElementById('hora_entrega');
 
-                // Escuchar el evento 'change' del campo de entrada
-                inputHoraEntrega.addEventListener('change', function() {
-                    // Obtener el valor del campo de entrada
-                    var hora = this.value;
+            //     // Escuchar el evento 'change' del campo de entrada
+            //     inputHoraEntrega.addEventListener('change', function() {
+            //         // Obtener el valor del campo de entrada
+            //         var hora = this.value;
 
-                    // Convertir la hora al formato de 24 horas
-                    var hora24h = convertirHoraA24(hora);
+            //         // Convertir la hora al formato de 24 horas
+            //         var hora24h = convertirHoraA24(hora);
 
-                    // Establecer el valor convertido en el campo de entrada
-                    this.value = hora24h;
-                });
+            //         // Establecer el valor convertido en el campo de entrada
+            //         this.value = hora24h;
+            //     });
 
-                // Función para convertir la hora al formato de 24 horas
-                function convertirHoraA24(hora12h) {
-                    var partes = hora12h.split(':'); // Dividir la hora en horas y minutos
-                    var horas = parseInt(partes[0]); // Convertir las horas a un número entero
+            //     // Función para convertir la hora al formato de 24 horas
+            //     function convertirHoraA24(hora12h) {
+            //         var partes = hora12h.split(':'); // Dividir la hora en horas y minutos
+            //         var horas = parseInt(partes[0]); // Convertir las horas a un número entero
 
-                    // Si el sufijo es 'p.m.' y las horas no son 12, sumar 12 para convertir a formato de 24 horas
-                    if (hora12h.includes('p.m.') && horas !== 12) {
-                        horas += 12;
-                    }
-                    // Si el sufijo es 'a.m.' y las horas son 12, establecer las horas a 0 para convertir a formato de 24 horas
-                    else if (hora12h.includes('a.m.') && horas === 12) {
-                        horas = 0;
-                    }
+            //         // Si el sufijo es 'p.m.' y las horas no son 12, sumar 12 para convertir a formato de 24 horas
+            //         if (hora12h.includes('p.m.') && horas !== 12) {
+            //             horas += 12;
+            //         }
+            //         // Si el sufijo es 'a.m.' y las horas son 12, establecer las horas a 0 para convertir a formato de 24 horas
+            //         else if (hora12h.includes('a.m.') && horas === 12) {
+            //             horas = 0;
+            //         }
 
-                    // Formatear la hora como 'HH:mm' (formato de 24 horas)
-                    var hora24h = horas.toString().padStart(2, '0') + ':' + partes[1];
+            //         // Formatear la hora como 'HH:mm' (formato de 24 horas)
+            //         var hora24h = horas.toString().padStart(2, '0') + ':' + partes[1];
 
-                    return hora24h;
-                }
-            });
+            //         return hora24h;
+            //     }
+            // });
 
 
             // Obtener todos los elementos con la clase 'numeric-input'
@@ -639,6 +644,40 @@
 
             inputTiempo.addEventListener('input', toggleInputState);
             inputVelocidad.addEventListener('input', toggleInputState);
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const selectNPT = document.getElementById('npt-select');
+                const unidades = document.querySelectorAll('.unidad-span');
+
+                selectNPT.addEventListener('change', function() {
+                    const selectedValue = selectNPT.value;
+
+                    unidades.forEach((unidad) => {
+                        if (selectedValue === 'ADULT') {
+                            unidad.textContent = 'g/día';
+                        } else if (selectedValue === 'INF') {
+                            unidad.textContent = unidad.getAttribute('data-original-unidad');
+                        }
+                    });
+                });
+            });
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const selectNPT = document.getElementById('npt-select');
+                const unidades = document.querySelectorAll('.unidad-span-electrolitos');
+
+                selectNPT.addEventListener('change', function() {
+                    const selectedValue = selectNPT.value;
+
+                    unidades.forEach((unidad) => {
+                        if (selectedValue === 'ADULT') {
+                            unidad.textContent = 'mEq/día';
+                        } else if (selectedValue === 'INF') {
+                            unidad.textContent = unidad.getAttribute('data-original-unidad');
+                        }
+                    });
+                });
+            });
         </script>
     @endpush
 </x-admin-layout>

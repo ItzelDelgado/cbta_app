@@ -172,145 +172,125 @@
             </table>
             <table style="margin-top: 0.5rem">
                 <tr>
-                    <td class="bold" style="border-bottom: 2px solid #000; text-align:right; width: 30%">
-                        MACRONUTRIENTES:</td>
+                    <td class="bold" style="border-bottom: 2px solid #1F4E78; text-align:left; width: 100%">
+                        MACRONUTRIENTES</td>
                     <td></td>
                 </tr>
             </table>
-            <table style="margin-top: 0.5rem">
+            <table style="margin-top: 1.5rem">
                 <tr>
-                    <td class="bold" style="width: 50%">AMINOÁCIDOS:</td>
-                    <td class="bold" style="width: 50%">CARBOHIDRATOS:</td>
-                </tr>
-                <tr>
-                <tr>
-                    <td>
-                        Aminoácidos Adulto 10%: {{ isset($variables['variable4']) ? $variables['variable4'] : '' }}
-                    </td>
-                    <td>
-                        Dextrosa 50%: {{ isset($variables['variable8']) ? $variables['variable8'] : '' }}
-                    </td>
+                    <td class="bold">AMINOÁCIDOS</td>
                 </tr>
                 <tr>
                     <td>
-                        Aminoácidos pediátricos 10%:
-                        {{ isset($variables['variable5']) ? $variables['variable5'] : '' }}
-                    </td>
-                    <td>
-                        <p class="bold m-0">LÍPIDOS</p>
-                        MCT/LCT 20%: {{ isset($variables['variable9']) ? $variables['variable9'] : '' }}
-                    </td>
+                    @foreach ($inputs_solicitud as $input_completo)
+                        @if ($input_completo->input->category_id == 1)
+
+                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{$input_completo->input->unidad}}</strong><br>
+
+                        @endif
+                    @endforeach
+                    @foreach ($inputs_solicitud as $input_completo)
+                    @if ($input_completo->input->category_id == 8)
+
+                    {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{$input_completo->input->unidad}}</strong><br>
+
+                    @endif
+                    @endforeach
+                <br>
+                </td>
+                </tr>
+                <tr >
+                    <td class="bold" >CARBOHIDRATOS</td>
+                    {{-- <td class="bold" style="width: 50%"></td> --}}
                 </tr>
                 <tr>
                     <td>
-                        Aminoácidos de cadena ramificada 8%:
-                        {{ isset($variables['variable6']) ? $variables['variable6'] : '' }}
+                    @foreach ($inputs_solicitud as $input_completo)
+                        @if ($input_completo->input->category_id == 2)
+
+                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{$input_completo->input->unidad}}</strong><br>
+
+                        @endif
+                    @endforeach
+                    <br>
                     </td>
-                    <td>SMOF 20%: {{ isset($variables['variable10']) ? $variables['variable10'] : '' }}</td>
+
+                </tr>
+                <tr>
+                    <td class="bold" >LÍPIDOS</td>
+                    {{-- <td class="bold" style="width: 50%"></td> --}}
                 </tr>
                 <tr>
                     <td>
-                        Aminoácidos esenciales 5.4%:
-                        {{ isset($variables['variable7']) ? $variables['variable7'] : '' }}
+                    @foreach ($inputs_solicitud as $input_completo)
+                        @if ($input_completo->input->category_id == 3)
+
+                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{$input_completo->input->unidad}}</strong><br>
+
+                        @endif
+                    @endforeach
+                    <br>
                     </td>
+
+                </tr>
+                <tr>
+                    <td class="bold" style="border-bottom: 2px solid #1F4E78; text-align:left; width: 100%">ELECTROLITOS</td>
+                    <td></td>
+                    {{-- <td class="bold" style="width: 50%"></td> --}}
+                </tr>
+
+                <tr>
+                    <td>
+                    @foreach ($inputs_solicitud as $input_completo)
+                        @if ($input_completo->input->category_id == 4)
+
+                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{$input_completo->input->unidad}}</strong><br>
+
+                        @endif
+                    @endforeach
+                    <br>
+                    </td>
+
+                </tr>
+                <tr>
+                    <td class="bold" style="border-bottom: 2px solid #1F4E78; text-align:left; width: 100%">ADITIVOS</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <td>
-                        Cloruro de Sodio 0.9%: {{ isset($variables['variable36']) ? $variables['variable36'] : '' }}
+                    @foreach ($inputs_solicitud as $input_completo)
+                        @if ($input_completo->input->category_id == 5)
+
+                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{$input_completo->input->unidad}}</strong><br>
+
+                        @endif
+                    @endforeach
+                    <br>
                     </td>
+                </tr>
+                <tr>
+                    <td class="bold" style="border-bottom: 2px solid #1F4E78; text-align:left; width: 100%">SET DE INFUSIÓN</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>
+                        {{-- {{$set_infusion}} --}}
+                        @isset($set_infusion)
+                        Si <br>
+                        @else
+                        No <br>
+                        @endisset
+                    </td>
+
                 </tr>
             </table>
-            <table style="margin-top: 0.5rem">
-                <tr>
-                    <td class="bold" style="width: 50%">ELECTROLITOS:</td>
-                    <td class="bold" style="width: 50%"></td>
-                </tr>
-                <tr>
-                    <td>
-                        Cloruro de Sodio (3 mEq/mL Na):
-                        {{ isset($variables['variable11']) ? $variables['variable11'] : '' }}
-                    </td>
-                    <td>
-                        Cloruro de Potasio (4 mEq/mL):
-                        {{ isset($variables['variable15']) ? $variables['variable15'] : '' }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Acetato de Sodio (4 mEq/mL):
-                        {{ isset($variables['variable12']) ? $variables['variable12'] : '' }}
-                    </td>
-                    <td>
-                        Acetato de Potasio (2 mEq/mL):
-                        {{ isset($variables['variable16']) ? $variables['variable16'] : '' }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Fosfato de Sodio (4 mEq/mL):
-                        {{ isset($variables['variable13']) ? $variables['variable13'] : '' }}
-                    </td>
-                    <td>
-                        Fosfato de Potasio (2 mEq/mL): {{ isset($variables['variable17']) ? $variables['variable17'] : '' }}
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Sulfato de Magnesio (0.81 mEq/mL): {{ isset($variables['variable14']) ? $variables['variable14'] : '' }}
-                    </td>
-                    <td>
-                        Gluconato de Calcio (0.465 mEq/mL): {{ isset($variables['variable18']) ? $variables['variable18'] : '' }}
-                    </td>
-                </tr>
-            </table>
-            <table style="margin-top: 0.5rem">
-                <tr>
-                    <td class="bold" style="width: 50%">ADITIVOS:</td>
-                    <td class="bold" style="width: 50%"></td>
-                </tr>
-                <tr>
-                    <td>Ácidos Grasos Omega 3 10%: {{ isset($variables['variable19']) ? $variables['variable19'] : '' }}</td>
-                    <td>MVI: {{ isset($variables['variable28']) ? $variables['variable28'] : '' }}</td>
-                </tr>
-                <tr>
-                    <td>Albúmina 25% (0.25 g/mL): {{ isset($variables['variable20']) ? $variables['variable20'] : '' }}</td>
-                    <td>Oligoelementos:{{ isset($variables['variable29']) ? $variables['variable29'] : '' }}</td>
-                </tr>
-                <tr>
-                    <td>Albúmina 20% (0.20 g/mL): {{ isset($variables['variable21']) ? $variables['variable21'] : '' }}</td>
-                    <td>Ácido Folínico (12.5 mg/mL): {{ isset($variables['variable30']) ? $variables['variable30'] : '' }}</td>
-                </tr>
-                <tr>
-                    <td>Glutamina 20%: {{ isset($variables['variable22']) ? $variables['variable22'] : '' }}</td>
-                    <td>Selenio (40 mcg/mL): {{ isset($variables['variable31']) ? $variables['variable31'] : '' }}</td>
-                </tr>
-                <tr>
-                    <td>Cromo (4 mcg/mL): {{ isset($variables['variable23']) ? $variables['variable23'] : '' }}</td>
-                    <td>Vitamina C (100 mg/mL): {{ isset($variables['variable32']) ? $variables['variable32'] : '' }}</td>
-                </tr>
-                <tr>
-                    <td>Heparina (1000 UI/mL): {{ isset($variables['variable24']) ? $variables['variable24'] : '' }}</td>
-                    <td>Vitamina K (10 mg/mL): {{ isset($variables['variable33']) ? $variables['variable33'] : '' }}</td>
-                </tr>
-                <tr>
-                    <td>L-Carnitina (200 mg/mL): {{ isset($variables['variable25']) ? $variables['variable25'] : '' }}</td>
-                    <td>Zinc (1 mg/mL): {{ isset($variables['variable34']) ? $variables['variable34'] : '' }}</td>
-                </tr>
-                <tr>
-                    <td>Insulina (100 UI/mL): {{ isset($variables['variable26']) ? $variables['variable26'] : '' }}</td>
-                    <td>L-Cisteina (50mg/mL): {{ isset($variables['variable35']) ? $variables['variable35'] : '' }}</td>
-                </tr>
-                <tr>
-                    <td>Manganeso (100 mcg/mL): {{ isset($variables['variable27']) ? $variables['variable27'] : '' }}</td>
-                    <td>Set de Infusión: {{ isset($variables['variable40']) ? 'Si' : 'No' }}</td>
-                </tr>
-            </table>
-            <table>
+            {{-- <table>
                 <tr>
                     <td style="width: 50%">Cloruro de Sodio (3 mEq/mL Na)</td>
                     <td style="width: 50%">Cloruro de Potasio (4 mEq/mL)</td>
                 </tr>
-            </table>
+            </table> --}}
             <table style="margin-top: 0.5rem">
                 <tr>
                     <td class="bold">OBSERVACIONES</td>

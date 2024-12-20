@@ -50,8 +50,10 @@ class MedicineController extends Controller
             'presentacion_ml' => 'required|numeric',
             'category_id' => 'required|exists:categories,id',
             'input_id' => 'required|exists:inputs,id',
+            'lote' => 'nullable|string|max:255',
+            'caducidad' => 'nullable|date',
         ]));
-
+        //return $request->all();
         Medicine::create($request->all());
 
         session()->flash(
@@ -95,8 +97,11 @@ class MedicineController extends Controller
             'precio_ml' => 'required|numeric',
             'presentacion_ml' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
+            'lote' => 'nullable|string|max:255',
+            'caducidad' => 'nullable|date',
             //'input_id' => 'required|exists:inputs,id',
         ]));
+        //return $request->all();
         $medicine->update($request->all());
         session()->flash(
             'swal',

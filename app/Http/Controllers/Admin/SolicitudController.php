@@ -445,31 +445,35 @@ class SolicitudController extends Controller
                 $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
                 //return $inputs_solicitud;
                 $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
+                    ->leftJoin('medicines', 'medicines.input_id', '=', 'inputs.id')
                     ->where('inputs.is_active', 1)
                     ->orderBy('orden_enum', 'asc')
-                    ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
-                    ->get();
-
-                return view('admin.solicitudes.edit', compact('solicitud', 'inputs', 'inputs_solicitud'));
-            } elseif ($role === 'Cliente') {
-                $solicitud = Solicitud::where('user_id', $user->id)
-                    ->where('is_aprobada', '!=', 'Aprobada')
-                    ->with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
-                    ->find($solicitud->id);
-                //$solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
-                // ->get();
-
-                // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
-                $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-                //return $inputs_solicitud;
-                $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
-                    ->where('inputs.is_active', 1)
-                    ->orderBy('orden_enum', 'asc')
-                    ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
+                    ->select('inputs.*', 'inputs.id AS input_id', // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
+                    'medicines.lote AS lote', // Obtener el lote de la medicina
+                    'medicines.caducidad AS caducidad') // Obtener la caducidad de la medicina
                     ->get();
 
                 return view('admin.solicitudes.edit', compact('solicitud', 'inputs', 'inputs_solicitud'));
             }
+            // } elseif ($role === 'Cliente') {
+            //     $solicitud = Solicitud::where('user_id', $user->id)
+            //         ->where('is_aprobada', '!=', 'Aprobada')
+            //         ->with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+            //         ->find($solicitud->id);
+            //     //$solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+            //     // ->get(); /solicitudes/183/edit
+
+            //     // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
+            //     $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
+            //     //return $inputs_solicitud;
+            //     $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
+            //         ->where('inputs.is_active', 1)
+            //         ->orderBy('orden_enum', 'asc')
+            //         ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
+            //         ->get();
+
+            //     return view('admin.solicitudes.edit', compact('solicitud', 'inputs', 'inputs_solicitud'));
+            // }
         } else {
             abort(Response::HTTP_NOT_FOUND, 'Página no encontrada');
         }
@@ -480,6 +484,25 @@ class SolicitudController extends Controller
      */
     public function update(Request $request, Solicitud $solicitud)
     {
+        $is_aprobada_value = $request->only(['is_aprobada']);
+        //$solicitud['is_aprobada'] = $is_aprobada_value;
+        $solicitud['is_aprobada'] = $is_aprobada_value;
+
+        return $solicitud['is_aprobada'];
+        if ($is_aprobada_value == 'No Aprobada') {
+
+            $solicitud->update($solicitud['is_aprobada']);
+            session()->flash(
+                'swal',
+                [
+                    'title' => "Solicitud Rechazada",
+                    'text' => "La solicitud se ha rechazado.",
+                    'icon' => "warning"
+
+                ]
+            );
+            return redirect()->route('admin.solicitudes.index');
+        }
         //return $request->all();
         $fecha_nacimiento = $request->input('fecha_nacimiento');
         $fecha_hora_preparacion = $request->input('fecha_hora_preparacion');
@@ -529,7 +552,7 @@ class SolicitudController extends Controller
 
         $solicitud_paciente = $request->only(['nombre_paciente', 'apellidos_paciente', 'servicio', 'cama', 'piso', 'registro', 'diagnostico', 'peso', 'fecha_nacimiento', 'sexo']);
         $solicitud_detalles = $request->only(['via_administracion', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula', 'velocidad_infusion']);
-        $is_aprobada_value = $request->only(['is_aprobada']);
+
         $set_infusion = $request->only(['i_40']);
         $solicitud_paciente['edad'] = $edad;
         $solicitud_detalles['tiempo_infusion_min'] = $tiempo_infusion_min;
@@ -769,7 +792,7 @@ class SolicitudController extends Controller
         // Modificar los atributos del modelo
         $suma_valores_red_ml = $suma_volumen_ml;
         $registro->suma_volumen = $suma_valores_red_ml;
-        $solicitud['is_aprobada'] = $is_aprobada_value;
+        //$solicitud['is_aprobada'] = $is_aprobada_value;
 
         $medicina_bolsa_eva = Medicine::select('id', 'precio_ml')
             ->where('input_id', $bolsa_eva) // Condición para input_id igual a 37
@@ -826,17 +849,18 @@ class SolicitudController extends Controller
 
                 ]
             );
-        } elseif ($solicitud['is_aprobada'] == 'No Aprobada') {
-            session()->flash(
-                'swal',
-                [
-                    'title' => "Solicitud Rechazada",
-                    'text' => "La solicitud se ha rechazado.",
-                    'icon' => "warning"
-
-                ]
-            );
         }
+        // } elseif ($solicitud['is_aprobada'] == 'No Aprobada') {
+        //     session()->flash(
+        //         'swal',
+        //         [
+        //             'title' => "Solicitud Rechazada",
+        //             'text' => "La solicitud se ha rechazado.",
+        //             'icon' => "warning"
+
+        //         ]
+        //     );
+        // }
 
         //METER TODO DENTRO DE ESTOS IF PARA MANEJAR QUE PASA
 
@@ -923,15 +947,28 @@ class SolicitudController extends Controller
             ];
         }
 
+        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
+            ->whereNotIn('input_id', function ($query) {
+                $query->select('id')
+                    ->from('inputs')
+                    ->where('category_id', '=', 6); // Ajusta el nombre de la columna si es diferente
+            })
+            ->whereNotIn('input_id', [40]) // Excluir input_id 40
+            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->get();
+
         // return $arreglo_resultado;
         //print_r($inputs_solicitud);
         //return $inputs_solicitud;
         $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
             ->find($solicitud->id);
-
+        $set_infusion = SolicitudInput::where('solicitud_id', $solicitud['id'])
+            ->where('input_id', 40) // Filtrar por input_id igual a 40
+            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->first();
 
         // return $solicitud_detalles;
-        $pdf = Pdf::loadView('pdfs.solicitud', \compact('solicitud_detalles', 'arreglo_resultado'));
+        $pdf = Pdf::loadView('pdfs.solicitud', \compact('solicitud_detalles', 'arreglo_resultado', 'inputs_solicitud', 'set_infusion' ));
 
         return $pdf->stream();
 
