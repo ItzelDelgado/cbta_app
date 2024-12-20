@@ -141,6 +141,15 @@ class SolicitudController extends Controller
             'velocidad_infusion' => 'nullable|numeric'
         ]);
 
+        // Validar que la fecha de entrega sea al menos 3:30 horas después de ahora
+        $fechaHoraEntrega = \Carbon\Carbon::createFromFormat('Y-m-d\TH:i', $request->input('fecha_hora_entrega'));
+        $horaMinima = \Carbon\Carbon::now()->addMinutes(210);
+
+        if ($fechaHoraEntrega->lt($horaMinima)) {
+            return redirect()->back()->withErrors([
+                'fecha_hora_entrega' => 'La fecha y hora de entrega debe ser al menos 3 horas y 30 minutos después de la hora actual.'
+            ])->withInput();
+        }
 
         // $validator = Validator::make($request->all(), [
         //     'i_28_mL' => 'nullable|numeric|mvi_mayor_que_peso:' . $request->input('peso'),
