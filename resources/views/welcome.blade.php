@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>Central de Mezclas</title>
     {{-- Font Awesome --}}
     <script src="https://kit.fontawesome.com/b023f039d3.js" crossorigin="anonymous"></script>
 

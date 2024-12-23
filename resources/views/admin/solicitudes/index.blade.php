@@ -83,7 +83,8 @@
                             {{ $solicitud->user->hospital->name }}
                         </td>
                         <td class="px-6 py-4">
-                            {{ $solicitud->solicitud_patient->nombre_paciente ?? 'N/A'}} {{ $solicitud->solicitud_patient->apellidos_paciente ?? 'N/A'}}
+                            {{ $solicitud->solicitud_patient->nombre_paciente ?? 'N/A' }}
+                            {{ $solicitud->solicitud_patient->apellidos_paciente ?? 'N/A' }}
                         </td>
                         @hasanyrole('Admin|Super Admin')
                             <td class="px-6 py-4">
@@ -172,7 +173,9 @@
                         paging: false, // Desactivar paginación de DataTables
                         searching: true,
                         info: false,
-                        order: [[0, 'desc']], // Ordenar la primera columna (ID) de manera descendente
+                        order: [
+                            [0, 'desc']
+                        ], // Ordenar la primera columna (ID) de manera descendente
                         language: {
                             lengthMenu: "Mostrar _MENU_ registros por página",
                             zeroRecords: "Nada encontrado - lo siento",
