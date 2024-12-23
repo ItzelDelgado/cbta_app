@@ -95,6 +95,7 @@ class MedicineController extends Controller
             'denominacion_comercial' => 'required|string|max:255',
             'descripcion' => 'nullable|string|max:255',
             'precio_ml' => 'required|numeric',
+            'presentacion' => 'required|string|max:255',
             'presentacion_ml' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'lote' => 'nullable|string|max:255',

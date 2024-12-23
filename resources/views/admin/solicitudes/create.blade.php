@@ -363,7 +363,7 @@
             <h2 class="mb-4">ADITIVOS:</h2>
             <hr>
             <div class="flex flex-row gap-4 items-start mt-4">
-                <div class="grid grid-rows-9 grid-flow-col gap-4 w-full">
+                <div class="grid grid-rows-10 grid-flow-col gap-4 w-full">
 
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 5)
@@ -453,6 +453,15 @@
                                 @error('fecha_hora_entrega')
                                     <div class="text-red-500 text-sm">{{ $message }}</div>
                                 @enderror
+                            </div>
+                        </div>
+                        <div class="mb-4 flex items-baseline gap-2 w-full">
+                            <x-label class="mb-2 font-bold">
+                                Hospital destino:
+                            </x-label>
+                            <div class="flex flex-col w-full">
+                                <x-input-solicitud value="{{ old('hospital_destino') }}" name="hospital_destino"
+                                    class="w-full" placeholder="" />
                             </div>
                         </div>
                     </div>

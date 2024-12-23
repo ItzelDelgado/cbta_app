@@ -193,7 +193,7 @@
                 </tr>
                 <tr>
                     <td style="border: none; padding: 0 auto;"><strong>Registro:</strong> <span
-                            style="">10053619</span></td>
+                            style="">{{ $solicitud_detalles->solicitud_patient['registro'] }}</span></td>
                     <td style="border: none; padding: 0 auto;"><strong>Diagnostico:</strong> <span style="">
                             {{ $solicitud_detalles->solicitud_patient['diagnostico'] }}</span></td>
                 </tr>

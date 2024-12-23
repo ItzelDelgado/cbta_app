@@ -1,7 +1,6 @@
 <x-admin-layout>
-    <p>Editar Medicamento</p>
     <div class="mt-2 mb-4">
-        <h1 class="text-2xl font-medium text-gray-800">Agregar nueva medicina</h1>
+        <h1 class="text-2xl font-medium text-gray-800">Editar Medicamento</h1>
     </div>
     <form action="{{ route('admin.medicines.update', $medicine) }}" method="POST"
         class="bg-white rounded-lg p-6 shadow-lg lg:w-[40rem] mx-auto">
@@ -41,9 +40,19 @@
             <x-label class="mb-2">
                 Presentación
             </x-label>
-            <x-input value="{{ old('presentacion_ml', $medicine->presentacion_ml) }}" name="presentacion_ml"
+            <x-input value="{{ old('presentacion', $medicine->presentacion) }}" name="presentacion"
                 class="w-full" placeholder="Escriba la presentación del medicamento" />
         </div>
+
+        <div class="mb-4">
+            <x-label class="mb-2">
+                ML por presentación
+            </x-label>
+            <x-input value="{{ old('presentacion_ml', $medicine->presentacion_ml) }}" name="presentacion_ml" class="w-full"
+                placeholder="Escriba la presentación del medicamento" />
+        </div>
+
+
 
         <div class="mb-4">
             <x-label class="mb-2">

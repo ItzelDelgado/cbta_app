@@ -1,5 +1,7 @@
 <x-admin-layout>
-    <p>Editar Hospital</p>
+    <div class="mt-2 mb-4">
+        <h1 class="text-2xl font-medium text-gray-800">Editar Hospital</h1>
+    </div>
     <form action="{{ route('admin.hospitals.update', $hospital) }}" method="POST"
         class="bg-white rounded-lg p-6 shadow-lg">
         @csrf

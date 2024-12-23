@@ -30,6 +30,21 @@ function renderInputMLSection($id, $inputs_solicitud)
 }
 
 // Define una función que utiliza el fragmento de código y toma $input como argumento
+function renderInputMLSobrellenadoSection($id, $inputs_solicitud)
+{
+    $inputValue = '';
+    foreach ($inputs_solicitud as $inputItem) {
+        if ($inputItem->input_id == $id) {
+            $inputValue = number_format($inputItem->valor_sobrellenado, 2);
+            break;
+        }
+    }
+
+    // Devuelve el valor de $inputValue
+    return $inputValue;
+}
+
+// Define una función que utiliza el fragmento de código y toma $input como argumento
 function renderLoteSection($id, $inputs_solicitud)
 {
     $inputLote = '';

@@ -81,7 +81,7 @@
                             alt="">
                     </td>
                     <td style="width: 50%; margin: 0 auto; text-align: center; font-weight: bold; font-size: 15px">
-                        <strong>{{ $solicitud_detalles->user->hospital->name }}</strong>
+                        <strong>{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</strong>
                     </td>
                     <td style="width: 25%">
 

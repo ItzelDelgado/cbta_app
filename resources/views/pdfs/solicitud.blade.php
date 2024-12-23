@@ -110,7 +110,6 @@
                 </tr>
             </table>
             <table>
-
                 <tr style="background-color: #1F4E78; color: white; font-weight: bold;">
                     <td style="text-align: center; ">SOLICITUD DE NUTRICIÓN PARENTERAL</td>
                 </tr>
@@ -118,8 +117,10 @@
             <table>
                 <tr class="border-top">
                     <td style="width: 50%; border-right: 1px solid #000;">
-                        Cliente/hospital:<span>{{ $solicitud_detalles->user->hospital->name }}</span></td>
-                    <td style="width: 50%">Fecha:<span>{{ $solicitud_detalles->created_at }}</span></td>
+                        Cliente/hospital: <span>{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}
+                        </span></td>
+                        {{-- {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h --}}
+                    <td style="width: 50%">Fecha de la solicitud: <span>{{ date('d-m-Y H:i', strtotime( $solicitud_detalles->created_at)) }}h</span></td>
                 </tr>
             </table>
             <table>
@@ -127,7 +128,7 @@
                     <td style="width: 40%; border-right: 1px solid #000;">Paciente:
                         {{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
                         {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
-                    <td style="width: 20%; border-right: 1px solid #000;">servicio:
+                    <td style="width: 20%; border-right: 1px solid #000;">Servicio:
                         {{ $solicitud_detalles->solicitud_patient['servicio'] }}</td>
                     <td style="width: 20%; border-right: 1px solid #000;">Cama:
                         {{ $solicitud_detalles->solicitud_patient['cama'] }}</td>
@@ -304,7 +305,8 @@
             </table>
             <table>
                 <tr>
-                    <td>Fecha y hora de entrega: {{ $solicitud_detalles->solicitud_detail->fecha_hora_entrega }}</td>
+
+                    <td>Fecha y hora de entrega: {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_detail->fecha_hora_entrega)) }}h</td>
                     <td>Cédula profesional: {{ $solicitud_detalles->solicitud_detail->cedula }}</td>
                 </tr>
                 <tr>

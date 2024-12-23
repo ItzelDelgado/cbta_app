@@ -1,7 +1,6 @@
 <x-admin-layout>
-    <p>Editar Usario</p>
     <div class="mt-2 mb-4">
-        <h1 class="text-2xl font-medium text-gray-800">Agregar nuevo Usuario</h1>
+        <h1 class="text-2xl font-medium text-gray-800">Editar Usario</h1>
     </div>
     <form action="{{ route('admin.users.update', $user) }}" method="POST" class="bg-white rounded-lg p-6 shadow-lg">
         @csrf

@@ -1,6 +1,17 @@
 @php
     // Incluye manualmente el archivo helpers.php
     require_once app_path('Helpers/helpers.php');
+
+    $aguaCalculada = 0; // Inicializa la variable
+
+    foreach ($inputs as $input) {
+        if ($input->category_id == 7) {
+            $valor = renderInputMLSection($input->input_id, $inputs_solicitud);
+            // Limpia el valor para que sea numérico
+            $valor = str_replace(',', '', $valor); // Elimina comas (u otros separadores)
+            $aguaCalculada = floatval($valor); // Convierte el valor a número flotante
+        }
+    }
 @endphp
 
 <x-admin-layout>
@@ -59,18 +70,80 @@
         <div class="mt-2 mb-4">
             <h1 class="text-2xl font-medium text-gray-800 text-center">SOLICITUD DE NUTRICIÓN PARENTERAL</h1>
         </div>
-        @if ($solicitud->solicitud_detail->volumen_total !== null)
-            <p>Volumen total ingresado por el usuario: {{ $solicitud->solicitud_detail->volumen_total }}</p>
-            <p>Suma de elementos en mL: {{ $solicitud->solicitud_detail->suma_volumen }}</p>
-            @if ($solicitud->solicitud_detail->volumen_total < $solicitud->solicitud_detail->suma_volumen)
-                <h2 class="text-red-500">El volumen total en mL que ingresó el usuario es menor a la suma total en mL de
-                    los
-                    elementos calculada. <br>
-                    Verifica los valores o el cálculo del agua será negativo.</h2>
+        @if ($solicitud->solicitud_detail->sobrellenado_ml !== null)
+            <p>El usuario ingreso un valor en el campo de sobrellenado:
+                {{ $solicitud->solicitud_detail->sobrellenado_ml }} </p>
+            @if ($solicitud->solicitud_detail->volumen_total !== null)
+                <p>Volumen total ingresado por el usuario: {{ $solicitud->solicitud_detail->volumen_total }}</p>
+                <p>Suma de elementos ingresados por el usuario en mL:
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+                <p>Agua calculada:
+                    @foreach ($inputs as $input)
+                        @if ($input->category_id == 7)
+                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                        @endif
+                    @endforeach
+                </p>
+                @if ($solicitud->solicitud_detail->volumen_total < $solicitud->solicitud_detail->suma_volumen)
+                    <h2 class="text-red-500">El volumen total en mL que ingresó el usuario es menor a la suma total en
+                        mL
+                        de los elementos calculada. <br>
+                        Verifica los valores, el cálculo del agua es negativo.</h2>
+                @endif
+                @if (60 < ($aguaCalculada / $solicitud->solicitud_detail->volumen_total) * 100)
+                    <h2 class="text-red-500">El volumen total en mL que se genero es mayor al 60% del volumen total de
+                        la
+                        mezcla. <br>
+                        Reajusta el volumen total para generar un nuevo valor para el agua.</h2>
+                @endif
+                <p>Volumen total ingresado por el usuario con sobrellenado:
+                    {{ number_format($solicitud->solicitud_detail->volumen_total_final, 2) }}</p>
+                <p>Suma total de los elementos ingresados por el usuario con sobrellenado:
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen_sobrellenado, 2) }}</p>
+                <p>Agua calculada con sobrellenado:
+                    @foreach ($inputs as $input)
+                        @if ($input->category_id == 7)
+                            {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                        @endif
+                    @endforeach
+                </p>
+            @else
+                <p>El usuario no ingreso un volumen total.</p>
+                <p>Suma de elementos ingresados por el usuario en mL:
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+                <p>Suma de elementos ingresados por el usuario en mL con sobrellenado:
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen_sobrellenado, 2) }}</p>
             @endif
         @else
-            <p>El usuario no ingreso un volumen total.</p>
-            <p>Suma de elementos en mL: {{ number_format($solicitud->solicitud_detail->suma_volumen, 3) }}</p>
+            <p>El usuario no ingreso un valor en sobrellenado.</p>
+            @if ($solicitud->solicitud_detail->volumen_total !== null)
+                <p>Volumen total ingresado por el usuario: {{ $solicitud->solicitud_detail->volumen_total }}</p>
+                <p>Suma de elementos ingresados por el usuario en mL:
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+                <p>Agua calculada:
+                    @foreach ($inputs as $input)
+                        @if ($input->category_id == 7)
+                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                        @endif
+                    @endforeach
+                </p>
+                @if ($solicitud->solicitud_detail->volumen_total < $solicitud->solicitud_detail->suma_volumen)
+                    <h2 class="text-red-500">El volumen total en mL que ingresó el usuario es menor a la suma total en
+                        mL
+                        de los elementos calculada. <br>
+                        Verifica los valores, el cálculo del agua es negativo.</h2>
+                @endif
+                @if (60 < ($aguaCalculada / $solicitud->solicitud_detail->volumen_total) * 100)
+                    <h2 class="text-red-500">El volumen total en mL que se genero es mayor al 60% del volumen total de
+                        la
+                        mezcla. <br>
+                        Reajusta el volumen total para generar un nuevo valor para el agua.</h2>
+                @endif
+            @else
+                <p>El usuario no ingreso un volumen total.</p>
+                <p>Suma de elementos ingresados por el usuario en mL:
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+            @endif
         @endif
         <form id="solicitudForm" class="bg-white rounded-lg p-6 shadow-lg">
             @csrf
@@ -259,69 +332,6 @@
             <div class=" gap-4 items-center">
                 <div class="w-full">
                     <h3 class="mt-4 font-medium">AMINOÁCIDOS</h3>
-
-                    {{-- @foreach ($inputs as $input)
-                        @if ($input->category_id == 1)
-                            @php
-                                $inputValue = old(
-                                    'i_' . $input->input_id,
-                                    renderInputSection($input->input_id, $inputs_solicitud),
-                                );
-                                $hasData = $inputValue;
-                            @endphp
-                            <div>
-                                <div
-                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
-                                    <div class="flex w-[40%]">
-                                        <x-label class="mb-2 whitespace-nowrap">
-                                            {{ $input->description }}:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            <x-input-solicitud type="number" class="w-full"
-                                                value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                                name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" disabled />
-                                            <span>{{ $input->unidad }}</span>
-
-                                        </div>
-                                    </div>
-                                    <div class="flex w-[15%]">
-                                        <x-label class="mb-2 whitespace-nowrap">
-                                            Valor en mL:
-                                        </x-label>
-                                        <p
-                                            class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
-                                        </p>
-                                    </div>
-                                    <div class="flex w-[20%]">
-                                        <x-label class="mb-2 whitespace-nowrap">
-                                            Lote:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            <x-input-solicitud class="w-full"
-                                                value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
-                                                name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                placeholder="" disabled />
-                                        </div>
-                                    </div>
-                                    <div class="flex w-[25%]">
-                                        <x-label class="mb-2 whitespace-nowrap">
-                                            Caducidad:
-                                        </x-label>
-                                        <div class="flex w-full">
-
-                                            <x-input-solicitud type="date"
-                                                value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
-                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                                id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder="" disabled />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-                    @endforeach --}}
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 1)
                             @php
@@ -350,15 +360,25 @@
                                             </div>
                                         </div>
 
-                                        <div class="flex w-[15%]">
-                                            <x-label class="mb-2 whitespace-nowrap">
-                                                Valor en mL:
+                                        <div class="flex w-[10%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                ML:
                                             </x-label>
                                             <p
                                                 class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
                                                 {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
                                             </p>
                                         </div>
+                                        <div class="flex w-[20%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Sobrellenado:
+                                            </x-label>
+                                            <p
+                                                class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                                            </p>
+                                        </div>
+
                                         @hasanyrole('Admin|Super Admin')
                                             <div class="flex w-[20%]">
                                                 <x-label class="mb-2 whitespace-nowrap">
@@ -415,13 +435,22 @@
                                                 <span>{{ $input->unidad }}</span>
                                             </div>
                                         </div>
-                                        <div class="flex w-[15%]">
-                                            <x-label class="mb-2 whitespace-nowrap">
-                                                Valor en mL:
+                                        <div class="flex w-[10%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                ML:
                                             </x-label>
                                             <p
                                                 class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
                                                 {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                            </p>
+                                        </div>
+                                        <div class="flex w-[20%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Sobrellenado:
+                                            </x-label>
+                                            <p
+                                                class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
                                             </p>
                                         </div>
                                         @hasanyrole('Admin|Super Admin')
@@ -484,13 +513,22 @@
                                                     class="unidad-span">{{ $input->unidad }}>{{ $input->unidad }}</span>
                                             </div>
                                         </div>
-                                        <div class="flex w-[15%]">
-                                            <x-label class="mb-2 whitespace-nowrap">
-                                                Valor en mL:
+                                        <div class="flex w-[10%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                ML:
                                             </x-label>
                                             <p
                                                 class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
                                                 {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                            </p>
+                                        </div>
+                                        <div class="flex w-[20%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Sobrellenado:
+                                            </x-label>
+                                            <p
+                                                class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
                                             </p>
                                         </div>
                                         @hasanyrole('Admin|Super Admin')
@@ -553,13 +591,22 @@
                                                         class="unidad-span">{{ $input->unidad }}>{{ $input->unidad }}</span>
                                                 </div>
                                             </div>
-                                            <div class="flex w-[15%]">
-                                                <x-label class="mb-2 whitespace-nowrap">
-                                                    Valor en mL:
+                                            <div class="flex w-[10%] justify-center items-stretch">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    ML:
                                                 </x-label>
                                                 <p
                                                     class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
                                                     {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                                </p>
+                                            </div>
+                                            <div class="flex w-[20%] justify-center items-stretch">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    Sobrellenado:
+                                                </x-label>
+                                                <p
+                                                    class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                    {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
                                                 </p>
                                             </div>
                                             @hasanyrole('Admin|Super Admin')
@@ -632,13 +679,22 @@
                                         </div>
 
                                         {{-- Valor en mL --}}
-                                        <div class="flex w-[15%]">
-                                            <x-label class="mb-2 whitespace-nowrap">
-                                                Valor en mL:
+                                        <div class="flex w-[10%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                ML:
                                             </x-label>
                                             <p
                                                 class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
                                                 {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                            </p>
+                                        </div>
+                                        <div class="flex w-[20%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Sobrellenado:
+                                            </x-label>
+                                            <p
+                                                class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
                                             </p>
                                         </div>
                                         @hasanyrole('Admin|Super Admin')
@@ -710,14 +766,22 @@
                                             </div>
                                         </div>
 
-                                        {{-- Valor en mL --}}
-                                        <div class="flex w-[15%]">
-                                            <x-label class="mb-2 whitespace-nowrap">
-                                                Valor en mL:
+                                        <div class="flex w-[10%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                ML:
                                             </x-label>
                                             <p
                                                 class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
                                                 {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                            </p>
+                                        </div>
+                                        <div class="flex w-[20%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Sobrellenado:
+                                            </x-label>
+                                            <p
+                                                class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
                                             </p>
                                         </div>
                                         @hasanyrole('Admin|Super Admin')
@@ -895,6 +959,18 @@
                                             name="fecha_hora_preparacion" class="" placeholder="" disabled />
                                     @endif
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full">
+                        <div class="mb-4 flex items-baseline gap-2 w-full">
+                            <x-label class="mb-2">
+                                Hospital Destino:
+                            </x-label>
+                            <div class="flex flex-col w-full">
+                                <x-input-solicitud
+                                    value="{{ old('hospital_destino', $solicitud->solicitud_detail->hospital_destino) }}"
+                                    name="hospital_destino" class="w-full" placeholder="" disabled />
                             </div>
                         </div>
                     </div>

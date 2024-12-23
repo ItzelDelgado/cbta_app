@@ -24,7 +24,8 @@ class SolicitudDetail extends Model
         'observaciones',
         'observaciones',
         'suma_volumen_sobrellenado',
-        'velocidad_infusion'
+        'velocidad_infusion',
+        'hospital_destino'
 
     ];
 

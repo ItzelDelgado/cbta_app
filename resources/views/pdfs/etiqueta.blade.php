@@ -101,7 +101,7 @@
             </table>
             <table class="introduccion">
                 <tr>
-                    <td>Cliente: <strong>{{ $solicitud_detalles->user->hospital->name }}</strong></td>
+                    <td>Cliente: <strong>{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</strong></td>
                     <td>Lote: <strong>{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</strong></td>
                 </tr>
                 <tr>

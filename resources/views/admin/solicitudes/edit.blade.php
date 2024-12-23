@@ -1,7 +1,32 @@
 @php
     // Incluye manualmente el archivo helpers.php
     require_once app_path('Helpers/helpers.php');
+
+    $aguaCalculada = 0; // Inicializa la variable
+
+    foreach ($inputs as $input) {
+        if ($input->category_id == 7) {
+            $valor = renderInputMLSection($input->input_id, $inputs_solicitud);
+            // Limpia el valor para que sea numérico
+            $valor = str_replace(',', '', $valor); // Elimina comas (u otros separadores)
+            $aguaCalculada = floatval($valor); // Convierte el valor a número flotante
+        }
+    }
+
+
+    $bolsaSeleccionadaId = null;
+    $volumenTotalFinal = $solicitud->solicitud_detail->volumen_total_final;
+
+    // Filtrar bolsas Eva que pueden contener el volumen total
+    $bolsaSeleccionada = $inputs->filter(function ($input) use ($volumenTotalFinal) {
+        return $input->category_id == 6 && $input->presentacion_ml >= $volumenTotalFinal; // Bolsas válidas
+    })->sortBy('presentacion_ml') // Ordenar por tamaño de presentación ascendente
+      ->first(); // Tomar la más pequeña que sea suficiente
+
+    $bolsaSeleccionadaId = $bolsaSeleccionada ? $bolsaSeleccionada->input_id : null;
+
 @endphp
+
 
 <x-admin-layout>
 
@@ -10,18 +35,76 @@
         <div class="mt-2 mb-4">
             <h1 class="text-2xl font-medium text-gray-800 text-center">SOLICITUD DE NUTRICIÓN PARENTERAL</h1>
         </div>
-        @if ($solicitud->solicitud_detail->volumen_total !== null)
-            <p>Volumen total ingresado por el usuario: {{ $solicitud->solicitud_detail->volumen_total }}</p>
-            <p>Suma de elementos en mL: {{ $solicitud->solicitud_detail->suma_volumen }}</p>
-            @if ($solicitud->solicitud_detail->volumen_total < $solicitud->solicitud_detail->suma_volumen)
-                <h2 class="text-red-500">El volumen total en mL que ingresó el usuario es menor a la suma total en mL de
-                    los
-                    elementos calculada. <br>
-                    Verifica los valores o el cálculo del agua será negativo.</h2>
+        @if ($solicitud->solicitud_detail->sobrellenado_ml !== null)
+            <p>El usuario ingreso un valor en el campo de sobrellenado:
+                {{ $solicitud->solicitud_detail->sobrellenado_ml }} </p>
+            @if ($solicitud->solicitud_detail->volumen_total !== null)
+                <p>Volumen total ingresado por el usuario: {{ $solicitud->solicitud_detail->volumen_total }}</p>
+                <p>Suma de elementos ingresados por el usuario en mL:
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+                <p>Agua calculada:
+                    @foreach ($inputs as $input)
+                        @if ($input->category_id == 7)
+                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                        @endif
+                    @endforeach
+                </p>
+                @if ($solicitud->solicitud_detail->volumen_total < $solicitud->solicitud_detail->suma_volumen)
+                    <h2 class="text-red-500">El volumen total en mL que ingresó el usuario es menor a la suma total en mL
+                        de los elementos calculada. <br>
+                        Verifica los valores, el cálculo del agua es negativo.</h2>
+                @endif
+                @if (60 < ($aguaCalculada / $solicitud->solicitud_detail->volumen_total) * 100)
+                    <h2 class="text-red-500">El volumen total en mL que se genero es mayor al 60% del volumen total de la
+                        mezcla. <br>
+                        Reajusta el volumen total para generar un nuevo valor para el agua.</h2>
+                @endif
+                <p>Volumen total ingresado por el usuario con sobrellenado:
+                    {{ number_format($solicitud->solicitud_detail->volumen_total_final, 2) }}</p>
+                <p>Suma total de los elementos ingresados por el usuario con sobrellenado:
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen_sobrellenado, 2) }}</p>
+                <p>Agua calculada con sobrellenado:
+                    @foreach ($inputs as $input)
+                        @if ($input->category_id == 7)
+                            {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                        @endif
+                    @endforeach
+                </p>
+            @else
+                <p>El usuario no ingreso un volumen total.</p>
+                <p>Suma de elementos ingresados por el usuario en mL:
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+                <p>Suma de elementos ingresados por el usuario en mL con sobrellenado:
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen_sobrellenado, 2) }}</p>
             @endif
         @else
-            <p>El usuario no ingreso un volumen total.</p>
-            <p>Suma de elementos en mL: {{ number_format($solicitud->solicitud_detail->suma_volumen, 3) }}</p>
+            <p>El usuario no ingreso un valor en sobrellenado.</p>
+            @if ($solicitud->solicitud_detail->volumen_total !== null)
+                <p>Volumen total ingresado por el usuario: {{ $solicitud->solicitud_detail->volumen_total }}</p>
+                <p>Suma de elementos ingresados por el usuario en mL:
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+                <p>Agua calculada:
+                    @foreach ($inputs as $input)
+                        @if ($input->category_id == 7)
+                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                        @endif
+                    @endforeach
+                </p>
+                @if ($solicitud->solicitud_detail->volumen_total < $solicitud->solicitud_detail->suma_volumen)
+                    <h2 class="text-red-500">El volumen total en mL que ingresó el usuario es menor a la suma total en mL
+                        de los elementos calculada. <br>
+                        Verifica los valores, el cálculo del agua es negativo.</h2>
+                @endif
+                @if (60 < ($aguaCalculada / $solicitud->solicitud_detail->volumen_total) * 100)
+                    <h2 class="text-red-500">El volumen total en mL que se genero es mayor al 60% del volumen total de la
+                        mezcla. <br>
+                        Reajusta el volumen total para generar un nuevo valor para el agua.</h2>
+                @endif
+            @else
+                <p>El usuario no ingreso un volumen total.</p>
+                <p>Suma de elementos ingresados por el usuario en mL:
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+            @endif
         @endif
 
         <form id="solicitudForm" action="{{ route('admin.solicitudes.update', $solicitud) }}" method="POST"
@@ -264,213 +347,16 @@
                 </div>
             </div>
 
-            <h2 class="mb-4 font-bold">MACRONUTRIENTES:</h2>
-            <hr>
-            {{-- agregar flexbox  flex flex-row --}}
-            <div class=" gap-4 items-center">
-                <div class="w-full">
-                    <h3 class="mt-4 font-bold">AMINOÁCIDOS</h3>
-
-                    @foreach ($inputs as $input)
-                        @if ($input->category_id == 1)
-                            @php
-                                $inputValue = old(
-                                    'i_' . $input->input_id,
-                                    renderInputSection($input->input_id, $inputs_solicitud),
-                                );
-                                $hasData = $inputValue;
-                            @endphp
-                            <div class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
-                                <div class="flex w-[40%]">
-                                    <x-label class="mb-2 whitespace-nowrap font-bold">
-                                        {{ $input->description }}:
-                                    </x-label>
-                                    <div class="flex w-full">
-                                        <x-input-solicitud type="number" class="w-full" value="{{ $inputValue }}"
-                                            name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                            step="0.0001" placeholder="" />
-                                        <span data-original-unidad="{{ $input->unidad }}"
-                                            class="unidad-span">{{ $input->unidad }}</span>
-                                    </div>
-                                </div>
-                                <div class="flex w-[15%] justify-center items-stretch">
-                                    <x-label class="mb-2 whitespace-nowrap font-bold">
-                                        Valor en mL:
-                                    </x-label>
-                                    <p
-                                        class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                        {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
-                                    </p>
-                                </div>
-                                <div class="flex w-[20%]">
-                                    <x-label class="mb-2 whitespace-nowrap font-bold">
-                                        Lote:
-                                    </x-label>
-                                    <div class="flex w-full">
-                                        <x-input-solicitud class="w-full" name="l_{{ $input->input_id }}"
-                                            id="l_{{ $input->input_id }}" placeholder=""
-                                            value="{{ $input->medicine->lote ?? '' }}" />
-                                    </div>
-                                </div>
-                                <div class="flex w-[25%]">
-                                    <x-label class="mb-2 whitespace-nowrap font-bold">
-                                        Caducidad:
-                                    </x-label>
-                                    <div class="flex w-full">
-                                        <x-input-solicitud type="date"
-                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                            id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                            placeholder="" value="{{ $input->medicine->caducidad ?? '' }}" />
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-                    @endforeach
-
-                    @foreach ($inputs as $input)
-                        @if ($input->category_id == 8)
-                            @php
-                                $inputValue = old(
-                                    'i_' . $input->input_id,
-                                    renderInputSection($input->input_id, $inputs_solicitud),
-                                );
-                                $hasData = $inputValue;
-                            @endphp
-                            <div>
-                                <div
-                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
-                                    <div class="flex w-[40%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            {{ $input->description }}:
-                                        </x-label>
-                                        <div class="flex  w-full">
-                                            <x-input-solicitud type="number" class="w-full"
-                                                value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                                name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" />
-                                            <span>{{ $input->unidad }}</span>
-                                            {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
-                                                <div class="text-red-500">{{ $message }}</div>
-                                            @enderror --}}
-                                        </div>
-                                    </div>
-                                    <div class="flex w-[15%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            Valor en mL:
-                                        </x-label>
-                                        <p
-                                            class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
-                                        </p>
-                                    </div>
-                                    <div class="flex w-[20%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            Lote:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            <x-input-solicitud class="w-full"
-                                                value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
-                                                name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                step="0.0001" placeholder=""
-                                                value="{{ $input->medicine->lote ?? '' }}" />
-                                        </div>
-                                    </div>
-                                    <div class="flex w-[25%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            Caducidad:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
-                                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
-                                                    class="" placeholder="" /> --}}
-                                            <x-input-solicitud type="date"
-                                                value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
-                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                                id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder=""
-                                                value="{{ $input->medicine->caducidad ?? '' }}" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-                    @endforeach
-                </div>
-                <div class="w-full">
-                    <h3 class="font-bold">CARBOHIDRATOS:</h3>
-                    @foreach ($inputs as $input)
-                        @if ($input->category_id == 2)
-                            @php
-                                $inputValue = old(
-                                    'i_' . $input->input_id,
-                                    renderInputSection($input->input_id, $inputs_solicitud),
-                                );
-                                $hasData = $inputValue;
-                            @endphp
-                            <div>
-                                <div
-                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
-                                    <div class="flex w-[40%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            {{ $input->description }}:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            <x-input-solicitud type="number" class="w-full"
-                                                value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                                name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" />
-                                            <span data-original-unidad="{{ $input->unidad }}"
-                                                class="unidad-span">{{ $input->unidad }}</span>
-                                            {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
-                                                <div class="text-red-500">{{ $message }}</div>
-                                            @enderror --}}
-                                        </div>
-                                    </div>
-                                    <div class="flex w-[15%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            Valor en mL:
-                                        </x-label>
-                                        <p
-                                            class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
-                                        </p>
-                                    </div>
-                                    <div class="flex w-[20%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            Lote:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            <x-input-solicitud class="w-full"
-                                                value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
-                                                name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                step="0.0001" placeholder=""
-                                                value="{{ $input->medicine->lote ?? '' }}" />
-                                        </div>
-                                    </div>
-                                    <div class="flex w-[25%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            Caducidad:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
-                                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
-                                                    class="" placeholder="" /> --}}
-                                            <x-input-solicitud type="date"
-                                                value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
-                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                                id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder=""
-                                                value="{{ $input->medicine->caducidad ?? '' }}" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-                    @endforeach
-                    <H3 class="font-bold">LÍPIDOS:</H3>
+            <div class=" gap-4 items-start mt-4">
+                <h2 class="mb-4 font-bold">MACRONUTRIENTES:</h2>
+                <hr>
+                {{-- agregar flexbox  flex flex-row --}}
+                <div class=" gap-4 items-center">
                     <div class="w-full">
+                        <h3 class="mt-4 font-bold">AMINOÁCIDOS</h3>
+
                         @foreach ($inputs as $input)
-                            @if ($input->category_id == 3)
+                            @if ($input->category_id == 1)
                                 @php
                                     $inputValue = old(
                                         'i_' . $input->input_id,
@@ -478,32 +364,106 @@
                                     );
                                     $hasData = $inputValue;
                                 @endphp
-                                <div class="w-full">
+                                <div
+                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
+                                    <div class="flex w-[35%]">
+                                        <x-label class="mb-2 whitespace-nowrap font-bold">
+                                            {{ $input->description }}:
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            <x-input-solicitud type="number" class="w-full"
+                                                value="{{ $inputValue }}" name="i_{{ $input->input_id }}"
+                                                id="i_{{ $input->input_id }}" step="0.0001" placeholder="" />
+                                            <span data-original-unidad="{{ $input->unidad }}"
+                                                class="unidad-span">{{ $input->unidad }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex w-[10%] justify-center items-stretch">
+                                        <x-label class="mb-2 whitespace-nowrap font-bold">
+                                            ML:
+                                        </x-label>
+                                        <p
+                                            class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                        </p>
+                                    </div>
+                                    <div class="flex w-[20%] justify-center items-stretch">
+                                        <x-label class="mb-2 whitespace-nowrap font-bold">
+                                            Sobrellenado:
+                                        </x-label>
+                                        <p
+                                            class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                            {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                                        </p>
+                                    </div>
+                                    <div class="flex w-[15%]">
+                                        <x-label class="mb-2 whitespace-nowrap font-bold">
+                                            Lote:
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            <x-input-solicitud class="w-full" name="l_{{ $input->input_id }}"
+                                                id="l_{{ $input->input_id }}" placeholder=""
+                                                value="{{ $input->medicine->lote ?? '' }}" />
+                                        </div>
+                                    </div>
+                                    <div class="flex w-[20%]">
+                                        <x-label class="mb-2 whitespace-nowrap font-bold">
+                                            Caducidad:
+                                        </x-label>
+                                        <div class="flex w-full">
+                                            <x-input-solicitud type="date"
+                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                placeholder="" value="{{ $input->medicine->caducidad ?? '' }}" />
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
+
+                        @foreach ($inputs as $input)
+                            @if ($input->category_id == 8)
+                                @php
+                                    $inputValue = old(
+                                        'i_' . $input->input_id,
+                                        renderInputSection($input->input_id, $inputs_solicitud),
+                                    );
+                                    $hasData = $inputValue;
+                                @endphp
+                                <div>
                                     <div
                                         class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                         <div class="flex w-[40%]">
                                             <x-label class="mb-2 whitespace-nowrap font-bold">
                                                 {{ $input->description }}:
                                             </x-label>
-                                            <div class="flex w-full">
+                                            <div class="flex  w-full">
                                                 <x-input-solicitud type="number" class="w-full"
                                                     value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
                                                     name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                                    step="0.0001" class="w-full" placeholder="" />
-                                                <span data-original-unidad="{{ $input->unidad }}"
-                                                    class="unidad-span">{{ $input->unidad }}</span>
+                                                    step="0.0001" placeholder="" />
+                                                <span>{{ $input->unidad }}</span>
                                                 {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
-                                                    <div class="text-red-500">{{ $message }}</div>
-                                                @enderror --}}
+                                                <div class="text-red-500">{{ $message }}</div>
+                                            @enderror --}}
                                             </div>
                                         </div>
-                                        <div class="flex w-[15%]">
+                                        <div class="flex w-[10%] justify-center items-stretch">
                                             <x-label class="mb-2 whitespace-nowrap font-bold">
-                                                Valor en mL:
+                                                ML:
                                             </x-label>
                                             <p
                                                 class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
                                                 {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                            </p>
+                                        </div>
+                                        <div class="flex w-[20%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Sobrellenado:
+                                            </x-label>
+                                            <p
+                                                class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
                                             </p>
                                         </div>
                                         <div class="flex w-[20%]">
@@ -524,8 +484,8 @@
                                             </x-label>
                                             <div class="flex w-full">
                                                 {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
-                                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
-                                                        class="" placeholder="" /> --}}
+                                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
+                                                    class="" placeholder="" /> --}}
                                                 <x-input-solicitud type="date"
                                                     value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
@@ -539,302 +499,537 @@
                             @endif
                         @endforeach
                     </div>
-                </div>
-            </div>
-            <h2 class="mb-4 font-bold">ELECTROLITOS</h2>
-            <hr>
-            <div class="gap-4 items-start mt-4">
-                {{-- agregar grid grid grid-rows-4 --}}
-                <div class=" grid-flow-col gap-4">
-                    @foreach ($inputs as $input)
-                        @if ($input->category_id == 4)
-                            @php
-                                $inputValue = old(
-                                    'i_' . $input->input_id,
-                                    renderInputSection($input->input_id, $inputs_solicitud),
-                                );
-                                $hasData = $inputValue;
-                            @endphp
-                            <div>
-                                <div
-                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
-                                    <div class="flex w-[40%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            {{ $input->description }}:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            <x-input-solicitud type="number" class="w-full"
-                                                value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                                name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" />
-                                            <span data-original-unidad="{{ $input->unidad }}"
-                                                class="unidad-span-electrolitos">{{ $input->unidad }}</span>
-                                            {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
+                    <div class="w-full">
+                        <h3 class="font-bold">CARBOHIDRATOS:</h3>
+                        @foreach ($inputs as $input)
+                            @if ($input->category_id == 2)
+                                @php
+                                    $inputValue = old(
+                                        'i_' . $input->input_id,
+                                        renderInputSection($input->input_id, $inputs_solicitud),
+                                    );
+                                    $hasData = $inputValue;
+                                @endphp
+                                <div>
+                                    <div
+                                        class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
+                                        <div class="flex w-[40%]">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                {{ $input->description }}:
+                                            </x-label>
+                                            <div class="flex w-full">
+                                                <x-input-solicitud type="number" class="w-full"
+                                                    value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                                    name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                                    step="0.0001" placeholder="" />
+                                                <span data-original-unidad="{{ $input->unidad }}"
+                                                    class="unidad-span">{{ $input->unidad }}</span>
+                                                {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                                 <div class="text-red-500">{{ $message }}</div>
                                             @enderror --}}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="flex w-[15%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            Valor en mL:
-                                        </x-label>
-                                        <p
-                                            class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
-                                        </p>
-                                    </div>
-                                    <div class="flex w-[20%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            Lote:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            <x-input-solicitud class="w-full"
-                                                value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
-                                                name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                step="0.0001" placeholder=""
-                                                value="{{ $input->medicine->lote ?? '' }}" />
+                                        <div class="flex w-[10%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                ML:
+                                            </x-label>
+                                            <p
+                                                class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                            </p>
                                         </div>
-                                    </div>
-                                    <div class="flex w-[25%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            Caducidad:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
+                                        <div class="flex w-[20%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Sobrellenado:
+                                            </x-label>
+                                            <p
+                                                class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                                            </p>
+                                        </div>
+                                        <div class="flex w-[20%]">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Lote:
+                                            </x-label>
+                                            <div class="flex w-full">
+                                                <x-input-solicitud class="w-full"
+                                                    value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                                    name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                                    step="0.0001" placeholder=""
+                                                    value="{{ $input->medicine->lote ?? '' }}" />
+                                            </div>
+                                        </div>
+                                        <div class="flex w-[25%]">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Caducidad:
+                                            </x-label>
+                                            <div class="flex w-full">
+                                                {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
                                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
                                                     class="" placeholder="" /> --}}
-                                            <x-input-solicitud type="date"
-                                                value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
-                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                                id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder=""
-                                                value="{{ $input->medicine->caducidad ?? '' }}" />
+                                                <x-input-solicitud type="date"
+                                                    value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                    id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                    class="" placeholder=""
+                                                    value="{{ $input->medicine->caducidad ?? '' }}" />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-
-                            </div>
-                        @endif
-                    @endforeach
+                            @endif
+                        @endforeach
+                        <H3 class="font-bold">LÍPIDOS:</H3>
+                        <div class="w-full">
+                            @foreach ($inputs as $input)
+                                @if ($input->category_id == 3)
+                                    @php
+                                        $inputValue = old(
+                                            'i_' . $input->input_id,
+                                            renderInputSection($input->input_id, $inputs_solicitud),
+                                        );
+                                        $hasData = $inputValue;
+                                    @endphp
+                                    <div class="w-full">
+                                        <div
+                                            class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
+                                            <div class="flex w-[40%]">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    {{ $input->description }}:
+                                                </x-label>
+                                                <div class="flex w-full">
+                                                    <x-input-solicitud type="number" class="w-full"
+                                                        value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                                        name="i_{{ $input->input_id }}"
+                                                        id="i_{{ $input->input_id }}" step="0.0001" class="w-full"
+                                                        placeholder="" />
+                                                    <span data-original-unidad="{{ $input->unidad }}"
+                                                        class="unidad-span">{{ $input->unidad }}</span>
+                                                    {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
+                                                    <div class="text-red-500">{{ $message }}</div>
+                                                @enderror --}}
+                                                </div>
+                                            </div>
+                                            <div class="flex w-[10%] justify-center items-stretch">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    ML:
+                                                </x-label>
+                                                <p
+                                                    class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                    {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                                </p>
+                                            </div>
+                                            <div class="flex w-[20%] justify-center items-stretch">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    Sobrellenado:
+                                                </x-label>
+                                                <p
+                                                    class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                    {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                                                </p>
+                                            </div>
+                                            <div class="flex w-[20%]">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    Lote:
+                                                </x-label>
+                                                <div class="flex w-full">
+                                                    <x-input-solicitud class="w-full"
+                                                        value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                                        name="l_{{ $input->input_id }}"
+                                                        id="l_{{ $input->input_id }}" step="0.0001" placeholder=""
+                                                        value="{{ $input->medicine->lote ?? '' }}" />
+                                                </div>
+                                            </div>
+                                            <div class="flex w-[25%]">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    Caducidad:
+                                                </x-label>
+                                                <div class="flex w-full">
+                                                    {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
+                                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
+                                                        class="" placeholder="" /> --}}
+                                                    <x-input-solicitud type="date"
+                                                        value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                        id="c_{{ $input->input_id }}"
+                                                        name="c_{{ $input->input_id }}" class=""
+                                                        placeholder=""
+                                                        value="{{ $input->medicine->caducidad ?? '' }}" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <h2 class="mb-4 font-bold">ADITIVOS:</h2>
-            <hr>
-            <div class=" gap-4 items-start mt-4">
-                {{-- agregar grid grid-rows-9 grid-flow-col --}}
-                <div class="gap-4 w-full">
-
-                    @foreach ($inputs as $input)
-                        @if ($input->category_id == 5)
-                            @php
-                                $inputValue = old(
-                                    'i_' . $input->input_id,
-                                    renderInputSection($input->input_id, $inputs_solicitud),
-                                );
-                                $hasData = $inputValue;
-                            @endphp
-                            <div>
-                                <div
-                                    class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
-                                    <div class="flex w-[40%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            {{ $input->description }}:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            <x-input-solicitud type="number" class="w-full"
-                                                value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
-                                                name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
-                                                step="0.0001" placeholder="" /><span>{{ $input->unidad }}</span>
-
-                                            {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
+                <h2 class="mb-4 font-bold">ELECTROLITOS</h2>
+                <hr>
+                <div class="gap-4 items-start mt-4">
+                    {{-- agregar grid grid grid-rows-4 --}}
+                    <div class=" grid-flow-col gap-4">
+                        @foreach ($inputs as $input)
+                            @if ($input->category_id == 4)
+                                @php
+                                    $inputValue = old(
+                                        'i_' . $input->input_id,
+                                        renderInputSection($input->input_id, $inputs_solicitud),
+                                    );
+                                    $hasData = $inputValue;
+                                @endphp
+                                <div>
+                                    <div
+                                        class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
+                                        <div class="flex w-[40%]">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                {{ $input->description }}:
+                                            </x-label>
+                                            <div class="flex w-full">
+                                                <x-input-solicitud type="number" class="w-full"
+                                                    value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                                    name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                                    step="0.0001" placeholder="" />
+                                                <span data-original-unidad="{{ $input->unidad }}"
+                                                    class="unidad-span-electrolitos">{{ $input->unidad }}</span>
+                                                {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
                                                 <div class="text-red-500">{{ $message }}</div>
                                             @enderror --}}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="flex w-[15%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            Valor en mL:
-                                        </x-label>
-                                        <p
-                                            class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
-                                        </p>
-                                    </div>
-                                    <div class="flex w-[20%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            Lote:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            <x-input-solicitud class="w-full"
-                                                value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
-                                                name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                step="0.0001" placeholder=""
-                                                value="{{ $input->medicine->lote ?? '' }}" />
+                                        <div class="flex w-[10%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                ML:
+                                            </x-label>
+                                            <p
+                                                class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                            </p>
                                         </div>
-                                    </div>
-                                    <div class="flex w-[25%]">
-                                        <x-label class="mb-2 whitespace-nowrap font-bold">
-                                            Caducidad:
-                                        </x-label>
-                                        <div class="flex w-full">
-                                            {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
+                                        <div class="flex w-[20%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Sobrellenado:
+                                            </x-label>
+                                            <p
+                                                class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                                            </p>
+                                        </div>
+                                        <div class="flex w-[20%]">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Lote:
+                                            </x-label>
+                                            <div class="flex w-full">
+                                                <x-input-solicitud class="w-full"
+                                                    value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                                    name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                                    step="0.0001" placeholder=""
+                                                    value="{{ $input->medicine->lote ?? '' }}" />
+                                            </div>
+                                        </div>
+                                        <div class="flex w-[25%]">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Caducidad:
+                                            </x-label>
+                                            <div class="flex w-full">
+                                                {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
                                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
                                                     class="" placeholder="" /> --}}
-                                            <x-input-solicitud type="date"
-                                                value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
-                                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                                id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                                class="" placeholder=""
-                                                value="{{ $input->medicine->caducidad ?? '' }}" />
+                                                <x-input-solicitud type="date"
+                                                    value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                    id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                    class="" placeholder=""
+                                                    value="{{ $input->medicine->caducidad ?? '' }}" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+                <h2 class="mb-4 font-bold">ADITIVOS:</h2>
+                <hr>
+                <div class=" gap-4 items-start mt-4">
+                    {{-- agregar grid grid-rows-9 grid-flow-col --}}
+                    <div class="gap-4 w-full">
+
+                        @foreach ($inputs as $input)
+                            @if ($input->category_id == 5)
+                                @php
+                                    $inputValue = old(
+                                        'i_' . $input->input_id,
+                                        renderInputSection($input->input_id, $inputs_solicitud),
+                                    );
+                                    $hasData = $inputValue;
+                                @endphp
+                                <div>
+                                    <div
+                                        class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
+                                        <div class="flex w-[40%]">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                {{ $input->description }}:
+                                            </x-label>
+                                            <div class="flex w-full">
+                                                <x-input-solicitud type="number" class="w-full"
+                                                    value="{{ old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) }}"
+                                                    name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
+                                                    step="0.0001"
+                                                    placeholder="" /><span>{{ $input->unidad }}</span>
+
+                                                {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
+                                                <div class="text-red-500">{{ $message }}</div>
+                                            @enderror --}}
+                                            </div>
+                                        </div>
+                                        <div class="flex w-[10%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                ML:
+                                            </x-label>
+                                            <p
+                                                class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                            </p>
+                                        </div>
+                                        <div class="flex w-[20%] justify-center items-stretch">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Sobrellenado:
+                                            </x-label>
+                                            <p
+                                                class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
+                                                {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                                            </p>
+                                        </div>
+                                        <div class="flex w-[20%]">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Lote:
+                                            </x-label>
+                                            <div class="flex w-full">
+                                                <x-input-solicitud class="w-full"
+                                                    value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                                    name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                                    step="0.0001" placeholder=""
+                                                    value="{{ $input->medicine->lote ?? '' }}" />
+                                            </div>
+                                        </div>
+                                        <div class="flex w-[25%]">
+                                            <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                Caducidad:
+                                            </x-label>
+                                            <div class="flex w-full">
+                                                {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
+                                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
+                                                    class="" placeholder="" /> --}}
+                                                <x-input-solicitud type="date"
+                                                    value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                    id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                    class="" placeholder=""
+                                                    value="{{ $input->medicine->caducidad ?? '' }}" />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        @endif
-                    @endforeach
-                </div>
+                            @endif
+                        @endforeach
+                    </div>
 
-                @foreach ($inputs as $input)
-                    @if ($input->category_id == 10)
-                        <div>
-                            <div class="mb-4 flex items-baseline gap-2 w-full">
-                                <x-label class="mb-2 whitespace-nowrap font-bold">
-                                    {{ $input->description }}:
-                                </x-label>
-                                <div class="flex w-full">
-                                    <x-select class="w-full" name="i_{{ $input->input_id }}"
-                                        id="i_{{ $input->input_id }}_{{ $input->unidad }}">
-                                        <option value="0" @if (old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) == '0') selected @endif>No
-                                        </option>
-                                        <option value="1" @if (old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) == '1') selected @endif>Si
-                                        </option>
-                                    </x-select>
-                                </div>
-                                <x-label class="mb-2 whitespace-nowrap font-bold">
-                                    Lote:
-                                </x-label>
-                                <div class="flex w-full">
-                                    <x-input-solicitud class="w-full"
-                                        value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
-                                        name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                        step="0.0001" placeholder="" value="{{ $input->medicine->lote ?? '' }}" />
-                                </div>
+                    @foreach ($inputs as $input)
+                        @if ($input->category_id == 10)
+                            <div>
+                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                    <x-label class="mb-2 whitespace-nowrap font-bold">
+                                        {{ $input->description }}:
+                                    </x-label>
+                                    <div class="flex w-full">
+                                        <x-select class="w-full" name="i_{{ $input->input_id }}"
+                                            id="i_{{ $input->input_id }}_{{ $input->unidad }}">
+                                            <option value="0" @if (old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) == '0') selected @endif>
+                                                No
+                                            </option>
+                                            <option value="1" @if (old('i_' . $input->input_id, renderInputSection($input->input_id, $inputs_solicitud)) == '1') selected @endif>
+                                                Si
+                                            </option>
+                                        </x-select>
+                                    </div>
+                                    <x-label class="mb-2 whitespace-nowrap font-bold">
+                                        Lote:
+                                    </x-label>
+                                    <div class="flex w-full">
+                                        <x-input-solicitud class="w-full"
+                                            value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                            name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
+                                            step="0.0001" placeholder=""
+                                            value="{{ $input->medicine->lote ?? '' }}" />
+                                    </div>
 
-                                <x-label class="mb-2 whitespace-nowrap font-bold">
-                                    Caducidad:
-                                </x-label>
-                                <div class="flex w-full">
-                                    {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
+                                    <x-label class="mb-2 whitespace-nowrap font-bold">
+                                        Caducidad:
+                                    </x-label>
+                                    <div class="flex w-full">
+                                        {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
                                             min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
                                             class="" placeholder="" /> --}}
-                                    <x-input-solicitud type="date"
-                                        value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
-                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
-                                        id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
-                                        class="" placeholder=""
-                                        value="{{ $input->medicine->caducidad ?? '' }}" />
+                                        <x-input-solicitud type="date"
+                                            value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                            id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                            class="" placeholder=""
+                                            value="{{ $input->medicine->caducidad ?? '' }}" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    @endif
-                @endforeach
+                        @endif
+                    @endforeach
 
-                <div class="flex">
-                    <div class="flex items-center w-6/12">
+                    <div class="flex">
+                        <div class="flex items-center w-6/12">
 
-                        <x-label class="mb-2 whitespace-nowrap">
-                            Bolsa Eva:
-                        </x-label>
-                        <div class="flex w-full">
-                            <x-select class="w-full" name="bolsa_eva" id="bolsa_eva">
-                                <option value="" disabled selected>Seleccionar Bolsa Eva</option>
-                                @foreach ($inputs as $input)
-                                    @if ($input->category_id == 6)
-                                        <option value="{{ $input->input_id }}"
-                                            @if (old('bolsa_eva', renderBolsaEvaInputSection($input->input_id, $inputs_solicitud)) == $input->input_id) selected @endif>
-                                            {{ $input->description }}
-                                        </option>
-                                    @endif
-                                @endforeach
-                            </x-select>
-                        </div>
-                        <!-- Mensaje de error -->
-                        @error('bolsa_eva')
-                            <div class="text-red-500 text-sm">{{ $message }}</div>
-                        @enderror
+                            <x-label class="mb-2 whitespace-nowrap">
+                                Bolsa Eva:
+                            </x-label>
+                            <div class="flex w-full">
+                                <x-select class="w-full" name="bolsa_eva" id="bolsa_eva">
+                                    <option value="" disabled selected>Seleccionar Bolsa Eva</option>
+                                    @foreach ($inputs as $input)
+                                        @if ($input->category_id == 6)
+                                            <option value="{{ $input->input_id }}"
+                                                @if (old('bolsa_eva', $bolsaSeleccionadaId) == $input->input_id) selected @endif>
+                                                {{ $input->description }}
+                                            </option>
+                                        @endif
+                                    @endforeach
+                                </x-select>
+                            </div>
+                            <!-- Mensaje de error -->
+                            @error('bolsa_eva')
+                                <div class="text-red-500 text-sm">{{ $message }}</div>
+                            @enderror
 
-                    </div>
-                    <div class="flex items-center w-3/12">
-                        <x-label class="mb-2 whitespace-nowrap">
-                            Lote:
-                        </x-label>
-                        <div class="flex w-full">
-                            <x-input-solicitud class="w-full"
-                                value="{{ old('lote_bolsa_eva', renderLoteBolsaEvaSection($inputs_solicitud)) }}"
-                                name="lote_bolsa_eva" id="lote_bolsa_eva" step="0.0001" placeholder="" />
                         </div>
-                        @error('lote_bolsa_eva')
-                            <div class="text-red-500 text-sm">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="flex items-center w-3/12">
-                        <x-label class="mb-2 whitespace-nowrap">
-                            Caducidad:
-                        </x-label>
-                        <div class="flex w-full">
-                            <x-input-solicitud type="date"
-                                value="{{ old('caducidad_bolsa_eva', renderCaducidadBolsaEvaSection($inputs_solicitud)) }}"
-                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="caducidad_bolsa_eva"
-                                id="caducidad_bolsa_eva" class="" placeholder="" />
+                        <div class="flex items-center w-3/12">
+                            <x-label class="mb-2 whitespace-nowrap">
+                                Lote:
+                            </x-label>
+                            <div class="flex w-full">
+                                <x-input-solicitud class="w-full"
+                                    value="{{ old('lote_bolsa_eva', renderLoteBolsaEvaSection($inputs_solicitud)) }}"
+                                    name="lote_bolsa_eva" id="lote_bolsa_eva" step="0.0001" placeholder=""
+                                    />
+                            </div>
+                            @error('lote_bolsa_eva')
+                                <div class="text-red-500 text-sm">{{ $message }}</div>
+                            @enderror
                         </div>
-                        @error('caducidad_bolsa_eva')
-                            <div class="text-red-500 text-sm">{{ $message }}</div>
-                        @enderror
+                        <div class="flex items-center w-3/12">
+                            <x-label class="mb-2 whitespace-nowrap">
+                                Caducidad:
+                            </x-label>
+                            <div class="flex w-full">
+                                <x-input-solicitud type="date"
+                                    value="{{ old('caducidad_bolsa_eva', renderCaducidadBolsaEvaSection($inputs_solicitud)) }}"
+                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="caducidad_bolsa_eva"
+                                    id="caducidad_bolsa_eva" class="" placeholder=""
+                                 />
+                            </div>
+                            @error('caducidad_bolsa_eva')
+                                <div class="text-red-500 text-sm">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="mb-4">
-                <x-label class="mb-2 font-bold">
-                    OBSERVACIONES
-                </x-label>
-                <textarea class="border-2 border-solid w-full resize-x overflow-auto h-20" name="observaciones">{{ old('observaciones', $solicitud->solicitud_detail->observaciones) }}</textarea>
-                <!-- Mensaje de error -->
-                @error('observaciones')
-                    <div class="text-red-500 text-sm">{{ $message }}</div>
-                @enderror
-            </div>
-            <div class="flex flex-row gap-4 items-start w-full">
-                <div class="w-full">
-                    <div class="w-full">
-                        <div class="mb-4 flex items-baseline gap-2 w-full">
-                            <x-label class="mb-2 font-bold">
-                                Fecha y hora de entrega:
-                            </x-label>
-                            <div class="flex flex-col w-full">
-                                <x-input-solicitud type="datetime-local"
-                                    value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega) }}"
-                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
-                                    name="fecha_hora_entrega" class="" placeholder="" />
-                                <!-- Mensaje de error -->
-                                @error('fecha_hora_entrega')
-                                    <div class="text-red-500 text-sm">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
+                <div class="mb-4">
+                    <x-label class="mb-2 font-bold">
+                        OBSERVACIONES
+                    </x-label>
+                    <textarea class="border-2 border-solid w-full resize-x overflow-auto h-20" name="observaciones">{{ old('observaciones', $solicitud->solicitud_detail->observaciones) }}</textarea>
+                    <!-- Mensaje de error -->
+                    @error('observaciones')
+                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="flex flex-row gap-4 items-start w-full">
                     <div class="w-full">
                         <div class="w-full">
                             <div class="mb-4 flex items-baseline gap-2 w-full">
                                 <x-label class="mb-2 font-bold">
-                                    Fecha y hora de preparación:
+                                    Fecha y hora de entrega:
                                 </x-label>
                                 <div class="flex flex-col w-full">
                                     <x-input-solicitud type="datetime-local"
-                                        value="{{ old('fecha_hora_preparacion') }}"
+                                        value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega) }}"
                                         min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
-                                        name="fecha_hora_preparacion" class="" placeholder="" />
+                                        name="fecha_hora_entrega" class="" placeholder="" />
                                     <!-- Mensaje de error -->
-                                    @error('fecha_hora_preparacion')
+                                    @error('fecha_hora_entrega')
+                                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full">
+                            <div class="w-full">
+                                <div class="mb-4 flex items-baseline gap-2 w-full">
+                                    <x-label class="mb-2 font-bold">
+                                        Fecha y hora de preparación:
+                                    </x-label>
+                                    <div class="flex flex-col w-full">
+                                        <x-input-solicitud type="datetime-local"
+                                            value="{{ old('fecha_hora_preparacion') }}"
+                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}"
+                                            name="fecha_hora_preparacion" class="" placeholder="" />
+                                        <!-- Mensaje de error -->
+                                        @error('fecha_hora_preparacion')
+                                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full">
+                            <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <x-label class="mb-2 font-bold">
+                                    Hospital destino:
+                                </x-label>
+                                <div class="flex flex-col w-full">
+                                    <x-input-solicitud
+                                        value="{{ old('hospital_destino', $solicitud->solicitud_detail->hospital_destino) }}"
+                                        name="hospital_destino" class="w-full" placeholder="" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full">
+                        <div class="w-full">
+                            <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <x-label class="mb-2 font-bold">
+                                    Nombre del médico:
+                                </x-label>
+                                <div class="flex flex-col w-full">
+                                    <x-input-solicitud
+                                        value="{{ old('nombre_medico', $solicitud->solicitud_detail->nombre_medico) }}"
+                                        name="nombre_medico" class="w-full" placeholder="" />
+                                    <!-- Mensaje de error -->
+                                    @error('nombre_medico')
+                                        <div class="text-red-500 text-sm">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full">
+                            <div class="mb-4 flex items-baseline gap-2 w-full">
+                                <x-label class="mb-2 font-bold">
+                                    Cédula profesional:
+                                </x-label>
+                                <div class="flex flex-col w-full">
+                                    <x-input-solicitud
+                                        value="{{ old('cedula', $solicitud->solicitud_detail->cedula) }}"
+                                        name="cedula" class="w-full" placeholder="" />
+                                    <!-- Mensaje de error -->
+                                    @error('cedula')
                                         <div class="text-red-500 text-sm">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -842,61 +1037,26 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="w-full">
-                    <div class="w-full">
-                        <div class="mb-4 flex items-baseline gap-2 w-full">
-                            <x-label class="mb-2 font-bold">
-                                Nombre del médico:
-                            </x-label>
-                            <div class="flex flex-col w-full">
-                                <x-input-solicitud
-                                    value="{{ old('nombre_medico', $solicitud->solicitud_detail->nombre_medico) }}"
-                                    name="nombre_medico" class="w-full" placeholder="" />
-                                <!-- Mensaje de error -->
-                                @error('nombre_medico')
-                                    <div class="text-red-500 text-sm">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-                    <div class="w-full">
-                        <div class="mb-4 flex items-baseline gap-2 w-full">
-                            <x-label class="mb-2 font-bold">
-                                Cédula profesional:
-                            </x-label>
-                            <div class="flex flex-col w-full">
-                                <x-input-solicitud value="{{ old('cedula', $solicitud->solicitud_detail->cedula) }}"
-                                    name="cedula" class="w-full" placeholder="" />
-                                <!-- Mensaje de error -->
-                                @error('cedula')
-                                    <div class="text-red-500 text-sm">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
+                <input type="hidden" name="is_aprobada" id="is_aprobada_input" value='Pendiente'>
+                <div class="flex justify-end gap-5 mb-3">
+                    {{-- <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas --}}
+                    <x-button>
+                        ACTUALIZAR
+                    </x-button>
                 </div>
-            </div>
-            <input type="hidden" name="is_aprobada" id="is_aprobada_input" value='Pendiente'>
-            <div class="flex justify-end gap-5 mb-3">
-                {{-- <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas --}}
-                <x-button>
-                    ACTUALIZAR
-                </x-button>
-            </div>
-            <div class="flex justify-end gap-5 mb-3">
-                {{-- <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas --}}
-                <x-button type="button" onclick="updateIsAprobada('Aprobada')">
-                    APROBAR
-                </x-button>
-            </div>
+                <div class="flex justify-end gap-5 mb-3">
+                    {{-- <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas --}}
+                    <x-button type="button" onclick="updateIsAprobada('Aprobada')">
+                        APROBAR
+                    </x-button>
+                </div>
 
-            <div class="flex justify-end gap-5">
-                {{-- <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas --}}
-                <x-button type="button" onclick="updateIsAprobada('No Aprobada')">
-                    RECHAZAR
-                </x-button>
-            </div>
+                <div class="flex justify-end gap-5">
+                    {{-- <input type="checkbox" name="terminos" id="terminos"> Enviar de todas formas --}}
+                    <x-button type="button" onclick="updateIsAprobada('No Aprobada')">
+                        RECHAZAR
+                    </x-button>
+                </div>
 
         </form>
 
@@ -1118,9 +1278,6 @@
 
                 });
             });
-
-
-
         </script>
     @endpush
 
