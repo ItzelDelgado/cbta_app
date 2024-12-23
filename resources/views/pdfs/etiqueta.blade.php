@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
     <title>Etiqueta</title>
 
 
@@ -54,7 +54,7 @@
             border: 1px solid black;
             text-align: left;
             padding: 2px 3px;
-            font-size: 7px
+            font-size: 9px
         }
 
         th {
@@ -62,7 +62,7 @@
         }
 
         p {
-            font-size: 10px
+            font-size: 12px
         }
 
         .tabla-format table {
@@ -101,16 +101,16 @@
             </table>
             <table class="introduccion">
                 <tr>
-                    <td>Cliente: <strong>{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</strong></td>
-                    <td>Lote: <strong>{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</strong></td>
+                    <td><strong>Cliente: {{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</strong></td>
+                    <td><strong>Lote: {{ $solicitud_detalles->solicitud_aprobada['lote'] }}</strong></td>
                 </tr>
                 <tr>
-                    <td>Paciente: <strong>{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
+                    <td><strong>Paciente: {{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
                         {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</strong></td>
-                    <td>FN: <strong>{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</strong></td>
+                    <td><strong>FN: {{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</strong></td>
                 </tr>
                 <tr>
-                    <td>Médico: <strong>{{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}</strong></td>
+                    <td><strong>Médico: {{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}</strong></td>
                 </tr>
             </table>
             <table>
@@ -127,13 +127,13 @@
                     $osmolaridad_total = 0; // Inicializamos la variable total
                 @endphp
                 @foreach ($inputs_solicitud as $input_completo)
-                    <tr>
-                        <td style="border:none; text-align: left; width: 50%;">
+                    <tr style="padding: 0; margin:0;">
+                        <td style="border:none; text-align: left; width: 50%; padding: 0; margin:0;">
                             @isset($input_completo->input->medicine)
-                                {{ $input_completo->input->medicine->denominacion_generica }}
+                                <strong>{{ $input_completo->input->medicine->denominacion_generica }}</strong>
 
                                 @php
-                                    $osmolaridad_total += $input_completo->input->medicine->osmolaridad; // Sumamos el precio_ml al total
+                                    $osmolaridad_total += $input_completo->input->medicine->osmolaridad;
                                 @endphp
                             @else
                                 Medicamento no disponible
@@ -142,7 +142,7 @@
                                 @endphp
                             @endisset
                         </td>
-                        <td style="border:none; text-align: center; width: 50%;">{{ $input_completo['valor'] }}
+                        <td style="border:none; text-align: center; width: 50%; padding: 0; margin:0;"><strong>{{ $input_completo['valor'] }}</strong>
                             {{ explode('/', $input_completo->input->unidad)[0] }}</td>
                     </tr>
                 @endforeach

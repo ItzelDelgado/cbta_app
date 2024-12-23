@@ -176,25 +176,18 @@
                     </td>
                 </tr>
             </table>
-            <table style="tabla-format">
-                <tr>
-                    <th style="background: #D9E2F3; border-top: none; width: 5%; text-align: center">
-                        <strong>No</strong>
-                    </th>
-                    <th style="background: #D9E2F3; border-top: none; width: 25%; text-align: center">
-                        <strong>MEDICAMENTO</strong>
-                    </th>
-                    <th style="background: #D9E2F3; border-top: none; width: 10%; text-align: center">
-                        <strong>DOSIS</strong>
-                    </th>
-                    <th style="background: #D9E2F3; border-top: none; width: 10%; text-align: center">
-                        <strong>VOLUMEN</strong>
-                    </th>
-                    <th style="background: #D9E2F3; border-top: none; width: 10%; text-align: center"><strong>LOTE DE LA
-                            MEZCLA</strong></th>
-
-                </tr>
-                @php
+            <table class="tg">
+                <thead>
+                  <tr>
+                    <th class="tg-0lax" style="text-align: center;">No</th>
+                    <th class="tg-0pky" style="text-align: center;">Medicamentos</th>
+                    <th class="tg-0pky" style="text-align: center;">Dosis</th>
+                    <th class="tg-yz93" style="text-align: center;">Volumen</th>
+                    <th class="tg-yz93" style="text-align: center;">Lote</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @php
                     // Inicializamos la variable total
                     $vol_total = 0;
 
@@ -206,26 +199,29 @@
                     } else {
                         $vol_total = floatval($solicitud_detalles->solicitud_detail['volumen_total']);
                     }
-                @endphp
-                @foreach ($inputs_solicitud as $input_completo)
+                    $lote = $solicitud_detalles->solicitud_aprobada['lote'];
+                  @endphp
+
+                  @foreach ($inputs_solicitud as $input_completo)
                     <tr>
-                        <td style="text-align: center">{{ $loop->iteration }}</td>
-                        <td style="text-align: center">
-                            <strong>
-                                @isset($input_completo->input->medicine)
-                                    {{ $input_completo->input->medicine->denominacion_generica }}
-                                @else
-                                    Medicamento no disponible
-                                @endisset
-                            </strong>
-                        </td>
-                        <td style="text-align: center"><strong>{{ $input_completo['valor'] }}
-                                {{ explode('/', $input_completo->input->unidad)[0] }} </strong></td>
-                        <td style="text-align: center">{{ number_format($vol_total, 2) }} mL</td>
-                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</td>
+                      <td class="tg-0lax">{{ $loop->iteration }}</td>
+                      <td class="tg-0pky">
+                        @isset($input_completo->input->medicine)
+                          {{ $input_completo->input->medicine->denominacion_generica }}
+                        @else
+                          Medicamento no disponible
+                        @endisset
+                      </td>
+                      <td class="tg-0pky">{{ $input_completo['valor'] }} {{ explode('/', $input_completo->input->unidad)[0] }}</td>
+                      @if ($loop->first)
+                        <td class="tg-yz93" style="text-align: center;" rowspan="{{ count($inputs_solicitud) }}">{{ number_format($vol_total, 2) }} mL</td>
+                        <td class="tg-yz93" style="text-align: center;" rowspan="{{ count($inputs_solicitud) }}">{{ $lote }}</td>
+                      @endif
                     </tr>
-                @endforeach
-            </table>
+                  @endforeach
+                </tbody>
+              </table>
+
             <table>
                 <tr>
                     <td style="padding-left: 5px"><strong>FECHA\HORA DE PREPARACIÓN: {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h</strong></td>

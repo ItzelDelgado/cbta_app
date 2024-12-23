@@ -1,5 +1,9 @@
 {
     "arial": {
         "normal": "arial_normal_7b717b65a701119202f770837ef90610"
+    },
+    "open sans": {
+        "normal": "C:\\laragon\\www\\cbta_app\\storage\\fonts\/open_sans_normal_2bf6e8a03908d49a7fa7b1094b0c2804",
+        "bold": "open_sans_bold_0e7196744e416eea97ecd5b9781a44c2"
     }
 }
