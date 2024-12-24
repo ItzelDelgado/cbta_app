@@ -12,6 +12,21 @@
             $aguaCalculada = floatval($valor); // Convierte el valor a número flotante
         }
     }
+    $bolsaSeleccionadaId = null;
+    $volumenTotalFinal = $solicitud->solicitud_detail->volumen_total_final;
+
+    // Filtrar bolsas Eva que pueden contener el volumen total
+    $bolsaSeleccionada = $inputs
+        ->filter(function ($input) use ($volumenTotalFinal) {
+            return $input->category_id == 6 && $input->presentacion_ml >= $volumenTotalFinal; // Bolsas válidas
+        })
+        ->sortBy('presentacion_ml') // Ordenar por tamaño de presentación ascendente
+        ->first(); // Tomar la más pequeña que sea suficiente
+
+    $bolsaSeleccionadaId = $bolsaSeleccionada ? $bolsaSeleccionada->input_id : null;
+
+    $loteBolsaEva = $bolsaSeleccionada ? $bolsaSeleccionada->lote : null;
+    $caducidadBolsaEva = $bolsaSeleccionada ? $bolsaSeleccionada->caducidad : null;
 @endphp
 
 <x-admin-layout>
@@ -76,73 +91,69 @@
             @if ($solicitud->solicitud_detail->volumen_total !== null)
                 <p>Volumen total ingresado por el usuario: {{ $solicitud->solicitud_detail->volumen_total }}</p>
                 <p>Suma de elementos ingresados por el usuario en mL:
-                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 3, '.', '') }}
                 <p>Agua calculada:
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 7)
-                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                            {{ number_format(renderInputMLSection($input->input_id, $inputs_solicitud), 3, '.', '') }}
                         @endif
                     @endforeach
                 </p>
                 @if ($solicitud->solicitud_detail->volumen_total < $solicitud->solicitud_detail->suma_volumen)
-                    <h2 class="text-red-500">El volumen total en mL que ingresó el usuario es menor a la suma total en
-                        mL
+                    <h2 class="text-red-500">El volumen total en mL que ingresó el usuario es menor a la suma total en mL
                         de los elementos calculada. <br>
                         Verifica los valores, el cálculo del agua es negativo.</h2>
                 @endif
                 @if (60 < ($aguaCalculada / $solicitud->solicitud_detail->volumen_total) * 100)
-                    <h2 class="text-red-500">El volumen total en mL que se genero es mayor al 60% del volumen total de
-                        la
+                    <h2 class="text-red-500">El volumen total en mL que se genero es mayor al 60% del volumen total de la
                         mezcla. <br>
                         Reajusta el volumen total para generar un nuevo valor para el agua.</h2>
                 @endif
                 <p>Volumen total ingresado por el usuario con sobrellenado:
-                    {{ number_format($solicitud->solicitud_detail->volumen_total_final, 2) }}</p>
+                    {{ number_format($solicitud->solicitud_detail->volumen_total_final, 2, '.', '') }}</p>
                 <p>Suma total de los elementos ingresados por el usuario con sobrellenado:
-                    {{ number_format($solicitud->solicitud_detail->suma_volumen_sobrellenado, 2) }}</p>
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen_sobrellenado, 3, '.', '') }}</p>
                 <p>Agua calculada con sobrellenado:
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 7)
-                            {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                            {{ number_format(renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud), 3, '.', '') }}
                         @endif
                     @endforeach
                 </p>
             @else
                 <p>El usuario no ingreso un volumen total.</p>
                 <p>Suma de elementos ingresados por el usuario en mL:
-                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 3, '.', '') }}</p>
                 <p>Suma de elementos ingresados por el usuario en mL con sobrellenado:
-                    {{ number_format($solicitud->solicitud_detail->suma_volumen_sobrellenado, 2) }}</p>
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen_sobrellenado, 3, '.', '') }}</p>
             @endif
         @else
-            <p>El usuario no ingreso un valor en sobrellenado.</p>
+            <p>El usuario no ingresó un valor en sobrellenado.</p>
             @if ($solicitud->solicitud_detail->volumen_total !== null)
                 <p>Volumen total ingresado por el usuario: {{ $solicitud->solicitud_detail->volumen_total }}</p>
                 <p>Suma de elementos ingresados por el usuario en mL:
-                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 3, '.', '') }}</p>
                 <p>Agua calculada:
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 7)
-                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                            {{ number_format(renderInputMLSection($input->input_id, $inputs_solicitud), 3, '.', '') }}
                         @endif
                     @endforeach
                 </p>
                 @if ($solicitud->solicitud_detail->volumen_total < $solicitud->solicitud_detail->suma_volumen)
-                    <h2 class="text-red-500">El volumen total en mL que ingresó el usuario es menor a la suma total en
-                        mL
+                    <h2 class="text-red-500">El volumen total en mL que ingresó el usuario es menor a la suma total en mL
                         de los elementos calculada. <br>
                         Verifica los valores, el cálculo del agua es negativo.</h2>
                 @endif
                 @if (60 < ($aguaCalculada / $solicitud->solicitud_detail->volumen_total) * 100)
-                    <h2 class="text-red-500">El volumen total en mL que se genero es mayor al 60% del volumen total de
-                        la
+                    <h2 class="text-red-500">El volumen total en mL que se genero es mayor al 60% del volumen total de la
                         mezcla. <br>
                         Reajusta el volumen total para generar un nuevo valor para el agua.</h2>
                 @endif
             @else
                 <p>El usuario no ingreso un volumen total.</p>
                 <p>Suma de elementos ingresados por el usuario en mL:
-                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 3, '.', '') }}</p>
             @endif
         @endif
         <form id="solicitudForm" class="bg-white rounded-lg p-6 shadow-lg">
@@ -380,7 +391,7 @@
                                         </div>
 
                                         @hasanyrole('Admin|Super Admin')
-                                            <div class="flex w-[20%]">
+                                            {{-- <div class="flex w-[20%]">
                                                 <x-label class="mb-2 whitespace-nowrap">
                                                     Lote:
                                                 </x-label>
@@ -388,7 +399,8 @@
                                                     <x-input-solicitud class="w-full"
                                                         value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                         name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
-                                                        placeholder="" disabled />
+                                                        placeholder=""
+                                                        disabled />
                                                 </div>
                                             </div>
                                             <div class="flex w-[25%]">
@@ -401,6 +413,27 @@
                                                         min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                         id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                                         class="" placeholder="" disabled />
+                                                </div>
+                                            </div> --}}
+                                            <div class="flex w-[15%]">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    Lote:
+                                                </x-label>
+                                                <div class="flex w-full">
+                                                    <x-input-solicitud class="w-full" name="l_{{ $input->input_id }}"
+                                                        id="l_{{ $input->input_id }}" placeholder=""
+                                                        value="{{ $input->medicine->lote ?? '' }}" />
+                                                </div>
+                                            </div>
+                                            <div class="flex w-[20%]">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    Caducidad:
+                                                </x-label>
+                                                <div class="flex w-full">
+                                                    <x-input-solicitud type="date"
+                                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                        id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                        placeholder="" value="{{ $input->medicine->caducidad ?? '' }}" />
                                                 </div>
                                             </div>
                                         @endhasanyrole
@@ -454,7 +487,7 @@
                                             </p>
                                         </div>
                                         @hasanyrole('Admin|Super Admin')
-                                            <div class="flex w-[20%]">
+                                            {{-- <div class="flex w-[20%]">
                                                 <x-label class="mb-2 whitespace-nowrap">
                                                     Lote:
                                                 </x-label>
@@ -475,6 +508,27 @@
                                                         min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                         id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                                         class="" placeholder="" disabled />
+                                                </div>
+                                            </div> --}}
+                                            <div class="flex w-[15%]">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    Lote:
+                                                </x-label>
+                                                <div class="flex w-full">
+                                                    <x-input-solicitud class="w-full" name="l_{{ $input->input_id }}"
+                                                        id="l_{{ $input->input_id }}" placeholder=""
+                                                        value="{{ $input->medicine->lote ?? '' }}" />
+                                                </div>
+                                            </div>
+                                            <div class="flex w-[20%]">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    Caducidad:
+                                                </x-label>
+                                                <div class="flex w-full">
+                                                    <x-input-solicitud type="date"
+                                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                        id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                        placeholder="" value="{{ $input->medicine->caducidad ?? '' }}" />
                                                 </div>
                                             </div>
                                         @endhasanyrole
@@ -532,7 +586,7 @@
                                             </p>
                                         </div>
                                         @hasanyrole('Admin|Super Admin')
-                                            <div class="flex w-[20%]">
+                                            {{-- <div class="flex w-[20%]">
                                                 <x-label class="mb-2 whitespace-nowrap">
                                                     Lote:
                                                 </x-label>
@@ -553,6 +607,27 @@
                                                         min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                         id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                                         class="" placeholder="" disabled />
+                                                </div>
+                                            </div> --}}
+                                            <div class="flex w-[15%]">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    Lote:
+                                                </x-label>
+                                                <div class="flex w-full">
+                                                    <x-input-solicitud class="w-full" name="l_{{ $input->input_id }}"
+                                                        id="l_{{ $input->input_id }}" placeholder=""
+                                                        value="{{ $input->medicine->lote ?? '' }}" />
+                                                </div>
+                                            </div>
+                                            <div class="flex w-[20%]">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    Caducidad:
+                                                </x-label>
+                                                <div class="flex w-full">
+                                                    <x-input-solicitud type="date"
+                                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                        id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                        placeholder="" value="{{ $input->medicine->caducidad ?? '' }}" />
                                                 </div>
                                             </div>
                                         @endhasanyrole
@@ -610,7 +685,7 @@
                                                 </p>
                                             </div>
                                             @hasanyrole('Admin|Super Admin')
-                                                <div class="flex w-[20%]">
+                                                {{-- <div class="flex w-[20%]">
                                                     <x-label class="mb-2 whitespace-nowrap">
                                                         Lote:
                                                     </x-label>
@@ -633,6 +708,27 @@
                                                             id="c_{{ $input->input_id }}"
                                                             name="c_{{ $input->input_id }}" class=""
                                                             placeholder="" disabled />
+                                                    </div>
+                                                </div> --}}
+                                                <div class="flex w-[15%]">
+                                                    <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                        Lote:
+                                                    </x-label>
+                                                    <div class="flex w-full">
+                                                        <x-input-solicitud class="w-full" name="l_{{ $input->input_id }}"
+                                                            id="l_{{ $input->input_id }}" placeholder=""
+                                                            value="{{ $input->medicine->lote ?? '' }}" />
+                                                    </div>
+                                                </div>
+                                                <div class="flex w-[20%]">
+                                                    <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                        Caducidad:
+                                                    </x-label>
+                                                    <div class="flex w-full">
+                                                        <x-input-solicitud type="date"
+                                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                            id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                            placeholder="" value="{{ $input->medicine->caducidad ?? '' }}" />
                                                     </div>
                                                 </div>
                                             @endhasanyrole
@@ -699,7 +795,7 @@
                                         </div>
                                         @hasanyrole('Admin|Super Admin')
                                             {{-- Lote --}}
-                                            <div class="flex w-[20%]">
+                                            {{-- <div class="flex w-[20%]">
                                                 <x-label class="mb-2 whitespace-nowrap">
                                                     Lote:
                                                 </x-label>
@@ -711,7 +807,7 @@
                                                 </div>
                                             </div>
 
-                                            {{-- Caducidad --}}
+                                            {{-- Caducidad
                                             <div class="flex w-[25%]">
                                                 <x-label class="mb-2 whitespace-nowrap">
                                                     Caducidad:
@@ -722,6 +818,27 @@
                                                         min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                         id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                                         placeholder="" disabled />
+                                                </div>
+                                            </div> --}}
+                                            <div class="flex w-[15%]">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    Lote:
+                                                </x-label>
+                                                <div class="flex w-full">
+                                                    <x-input-solicitud class="w-full" name="l_{{ $input->input_id }}"
+                                                        id="l_{{ $input->input_id }}" placeholder=""
+                                                        value="{{ $input->medicine->lote ?? '' }}" />
+                                                </div>
+                                            </div>
+                                            <div class="flex w-[20%]">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    Caducidad:
+                                                </x-label>
+                                                <div class="flex w-full">
+                                                    <x-input-solicitud type="date"
+                                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                        id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                        placeholder="" value="{{ $input->medicine->caducidad ?? '' }}" />
                                                 </div>
                                             </div>
                                         @endhasanyrole
@@ -786,7 +903,7 @@
                                         </div>
                                         @hasanyrole('Admin|Super Admin')
                                             {{-- Lote --}}
-                                            <div class="flex w-[20%]">
+                                            {{-- <div class="flex w-[20%]">
                                                 <x-label class="mb-2 whitespace-nowrap">
                                                     Lote:
                                                 </x-label>
@@ -798,7 +915,7 @@
                                                 </div>
                                             </div>
 
-                                            {{-- Caducidad --}}
+                                            {{-- Caducidad
                                             <div class="flex w-[25%]">
                                                 <x-label class="mb-2 whitespace-nowrap">
                                                     Caducidad:
@@ -809,6 +926,27 @@
                                                         min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                         id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                                         placeholder="" disabled />
+                                                </div>
+                                            </div> --}}
+                                            <div class="flex w-[15%]">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    Lote:
+                                                </x-label>
+                                                <div class="flex w-full">
+                                                    <x-input-solicitud class="w-full" name="l_{{ $input->input_id }}"
+                                                        id="l_{{ $input->input_id }}" placeholder=""
+                                                        value="{{ $input->medicine->lote ?? '' }}" />
+                                                </div>
+                                            </div>
+                                            <div class="flex w-[20%]">
+                                                <x-label class="mb-2 whitespace-nowrap font-bold">
+                                                    Caducidad:
+                                                </x-label>
+                                                <div class="flex w-full">
+                                                    <x-input-solicitud type="date"
+                                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                                        id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
+                                                        placeholder="" value="{{ $input->medicine->caducidad ?? '' }}" />
                                                 </div>
                                             </div>
                                         @endhasanyrole
@@ -842,7 +980,7 @@
                                 </x-label>
                                 <div class="flex w-full">
                                     <x-input-solicitud class="w-full"
-                                        value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
+                                        value="{{ $input->medicine->lote ?? '' }}"
                                         name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}" step="0.0001"
                                         placeholder="" disabled />
                                 </div>
@@ -855,7 +993,7 @@
                                         min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
                                         class="" placeholder="" /> --}}
                                     <x-input-solicitud type="date"
-                                        value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
+                                    value="{{ $input->medicine->caducidad ?? '' }}"
                                         min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                         id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}" class=""
                                         placeholder="" disabled />
@@ -866,7 +1004,7 @@
                 @endif
             @endforeach
             @hasanyrole('Admin|Super Admin')
-                <div class="flex">
+                {{-- <div class="flex">
                     <div class="flex items-center w-6/12">
                         <x-label class="mb-2 whitespace-nowrap">
                             Bolsa Eva:
@@ -918,7 +1056,62 @@
                         @enderror
                     </div>
 
+                </div> --}}
+                <div class="flex">
+                    <div class="flex items-center w-6/12">
+
+                        <x-label class="mb-2 whitespace-nowrap">
+                            Bolsa Eva:
+                        </x-label>
+                        <div class="flex w-full">
+                            <x-select class="w-full" name="bolsa_eva" id="bolsa_eva">
+                                <option value="" disabled selected>Seleccionar Bolsa Eva</option>
+                                @foreach ($inputs as $input)
+                                    @if ($input->category_id == 6)
+                                        <option value="{{ $input->input_id }}"
+                                            @if (old('bolsa_eva', $bolsaSeleccionadaId) == $input->input_id) selected @endif>
+                                            {{ $input->description }}
+                                        </option>
+                                    @endif
+                                @endforeach
+                            </x-select>
+                        </div>
+                        <!-- Mensaje de error -->
+                        @error('bolsa_eva')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
+
+                    </div>
+                    <div class="flex items-center w-3/12">
+                        <x-label class="mb-2 whitespace-nowrap">
+                            Lote:
+                        </x-label>
+                        <div class="flex w-full">
+                            <x-input-solicitud class="w-full" value="{{ old('lote_bolsa_eva', $loteBolsaEva) }}"
+                                name="lote_bolsa_eva" id="lote_bolsa_eva" step="0.0001" placeholder="" />
+                        </div>
+                        @error('lote_bolsa_eva')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="flex items-center w-3/12">
+                        <x-label class="mb-2 whitespace-nowrap">
+                            Caducidad:
+                        </x-label>
+                        <div class="flex w-full">
+                            <x-input-solicitud type="date"
+                                value="{{ old('caducidad_bolsa_eva', $caducidadBolsaEva) }}"
+                                min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="caducidad_bolsa_eva"
+                                id="caducidad_bolsa_eva" class="" placeholder="" />
+                        </div>
+                        @error('caducidad_bolsa_eva')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
+
+
             @endhasanyrole
             <div class="mb-4">
                 <x-label class="mb-2">

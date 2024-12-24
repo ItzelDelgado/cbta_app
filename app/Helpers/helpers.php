@@ -20,7 +20,7 @@ function renderInputMLSection($id, $inputs_solicitud)
     $inputValue = '';
     foreach ($inputs_solicitud as $inputItem) {
         if ($inputItem->input_id == $id) {
-            $inputValue = number_format($inputItem->valor_ml, 2);
+            $inputValue = sprintf('%.3f', $inputItem->valor_ml); // Cambiado a tres decimales
             break;
         }
     }
@@ -35,7 +35,7 @@ function renderInputMLSobrellenadoSection($id, $inputs_solicitud)
     $inputValue = '';
     foreach ($inputs_solicitud as $inputItem) {
         if ($inputItem->input_id == $id) {
-            $inputValue = number_format($inputItem->valor_sobrellenado, 2);
+            $inputValue = sprintf('%.3f', $inputItem->valor_sobrellenado);
             break;
         }
     }

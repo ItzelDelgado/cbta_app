@@ -13,18 +13,21 @@
         }
     }
 
-
     $bolsaSeleccionadaId = null;
     $volumenTotalFinal = $solicitud->solicitud_detail->volumen_total_final;
 
     // Filtrar bolsas Eva que pueden contener el volumen total
-    $bolsaSeleccionada = $inputs->filter(function ($input) use ($volumenTotalFinal) {
-        return $input->category_id == 6 && $input->presentacion_ml >= $volumenTotalFinal; // Bolsas válidas
-    })->sortBy('presentacion_ml') // Ordenar por tamaño de presentación ascendente
-      ->first(); // Tomar la más pequeña que sea suficiente
+    $bolsaSeleccionada = $inputs
+        ->filter(function ($input) use ($volumenTotalFinal) {
+            return $input->category_id == 6 && $input->presentacion_ml >= $volumenTotalFinal; // Bolsas válidas
+        })
+        ->sortBy('presentacion_ml') // Ordenar por tamaño de presentación ascendente
+        ->first(); // Tomar la más pequeña que sea suficiente
 
     $bolsaSeleccionadaId = $bolsaSeleccionada ? $bolsaSeleccionada->input_id : null;
 
+    $loteBolsaEva = $bolsaSeleccionada ? $bolsaSeleccionada->lote : null;
+    $caducidadBolsaEva = $bolsaSeleccionada ? $bolsaSeleccionada->caducidad : null;
 @endphp
 
 
@@ -41,11 +44,11 @@
             @if ($solicitud->solicitud_detail->volumen_total !== null)
                 <p>Volumen total ingresado por el usuario: {{ $solicitud->solicitud_detail->volumen_total }}</p>
                 <p>Suma de elementos ingresados por el usuario en mL:
-                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 3, '.', '') }}
                 <p>Agua calculada:
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 7)
-                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                            {{ number_format(renderInputMLSection($input->input_id, $inputs_solicitud), 3, '.', '') }}
                         @endif
                     @endforeach
                 </p>
@@ -60,33 +63,33 @@
                         Reajusta el volumen total para generar un nuevo valor para el agua.</h2>
                 @endif
                 <p>Volumen total ingresado por el usuario con sobrellenado:
-                    {{ number_format($solicitud->solicitud_detail->volumen_total_final, 2) }}</p>
+                    {{ number_format($solicitud->solicitud_detail->volumen_total_final, 2, '.', '') }}</p>
                 <p>Suma total de los elementos ingresados por el usuario con sobrellenado:
-                    {{ number_format($solicitud->solicitud_detail->suma_volumen_sobrellenado, 2) }}</p>
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen_sobrellenado, 3, '.', '') }}</p>
                 <p>Agua calculada con sobrellenado:
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 7)
-                            {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                            {{ number_format(renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud), 3, '.', '') }}
                         @endif
                     @endforeach
                 </p>
             @else
                 <p>El usuario no ingreso un volumen total.</p>
                 <p>Suma de elementos ingresados por el usuario en mL:
-                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 3, '.', '') }}</p>
                 <p>Suma de elementos ingresados por el usuario en mL con sobrellenado:
-                    {{ number_format($solicitud->solicitud_detail->suma_volumen_sobrellenado, 2) }}</p>
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen_sobrellenado, 3, '.', '') }}</p>
             @endif
         @else
-            <p>El usuario no ingreso un valor en sobrellenado.</p>
+            <p>El usuario no ingresó un valor en sobrellenado.</p>
             @if ($solicitud->solicitud_detail->volumen_total !== null)
                 <p>Volumen total ingresado por el usuario: {{ $solicitud->solicitud_detail->volumen_total }}</p>
                 <p>Suma de elementos ingresados por el usuario en mL:
-                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 3, '.', '') }}</p>
                 <p>Agua calculada:
                     @foreach ($inputs as $input)
                         @if ($input->category_id == 7)
-                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                            {{ number_format(renderInputMLSection($input->input_id, $inputs_solicitud), 3, '.', '') }}
                         @endif
                     @endforeach
                 </p>
@@ -103,7 +106,7 @@
             @else
                 <p>El usuario no ingreso un volumen total.</p>
                 <p>Suma de elementos ingresados por el usuario en mL:
-                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 2) }}</p>
+                    {{ number_format($solicitud->solicitud_detail->suma_volumen, 3, '.', '') }}</p>
             @endif
         @endif
 
@@ -914,25 +917,23 @@
                                 Lote:
                             </x-label>
                             <div class="flex w-full">
-                                <x-input-solicitud class="w-full"
-                                    value="{{ old('lote_bolsa_eva', renderLoteBolsaEvaSection($inputs_solicitud)) }}"
-                                    name="lote_bolsa_eva" id="lote_bolsa_eva" step="0.0001" placeholder=""
-                                    />
+                                <x-input-solicitud class="w-full" value="{{ old('lote_bolsa_eva', $loteBolsaEva) }}"
+                                    name="lote_bolsa_eva" id="lote_bolsa_eva" step="0.0001" placeholder="" />
                             </div>
                             @error('lote_bolsa_eva')
                                 <div class="text-red-500 text-sm">{{ $message }}</div>
                             @enderror
                         </div>
+
                         <div class="flex items-center w-3/12">
                             <x-label class="mb-2 whitespace-nowrap">
                                 Caducidad:
                             </x-label>
                             <div class="flex w-full">
                                 <x-input-solicitud type="date"
-                                    value="{{ old('caducidad_bolsa_eva', renderCaducidadBolsaEvaSection($inputs_solicitud)) }}"
+                                    value="{{ old('caducidad_bolsa_eva', $caducidadBolsaEva) }}"
                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="caducidad_bolsa_eva"
-                                    id="caducidad_bolsa_eva" class="" placeholder=""
-                                 />
+                                    id="caducidad_bolsa_eva" class="" placeholder="" />
                             </div>
                             @error('caducidad_bolsa_eva')
                                 <div class="text-red-500 text-sm">{{ $message }}</div>

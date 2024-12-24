@@ -218,9 +218,9 @@
                                 $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == null ||
                                 $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == 0
                             ) {
-                                $valor_final = number_format($input_completo['valor_ml'], 2);
+                                $valor_final = number_format($input_completo['valor_ml'], 3, '.', '');
                             } else {
-                                $valor_final = number_format($input_completo['valor_sobrellenado'], 2);
+                                $valor_final = number_format($input_completo['valor_sobrellenado'], 3, '.', '');
                             }
                         @endphp
 
@@ -235,7 +235,7 @@
                                 @php
                                     $total += $input_completo->precio_ml; // Sumamos el precio_ml al total
                                 @endphp
-                                ${{ number_format($input_completo->precio_ml, 2) }}
+                                ${{ number_format($input_completo->precio_ml, 3, '.', '') }}
                             @else
                                 Medicamento no disponible
                             @endisset
@@ -271,7 +271,7 @@
                             @php
                                 $total += $bolsa_eva->input->medicine->precio_ml; // Sumamos el precio_ml al total
                             @endphp
-                            ${{ number_format($bolsa_eva->input->medicine->precio_ml, 2) }}
+                            ${{ number_format($bolsa_eva->input->medicine->precio_ml, 3, '.', '') }}
                         @else
                             Medicamento no disponible
                         @endisset
@@ -301,7 +301,7 @@
                             @php
                                 $total += $set_infusion->input->medicine->precio_ml; // Sumamos el precio_ml al total
                             @endphp
-                            ${{ number_format($set_infusion->input->medicine->precio_ml, 2) }}
+                            ${{ number_format($set_infusion->input->medicine->precio_ml, 3, '.', '') }}
 
                         </td>
                     </tr>
@@ -330,7 +330,7 @@
                         @php
                             $total += $servicio_preparacion->precio_ml; // Sumamos el precio_ml al total
                         @endphp
-                        ${{ number_format($servicio_preparacion->precio_ml, 2) }}
+                        ${{ number_format($servicio_preparacion->precio_ml, 3, '.', '') }}
 
                     </td>
                 </tr>
@@ -340,7 +340,7 @@
             <table>
                 <tr>
                     <td style="text-align: right; border-top: none"><strong>Total
-                            ${{ number_format($total, 2) }}</strong></td>
+                            ${{ number_format($total, 3, '.', '') }}</strong></td>
                 </tr>
             </table>
             <br>

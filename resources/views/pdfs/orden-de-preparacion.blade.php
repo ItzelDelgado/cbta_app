@@ -174,7 +174,8 @@
             <table>
                 <tr style="margin: 0; padding: 0">
                     <td style="border: none;"><strong>No. de lote de la mezcla:</strong>
-                        <span>{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</span></td>
+                        <span>{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</span>
+                    </td>
                     <td style="border: none;"><strong>No. de orden de preparación:</strong>
                         NUT{{ substr($solicitud_detalles->solicitud_aprobada['lote'], 1) }}</td>
                 </tr>
@@ -246,15 +247,21 @@
                                     $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == null ||
                                     $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == 0
                                 ) {
-                                    $valor_final = number_format($input_completo['valor_ml'], 2);
+                                    $valor_final = number_format($input_completo['valor_ml'], 3, '.', '');
                                 } else {
-                                    $valor_final = number_format($input_completo['valor_sobrellenado'], 2);
+                                    $valor_final = number_format($input_completo['valor_sobrellenado'], 3, '.', '');
                                 }
                             @endphp
 
                             <td>{{ $valor_final }} mL</td>
-                            <td style="text-align: center">{{ $input_completo['valor'] }}
-                                {{ explode('/', $input_completo->input->unidad)[0] }}</td>
+                            @if ($input_completo->input_id != 37)
+                                <td style="text-align: center">{{ $input_completo['valor'] }}
+                                    {{ explode('/', $input_completo->input->unidad)[0] }}</td>
+                            @else
+                                <td style="text-align: center">
+                                    {{ number_format($input_completo['valor'], 3, '.', '') }}
+                                    {{ explode('/', $input_completo->input->unidad)[0] }}</td>
+                            @endif
                             <td>
                                 @isset($input_completo->input->medicine)
                                     {{ $input_completo->input->medicine->denominacion_generica }}
