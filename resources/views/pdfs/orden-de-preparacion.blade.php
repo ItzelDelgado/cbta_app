@@ -105,7 +105,7 @@
         </div>
         <table>
             <tr>
-                <td style="border-top: 2px solid black; text-align: right; color: blue;">
+                <td style="border-top: 2px solid black; text-align: right; color: blue; padding: 2px 8px;">
                     FTO-NPT-023-005
                 </td>
             </tr>
@@ -121,7 +121,7 @@
                 </td>
             </tr>
             <tr>
-                <td style="border: none;"><strong>LIBERACIÓN DE ÁREA</strong></td>
+                <td style="border: none; margin:0; padding: 0 8px;"><strong>LIBERACIÓN DE ÁREA</strong></td>
             </tr>
         </table>
         <table class="liberacion-area" style="margin-bottom: 0.3rem;">
@@ -161,29 +161,29 @@
                 <td></td>
             </tr>
         </table>
-        <table style="width: 350px; margin-bottom: 0.5rem;">
-            <tr>
-                <td>Sanitizante:</td>
-                <td style="width: 20px;"></td>
-                <td>Alcohol Isopropilico</td>
-                <td style="width: 20px;"></td>
-                <td>Critical 0.2%</td>
+        <table style="width: 350px; margin: 0; padding: 0">
+            <tr style="">
+                <td style="border-bottom: none;  padding: 2px 4px;">Sanitizante:</td>
+                <td style="width: 20px; border-bottom: none; padding: 2px 4px;"></td>
+                <td style="border-bottom: none; padding: 2px 4px;">Alcohol Isopropilico</td>
+                <td style="width: 20px; border-bottom: none; padding: 2px 4px;"></td>
+                <td style="border-bottom:none; padding: 2px 4px;">Critical 0.2%</td>
             </tr>
         </table>
-        <div style=" border: 1px solid black; margin-bottom: 0.5rem;">
-            <table>
+        <div style=" border: 1px solid black; margin-bottom: 0rem;">
+            <table style="padding: 0; margin: 0">
                 <tr style="margin: 0; padding: 0">
-                    <td style="border: none;"><strong>No. de lote de la mezcla:</strong>
+                    <td style="border: none; padding: 2px 8px"><strong>No. de lote de la mezcla:</strong>
                         <span>{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</span>
                     </td>
-                    <td style="border: none;"><strong>No. de orden de preparación:</strong>
+                    <td style="border: none; padding: 2px 8px"><strong>No. de orden de preparación:</strong>
                         NUT{{ substr($solicitud_detalles->solicitud_aprobada['lote'], 1) }}</td>
                 </tr>
             </table>
-            <p style="padding: 2px 8px; border-top: 1px solid black; border-bottom: 1px solid black;"><strong>DATOS DEL
+            <p style="padding: 2px 8px; border-top: 1px solid black; border-bottom: 1px solid black; margin: 0;"><strong>DATOS DEL
                     PACIENTE</strong></p>
-            <table>
-                <tr>
+            <table style="margin: 0; padding-top: 2px">
+                <tr style="padding: 0">
                     <td style="border: none; padding: 0 auto;"><strong>Nombre:</strong>
                         <span>{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
                             {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</span>
@@ -191,14 +191,14 @@
                     <td style="border: none; padding: 0 auto;"><strong>Médico tratante:
                         </strong><span>{{ $solicitud_detalles->solicitud_detail->nombre_medico }}</span></td>
                 </tr>
-                <tr>
+                <tr style="padding: 0">
                     <td style="border: none; padding: 0 auto;"><strong>Registro:</strong> <span
                             style="">{{ $solicitud_detalles->solicitud_patient['registro'] }}</span></td>
                     <td style="border: none; padding: 0 auto;"><strong>Diagnostico:</strong> <span style="">
                             {{ $solicitud_detalles->solicitud_patient['diagnostico'] }}</span></td>
                 </tr>
             </table>
-            <table style="width: 100%; border-collapse: collapse; padding-bottom: 14px">
+            <table style="width: 100%; border-collapse: collapse; padding-bottom: 2px">
                 <tr>
                     <td style="border: none; padding: 0 auto;"><strong>Fecha de nacimiento:</strong> <span
                             style="">{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</span>
@@ -219,7 +219,7 @@
                 </tr>
             </table>
         </div>
-        <p style="padding: 8px; border: 1px solid black; margin: 0;"><strong>NUTRICIÓN PARENTERAL TOTAL</strong></p>
+        <p style="padding: 2px 4px; border: 0px solid black; margin: 0;"><strong>NUTRICIÓN PARENTERAL TOTAL</strong></p>
         <table class="elementos">
             <thead>
                 <tr>
@@ -296,65 +296,65 @@
                 @endforeach
             </tbody>
         </table>
-        <table>
-            <tr>
-                <td style="border-top: none">Volumen Total <span
+        <table style="padding: 0; margin: 0">
+            <tr style="padding: 0; margin: 0">
+                <td style="border-top: none; padding: 2px 8px; margin: 0">Volumen Total <span
                         style="font-weight: bold;">{{ number_format($solicitud_detalles->solicitud_detail['volumen_total_final'], 2) }}
                         ml</span></td>
-                <td style="border-top: none">Contenedor <span
+                <td style="border-top: none; padding: 2px 8px; margin: 0">Contenedor <span
                         style="font-weight: bold;">{{ $bolsa_eva->input->medicine->presentacion_ml }} mL</span></td>
             </tr>
         </table>
-        <p style="padding: 8px; text-align: center; margin: 0;"><strong>Bolsa EVA</strong></p>
-        <table>
-            <tr>
-                <td style="background: #D9E2F3;"></td>
-                <td style="background: #D9E2F3;"><strong>No. de lote</strong></td>
-                <td style="background: #D9E2F3;"><strong>Caducidad</strong></td>
-                <td style="background: #D9E2F3;"><strong>Nombre comercial</strong></td>
-                <td style="background: #D9E2F3;"><strong>Nombre genérico</strong></td>
+        <p style="padding: 2px 8px; text-align: center; margin: 0;"><strong>Bolsa EVA</strong></p>
+        <table style="padding: 0; margin: 0">
+            <tr style="padding: 0; margin: 0">
+                <td style="background: #D9E2F3; padding: 2px 8px; margin: 0"></td>
+                <td style="background: #D9E2F3; padding: 2px 8px; margin: 0"><strong>No. de lote</strong></td>
+                <td style="background: #D9E2F3; padding: 2px 8px; margin: 0"><strong>Caducidad</strong></td>
+                <td style="background: #D9E2F3; padding: 2px 8px; margin: 0"><strong>Nombre comercial</strong></td>
+                <td style="background: #D9E2F3; padding: 2px 8px; margin: 0"><strong>Nombre genérico</strong></td>
             </tr>
             <tr>
-                <td>1</td>
-                <td>{{ $bolsa_eva->lote }}</td>
-                <td>{{ date('d-m-Y', strtotime($bolsa_eva->caducidad)) }}</td>
-                <td>{{ $bolsa_eva->input->medicine->denominacion_comercial }}</td>
-                <td>{{ $bolsa_eva->input->medicine->denominacion_generica }}</td>
+                <td style="padding: 2px 8px; margin: 0">1</td>
+                <td style="padding: 2px 8px; margin: 0">{{ $bolsa_eva->lote }}</td>
+                <td style="padding: 2px 8px; margin: 0">{{ date('d-m-Y', strtotime($bolsa_eva->caducidad)) }}</td>
+                <td style="padding: 2px 8px; margin: 0">{{ $bolsa_eva->input->medicine->denominacion_comercial }}</td>
+                <td style="padding: 2px 8px; margin: 0">{{ $bolsa_eva->input->medicine->denominacion_generica }}</td>
             </tr>
         </table>
-        <p style="padding: 8px; text-align: center; margin: 0;"><strong>Set de infusión</strong></p>
+        <p style="padding: 2px 8px; text-align: center; margin: 0;"><strong>Set de infusión</strong></p>
         <table>
             <tr>
-                <td style="background: #D9E2F3;"></td>
-                <td style="background: #D9E2F3;"><strong>No. de lote</strong></td>
-                <td style="background: #D9E2F3;"><strong>Caducidad</strong></td>
-                <td style="background: #D9E2F3;"><strong>Nombre comercial</strong></td>
-                <td style="background: #D9E2F3;"><strong>Nombre genérico</strong></td>
+                <td style="background: #D9E2F3; padding: 2px 8px; margin: 0"></td>
+                <td style="background: #D9E2F3; padding: 2px 8px; margin: 0"><strong>No. de lote</strong></td>
+                <td style="background: #D9E2F3; padding: 2px 8px; margin: 0"><strong>Caducidad</strong></td>
+                <td style="background: #D9E2F3; padding: 2px 8px; margin: 0"><strong>Nombre comercial</strong></td>
+                <td style="background: #D9E2F3; padding: 2px 8px; margin: 0"><strong>Nombre genérico</strong></td>
             </tr>
             <tr>
-                <td>1</td>
-                <td>
+                <td style="padding: 2px 8px; margin: 0">1</td>
+                <td style="padding: 2px 8px; margin: 0">
                     @isset($set_infusion)
                         {{ $set_infusion->lote }}
                     @else
                         N/A
                     @endisset
                 </td>
-                <td>
+                <td style="padding: 2px 8px; margin: 0">
                     @isset($set_infusion)
                         {{ date('d-m-Y', strtotime($set_infusion->caducidad)) }}
                     @else
                         N/A
                     @endisset
                 </td>
-                <td>
+                <td style="padding: 2px 8px; margin: 0">
                     @isset($set_infusion)
                         {{ $set_infusion->input->medicine->denominacion_comercial }}
                     @else
                         N/A
                     @endisset
                 </td>
-                <td>
+                <td style="padding: 2px 8px; margin: 0">
                     @isset($set_infusion)
                         {{ $set_infusion->input->medicine->denominacion_generica }}
                     @else
