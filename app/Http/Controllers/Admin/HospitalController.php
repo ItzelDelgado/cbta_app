@@ -13,7 +13,7 @@ class HospitalController extends Controller
      */
     public function index()
     {
-        $hospitals = Hospital::latest()->paginate(10);
+        $hospitals = Hospital::latest()->get();
         return view('admin.hospitals.index', compact('hospitals'));
     }
 

@@ -3,6 +3,22 @@
     foreach ($arreglo_resultado as $input_completo) {
         $variables['variable' . $input_completo['input_id']] = $input_completo['valor'];
     }
+
+    function ajustarUnidad($unidad, $npt) {
+        if ($npt === 'ADULT') {
+            if ($unidad === 'g/Kg') {
+                return 'g/día';
+            } elseif ($unidad === 'mEq/Kg') {
+                return 'mEq/día';
+            }
+        }
+        return $unidad; // Devuelve la unidad original si no se cumplen las condiciones.
+    }
+
+
+    $npt = $solicitud_detalles->solicitud_detail['npt'];
+    $tipo = ($npt === 'ADULT') ? 'ADULTO' : 'PEDIÁTRICO';
+
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -168,7 +184,7 @@
                         {{ $solicitud_detalles->solicitud_detail['sobrellenado_ml'] }}</td>
                     <td style="width: 33.33%; border-right: 1px solid #000;">Vol. Total:
                         {{ $solicitud_detalles->solicitud_detail['volumen_total'] }}</td>
-                    <td style="width: 33.33%">NPT: {{ $solicitud_detalles->solicitud_detail['npt'] }}</td>
+                    <td style="width: 33.33%">NPT: {{ $tipo }}</td>
                 </tr>
             </table>
             <table style="margin-top: 0.5rem">
@@ -187,14 +203,14 @@
                     @foreach ($inputs_solicitud as $input_completo)
                         @if ($input_completo->input->category_id == 1)
 
-                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{$input_completo->input->unidad}}</strong><br>
+                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}} {{ ajustarUnidad($input_completo->input->unidad, $solicitud_detalles->solicitud_detail['npt']) }}</strong><br>
 
                         @endif
                     @endforeach
                     @foreach ($inputs_solicitud as $input_completo)
                     @if ($input_completo->input->category_id == 8)
 
-                    {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{$input_completo->input->unidad}}</strong><br>
+                    {{$input_completo->input->description}}: <strong>{{$input_completo->valor}} {{ ajustarUnidad($input_completo->input->unidad, $solicitud_detalles->solicitud_detail['npt']) }}</strong><br>
 
                     @endif
                     @endforeach
@@ -210,7 +226,7 @@
                     @foreach ($inputs_solicitud as $input_completo)
                         @if ($input_completo->input->category_id == 2)
 
-                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{$input_completo->input->unidad}}</strong><br>
+                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}} {{ ajustarUnidad($input_completo->input->unidad, $solicitud_detalles->solicitud_detail['npt']) }}</strong><br>
 
                         @endif
                     @endforeach
@@ -227,7 +243,7 @@
                     @foreach ($inputs_solicitud as $input_completo)
                         @if ($input_completo->input->category_id == 3)
 
-                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{$input_completo->input->unidad}}</strong><br>
+                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{ ajustarUnidad($input_completo->input->unidad, $solicitud_detalles->solicitud_detail['npt']) }}</strong><br>
 
                         @endif
                     @endforeach
@@ -246,7 +262,7 @@
                     @foreach ($inputs_solicitud as $input_completo)
                         @if ($input_completo->input->category_id == 4)
 
-                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{$input_completo->input->unidad}}</strong><br>
+                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{ ajustarUnidad($input_completo->input->unidad, $solicitud_detalles->solicitud_detail['npt']) }}</strong><br>
 
                         @endif
                     @endforeach
@@ -263,7 +279,7 @@
                     @foreach ($inputs_solicitud as $input_completo)
                         @if ($input_completo->input->category_id == 5)
 
-                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{$input_completo->input->unidad}}</strong><br>
+                        {{$input_completo->input->description}}: <strong>{{$input_completo->valor}}  {{ ajustarUnidad($input_completo->input->unidad, $solicitud_detalles->solicitud_detail['npt']) }}</strong><br>
 
                         @endif
                     @endforeach

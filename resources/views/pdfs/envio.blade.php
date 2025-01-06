@@ -83,7 +83,7 @@
             /* Hace desplazable el contenido que exceda el tamaño del td */
         }
 
-        .text-center{
+        .text-center {
             text-align: center
         }
     </style>
@@ -178,58 +178,77 @@
             </table>
             <table class="tg">
                 <thead>
-                  <tr>
-                    <th class="tg-0lax" style="text-align: center;">No</th>
-                    <th class="tg-0pky" style="text-align: center;">Medicamentos</th>
-                    <th class="tg-0pky" style="text-align: center;">Dosis</th>
-                    <th class="tg-yz93" style="text-align: center;">Volumen</th>
-                    <th class="tg-yz93" style="text-align: center;">Lote</th>
-                  </tr>
+                    <tr>
+                        <th style="text-align: center;">No</th>
+                        <th style="text-align: center;">Medicamentos</th>
+                        <th style="text-align: center;">Dosis</th>
+                        <th style="text-align: center;">Volumen</th>
+                        <th style="text-align: center;">Lote</th>
+                    </tr>
                 </thead>
                 <tbody>
-                  @php
-                    // Inicializamos la variable total
-                    $vol_total = 0;
+                    @php
+                        // Inicializamos la variable total
+                        $vol_total = 0;
 
-                    if (
-                        $solicitud_detalles->solicitud_detail['volumen_total'] == null ||
-                        $solicitud_detalles->solicitud_detail['volumen_total'] == 0
-                    ) {
-                        $vol_total = floatval($solicitud_detalles->solicitud_detail['suma_volumen']);
-                    } else {
-                        $vol_total = floatval($solicitud_detalles->solicitud_detail['volumen_total']);
-                    }
-                    $lote = $solicitud_detalles->solicitud_aprobada['lote'];
-                  @endphp
+                        if (
+                            $solicitud_detalles->solicitud_detail['volumen_total'] == null ||
+                            $solicitud_detalles->solicitud_detail['volumen_total'] == 0
+                        ) {
+                            $vol_total = floatval($solicitud_detalles->solicitud_detail['suma_volumen']);
+                        } else {
+                            $vol_total = floatval($solicitud_detalles->solicitud_detail['volumen_total']);
+                        }
+                        $lote = $solicitud_detalles->solicitud_aprobada['lote'];
+                    @endphp
 
-                  @foreach ($inputs_solicitud as $input_completo)
-                    <tr>
-                      <td class="tg-0lax">{{ $loop->iteration }}</td>
-                      <td class="tg-0pky">
-                        @isset($input_completo->input->medicine)
-                          {{ $input_completo->input->medicine->denominacion_generica }}
-                        @else
-                          Medicamento no disponible
-                        @endisset
-                      </td>
-                      <td class="tg-0pky">{{ $input_completo['valor'] }} {{ explode('/', $input_completo->input->unidad)[0] }}</td>
-                      @if ($loop->first)
-                        <td class="tg-yz93" style="text-align: center;" rowspan="{{ count($inputs_solicitud) }}">{{ number_format($vol_total, 2) }} mL</td>
-                        <td class="tg-yz93" style="text-align: center;" rowspan="{{ count($inputs_solicitud) }}">{{ $lote }}</td>
-                      @endif
-                    </tr>
-                  @endforeach
+                    @foreach ($inputs_solicitud as $input_completo)
+                        <tr>
+                            <td class="tg-0lax">{{ $loop->iteration }}</td>
+                            <td class="tg-0pky">
+                                @isset($input_completo->input->medicine)
+                                    {{ $input_completo->input->medicine->denominacion_generica }}
+                                @else
+                                    Medicamento no disponible
+                                @endisset
+                            </td>
+                            @php
+                                // Lógica para formatear el valor sin ceros innecesarios
+                                $valor_formateado =
+                                    strpos($input_completo['valor'], '.') !== false
+                                        ? number_format($input_completo['valor'], 3, '.', '')
+                                        : number_format($input_completo['valor'], 0);
+                            @endphp
+
+                            <td class="tg-0pky">
+                                {{ $valor_formateado }}
+                                {{ explode('/', $input_completo->input->unidad)[0] }}
+                            </td>
+                            @if ($loop->first)
+                                <td class="tg-yz93" style="text-align: center;"
+                                    rowspan="{{ count($inputs_solicitud) }}">{{ number_format($vol_total, 2) }} mL
+                                </td>
+                                <td class="tg-yz93" style="text-align: center;"
+                                    rowspan="{{ count($inputs_solicitud) }}">{{ $lote }}</td>
+                            @endif
+                        </tr>
+                    @endforeach
                 </tbody>
-              </table>
+            </table>
 
             <table>
                 <tr>
-                    <td style="padding-left: 5px"><strong>FECHA\HORA DE PREPARACIÓN: {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h</strong></td>
-                    <td style="padding-left: 5px"><strong>FECHA\HORA DE LIMITE DE USO: {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_limite_uso'])) }}h</strong></td>
+                    <td style="padding-left: 5px"><strong>FECHA\HORA DE PREPARACIÓN:
+                            {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h</strong>
+                    </td>
+                    <td style="padding-left: 5px"><strong>FECHA\HORA DE LIMITE DE USO:
+                            {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_limite_uso'])) }}h</strong>
+                    </td>
                 </tr>
                 <tr>
                     <td style="border-top: none; border-right: none"></td>
-                    <td style="text-align: right; border-top: none; border-left: none"><strong>Cantidad total de mezclas 1</strong></td>
+                    <td style="text-align: right; border-top: none; border-left: none"><strong>Cantidad total de mezclas
+                            1</strong></td>
                 </tr>
             </table>
             <br>
@@ -239,17 +258,21 @@
                 </tr>
                 <tr>
                     <td style="border: none; font-size: 11px">
-                        Fecha:_____________________________________________________________ <span style="border-bottom: 1px solid black; text-align: center"></span>
+                        Fecha:_____________________________________________________________ <span
+                            style="border-bottom: 1px solid black; text-align: center"></span>
                     </td>
                 </tr>
                 <tr>
-                    <td style="border: none; font-size: 11px">Hora de recibido:_____________________________________________________</td>
+                    <td style="border: none; font-size: 11px">Hora de
+                        recibido:_____________________________________________________</td>
                 </tr>
                 <tr>
-                    <td style="border: none; font-size: 11px">Temperatura:________________________________________________________</td>
+                    <td style="border: none; font-size: 11px">
+                        Temperatura:________________________________________________________</td>
                 </tr>
                 <tr>
-                    <td style="border: none; font-size: 11px">Nombre completo/firma y sello:__________________________________________</td>
+                    <td style="border: none; font-size: 11px">Nombre completo/firma y
+                        sello:__________________________________________</td>
                 </tr>
             </table>
         </div>

@@ -53,7 +53,7 @@
         td {
             border: 1px solid black;
             text-align: left;
-            padding: 8px;
+            padding: 4px 4px;
             font-size: 10px
         }
 
@@ -77,8 +77,7 @@
             <table class="introduccion">
                 <tr>
                     <td style="width: 25%">
-                        <img style="width: 7rem" src="{{ asset('img/logo-cbta.png') }}"
-                            alt="">
+                        <img style="width: 7rem" src="{{ asset('img/logo-cbta.png') }}" alt="">
                     </td>
                     <td style="width: 50%; margin: 0 auto; text-align: center; font-weight: bold; font-size: 15px">
                         <strong>{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</strong>
@@ -122,7 +121,8 @@
                 <tr>
                     <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
                         {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
-                    <td style="text-align: center">{{  date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</td>
+                    <td style="text-align: center">
+                        {{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</td>
                     <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['edad'] }}</td>
                     <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['sexo'] }}</td>
                     <td style="text-align: center">S/D</td>
@@ -161,7 +161,7 @@
                     <th style="border-top: none; background: #D9E2F3; width: 5%; text-align: center;">
                         <strong>No</strong>
                     </th>
-                    <th style="border-top: none; background: #D9E2F3; width: 25%; text-align: center">
+                    <th style="border-top: none; background: #D9E2F3; width: 30%; text-align: center">
                         <strong>MEDICAMENTO</strong>
                     </th>
                     <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center">
@@ -169,10 +169,10 @@
                     </th>
                     <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center"><strong>LOTE DE LA
                             MEZCLA</strong></th>
-                    <th style="border-top: none; background: #D9E2F3; width: 17.5%; text-align: center">
+                    <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
                         <strong>PRESENTACIÓN</strong>
                     </th>
-                    <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
+                    <th style="border-top: none; background: #D9E2F3; width: 8.5%; text-align: center">
                         <strong>CANTIDAD</strong>
                     </th>
                     <th style="border-top: none; background: #D9E2F3; width: 7.5%; text-align: center"><strong>PRECIO
@@ -199,9 +199,24 @@
                                     Medicamento no disponible
                                 @endisset
                             </strong></td>
-                        <td style="text-align: center">{{ $input_completo['valor'] }}
-                            {{ explode('/', $input_completo->input->unidad)[0] }}</td>
-                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</td>
+                        @php
+                            // Lógica para formatear el valor sin ceros innecesarios
+                            $valor_formateado =
+                                strpos($input_completo['valor'], '.') !== false
+                                    ? number_format($input_completo['valor'], 3, '.', '')
+                                    : number_format($input_completo['valor'], 0);
+                        @endphp
+
+                        <td style="text-align: center">
+                            {{ $valor_formateado }}
+                            {{ explode('/', $input_completo->input->unidad)[0] }}
+                        </td>
+
+
+                        @if ($loop->first)
+                            <td style="text-align: center; border:none" rowspan="{{ count($inputs_solicitud) }}">{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</td>
+                        @endif
+
                         <td style="text-align: center">
                             @isset($input_completo->input->medicine)
                                 {{ $input_completo->input->medicine->presentacion }}
@@ -254,8 +269,8 @@
                                 Medicamento no disponible
                             @endisset
                         </strong></td>
-                    <td style="text-align: center"></td>
-                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</td>
+                    <td style="text-align: center;"></td>
+                    <td style="text-align: center; border-top: none !important;"></td>
                     <td style="text-align: center">
 
                     </td>
@@ -314,7 +329,7 @@
                     @endphp
                     <td style="text-align: center">{{ $contador }}</td>
                     <td><strong>
-                            {{ $servicio_preparacion->denominacion_generica}}
+                            {{ $servicio_preparacion->denominacion_generica }}
                         </strong></td>
                     <td style="text-align: center"></td>
                     <td style="text-align: center"></td>

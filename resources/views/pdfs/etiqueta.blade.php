@@ -1,3 +1,20 @@
+@php
+
+
+    function ajustarUnidad($unidad, $npt) {
+        if ($npt === 'ADULT') {
+            if ($unidad === 'g/Kg') {
+                return 'g/día';
+            } elseif ($unidad === 'mEq/Kg') {
+                return 'mEq/día';
+            }
+        }
+        return $unidad; // Devuelve la unidad original si no se cumplen las condiciones.
+    }
+
+
+
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -53,7 +70,7 @@
         td {
             border: 1px solid black;
             text-align: left;
-            padding: 2px 3px;
+            padding: 0px 3px;
             font-size: 9px
         }
 
@@ -120,8 +137,8 @@
             </table>
             <table>
                 <tr>
-                    <td style="border: none; border-bottom: 1px solid black; text-align: center; width: 50%"><strong>COMPONENTES</strong></td>
-                    <td style="border: none; border-bottom: 1px solid black; text-align: center; width: 50%"><strong>CONTENIDO</strong></td>
+                    <td style="border: none; border-bottom: 1px solid black; text-align: center; width: 80%"><strong>COMPONENTES</strong></td>
+                    <td style="border: none; border-bottom: 1px solid black; text-align: center; width: 20%"><strong>CONTENIDO</strong></td>
                 </tr>
                 @php
                     $osmolaridad_total = 0; // Inicializamos la variable total
@@ -142,16 +159,21 @@
                                 @endphp
                             @endisset
                         </td>
-                        <td style="border:none; text-align: center; width: 50%; padding: 0; margin:0;"><strong>{{ $input_completo['valor'] }}</strong>
-                            {{ explode('/', $input_completo->input->unidad)[0] }}</td>
+                        <td style="border:none; text-align: center; width: 50%; padding: 0; margin:0;"><strong>
+                            @php
+                                $valor = $input_completo['valor'];
+                                $valorFormateado = strpos($valor, '.') !== false ? number_format($valor, 3, '.', '') : number_format($valor, 0);
+                            @endphp
+                            {{ $valorFormateado }}</strong>
+                            {{ ajustarUnidad($input_completo->input->unidad, $solicitud_detalles->solicitud_detail['npt']) }}</td>
                     </tr>
                 @endforeach
 
             </table>
             <table>
-                <tr>
-                    <td style="border: none; border-top: 1px solid black;"><strong>Osmolaridad:</strong> {{ number_format($osmolaridad_total, 2) }} mOSM/mL</td>
-                    <td style="border: none; border-top: 1px solid black;"><strong>Vol. tot:</strong> @if (
+                <tr style="padding: 0; margin: 0">
+                    <td style="border: none; border-top: 1px solid black; padding: 0; margin: 0"><strong>Osmolaridad:</strong> {{ number_format($osmolaridad_total, 2) }} mOSM/mL</td>
+                    <td style="border: none; border-top: 1px solid black; padding: 0; margin: 0"><strong>Vol. tot:</strong> @if (
                         $solicitud_detalles->solicitud_detail['volumen_total'] == null ||
                             $solicitud_detalles->solicitud_detail['volumen_total'] == 0)
                             {{ number_format($solicitud_detalles->solicitud_detail['suma_volumen'], 2) }}
@@ -160,14 +182,14 @@
                         @endif mL
                     </td>
                 </tr>
-                <tr>
-                    <td style="border: none"><strong>Sobrellenado:</strong> @isset($solicitud_detalles->solicitud_detail['sobrellenado_ml'])
+                <tr style="padding: 0; margin: 0">
+                    <td style="border: none; padding: 0; margin: 0"><strong>Sobrellenado:</strong> @isset($solicitud_detalles->solicitud_detail['sobrellenado_ml'])
                             {{ $solicitud_detalles->solicitud_detail['sobrellenado_ml'] }}
                         @else
                             0
                         @endisset mL</td>
                 </tr>
-                <tr>
+                <tr style="padding: 0; margin: 0">
                     @php
                         // Inicializamos la variable total
                         $vol_total = 0;
@@ -181,14 +203,14 @@
                             $vol_total = floatval($solicitud_detalles->solicitud_detail['volumen_total']);
                         }
                     @endphp
-                    <td style="border: none"><strong>Administrar en:</strong>
+                    <td style="border: none; padding: 0; margin: 0"><strong>Administrar en:</strong>
                         @isset($solicitud_detalles->solicitud_detail['velocidad_infusion'])
                             {{ ceil($vol_total / $solicitud_detalles->solicitud_detail['velocidad_infusion']) }} h
                         @else
                             {{ $solicitud_detalles->solicitud_detail['tiempo_infusion_min'] }} h
                         @endisset
                     </td>
-                    <td style="border: none"><strong>Vel. Infusión:</strong>
+                    <td style="border: none; padding: 0; margin: 0"><strong>Vel. Infusión:</strong>
                         @isset($solicitud_detalles->solicitud_detail['velocidad_infusion'])
                             {{ $solicitud_detalles->solicitud_detail['velocidad_infusion'] }}
                         @else
@@ -204,12 +226,12 @@
                         HASTA UNA HORA ANTES DE SU ADMINISTRACIÓN</strong></td>
                 </tr>
                 <tr>
-                    <td style="border: none; text-align: center"><strong>Fecha y hora de preparación:</strong>
+                    <td style="border: none; text-align: center; padding: 0; margin: 0"><strong>Fecha y hora de preparación:</strong>
                         {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h
                     </td>
                 </tr>
                 <tr>
-                    <td style="border: none; text-align: center">
+                    <td style="border: none; text-align: center; padding: 0; margin: 0">
                         <strong>Fecha y hora límite de uso:</strong>
                         {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_limite_uso'])) }}h
                     </td>

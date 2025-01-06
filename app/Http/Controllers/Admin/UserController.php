@@ -21,7 +21,6 @@ class UserController extends Controller
         $users = User::select('id', 'name', 'lastname', 'username', 'is_active', 'hospital_id')
             ->with('roles:name') // Cargar los roles de los usuarios
             ->paginate(10);
-
         //return $users;
         return view('admin.users.index', compact('users'));
     }

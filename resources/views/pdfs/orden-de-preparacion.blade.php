@@ -189,8 +189,7 @@
                             {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</span>
                     </td>
                     <td style="border: none; padding: 0 auto;"><strong>Médico tratante:
-                        </strong>{{ $solicitud_detalles->solicitud_patient['nombre_medico'] }}<span>Dr. Alfonso Fajardo
-                            R.</span></td>
+                        </strong><span>{{ $solicitud_detalles->solicitud_detail->nombre_medico }}</span></td>
                 </tr>
                 <tr>
                     <td style="border: none; padding: 0 auto;"><strong>Registro:</strong> <span
@@ -254,14 +253,18 @@
                             @endphp
 
                             <td>{{ $valor_final }} mL</td>
-                            @if ($input_completo->input_id != 37)
-                                <td style="text-align: center">{{ $input_completo['valor'] }}
-                                    {{ explode('/', $input_completo->input->unidad)[0] }}</td>
-                            @else
-                                <td style="text-align: center">
-                                    {{ number_format($input_completo['valor'], 3, '.', '') }}
-                                    {{ explode('/', $input_completo->input->unidad)[0] }}</td>
-                            @endif
+                            @php
+                                // Lógica para formatear el valor sin ceros innecesarios
+                                $valor_formateado =
+                                    strpos($input_completo['valor'], '.') !== false
+                                        ? number_format($input_completo['valor'], 3, '.', '')
+                                        : number_format($input_completo['valor'], 0);
+                            @endphp
+
+                            <td style="text-align: center">
+                                {{ $valor_formateado }}
+                                {{ explode('/', $input_completo->input->unidad)[0] }}
+                            </td>
                             <td>
                                 @isset($input_completo->input->medicine)
                                     {{ $input_completo->input->medicine->denominacion_generica }}
