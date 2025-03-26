@@ -275,6 +275,17 @@
                         sello:__________________________________________</td>
                 </tr>
             </table>
+            <table style="width: 80%; margin: 0 auto;">
+                <tr class="">
+                    <td style="text-align: left; border: none; padding-top: 2rem; font-size: 8px;">
+                        <strong>NOTA IMPORTANTE:</strong>
+                    El cliente reconoce que la mezcla estéril entregada debe ser mantenida bajo condiciones  adecuadas de almacenamiento, asegurando la conservación de la red fría en todo momento.
+                    <br>
+                    El centro de mezcla no asume ninguna responsabilidad por el deterioro o pérdida de eficacia del producto debido a un manejo inadecuado posterior a la entrega.
+                    </td>
+                </tr>
+            </table>
+
         </div>
 </body>
 
