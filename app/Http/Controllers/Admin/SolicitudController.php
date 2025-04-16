@@ -26,6 +26,9 @@ use Spatie\LaravelIgnition\Recorders\DumpRecorder\Dump;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Notification;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\SolicitudesExport;
+
 
 class SolicitudController extends Controller
 {
@@ -1235,4 +1238,11 @@ class SolicitudController extends Controller
 
         return $pdf->stream();
     }
+
+
+    public function exportarExcel()
+    {
+        return Excel::download(new SolicitudesExport, 'solicitudes.xlsx');
+    }
+
 }
