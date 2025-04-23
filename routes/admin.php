@@ -13,7 +13,7 @@ use App\Exports\SolicitudesExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 //Debemos avisarle a laravel que hemos creado un nuevo archivo de rutas en providers
-Route::get('/', function(){
+Route::get('/dashboard', function(){
 //     session()->flash('swal', [
 //         'icon'=>"error",
 //         'title'=>"Oops...",
@@ -24,7 +24,7 @@ Route::get('/', function(){
 })->name('dashboard');
 
 
-Route::get('/solicitudes/exportar', [SolicitudController::class, 'exportarExcel'])
+Route::get('nutricionales/solicitudes/exportar', [SolicitudController::class, 'exportarExcel'])
     ->name('solicitudes.exportar')
     ->middleware(['can:solicitudes_index']);
 
@@ -45,7 +45,7 @@ Route::resource('/hospitals', HospitalController::class)
     ->except(['show','destroy'])
     ->middleware(['can:hospitales']);
 
-Route::resource('/medicines', MedicineController::class)
+Route::resource('nutricionales/medicines', MedicineController::class)
     ->except(['destroy'])
     ->middleware(['can:medicamentos']);
 
@@ -53,43 +53,43 @@ Route::resource('/medicines', MedicineController::class)
 //     ->middleware(['can:solicitudes']);
 
     // Ruta para mostrar todas las solicitudes
-Route::get('solicitudes', [SolicitudController::class, 'index'])->name('solicitudes.index')
+Route::get('nutricionales/solicitudes', [SolicitudController::class, 'index'])->name('solicitudes.index')
 ->middleware(['can:solicitudes_index']);
 // Ruta para mostrar el formulario de creación de solicitud
-Route::get('solicitudes/create', [SolicitudController::class, 'create'])->name('solicitudes.create')
+Route::get('nutricionales/solicitudes/create', [SolicitudController::class, 'create'])->name('solicitudes.create')
 ->middleware(['can:solicitudes_create']);
 
 // Ruta para almacenar una nueva solicitud
-Route::post('solicitudes', [SolicitudController::class, 'store'])->name('solicitudes.store')
+Route::post('nutricionales/solicitudes', [SolicitudController::class, 'store'])->name('solicitudes.store')
 ->middleware(['can:solicitudes_store']);
 
 // Ruta para mostrar una solicitud específica
-Route::get('solicitudes/{solicitud}', [SolicitudController::class, 'show'])->name('solicitudes.show')
+Route::get('nutricionales/solicitudes/{solicitud}', [SolicitudController::class, 'show'])->name('solicitudes.show')
 ->middleware(['can:solicitudes_show']);
 
 // Ruta para mostrar el formulario de edición de una solicitud
-Route::get('solicitudes/{solicitud}/edit', [SolicitudController::class, 'edit'])->name('solicitudes.edit')
+Route::get('nutricionales/solicitudes/{solicitud}/edit', [SolicitudController::class, 'edit'])->name('solicitudes.edit')
 ->middleware(['can:solicitudes_edit']);
 
 // Ruta para actualizar una solicitud específica
-Route::put('solicitudes/{solicitud}', [SolicitudController::class, 'update'])->name('solicitudes.update')
+Route::put('nutricionales/solicitudes/{solicitud}', [SolicitudController::class, 'update'])->name('solicitudes.update')
 ->middleware(['can:solicitudes_update']);
 
 // También puedes excluir la ruta de eliminación
 // Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy']);
 
-Route::get('/solicitudes/solicitud/{solicitud}', [SolicitudController::class, 'solicitud'])->name('solicitudes.solicitud')
+Route::get('nutricionales/solicitudes/solicitud/{solicitud}', [SolicitudController::class, 'solicitud'])->name('solicitudes.solicitud')
     ->middleware(['can:solicitudes_index']);
 
-Route::get('/solicitudes/orden-de-preparacion/{solicitud}', [SolicitudController::class, 'ordenPreparacion'])->name('solicitudes.ordenPreparacion')
+Route::get('nutricionales/solicitudes/orden-de-preparacion/{solicitud}', [SolicitudController::class, 'ordenPreparacion'])->name('solicitudes.ordenPreparacion')
     ->middleware(['can:solicitudes_index']);
 
-Route::get('/solicitudes/remision/{solicitud}', [SolicitudController::class, 'remision'])->name('solicitudes.remision')
+Route::get('nutricionales/solicitudes/remision/{solicitud}', [SolicitudController::class, 'remision'])->name('solicitudes.remision')
     ->middleware(['can:solicitudes_index']);
 
-Route::get('/solicitudes/envio/{solicitud}', [SolicitudController::class, 'envio'])->name('solicitudes.envio')
+Route::get('nutricionales/solicitudes/envio/{solicitud}', [SolicitudController::class, 'envio'])->name('solicitudes.envio')
     ->middleware(['can:solicitudes_index']);
 
-Route::get('/solicitudes/etiqueta/{solicitud}', [SolicitudController::class, 'etiqueta'])->name('solicitudes.etiqueta')
+Route::get('nutricionales/solicitudes/etiqueta/{solicitud}', [SolicitudController::class, 'etiqueta'])->name('solicitudes.etiqueta')
     ->middleware(['can:solicitudes_index']);
 

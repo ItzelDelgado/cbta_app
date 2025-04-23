@@ -651,7 +651,7 @@
                                 @if ($hasData)
                                     {{-- Renderiza solo si hay datos --}}
                                     <div class="w-full">
-                                        <div class="mb-4 flex items-baseline gap-2 w-full">
+                                        <div class="mb-4 flex flex-wrap items-baseline gap-2 w-full">
                                             <div class="flex w-[40%]">
                                                 <x-label class="mb-2 whitespace-nowrap">
                                                     {{ $input->description }}:
