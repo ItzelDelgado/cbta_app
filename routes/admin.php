@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\SolicitudController;
 use App\Http\Controllers\Admin\UserController;
 use App\Models\Solicitud;
 use Illuminate\Support\Facades\Route; //Importamos para generar nuestras rutas.
+use App\Exports\SolicitudesExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 //Debemos avisarle a laravel que hemos creado un nuevo archivo de rutas en providers
 Route::get('/', function(){
@@ -21,6 +23,10 @@ Route::get('/', function(){
     return view('admin.dashboard');
 })->name('dashboard');
 
+
+Route::get('/solicitudes/exportar', [SolicitudController::class, 'exportarExcel'])
+    ->name('solicitudes.exportar')
+    ->middleware(['can:solicitudes_index']);
 
 
 Route::resource('/users', UserController::class)
@@ -86,3 +92,4 @@ Route::get('/solicitudes/envio/{solicitud}', [SolicitudController::class, 'envio
 
 Route::get('/solicitudes/etiqueta/{solicitud}', [SolicitudController::class, 'etiqueta'])->name('solicitudes.etiqueta')
     ->middleware(['can:solicitudes_index']);
+

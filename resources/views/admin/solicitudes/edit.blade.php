@@ -595,7 +595,7 @@
                                     @endphp
                                     <div class="w-full">
                                         <div
-                                            class="mb-4 flex items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
+                                            class="mb-4 flex flex-wrap items-baseline gap-2 w-full {{ $hasData ? 'bg-yellow-200' : '' }}">
                                             <div class="flex w-[40%]">
                                                 <x-label class="mb-2 whitespace-nowrap font-bold">
                                                     {{ $input->description }}:
