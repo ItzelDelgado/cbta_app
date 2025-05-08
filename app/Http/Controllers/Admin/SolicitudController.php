@@ -43,7 +43,7 @@ class SolicitudController extends Controller
             // Si el usuario es un administrador, cargar todas las solicitudes
             $solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
                 ->latest()
-                ->paginate(10);
+                ->paginate(30);
         } elseif ($role === 'Cliente') {
             // Si el usuario es un cliente, cargar solo sus propias solicitudes
             $solicitudes = Solicitud::where('user_id', $user->id)

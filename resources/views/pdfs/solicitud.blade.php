@@ -102,10 +102,10 @@
     <div class="contenedor">
         <!-- Contenedor principal con borde negro -->
         <div class="introduccion">
-            <table>
+            <table style="margin-top: 1rem; margin-bottom: 1rem">
                 <tr>
                     <td style="width: 20%">
-                        <img style="width: 7rem; padding: 5px" src="{{ asset('img/logo-cbta.png') }}" alt="">
+                        <img style="width: 10rem;" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
                     </td>
                     <td style="width: 60%; margin: 0 auto; text-align: center; font-size: 13px">
                         <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM <br> NUTRICIONES PARENTERALES</strong>
@@ -204,6 +204,7 @@
                         @if ($input_completo->input->category_id == 1)
 
                         {{$input_completo->input->description}}: <strong>{{$input_completo->valor}} {{ ajustarUnidad($input_completo->input->unidad, $solicitud_detalles->solicitud_detail['npt']) }}</strong><br>
+
 
                         @endif
                     @endforeach

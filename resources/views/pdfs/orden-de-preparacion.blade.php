@@ -22,10 +22,19 @@
             /* Fondo blanco para el body */
         }
 
+        .title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .salto-pagina {
+            page-break-before: always;
+        }
+
         /* Contenedor principal con borde negro */
         .contenedor {
-            border: 2px solid black;
-            padding: 0 2px;
+            padding: 0;
             font-family: "Arial", sans-serif;
         }
 
@@ -69,15 +78,62 @@
         }
 
         .firmas td {
-            border: none;
+
             text-align: center;
-            border-top: 1px solid black;
         }
 
         .elementos td {
             margin: 0;
             padding: 0 8px;
 
+        }
+
+        .border-r-0 {
+            border-right: none;
+        }
+
+        .border-l-0 {
+            border-left: none;
+        }
+
+        .border-t-0 {
+            border-top: none;
+        }
+
+        .border-b-0 {
+            border-bottom: none;
+        }
+
+        .border-0 {
+            border: none;
+        }
+
+        .border-1 {
+            border: 1px solid black;
+        }
+
+        .border-t-1 {
+            border-top: 1px solid black;
+        }
+
+        .border-b-1 {
+            border-bottom: 1px solid black;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .fond-bold{
+            font-weight: bold;
         }
     </style>
 
@@ -88,11 +144,12 @@
 
     <div class="contenedor">
         <!-- Contenedor principal con borde negro -->
-        <div class="introduccion">
-            <table>
+        <div class="introduccion"
+            style="border: 1px solid black; border-bottom: none; ">
+            <table style="">
                 <tr>
                     <td style="width: 20%">
-                        <img style="width: 7rem" src="{{ asset('img/logo-cbta.png') }}" alt="">
+                        <img style="width: 10rem" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
                     </td>
                     <td style="width: 60%; margin: 0 auto; text-align: center; font-size: 13px">
                         <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM <br> NUTRICIONES PARENTERALES</strong>
@@ -105,7 +162,7 @@
         </div>
         <table>
             <tr>
-                <td style="border-top: 2px solid black; text-align: right; color: blue; padding: 2px 8px;">
+                <td style="text-align: right; color: blue; padding: 2px 8px;">
                     FTO-NPT-023-005
                 </td>
             </tr>
@@ -114,62 +171,70 @@
             </tr>
         </table>
 
-        <table>
-            <tr>
-                <td style="border: none; text-align: right"><strong>Fecha de elaboración:</strong>
-                    <span>{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_aprobada['created_at'])) }}</span>
-                </td>
-            </tr>
-            <tr>
-                <td style="border: none; margin:0; padding: 0 8px;"><strong>LIBERACIÓN DE ÁREA</strong></td>
-            </tr>
-        </table>
-        <table class="liberacion-area" style="margin-bottom: 0.3rem;">
-            <tr>
-                <td style="border: none;"></td>
-                <td>Si</td>
-                <td>No</td>
-            </tr>
-            <tr>
-                <td style="border: none">El personal encargado de la preparación porta el uniforme correspondiente a la
-                    actividad a realizar?</td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td style="border: none;">El área de preparación y campana de seguridad biólogica se encuentran limpios?
-                </td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td style="border: none">¿La zona de paso de material y de trabajo de la CSB se encuentra libre de
-                    material?</td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td style="border: none">¿El área de preparación se encuentra libre de material y documentos ajenos a la
-                    mezcla en turno a preparar?</td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td style="border: none"><strong>¿Se considera liberada el área para la preparación de la
-                        mezcla?</strong></td>
-                <td></td>
-                <td></td>
-            </tr>
-        </table>
-        <table style="width: 350px; margin: 0; padding: 0">
-            <tr style="">
-                <td style="border-bottom: none;  padding: 2px 4px;">Sanitizante:</td>
-                <td style="width: 20px; border-bottom: none; padding: 2px 4px;"></td>
-                <td style="border-bottom: none; padding: 2px 4px;">Alcohol Isopropilico</td>
-                <td style="width: 20px; border-bottom: none; padding: 2px 4px;"></td>
-                <td style="border-bottom:none; padding: 2px 4px;">Critical 0.2%</td>
-            </tr>
-        </table>
+        <div style="border-left: 1px solid black; border-right: 1px solid black;margin-bottom: 0rem;">
+            <table>
+                <tr>
+                    <td style="border: none; text-align: right"><strong>Fecha de elaboración:</strong>
+                        <span>{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_aprobada['created_at'])) }}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: none; margin:0; padding: 0 8px;"><strong>LIBERACIÓN DE ÁREA</strong></td>
+                </tr>
+            </table>
+            <table class="liberacion-area" style="margin-bottom: 0.3rem;">
+                <tr>
+                    <td style="border: none;"></td>
+                    <td style="border-button: none">Si</td>
+                    <td style="border-button: none; border-right: none">No</td>
+                </tr>
+                <tr>
+                    <td style="border: none">El personal encargado de la preparación porta el uniforme correspondiente a
+                        la
+                        actividad a realizar?</td>
+                    <td></td>
+                    <td style="border-right: none"></td>
+                </tr>
+                <tr>
+                    <td style="border: none;">El área de preparación y campana de seguridad biólogica se encuentran
+                        limpios?
+                    </td>
+                    <td></td>
+                    <td style="border-right: none"></td>
+                </tr>
+                <tr>
+                    <td style="border: none">¿La zona de paso de material y de trabajo de la CSB se encuentra libre de
+                        material?</td>
+                    <td></td>
+                    <td style="border-right: none"></td>
+                </tr>
+                <tr>
+                    <td style="border: none">¿El área de preparación se encuentra libre de material y documentos ajenos
+                        a la
+                        mezcla en turno a preparar?</td>
+                    <td></td>
+                    <td style="border-right: none"></td>
+                </tr>
+                <tr>
+                    <td style="border: none"><strong>¿Se considera liberada el área para la preparación de la
+                            mezcla?</strong></td>
+                    <td></td>
+                    <td style="border-right: none"></td>
+                </tr>
+            </table>
+            <table style="width: 500px; margin: 0; padding: 0">
+                <tr style="">
+                    <td style="border-bottom: none; border-left: none; padding: 2px 4px;">Sanitizante:</td>
+                    <td style="width: 20px; border-bottom: none; padding: 2px 4px;"></td>
+                    <td style="border-bottom: none; padding: 2px 4px;">Alcohol Isopropilico</td>
+                    <td style="width: 20px; border-bottom: none; padding: 2px 4px;"></td>
+                    <td style="border-bottom:none; padding: 2px 4px;">Critical 0.2%</td>
+                    <td style="width: 20px; border-bottom: none; padding: 2px 4px;"></td>
+                    <td style="border-bottom:none; padding: 2px 4px;">Glutaraldehído</td>
+                    <td style="width: 20px; border-bottom: none; padding: 2px 4px;"></td>
+                </tr>
+            </table>
+        </div>
         <div style=" border: 1px solid black; margin-bottom: 0rem;">
             <table style="padding: 0; margin: 0">
                 <tr style="margin: 0; padding: 0">
@@ -180,8 +245,10 @@
                         NUT{{ substr($solicitud_detalles->solicitud_aprobada['lote'], 1) }}</td>
                 </tr>
             </table>
-            <p style="padding: 2px 8px; border-top: 1px solid black; border-bottom: 1px solid black; margin: 0;"><strong>DATOS DEL
-                    PACIENTE</strong></p>
+            <p style="padding: 2px 8px; border-top: 1px solid black; border-bottom: 1px solid black; margin: 0;">
+                <strong>DATOS DEL
+                    PACIENTE</strong>
+            </p>
             <table style="margin: 0; padding-top: 2px">
                 <tr style="padding: 0">
                     <td style="border: none; padding: 0 auto;"><strong>Nombre:</strong>
@@ -219,7 +286,9 @@
                 </tr>
             </table>
         </div>
-        <p style="padding: 2px 4px; border: 0px solid black; margin: 0;"><strong>NUTRICIÓN PARENTERAL TOTAL</strong></p>
+        <p style="padding: 2px 4px; border-left: 1px solid black; border-right: 1px solid black; margin: 0;">
+            <strong>NUTRICIÓN PARENTERAL TOTAL</strong>
+        </p>
         <table class="elementos">
             <thead>
                 <tr>
@@ -261,18 +330,19 @@
                                         : number_format($input_completo['valor'], 0);
                             @endphp
 
-                            <td style="text-align: center">
+                            <td style="font-size: 8px">
+
                                 {{ $valor_formateado }}
                                 {{ explode('/', $input_completo->input->unidad)[0] }}
                             </td>
-                            <td>
+                            <td style="font-size: 8px">
                                 @isset($input_completo->input->medicine)
                                     {{ $input_completo->input->medicine->denominacion_generica }}
                                 @else
                                     Medicamento no disponible
                                 @endisset
                             </td>
-                            <td>
+                            <td style="font-size: 8px">
                                 @isset($input_completo->input->medicine)
                                     {{ $input_completo->input->medicine->denominacion_comercial }}
                                 @else
@@ -289,7 +359,7 @@
                             {{-- <td>{{ $input_completo['lote'] }}</td>
                             <td>{{  date('d-m-Y', strtotime($input_completo['caducidad'])) }}</td> --}}
                             <td>{{ $input_completo['lote'] ? $input_completo['lote'] : '' }}</td>
-                            <td>{{ $input_completo['caducidad'] ? date('d-m-Y', strtotime($input_completo['caducidad'])) : '' }}
+                            <td style="font-size: 7px">{{ $input_completo['caducidad'] ? date('d-m-Y', strtotime($input_completo['caducidad'])) : '' }}
                             </td>
                         </tr>
                     @endif
@@ -305,7 +375,10 @@
                         style="font-weight: bold;">{{ $bolsa_eva->input->medicine->presentacion_ml }} mL</span></td>
             </tr>
         </table>
-        <p style="padding: 2px 8px; text-align: center; margin: 0;"><strong>Bolsa EVA</strong></p>
+        <p
+            style="padding: 2px 8px; text-align: center; margin: 0; border-left: 1px solid black; border-right: 1px solid black;">
+            <strong>Bolsa EVA</strong>
+        </p>
         <table style="padding: 0; margin: 0">
             <tr style="padding: 0; margin: 0">
                 <td style="background: #D9E2F3; padding: 2px 8px; margin: 0"></td>
@@ -322,7 +395,10 @@
                 <td style="padding: 2px 8px; margin: 0">{{ $bolsa_eva->input->medicine->denominacion_generica }}</td>
             </tr>
         </table>
-        <p style="padding: 2px 8px; text-align: center; margin: 0;"><strong>Set de infusión</strong></p>
+        <p
+            style="padding: 2px 8px; text-align: center; margin: 0; border-left: 1px solid black; border-right: 1px solid black;">
+            <strong>Set de infusión</strong>
+        </p>
         <table>
             <tr>
                 <td style="background: #D9E2F3; padding: 2px 8px; margin: 0"></td>
@@ -363,17 +439,255 @@
                 </td>
             </tr>
         </table>
-        <br>
-        <table class="firmas">
-            <tr>
-                <td>Elaboró <br> Nombre y firma</td>
-                <td>Validó <br> Nombre y firma</td>
-                <td>Preparó <br> Nombre y firma</td>
-            </tr>
-
-        </table>
+        <div style="border: 1px solid black; margin-bottom: 0rem; border-top: none;">
+            <table class="firmas" style="padding-top: 2rem">
+                <tr>
+                    <td style="width: 2%; border: none;"></td>
+                    <td style="border: none; border-top: 1px solid black;">Elaboró <br> Nombre y firma</td>
+                    <td style="width: 2%; border: none;"></td>
+                    <td style="border: none; border-top: 1px solid black;">Validó <br> Nombre y firma</td>
+                    <td style="width: 2%; border: none;"></td>
+                    <td style="border: none; border-top: 1px solid black;">Preparó <br> Nombre y firma</td>
+                    <td style="width: 2%; border: none;"></td>
+                </tr>
+            </table>
+        </div>
 
     </div>
+    {{-- separar hojas --}}
+    <div class="salto-pagina contenedor border-1">
+        <div class="introduccion" >
+            <table style="">
+                <tr>
+                    <td style="width: 20%">
+                        <img style="width: 10rem" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
+                    </td>
+                    <td style="width: 60%; margin: 0 auto; text-align: center; font-size: 13px">
+                        <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM <br> NUTRICIONES PARENTERALES</strong>
+                    </td>
+                    <td style="width: 20%">
+
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <table>
+            <tr>
+                <td style="text-align: right; color: blue; padding: 2px 8px;">
+                    FTO-NPT-023-005
+                </td>
+            </tr>
+            <tr style="background-color: #1F4E78; color: white; font-weight: bold;">
+                <td style="text-align: center;">INSPECCIÓN DE MEZCLAS ESTÉRILES NUTRICIONALES</td>
+            </tr>
+        </table>
+        <div>
+            <p style="margin: 0.5rem">VERIFICACIÓN DE ÁREAS</p>
+            <div class="border-1" style="padding: 0.5rem; margin: 0.5rem">
+                <table class="border-0">
+                    <tr>
+                        <td class="border-b-0 border-t-0 border-r-0 border-l-0"></td>
+                        <td class="border-b-0 text-center">SI</td>
+                        <td class="border-b-0 text-center">NO</td>
+                    </tr>
+                    <tr>
+                        <td class="border-b-0 border-t-0 border-r-0 border-l-0 text-right">¿El área se encuentra limpia
+                            y disponible?</td>
+                        <td class=""></td>
+                        <td class=""></td>
+                    </tr>
+                    <tr>
+                        <td class="border-b-0 border-t-0 border-r-0 border-l-0 text-right">¿El área se encuentra libre
+                            de material y documentos ajenos a la mezcla en turno a
+                            inspeccionar?
+                        </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+            <table>
+                <tr>
+                    <td class="border-0" style="width: 50%">Fecha: <span>{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_aprobada['created_at'])) }}</span></td>
+                    <td class="border-0 text-right" style="width: 50%">Hora de inspección: _____________ </td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td style="width: 15%" class="border-0"><strong>Tipo de contenedor</strong></td>
+                    <td style="width: 10%" class="border-0">Bolsa</td>
+                    <td style="width: 5%"></td>
+                    <td class="border-0" style="widows: 70%"></td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="border-0">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td colspan="3" class="text-center"><strong>Inpección de la bolsa</strong></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 60%"></td>
+                                <td class="text-center" style="width: 20%">si</td>
+                                <td class="text-center" style="width: 20%">no</td>
+                            </tr>
+                            <tr>
+                                <td>¿Esta rotulado?</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>No. De lote</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Rubrica del preparador</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Tiene sello de seguridad?</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>¿Presenta fugas?</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-center"><strong>Inspección física del set de infusión</strong></td>
+                            </tr>
+                            <tr>
+                                <td>¿Set conectado?</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>¿Pinza de seguridad cerrada?</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>¿Regulador de goteo cerrado?</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>¿Aprueba la inspección física del contenedor?</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td class="border-0"></td>
+                    <td class="border-0">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td colspan="3" class="text-center"><strong>Inspección del contenido</strong></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 60%"></td>
+                                <td class="text-center" style="width: 20%">si</td>
+                                <td class="text-center" style="width: 20%">no</td>
+                            </tr>
+                            <tr>
+                                <td>¿La coloración es apropiada?</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>¿Es homogéneo?</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>¿Presenta partículas?</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>¿Presenta turbidez?</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>¿Volumen correcto?</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>¿Aprueba la inspección del contenido?</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="border-0"></td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="border-0">Peso de la mezcla (g): ______________</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <table style="width: 70%; border-collapse: collapse; padding: 0.5rem">
+                <tr>
+                    <td class="text-right"><strong>LA MEZCLA SE CONSIDERA APROBADA:</strong></td>
+                    <td>SI</td>
+                    <td>NO</td>
+                </tr>
+            </table>
+            <table style="margin-top: 0.5rem; padding: 0.5rem">
+                <tr>
+                    <td colspan="1">Observaciones:</td>
+                </tr>
+                <tr>
+                    <td class="border-0"></td>
+                </tr>
+            </table>
+            <table style="margin-top: 1rem;">
+                <tr>
+                    <td class="border-0" style="width: 40%">
+                        <table>
+                            <tr>
+                                <td class="border-0 border-t-1" style="margin: 0; padding: 0;"></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center border-0" style="margin: 0; padding: 0"><strong>Inspeccionó</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center border-0" style="margin: 0; padding: 0">Sello o nombre y rúbrica</td>
+                            </tr>
+                            <tr>
+                                <td class="border-0" style="margin: 0; padding: 0">.</td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td class="border-0" style="width: 20%"></td>
+                    <td class="border-0" style="width: 40%">
+                        <table>
+                            <tr>
+                                <td class="border-0 border-t-1" style="margin: 0; padding: 0"></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center border-0" style="margin: 0; padding: 0"><strong>Aprobó</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center border-0" style="margin: 0; padding: 0">Unidad de Calidad</td>
+                            </tr>
+                            <tr>
+                                <td class="text-center border-0" style="margin: 0; padding: 0">Nombre o sello y firma</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
 
 
 </body>

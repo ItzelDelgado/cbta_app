@@ -99,7 +99,7 @@
             <table class="introduccion">
                 <tr>
                     <td style="width: 25%">
-                        <img style="width: 7rem; margin: 1rem 0" src="{{ asset('img/logo-cbta.png') }}" alt="">
+                        <img style="width: 10rem; margin: 1rem 0" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
                     </td>
                     <td style="width: 50%; margin: 0 auto; text-align: center; font-weight: bold; font-size: 15px">
                         <strong>{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</strong>
@@ -183,6 +183,7 @@
                         <th style="text-align: center;">Medicamentos</th>
                         <th style="text-align: center;">Dosis</th>
                         <th style="text-align: center;">Volumen</th>
+                        <th style="text-align: center;">Volumen con Overfill</th>
                         <th style="text-align: center;">Lote</th>
                     </tr>
                 </thead>
@@ -224,15 +225,39 @@
                                 {{ $valor_formateado }}
                                 {{ explode('/', $input_completo->input->unidad)[0] }}
                             </td>
+                            <td>
+                                {{ rtrim(rtrim(number_format($input_completo->valor_ml, 3, '.', ''), '0'), '.') }} mL
+                            </td>
+                            <td>
+                                @if ($input_completo->valor_sobrellenado == 0)
+                                    {{ rtrim(rtrim(number_format($input_completo->valor_ml, 3, '.', ''), '0'), '.') }} mL
+                                @else
+                                    {{ rtrim(rtrim(number_format($input_completo->valor_sobrellenado, 3, '.', ''), '0'), '.') }} mL
+                                @endif
+                            </td>
+
+
                             @if ($loop->first)
-                                <td class="tg-yz93" style="text-align: center;"
-                                    rowspan="{{ count($inputs_solicitud) }}">{{ number_format($vol_total, 2) }} mL
-                                </td>
+
                                 <td class="tg-yz93" style="text-align: center;"
                                     rowspan="{{ count($inputs_solicitud) }}">{{ $lote }}</td>
                             @endif
+
                         </tr>
                     @endforeach
+                    <tr>
+                        <td></td>
+                        <td>VOLUMEN TOTAL</td>
+                        <td></td>
+                        <td>
+                            {{ number_format($vol_total, 2) }} mL
+                        </td>
+                        <td>
+                            {{$solicitud_detalles->solicitud_detail->volumen_total_final}}
+                            {{-- {{ number_format($solicitud_detalles->solicitud_detail['volumen_total'], 2) }} mL --}}
+                        </td>
+                        <td></td>
+                    </tr>
                 </tbody>
             </table>
 
@@ -279,9 +304,11 @@
                 <tr class="">
                     <td style="text-align: left; border: none; padding-top: 2rem; font-size: 8px;">
                         <strong>NOTA IMPORTANTE:</strong>
-                    El cliente reconoce que la mezcla estéril entregada debe ser mantenida bajo condiciones  adecuadas de almacenamiento, asegurando la conservación de la red fría en todo momento.
-                    <br>
-                    El centro de mezcla no asume ninguna responsabilidad por el deterioro o pérdida de eficacia del producto debido a un manejo inadecuado posterior a la entrega.
+                        El cliente reconoce que la mezcla estéril entregada debe ser mantenida bajo condiciones
+                        adecuadas de almacenamiento, asegurando la conservación de la red fría en todo momento.
+                        <br>
+                        El centro de mezcla no asume ninguna responsabilidad por el deterioro o pérdida de eficacia del
+                        producto debido a un manejo inadecuado posterior a la entrega.
                     </td>
                 </tr>
             </table>

@@ -74,10 +74,10 @@
     <div class="contenedor">
         <!-- Contenedor principal con borde negro -->
         <div>
-            <table class="introduccion">
+            <table class="introduccion" style="margin-top: 1rem; margin-bottom: 1rem">
                 <tr>
                     <td style="width: 25%">
-                        <img style="width: 7rem" src="{{ asset('img/logo-cbta.png') }}" alt="">
+                        <img style="width: 10rem" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
                     </td>
                     <td style="width: 50%; margin: 0 auto; text-align: center; font-weight: bold; font-size: 15px">
                         <strong>{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</strong>
