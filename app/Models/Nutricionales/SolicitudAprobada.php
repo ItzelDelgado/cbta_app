@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Nutricionales;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,7 +20,7 @@ class SolicitudAprobada extends Model
     public function solicitud()
     {
         return $this->belongsTo(Solicitud::class);
-        
+
     }
 
 

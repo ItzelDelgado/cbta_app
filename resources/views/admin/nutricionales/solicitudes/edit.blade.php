@@ -110,7 +110,7 @@
             @endif
         @endif
 
-        <form id="solicitudForm" action="{{ route('admin.solicitudes.update', $solicitud) }}" method="POST"
+        <form id="solicitudForm" action="{{ route('admin.nutricionales.solicitudes.update', $solicitud) }}" method="POST"
             class="bg-white rounded-lg p-6 shadow-lg">
             @csrf
 

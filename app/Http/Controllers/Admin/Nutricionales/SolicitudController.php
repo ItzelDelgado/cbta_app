@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Admin\Nutricionales;
 
 use App\Http\Controllers\Controller;
 use App\Models\Hospital;
-use App\Models\Input;
-use App\Models\Medicine;
-use App\Models\Solicitud;
-use App\Models\SolicitudAprobada;
-use App\Models\SolicitudDetail;
-use App\Models\SolicitudInput;
-use App\Models\SolicitudPatient;
+use App\Models\Nutricionales\Input;
+use App\Models\Nutricionales\Medicine;
+use App\Models\Nutricionales\Solicitud;
+use App\Models\Nutricionales\SolicitudAprobada;
+use App\Models\Nutricionales\SolicitudDetail;
+use App\Models\Nutricionales\SolicitudInput;
+use App\Models\Nutricionales\SolicitudPatient;
 use App\Models\Message;
 use App\Models\User;
 use App\Notifications\MessageSent;
@@ -53,7 +53,7 @@ class SolicitudController extends Controller
             //return $solicitudes;
         }
 
-        return view('admin.solicitudes.index', compact('solicitudes'));
+        return view('admin.nutricionales.solicitudes.index', compact('solicitudes'));
     }
 
 
@@ -107,7 +107,7 @@ class SolicitudController extends Controller
             ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
             ->get();
 
-        return view('admin.solicitudes.create', compact('inputs'));
+        return view('admin.nutricionales.solicitudes.create', compact('inputs'));
     }
 
     /**
@@ -482,7 +482,7 @@ class SolicitudController extends Controller
         );
 
 
-        return redirect()->route('admin.solicitudes.index');
+        return redirect()->route('admin.nutricionales.solicitudes.index');
     }
 
 
@@ -519,7 +519,7 @@ class SolicitudController extends Controller
                     ) // Obtener la caducidad de la medicina
                     ->get();
                 //return $inputs;
-                return view('admin.solicitudes.edit', compact('solicitud', 'inputs', 'inputs_solicitud'));
+                return view('admin.nutricionales.solicitudes.edit', compact('solicitud', 'inputs', 'inputs_solicitud'));
             }
             // } elseif ($role === 'Cliente') {
             //     $solicitud = Solicitud::where('user_id', $user->id)
@@ -538,7 +538,7 @@ class SolicitudController extends Controller
             //         ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
             //         ->get();
 
-            //     return view('admin.solicitudes.edit', compact('solicitud', 'inputs', 'inputs_solicitud'));
+            //     return view('admin.nutricionales.solicitudes.edit', compact('solicitud', 'inputs', 'inputs_solicitud'));
             // }
         } else {
             abort(Response::HTTP_NOT_FOUND, 'Página no encontrada');
@@ -568,7 +568,7 @@ class SolicitudController extends Controller
                     'icon' => "warning"
                 ]
             );
-            return redirect()->route('admin.solicitudes.index');
+            return redirect()->route('admin.nutricionales.solicitudes.index');
         }
 
         //return $request->all();
@@ -987,7 +987,7 @@ class SolicitudController extends Controller
         //METER TODO DENTRO DE ESTOS IF PARA MANEJAR QUE PASA
 
 
-        return redirect()->route('admin.solicitudes.index');
+        return redirect()->route('admin.nutricionales.solicitudes.index');
         // print_r($solicitud['id']);
         // print_r($solicitud['solicitud_detail_id']);
         // print_r($solicitud['solicitud_patient_id']);
@@ -1026,7 +1026,7 @@ class SolicitudController extends Controller
 
             // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
             $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-            return view('admin.solicitudes.show', compact('solicitud', 'inputs_solicitud', 'solicitud_detalles', 'inputs'));
+            return view('admin.nutricionales.solicitudes.show', compact('solicitud', 'inputs_solicitud', 'solicitud_detalles', 'inputs'));
         } else {
             if ($solicitud->user_id == $user->id) {
                 $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
@@ -1051,7 +1051,7 @@ class SolicitudController extends Controller
 
                 // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
                 $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-                return view('admin.solicitudes.show', compact('solicitud', 'inputs_solicitud', 'solicitud_detalles', 'inputs'));
+                return view('admin.nutricionales.solicitudes.show', compact('solicitud', 'inputs_solicitud', 'solicitud_detalles', 'inputs'));
             } else {
                 abort(Response::HTTP_NOT_FOUND, 'Página no encontrada');
             }
@@ -1104,7 +1104,7 @@ class SolicitudController extends Controller
             ->first();
 
         //return $solicitud_detalles;
-        $pdf = Pdf::loadView('pdfs.solicitud', \compact('solicitud_detalles', 'arreglo_resultado', 'inputs_solicitud', 'set_infusion'));
+        $pdf = Pdf::loadView('pdfs.nutricionales.solicitud', \compact('solicitud_detalles', 'arreglo_resultado', 'inputs_solicitud', 'set_infusion'));
 
         return $pdf->stream();
     }
@@ -1145,7 +1145,7 @@ class SolicitudController extends Controller
 
 
         //return $solicitud_detalles;
-        $pdf = Pdf::loadView('pdfs.orden-de-preparacion', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion'));
+        $pdf = Pdf::loadView('pdfs.nutricionales.orden-de-preparacion', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion'));
 
         return $pdf->stream();
     }
@@ -1180,7 +1180,7 @@ class SolicitudController extends Controller
             ->first();
 
         $servicio_preparacion = Medicine::where('id', 38)->first();
-        $pdf = Pdf::loadView('pdfs.remision', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion', 'servicio_preparacion'));
+        $pdf = Pdf::loadView('pdfs.nutricionales.remision', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion', 'servicio_preparacion'));
 
         return $pdf->stream();
     }
@@ -1210,7 +1210,7 @@ class SolicitudController extends Controller
             ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
             ->first();
 
-        $pdf = Pdf::loadView('pdfs.envio', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva'));
+        $pdf = Pdf::loadView('pdfs.nutricionales.envio', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva'));
 
         return $pdf->stream();
     }
@@ -1233,7 +1233,7 @@ class SolicitudController extends Controller
             ->find($solicitud->id);
         //return $solicitud_detalles;
         $customPaper = [0, 0, 368.50, 255.12]; // 9cm x 13cm en puntos
-        $pdf = Pdf::loadView('pdfs.etiqueta', \compact('solicitud_detalles', 'inputs_solicitud'))
+        $pdf = Pdf::loadView('pdfs.nutricionales.etiqueta', \compact('solicitud_detalles', 'inputs_solicitud'))
             ->setPaper($customPaper, 'landscape');
 
         return $pdf->stream();

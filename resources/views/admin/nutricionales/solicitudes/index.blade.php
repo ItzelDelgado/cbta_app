@@ -7,10 +7,10 @@
     <div class="flex flex-wrap justify-end mt-4">
         <div class="mb-4">
             <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                href="{{ route('admin.solicitudes.create') }}"><i class="fa-solid fa-plus pr-1"></i> Agregar</a>
+                href="{{ route('admin.nutricionales.solicitudes.create') }}"><i class="fa-solid fa-plus pr-1"></i> Agregar</a>
         </div>
         <div class="mb-4">
-            <a href="{{ route('admin.solicitudes.exportar') }}"
+            <a href="{{ route('admin.nutricionales.solicitudes.exportar') }}"
                 class="text-white bg-green-600 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2">
                 <i class="fa-solid fa-file-excel pr-1"></i> Exportar a Excel
             </a>
@@ -100,7 +100,7 @@
                                 @if ($solicitud->is_aprobada == 'Pendiente')
                                     <div class="flex items-center">
                                         <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                                            href="{{ route('admin.solicitudes.edit', $solicitud) }}" {{-- wire:click.prevent="readSolicitudEdit('{{ $solicitud->id }}')" --}}>
+                                            href="{{ route('admin.nutricionales.solicitudes.edit', $solicitud) }}" {{-- wire:click.prevent="readSolicitudEdit('{{ $solicitud->id }}')" --}}>
                                             <i class="fa-solid fa-pen pr-1"></i> Aprobar
                                         </a>
                                     </div>
@@ -132,7 +132,7 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex items-center">
-                                <a href="{{ route('admin.solicitudes.show', $solicitud) }}">
+                                <a href="{{ route('admin.nutricionales.solicitudes.show', $solicitud) }}">
                                     <button
                                         class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
                                         {{-- wire:click.prevent="readSolicitud('{{ $solicitud->id }}')" --}}>

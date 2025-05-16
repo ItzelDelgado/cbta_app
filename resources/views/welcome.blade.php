@@ -42,7 +42,7 @@
                 <p class="text-lg mb-8">Elija una opción entre mezclas de nutrición parenteral y mezclas oncológicas</p>
                 <div class="flex flex-col max-w-96 mx-auto gap-8">
                     <a class="text-white bg-azul-prodifem rounded-xl "
-                        href="{{ route('admin.solicitudes.index') }}"><button class=" p-4 text-2xl">Mezclas de nutrición
+                        href="{{ route('admin.nutricionales.solicitudes.index') }}"><button class=" p-4 text-2xl">Mezclas de nutrición
                             parenteral</button></a>
                     {{-- <a class="text-white bg-azul-prodifem rounded-xl " href=""><button class=" p-4 text-2xl">Mezclas
                         oncológicas</button></a> --}}

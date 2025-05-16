@@ -4,8 +4,8 @@
         [
             //Informacion acerca del enlace
             'name' => 'solicitudes',
-            'url' => route('admin.solicitudes.index'),
-            'active' => request()->routeIs('admin.solicitudes.index'),
+            'url' => route('admin.nutricionales.solicitudes.index'),
+            'active' => request()->routeIs('admin.nutricionales.solicitudes.index'),
         ],
     ];
 @endphp
@@ -17,7 +17,7 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center w-28">
-                    <a href="{{ route('admin.solicitudes.index') }}">
+                    <a href="{{ route('admin.nutricionales.solicitudes.index') }}">
                         <x-application-mark class="block h-9 w-auto" />
                     </a>
                 </div>

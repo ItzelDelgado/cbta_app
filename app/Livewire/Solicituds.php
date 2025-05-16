@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Models\Solicitud;
+use App\Models\Nutricionales\Solicitud;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -27,7 +27,7 @@ class Solicituds extends Component
             $solicitud->read_at = now();
             $solicitud->save();
         }
-        return redirect()->route('admin.solicitudes.show', $id);
+        return redirect()->route('admin.nutricionales.solicitudes.show', $id);
     }
 
     public function readSolicitudEdit($id)
@@ -39,6 +39,6 @@ class Solicituds extends Component
             $solicitud->read_at = now();
             $solicitud->save();
         }
-        return redirect()->route('admin.solicitudes.edit', $id);
+        return redirect()->route('admin.nutricionales.solicitudes.edit', $id);
     }
 }

@@ -4,7 +4,7 @@
         <div class="mt-2 mb-4">
             <h1 class="text-2xl font-medium text-gray-800 text-center">SOLICITUD DE NUTRICIÓN PARENTERAL</h1>
         </div>
-        <form action="{{ route('admin.solicitudes.store') }}" method="POST" class="bg-white rounded-lg p-6 shadow-lg">
+        <form action="{{ route('admin.nutricionales.solicitudes.store') }}" method="POST" class="bg-white rounded-lg p-6 shadow-lg">
             @csrf
             <div class="flex gap-4">
                 <div class="mb-4 flex  items-baseline gap-2 w-full">

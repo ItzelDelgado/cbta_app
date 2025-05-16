@@ -72,7 +72,7 @@ bg-white
                             @if ($solicitud->is_aprobada == 'Pendiente')
                                 <div class="flex items-center">
                                     <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                                        href="{{ route('admin.solicitudes.edit', $solicitud) }}"
+                                        href="{{ route('admin.nutricionales.solicitudes.edit', $solicitud) }}"
                                         wire:click.prevent="readSolicitudEdit('{{ $solicitud->id }}')">
                                         <i class="fa-solid fa-pen pr-1"></i> Aprobar
                                     </a>

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Admin\Nutricionales;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
-use App\Models\Medicine;
-use App\Models\Input;
+use App\Models\Nutricionales\Category;
+use App\Models\Nutricionales\Medicine;
+use App\Models\Nutricionales\Input;
 use Illuminate\Http\Request;
 
 class MedicineController extends Controller
@@ -16,7 +16,7 @@ class MedicineController extends Controller
     public function index()
     {
         $medicines = Medicine::latest()->get();
-        return view('admin.medicines.index', compact('medicines'));
+        return view('admin.nutricionales.medicines.index', compact('medicines'));
     }
 
     /**
@@ -33,7 +33,7 @@ class MedicineController extends Controller
             ->get();
 
         //return $inputs;
-        return view('admin.medicines.create', compact('categories', 'inputs'));
+        return view('admin.nutricionales.medicines.create', compact('categories', 'inputs'));
     }
 
     /**
@@ -82,7 +82,7 @@ class MedicineController extends Controller
     public function edit(Medicine $medicine)
     {
         $categories = Category::all();
-        return view('admin.medicines.edit', compact('medicine', 'categories'));
+        return view('admin.nutricionales.medicines.edit', compact('medicine', 'categories'));
     }
 
     /**

@@ -15,8 +15,8 @@
                 <ul x-show="openMenu === 'nutricionales'" class="pl-4 space-y-2">
                     @can('solicitudes_index')
                         <li>
-                            <a href="{{ route('admin.solicitudes.index') }}"
-                                class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group {{ request()->routeIs('admin.solicitudes.*') ? 'bg-gray-100' : '' }}">
+                            <a href="{{ route('admin.nutricionales.solicitudes.index') }}"
+                                class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group {{ request()->routeIs('admin.nutricionales.solicitudes.*') ? 'bg-gray-100' : '' }}">
                                 <i class="fa-solid fa-file-import text-gray-500"></i>
                                 <span class="ms-3">Solicitudes</span>
                             </a>
