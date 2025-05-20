@@ -11,4 +11,22 @@ class SolicitudController extends Controller
     {
         return view('admin.oncologicos.solicitudes.index');
     }
+
+    public function create()
+    {
+        return view('admin.oncologicos.solicitudes.create');
+    }
+
+    public function store(Request $request)
+    {
+      echo "<pre>";
+        var_dump($request->all());
+        echo "</pre>";
+        exit; // detiene la ejecución
+
+    }
+
+
+
+
 }

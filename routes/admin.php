@@ -96,5 +96,8 @@ Route::get('nutricionales/solicitudes/etiqueta/{solicitud}', [SolicitudControlle
 
 // RUTAS PARA ONCOLOGICOS
 
-Route::get('oncologicos/solicitudes', [OncologicosSolicitudController::class, 'index'])->name('solicitudes.index')
-->middleware(['can:nutricionales_solicitudes_index']);
+Route::get('oncologicos/solicitudes', [OncologicosSolicitudController::class, 'index'])->name('oncologicos.solicitudes.index');
+
+Route::get('oncologicos/solicitudes/create', [OncologicosSolicitudController::class, 'create'])->name('oncologicos.solicitudes.create');
+
+Route::post('oncologicos/solicitudes', [OncologicosSolicitudController::class, 'store'])->name('oncologicos.solicitudes.store');
