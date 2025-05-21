@@ -5,7 +5,7 @@
 
     <div class="flex justify-end mb-4">
         <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-            href="{{ route('admin.medicines.create') }}"><i class="fa-solid fa-plus pr-1"></i> Agregar</a>
+            href="{{ route('admin.nutricionales.medicines.create') }}"><i class="fa-solid fa-plus pr-1"></i> Agregar</a>
     </div>
 
     <div class="relative overflow-x-auto">
@@ -50,7 +50,7 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center">
                                 <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                                    href="{{ route('admin.medicines.edit', $medicine) }}"><i
+                                    href="{{ route('admin.nutricionales.medicines.edit', $medicine) }}"><i
                                         class="fa-solid fa-pen pr-1"></i> Editar</a>
                             </div>
                         </td>

@@ -22,6 +22,15 @@
                             </a>
                         </li>
                     @endcan
+                    @can('medicamentos_nutricionales')
+                        <li>
+                            <a href="{{ route('admin.nutricionales.medicines.index') }}"
+                                class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group {{ request()->routeIs('admin.nutricionales.solicitudes.*') ? 'bg-gray-100' : '' }}">
+                                <i class="fa-solid fa-file-import text-gray-500"></i>
+                                <span class="ms-3">Medicamentos</span>
+                            </a>
+                        </li>
+                    @endcan
                 </ul>
             </li>
 
@@ -43,6 +52,16 @@
                             </a>
                         </li>
                     @endcan
+                           @can('medicamentos_oncologicos')
+                        <li>
+                            <a href="{{ route('admin.oncologicos.medicines.index') }}"
+                                class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group {{ request()->routeIs('admin.nutricionales.solicitudes.*') ? 'bg-gray-100' : '' }}">
+                                <i class="fa-solid fa-file-import text-gray-500"></i>
+                                <span class="ms-3">Medicamentos</span>
+                            </a>
+                        </li>
+                    @endcan
+
                 </ul>
             </li>
 

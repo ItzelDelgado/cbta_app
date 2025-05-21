@@ -2,7 +2,7 @@
     <div class="mt-2 mb-4">
         <h1 class="text-2xl font-medium text-gray-800">Editar Medicamento</h1>
     </div>
-    <form action="{{ route('admin.medicines.update', $medicine) }}" method="POST"
+    <form action="{{ route('admin.nutricionales.medicines.update', $medicine) }}" method="POST"
         class="bg-white rounded-lg p-6 shadow-lg lg:w-[40rem] mx-auto">
         @csrf
         @method('PUT')

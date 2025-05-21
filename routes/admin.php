@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Models\Solicitud;
 use Illuminate\Support\Facades\Route; //Importamos para generar nuestras rutas.
 use App\Exports\SolicitudesExport;
+use App\Http\Controllers\Admin\Oncologicos\MedicineController as OncologicosMedicineController;
 use App\Http\Controllers\Admin\Oncologicos\SolicitudController as OncologicosSolicitudController;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -48,7 +49,10 @@ Route::resource('/hospitals', HospitalController::class)
 
 Route::resource('nutricionales/medicines', MedicineController::class)
     ->except(['destroy'])
-    ->middleware(['can:medicamentos']);
+    ->middleware(['can:medicamentos_nutricionales'])
+    ->names('nutricionales.medicines');
+
+
 
 // Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy'])
 //     ->middleware(['can:solicitudes']);
@@ -101,3 +105,10 @@ Route::get('oncologicos/solicitudes', [OncologicosSolicitudController::class, 'i
 Route::get('oncologicos/solicitudes/create', [OncologicosSolicitudController::class, 'create'])->name('oncologicos.solicitudes.create');
 
 Route::post('oncologicos/solicitudes', [OncologicosSolicitudController::class, 'store'])->name('oncologicos.solicitudes.store');
+
+
+Route::resource('oncologicos/medicines', OncologicosMedicineController::class)
+    ->except(['destroy'])
+    ->middleware(['can:medicamentos_oncologicos'])
+    ->names('oncologicos.medicines');
+

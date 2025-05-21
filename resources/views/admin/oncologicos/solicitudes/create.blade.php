@@ -4,32 +4,33 @@
         <div class="mt-2 mb-4">
             <h1 class="text-2xl font-medium text-gray-800">Crear Nueva Solicitud</h1>
         </div>
-        <form action="{{ route('admin.oncologicos.solicitudes.store') }}" method="POST" class="bg-white rounded-lg p-6 shadow-lg">
+        <form action="{{ route('admin.oncologicos.solicitudes.store') }}" method="POST"
+            class="bg-white rounded-lg p-6 shadow-lg">
             @csrf
             <div class="flex justify-between mb-4 gap-4">
                 <div class="w-1/4">
                     <label for="">Paciente Nombre(s)</label>
                     <input type="text" name="paciente_nombre" id="paciente_nombre"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        placeholder="Nombre(s) del Paciente" >
+                        placeholder="Nombre(s) del Paciente">
                 </div>
                 <div class="w-1/4">
                     <label for="">Paciente Apellido(s)</label>
                     <input type="text" name="paciente_apellido" id="paciente_apellido"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        placeholder="Apellido(s) del Paciente" >
+                        placeholder="Apellido(s) del Paciente">
                 </div>
                 <div class="w-1/4">
                     <label for="">Servicio*</label>
                     <input type="text" name="servicio" id="servicio"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        placeholder="Servicio" >
+                        placeholder="Servicio">
                 </div>
                 <div class="w-1/4">
                     <label for="">Registro*</label>
                     <input type="text" name="registro" id="registro"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        placeholder="Registro" >
+                        placeholder="Registro">
                 </div>
 
             </div>
@@ -47,27 +48,26 @@
                 <div class="w-1/5">
                     <label for="">Fecha de Nacimiento</label>
                     <input type="date" name="fecha_nacimiento" id="fecha_nacimiento"
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        >
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                 </div>
                 <div class="w-1/5">
                     <label for="">Peso*</label>
                     <input type="number" name="peso" id="peso"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        placeholder="Peso" >
+                        placeholder="Peso">
                 </div>
 
                 <div class="w-1/5">
                     <label for="">Piso*</label>
                     <input type="text" name="piso" id="piso"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        placeholder="Piso" >
+                        placeholder="Piso">
                 </div>
                 <div class="w-1/5">
                     <label for="">Cama*</label>
                     <input type="text" name="cama" id="cama"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        placeholder="Cama" >
+                        placeholder="Cama">
                 </div>
             </div>
 
@@ -93,8 +93,7 @@
                 <div class="w-1/4">
                     <label for="">Fecha de entrega*</label>
                     <input type="datetime-local" name="fecha_entrega" id="fecha_entrega"
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        >
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                 </div>
             </div>
             <div>
@@ -116,8 +115,8 @@
                 <!-- Botón para agregar bolo (mezcla) -->
                 <div class="my-4">
                     <button type="button" onclick="agregarMezcla()"
-                        class="bg-green-500 text-white px-4 py-2 rounded">
-                        <i class="fas fa-plus"></i> Agregar Bolo
+                        class="bg-green-500 text-white px-4 py-2 rounded text-sm">
+                        <i class="fas fa-plus"></i> Agregar Mezcla
                     </button>
                 </div>
 
@@ -141,39 +140,49 @@
             idInternoMezcla++;
 
             const mezclaDiv = document.createElement('div');
-            mezclaDiv.classList.add("border", "p-4", "mb-6", "relative");
+            mezclaDiv.classList.add("border", "border-black", "p-4", "relative");
             mezclaDiv.dataset.idInterno = idInternoMezcla;
 
             mezclaDiv.innerHTML = `
-        <div class="flex justify-between items-center mb-2">
-            <h3 class="text-lg font-semibold mezcla-titulo"></h3>
-            <button type="button" onclick="eliminarMezcla(this)" class="bg-red-600 text-white px-3 py-1 rounded">
-                <i class="fas fa-trash"></i> Eliminar Bolo
-            </button>
-        </div>
+    <div class="flex justify-between items-center mb-2">
+        <h3 class="text-lg font-semibold mezcla-titulo"></h3>
+        <button type="button" onclick="eliminarMezcla(this)" class="bg-red-600 text-white px-3 py-1 rounded text-sm">
+            <i class="fas fa-trash"></i> Eliminar Mezcla
+        </button>
+    </div>
 
-        <table class="table-auto w-full border text-center">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="border px-4 py-2">MEDICAMENTO</th>
-                    <th class="border px-4 py-2">DOSIS</th>
-                    <th class="border px-4 py-2">DILUYENTE</th>
-                    <th class="border px-4 py-2">VOLUMEN DE DILUCIÓN TOTAL ml*</th>
-                    <th class="border px-4 py-2">TIEMPO DE INFUSIÓN (min)*</th>
-                    <th class="border px-4 py-2">VÍA DE ADMINISTRACIÓN</th>
-                    <th class="border px-4 py-2">ACCIÓN</th>
-                </tr>
-            </thead>
-            <tbody id="medicamentos_mezcla_${idInternoMezcla}">
-            </tbody>
+    <table class="table-auto w-full border text-center">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="border px-4 py-2 text-xs">MEDICAMENTO</th>
+                <th class="border px-4 py-2 text-xs">DOSIS</th>
+                <th class="border px-4 py-2 text-xs">DILUYENTE</th>
+                <th class="border px-4 py-2 text-xs">VÍA DE ADMINISTRACIÓN</th>
+                <th class="border px-4 py-2 text-xs">ACCIÓN</th>
+            </tr>
+        </thead>
+        <tbody id="medicamentos_mezcla_${idInternoMezcla}">
+        </tbody>
+    </table>
 
-        </table>
-        <div class="my-2">
-            <button type="button" onclick="agregarFilaMedicamento(${idInternoMezcla})" class="bg-green-500 text-white px-4 py-2 rounded">
-                <i class="fas fa-plus"></i> Agregar Medicamento
-            </button>
+    <div class="my-2">
+        <button type="button" onclick="agregarFilaMedicamento(${idInternoMezcla})" class="bg-green-500 text-white px-4 py-2 rounded text-sm">
+            <i class="fas fa-plus"></i> Agregar Medicamento
+        </button>
+    </div>
+
+    <!-- NUEVOS CAMPOS: Solo una vez por mezcla -->
+    <div class="grid grid-cols-2 gap-4 mt-4">
+        <div>
+            <label for="volumen_dilucion_m${idInternoMezcla}">Volumen total de dilución (ml)*</label>
+            <input type="number" name="volumen_dilucion_m${idInternoMezcla}" class="w-full border rounded px-2 py-1 text-sm">
         </div>
-    `;
+        <div>
+            <label for="tiempo_infusion_m${idInternoMezcla}">Tiempo de infusión (min)*</label>
+            <input type="number" name="tiempo_infusion_m${idInternoMezcla}" class="w-full border rounded px-2 py-1 text-sm">
+        </div>
+    </div>
+`;
 
             document.getElementById('contenedorMezclas').appendChild(mezclaDiv);
 
@@ -205,37 +214,31 @@
             fila.id = `fila_m${idMezcla}_f${contadorFilasGlobal}`;
 
             fila.innerHTML = `
-        <td class="border px-4 py-2">
-            <select name="medicamento_m${idMezcla}[]" class="w-full border rounded px-2 py-1">
+        <td class="border ">
+            <select name="medicamento_m${idMezcla}[]" class="w-full border rounded px-2 py-1 text-sm">
                 <option value="">Seleccione el medicamento</option>
                 <option value="med1">Medicamento 1</option>
                 <option value="med2">Medicamento 2</option>
             </select>
         </td>
-        <td class="border px-4 py-2">
-            <input type="number" name="dosis_m${idMezcla}[]" class="w-full border rounded px-2 py-1">
+        <td class="border ">
+            <input type="number" name="dosis_m${idMezcla}[]" class="w-full border-none px-2 py-1 text-sm">
         </td>
-        <td class="border px-4 py-2">
-            <select name="diluyente_m${idMezcla}[]" class="w-full border rounded px-2 py-1">
+        <td class="border ">
+            <select name="diluyente_m${idMezcla}[]" class="w-full border rounded px-2 py-1 text-sm">
                 <option value="">Diluyentes</option>
                 <option value="NaCl">NaCl 0.9%</option>
                 <option value="Glucosa">Glucosa 5%</option>
             </select>
         </td>
-        <td class="border px-4 py-2">
-            <input type="number" name="volumen_dilucion_m${idMezcla}[]" class="w-full border rounded px-2 py-1">
-        </td>
-        <td class="border px-4 py-2">
-            <input type="number" name="tiempo_infusion_m${idMezcla}[]" class="w-full border rounded px-2 py-1">
-        </td>
-        <td class="border px-4 py-2">
-            <select name="via_administracion_m${idMezcla}[]" class="w-full border rounded px-2 py-1">
+        <td class="border">
+            <select name="via_administracion_m${idMezcla}[]" class="w-full border rounded px-2 py-1 ">
                 <option value="">Vía de admin</option>
                 <option value="IV">Intravenosa</option>
                 <option value="IM">Intramuscular</option>
             </select>
         </td>
-        <td class="border px-4 py-2">
+        <td class="border">
             <button type="button" onclick="eliminarFila('${fila.id}')" class="bg-red-500 text-white px-2 py-1 rounded">
                 <i class="fas fa-trash"></i>
             </button>
@@ -244,6 +247,7 @@
 
             tbody.appendChild(fila);
         }
+
 
         function eliminarFila(idFila) {
             const fila = document.getElementById(idFila);

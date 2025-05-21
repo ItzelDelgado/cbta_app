@@ -65,7 +65,7 @@ class MedicineController extends Controller
 
             ]
         );
-        return redirect()->route('admin.medicines.index');
+        return redirect()->route('admin.nutricionales.medicines.index');
     }
 
     /**
@@ -113,7 +113,7 @@ class MedicineController extends Controller
 
             ]
         );
-        return redirect()->route('admin.medicines.index');
+        return redirect()->route('admin.nutricionales.medicines.index');
     }
 
     /**

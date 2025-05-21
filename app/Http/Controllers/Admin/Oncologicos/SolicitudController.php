@@ -19,13 +19,13 @@ class SolicitudController extends Controller
 
     public function store(Request $request)
     {
-      echo "<pre>";
-        var_dump($request->all());
-        echo "</pre>";
-        exit; // detiene la ejecución
-
+        return response()->json(
+            $request->all(),
+            200,
+            [],
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
+        );
     }
-
 
 
 
