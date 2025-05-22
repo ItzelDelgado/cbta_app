@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('mezcla_medicamentos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('mezcla_id')->constrained('mezclas')->onDelete('cascade');
-            $table->foreignId('medicamento_id')->nullable()->constrained('medicines')->onDelete('set null');
+            $table->foreignId('medicamento_id')->nullable()->constrained('medicine_oncologicos')->onDelete('set null');
             $table->string('nombre_medicamento')->nullable();
             $table->decimal('dosis', 8, 2)->nullable();
             $table->decimal('precio_unitario', 10, 2)->nullable();
