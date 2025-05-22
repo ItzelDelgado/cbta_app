@@ -3,6 +3,17 @@
         <h1 class="text-2xl font-medium text-gray-800">Nueva Lista de Medicamentos</h1>
     </div>
 
+    <form action="" method="POST" enctype="multipart/form-data" class="mb-4">
+        @csrf
+        <div class="flex gap-4 items-center">
+            <input type="file" name="archivo_excel" accept=".xlsx,.xls" required
+                class="border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Importar desde Excel
+            </button>
+        </div>
+    </form>
+
     <div class="flex justify-end my-4">
         <button type="button" id="addRowBtn"
             class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
