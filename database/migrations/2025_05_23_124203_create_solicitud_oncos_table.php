@@ -13,24 +13,25 @@ return new class extends Migration
     {
         Schema::create('solicitud_oncos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('servicio')->nullable();
-            $table->string('nombre_paciente')->nullable();
+            $table->unsignedBigInteger('user_id');
+            $table->string('servicio');
+            $table->string('nombre_paciente');
             $table->enum('sexo', ['M', 'F'])->nullable();
             $table->integer('edad')->nullable();
             $table->decimal('peso', 5, 2)->nullable();
             $table->string('cama')->nullable();
+            $table->string('piso')->nullable();
             $table->string('registro_paciente')->nullable();
             $table->date('fecha_nacimiento')->nullable();
-            $table->text('diagnostico')->nullable();
-            $table->date('fecha_solicitud')->nullable();
-            $table->time('horario_entrega')->nullable();
+            $table->text('diagnostico');
+            $table->date('fecha_solicitud');
+            $table->time('horario_entrega');
             $table->text('observaciones')->nullable();
-            $table->string('nombre_medico')->nullable();
-            $table->string('cedula_medico', 50)->nullable();
-            $table->enum('estado', ['pendiente', 'aprobada', 'rechazada'])->nullable();
-            $table->timestamp('created_at')->useCurrent();
-            $table->timestamps();
+            $table->string('nombre_medico');
+            $table->string('cedula_medico', 50);
+            $table->enum('estado', ['pendiente', 'aprobada', 'preparada', 'revisada', 'entregada', 'cancelada'])->nullable();
+            $table->timestamp('created_at')->nullable();
+            $table->string('remision', 50)->nullable();
         });
     }
 

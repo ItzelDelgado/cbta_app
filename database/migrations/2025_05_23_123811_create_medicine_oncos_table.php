@@ -11,16 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('medicine_oncologicos', function (Blueprint $table) {
+        Schema::create('medicine_oncos', function (Blueprint $table) {
             $table->id();
             $table->string('denominacion')->nullable();
             $table->string('presentacion')->nullable();
             $table->decimal('precio', 10, 2)->nullable();
             $table->string('lote', 100)->nullable();
             $table->date('caducidad')->nullable();
-            $table->timestamps();
         });
-
     }
 
     /**
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('medicine_oncologicos');
+        Schema::dropIfExists('medicine_oncos');
     }
 };

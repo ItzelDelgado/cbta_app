@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('medicine_routes', function (Blueprint $table) {
-            $table->foreignId('medicamento_id')->nullable()->constrained('medicine_oncologicos')->onDelete('set null');
-            $table->foreignId('route_id')->constrained('administration_routes')->onDelete('cascade');
+            $table->unsignedBigInteger('medicine_id');
+            $table->unsignedBigInteger('route_id');
             $table->primary(['medicine_id', 'route_id']);
         });
     }

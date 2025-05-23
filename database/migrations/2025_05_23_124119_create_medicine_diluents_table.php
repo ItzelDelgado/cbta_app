@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('administration_routes', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->nullable();
-            $table->timestamps();
+        Schema::create('medicine_diluents', function (Blueprint $table) {
+            $table->unsignedBigInteger('medicine_id');
+            $table->unsignedBigInteger('diluent_id');
+            $table->primary(['medicine_id', 'diluent_id']);
         });
     }
 
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('administration_routes');
+        Schema::dropIfExists('medicine_diluents');
     }
 };

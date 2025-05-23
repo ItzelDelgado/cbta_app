@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('medicine_lists', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Relación con users
-        $table->string('name')->nullable();
-        $table->text('description')->nullable();
-        $table->timestamp('created_at')->useCurrent();
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->string('name')->nullable();
+            $table->text('description')->nullable();
+            $table->timestamp('created_at')->nullable();
         });
     }
 
