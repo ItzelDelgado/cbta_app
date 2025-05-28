@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('medicine_oncos', function (Blueprint $table) {
             $table->id();
-            $table->string('denominacion')->nullable();
-            $table->string('presentacion')->nullable();
-            $table->decimal('precio', 10, 2)->nullable();
+            $table->string('denominacion');
+            $table->string('presentacion');
+            $table->decimal('precio', 10, 2);
             $table->string('lote', 100)->nullable();
             $table->date('caducidad')->nullable();
         });
