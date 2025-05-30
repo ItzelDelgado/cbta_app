@@ -15,6 +15,10 @@ return new class extends Migration
             $table->unsignedBigInteger('medicine_id');
             $table->unsignedBigInteger('route_id');
             $table->primary(['medicine_id', 'route_id']);
+            $table->foreign('medicine_id')->references('id')->on('medicine_oncos')->onDelete('cascade');
+            $table->foreign('route_id')->references('id')->on('administration_routes')->onDelete('cascade');
+
+            $table->timestamps();
         });
     }
 

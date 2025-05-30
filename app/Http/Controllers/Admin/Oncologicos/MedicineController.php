@@ -3,7 +3,12 @@
 namespace App\Http\Controllers\Admin\Oncologicos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Oncologicos\MedicineList;
+use App\Models\Oncologicos\MedicineOnco;
+use App\Models\Oncologicos\MedicinesCatalog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class MedicineController extends Controller
 {
@@ -12,7 +17,8 @@ class MedicineController extends Controller
      */
     public function index()
     {
-        return view('admin.oncologicos.medicines.index');
+        $listas = MedicineList::with('medicines')->get(); // Asume relación definida
+        return view('admin.oncologicos.medicines.index', compact('listas'));
     }
 
     /**
@@ -20,7 +26,8 @@ class MedicineController extends Controller
      */
     public function create()
     {
-        return view('admin.oncologicos.medicines.create');
+        $catalogo = MedicinesCatalog::where('state', true)->get(['id', 'denominacion', 'presentacion']);
+        return view('admin.oncologicos.medicines.create', compact('catalogo'));
     }
 
     /**
@@ -28,8 +35,58 @@ class MedicineController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // dd($request->all());
+        // Validación básica SIN eliminar antes los medicamentos
+        $request->validate([
+            'name' => 'required|string|max:255|unique:medicine_lists,name',
+            'description' => 'nullable|string',
+            'medicamentos' => 'required|array|min:1',
+            'medicamentos.*.id' => 'required|exists:medicines_catalog,id',
+            'medicamentos.*.precio' => 'required|numeric|min:0',
+        ]);
+
+
+        // Después de la validación, limpiar filas incompletas por seguridad
+        $medicamentosFiltrados = collect($request->input('medicamentos', []))
+            ->filter(function ($item) {
+                return isset($item['id'], $item['precio']) && $item['id'] !== null && $item['precio'] !== null;
+            })->values()->toArray();
+
+        if (count($medicamentosFiltrados) === 0) {
+            return back()->withInput()->withErrors(['medicamentos' => 'Debes ingresar al menos un medicamento válido con precio.']);
+        }
+
+        // Crear la lista
+        $lista = MedicineList::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'user_id' => auth()->id(),
+        ]);
+
+        // Asociar medicamentos con precio
+        $data = [];
+        foreach ($medicamentosFiltrados as $med) {
+            $catalogItem = MedicinesCatalog::find($med['id']);
+            if (!$catalogItem) continue;
+
+        $medicineOnco = MedicineOnco::firstOrCreate(
+            ['catalog_id' => $catalogItem->id], // <-- condición
+            [
+                'catalog_id' => $catalogItem->id, // <-- incluirlo también al crear
+                'precio' => $med['precio']
+            ]
+        );
+
+
+            $data[$medicineOnco->id] = ['precio' => $med['precio']];
+        }
+
+        $lista->medicines()->attach($data);
+
+        return redirect()->route('admin.oncologicos.medicines.index')
+            ->with('success', 'Lista de medicamentos creada correctamente.');
     }
+
 
     /**
      * Display the specified resource.
@@ -39,12 +96,15 @@ class MedicineController extends Controller
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
-        //
+        $lista = MedicineList::with(['medicines' => function ($q) {
+            $q->with('catalog'); // ← si necesitas mostrar denominación/presentación
+        }])->findOrFail($id);
+
+        $catalogo = MedicinesCatalog::where('state', true)->get(['id', 'denominacion', 'presentacion']);
+
+        return view('admin.oncologicos.medicines.edit', compact('lista', 'catalogo'));
     }
 
     /**
@@ -52,7 +112,43 @@ class MedicineController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255|unique:medicine_lists,name,' . $id,
+            'description' => 'nullable|string',
+            'medicamentos' => 'required|array|min:1',
+            'medicamentos.*.id' => 'required|exists:medicines_catalog,id',
+            'medicamentos.*.precio' => 'required|numeric|min:0',
+        ]);
+
+        $lista = MedicineList::findOrFail($id);
+        $lista->update([
+            'name' => $request->name,
+            'description' => $request->description,
+        ]);
+
+        // Limpiar y volver a asociar medicamentos
+        $lista->medicines()->detach();
+
+        $data = [];
+        foreach ($request->medicamentos as $med) {
+            $catalogItem = MedicinesCatalog::find($med['id']);
+            if (!$catalogItem) continue;
+
+            $medicineOnco = MedicineOnco::firstOrCreate(
+                ['catalog_id' => $catalogItem->id],
+                [
+                    'catalog_id' => $catalogItem->id,
+                    'precio' => $med['precio']
+                ]
+            );
+
+            $data[$medicineOnco->id] = ['precio' => $med['precio']];
+        }
+
+        $lista->medicines()->attach($data);
+
+        return redirect()->route('admin.oncologicos.medicines.index')
+            ->with('success', 'Lista de medicamentos actualizada correctamente.');
     }
 
     /**
@@ -60,6 +156,11 @@ class MedicineController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $lista = MedicineList::findOrFail($id);
+        $lista->medicines()->detach(); // Elimina relaciones
+        $lista->delete(); // Elimina la lista
+
+        return redirect()->route('admin.oncologicos.medicines.index')
+            ->with('success', 'Lista de medicamentos eliminada correctamente.');
     }
 }

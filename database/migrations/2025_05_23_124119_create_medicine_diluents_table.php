@@ -15,6 +15,10 @@ return new class extends Migration
             $table->unsignedBigInteger('medicine_id');
             $table->unsignedBigInteger('diluent_id');
             $table->primary(['medicine_id', 'diluent_id']);
+            $table->timestamps();
+            $table->foreign('medicine_id')->references('id')->on('medicine_oncos')->onDelete('cascade');
+            $table->foreign('diluent_id')->references('id')->on('diluents')->onDelete('cascade');
+
         });
     }
 

@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('medicine_oncos', function (Blueprint $table) {
             $table->id();
-            $table->string('denominacion');
-            $table->string('presentacion');
+            $table->foreignId('catalog_id')->constrained('medicines_catalog');
             $table->decimal('precio', 10, 2);
             $table->string('lote', 100)->nullable();
             $table->date('caducidad')->nullable();
+            $table->timestamps();
         });
     }
 

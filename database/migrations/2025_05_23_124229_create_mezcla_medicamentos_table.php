@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('nombre_diluyente')->nullable();
             $table->foreignId('via_administracion_id')->nullable()->constrained('administration_routes')->onDelete('set null');
             $table->string('nombre_via')->nullable();
+
             $table->timestamp('created_at')->nullable();
         });
     }

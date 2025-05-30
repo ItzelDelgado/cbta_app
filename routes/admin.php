@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Models\Solicitud;
 use Illuminate\Support\Facades\Route; //Importamos para generar nuestras rutas.
 use App\Exports\SolicitudesExport;
+use App\Http\Controllers\Admin\Oncologicos\MedicineCatalogController;
 use App\Http\Controllers\Admin\Oncologicos\MedicineController as OncologicosMedicineController;
 use App\Http\Controllers\Admin\Oncologicos\SolicitudController as OncologicosSolicitudController;
 use Maatwebsite\Excel\Facades\Excel;
@@ -107,8 +108,12 @@ Route::get('oncologicos/solicitudes/create', [OncologicosSolicitudController::cl
 Route::post('oncologicos/solicitudes', [OncologicosSolicitudController::class, 'store'])->name('oncologicos.solicitudes.store');
 
 
+Route::resource('oncologicos/medicines/catalog', MedicineCatalogController::class)
+    ->middleware(['can:medicamentos_oncologicos'])
+    ->names('oncologicos.medicines.catalog');
+
+
 Route::resource('oncologicos/medicines', OncologicosMedicineController::class)
-    ->except(['destroy'])
     ->middleware(['can:medicamentos_oncologicos'])
     ->names('oncologicos.medicines');
 

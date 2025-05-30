@@ -11,10 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('medicine_medicine_list', function (Blueprint $table) {
+        Schema::create('medicine_medicine_lists', function (Blueprint $table) {
             $table->unsignedBigInteger('medicine_list_id');
             $table->unsignedBigInteger('medicine_id');
+             $table->decimal('precio', 10, 2);
             $table->primary(['medicine_list_id', 'medicine_id']);
+            $table->foreign('medicine_list_id')->references('id')->on('medicine_lists')->onDelete('cascade');
+            $table->foreign('medicine_id')->references('id')->on('medicine_oncos')->onDelete('cascade');
+
+            $table->timestamps();
         });
     }
 

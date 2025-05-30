@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('administration_routes', function (Blueprint $table) {
+        Schema::create('medicines_catalog', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('denominacion');
+            $table->string('presentacion');
+            $table->boolean('state')->default(true); // true = activo, false = deshabilitado
             $table->timestamps();
         });
     }
@@ -23,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('administration_routes');
+        Schema::dropIfExists('medicines_catalogs');
     }
 };
