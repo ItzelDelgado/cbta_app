@@ -3,6 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Models\Nutricionales\Solicitud;
+use App\Models\Oncologicos\MedicineList;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -34,6 +37,7 @@ class User extends Authenticatable
         'username',
         'is_active',
         'hospital_id',
+        'medicine_list_id', // 👈 esto es clave
     ];
 
     /**
@@ -75,5 +79,15 @@ class User extends Authenticatable
     public function solicitud()
     {
         return $this->hasOne(Solicitud::class);
+    }
+
+    public function medicineLists()
+    {
+        return $this->hasMany(MedicineList::class);
+    }
+
+    public function assignedMedicineList()
+    {
+        return $this->belongsTo(MedicineList::class, 'medicine_list_id');
     }
 }

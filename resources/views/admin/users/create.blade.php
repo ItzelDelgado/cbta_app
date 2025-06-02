@@ -77,6 +77,15 @@
                 @endforeach
             </ul>
         </div>
+        <x-select name="medicine_list_id" class="w-full">
+            <option value="">-- Sin asignar --</option>
+            @foreach ($medicineLists as $list)
+                <option value="{{ $list->id }}" @selected(old('medicine_list_id') == $list->id)>
+                    {{ $list->name }}
+                </option>
+            @endforeach
+        </x-select>
+
         <div class="flex justify-end">
             <x-button>
                 Crear usuario

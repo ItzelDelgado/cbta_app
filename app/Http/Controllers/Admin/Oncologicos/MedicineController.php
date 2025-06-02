@@ -60,7 +60,6 @@ class MedicineController extends Controller
         $lista = MedicineList::create([
             'name' => $request->name,
             'description' => $request->description,
-            'user_id' => auth()->id(),
         ]);
 
         // Asociar medicamentos con precio
@@ -116,7 +115,6 @@ class MedicineController extends Controller
             'name' => 'required|string|max:255|unique:medicine_lists,name,' . $id,
             'description' => 'nullable|string',
             'medicamentos' => 'required|array|min:1',
-            'medicamentos.*.id' => 'required|exists:medicines_catalog,id',
             'medicamentos.*.precio' => 'required|numeric|min:0',
         ]);
 

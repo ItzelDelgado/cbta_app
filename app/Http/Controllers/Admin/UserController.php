@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Hospital;
+use App\Models\Oncologicos\MedicineList;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,7 +33,8 @@ class UserController extends Controller
     {
         $hospitals = Hospital::all();
         $roles = Role::all();
-        return view('admin.users.create', compact('hospitals', 'roles'));
+        $medicineLists = MedicineList::all();
+        return view('admin.users.create', compact('hospitals', 'roles', 'medicineLists'));
     }
 
     /**
@@ -46,6 +48,7 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users',
             'password' => 'required|string|max:12|confirmed',
             'hospital_id' => 'required|exists:hospitals,id',
+            'medicine_list_id' => 'nullable|exists:medicine_lists,id',
             'roles' => 'nullable|array',
         ]));
 
@@ -62,7 +65,6 @@ class UserController extends Controller
                 'title' => "¡Bien hecho!",
                 'text' => "El usuario se ha creado con éxito.",
                 'icon' => "success"
-
             ]
         );
         return redirect()->route('admin.users.index');
@@ -83,11 +85,12 @@ class UserController extends Controller
     {
         $roles = Role::all();
         $hospitals = Hospital::all();
+        $medicineLists = MedicineList::all();
         $authenticatedUser = Auth::user();
         // Obtenemos el nombre del rol del usuario autenticado
         $userRoleName = $authenticatedUser->roles->pluck('name')->first();
 
-        return view('admin.users.edit', compact('user', 'hospitals', 'roles', 'userRoleName'));
+        return view('admin.users.edit', compact('user', 'hospitals', 'roles', 'userRoleName', 'medicineLists'));
     }
 
     /**
@@ -95,12 +98,14 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+
         $request->validate(([
             'name' => 'string|max:255',
             'lastname' => 'string|max:255',
             'username' => 'string|max:255',
             'password' => 'nullable|string|confirmed',
             'hospital_id' => 'exists:hospitals,id',
+            'medicine_list_id' => 'nullable|exists:medicine_lists,id',
         ]));
 
         $us_bd = User::find($user->id);
@@ -109,6 +114,7 @@ class UserController extends Controller
         $user->lastname = $request->lastname;
         $user->username = $request->username;
         $user->hospital_id = $request->hospital_id;
+        $user->medicine_list_id = $request->medicine_list_id; // ← ESTA ES LA LÍNEA FALTANTE
 
         if ($request->password) {
             $user->password = bcrypt($request->password);
