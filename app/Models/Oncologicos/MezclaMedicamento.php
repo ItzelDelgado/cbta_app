@@ -14,11 +14,4 @@ class MezclaMedicamento extends Model {
         return $this->belongsTo(MedicineOnco::class, 'medicamento_id');
     }
 
-    public function diluyente() {
-        return $this->belongsTo(Diluent::class, 'diluyente_id');
-    }
-
-    public function viaAdministracion() {
-        return $this->belongsTo(AdministrationRoute::class, 'via_administracion_id');
-    }
 }

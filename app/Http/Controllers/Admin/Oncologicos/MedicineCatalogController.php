@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin\Oncologicos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Oncologicos\AdministrationRoute;
+use App\Models\Oncologicos\Diluent;
 use App\Models\Oncologicos\MedicinesCatalog;
 use Illuminate\Http\Request;
 
@@ -22,7 +24,11 @@ class MedicineCatalogController extends Controller
      */
     public function create()
     {
-        return view('admin.oncologicos.catalog.create');
+        $diluents = Diluent::all();
+        $routes = AdministrationRoute::all();
+
+        return view('admin.oncologicos.catalog.create', compact('diluents', 'routes'));
+
     }
 
     /**
@@ -30,20 +36,31 @@ class MedicineCatalogController extends Controller
      */
     public function store(Request $request)
     {
-        // Validación de datos
         $request->validate([
             'denominacion' => 'required|string|max:255',
             'presentacion' => 'required|string|max:255',
+            'diluents' => 'nullable|array',
+            'routes' => 'nullable|array',
         ]);
 
-        // Crear el medicamento en el catálogo
-        MedicinesCatalog::create([
+        // Crear medicamento
+        $med = \App\Models\Oncologicos\MedicinesCatalog::create([
             'denominacion' => $request->denominacion,
             'presentacion' => $request->presentacion,
         ]);
 
-        // Redirigir con mensaje de éxito
-        return redirect()->route('admin.oncologicos.medicines.catalog.index')->with('success', 'Medicamento agregado correctamente al catálogo.');
+        // Relacionar diluyentes
+        if ($request->filled('diluents')) {
+            $med->diluents()->sync($request->diluents);
+        }
+
+        // Relacionar vías de administración
+        if ($request->filled('routes')) {
+            $med->administrationRoutes()->sync($request->routes);
+        }
+
+        return redirect()->route('admin.oncologicos.medicines.catalog.index')
+            ->with('success', 'Medicamento agregado correctamente al catálogo.');
     }
 
     /**
@@ -59,8 +76,17 @@ class MedicineCatalogController extends Controller
      */
     public function edit(string $id)
     {
-        $medicamento = MedicinesCatalog::findOrFail($id);
-        return view('admin.oncologicos.catalog.edit', compact('medicamento'));
+        $medicamento = MedicinesCatalog::with(['diluents', 'administrationRoutes'])->findOrFail($id);
+        $diluents = Diluent::all();
+        $routes = AdministrationRoute::all();
+
+        // IDs relacionados
+        $selectedDiluents = $medicamento->diluents->pluck('id')->toArray();
+        $selectedRoutes = $medicamento->administrationRoutes->pluck('id')->toArray();
+
+        return view('admin.oncologicos.catalog.edit', compact(
+            'medicamento', 'diluents', 'routes', 'selectedDiluents', 'selectedRoutes'
+        ));
     }
 
     /**
@@ -78,6 +104,18 @@ class MedicineCatalogController extends Controller
             'denominacion' => $request->denominacion,
             'presentacion' => $request->presentacion,
         ]);
+
+        if ($request->filled('diluents')) {
+            $medicamento->diluents()->sync($request->diluents);
+        } else {
+            $medicamento->diluents()->detach(); // Limpia si no seleccionaron
+        }
+
+        if ($request->filled('routes')) {
+            $medicamento->administrationRoutes()->sync($request->routes);
+        } else {
+            $medicamento->administrationRoutes()->detach();
+        }
 
         return redirect()->route('admin.oncologicos.medicines.catalog.index')
             ->with('success', 'Medicamento actualizado correctamente.');

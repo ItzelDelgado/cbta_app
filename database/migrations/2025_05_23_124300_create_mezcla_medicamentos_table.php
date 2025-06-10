@@ -18,11 +18,6 @@ return new class extends Migration
             $table->string('nombre_medicamento')->nullable();
             $table->decimal('dosis', 8, 2)->nullable();
             $table->decimal('precio_unitario', 10, 2)->nullable();
-            $table->foreignId('diluyente_id')->nullable()->constrained('diluents')->onDelete('set null');
-            $table->string('nombre_diluyente')->nullable();
-            $table->foreignId('via_administracion_id')->nullable()->constrained('administration_routes')->onDelete('set null');
-            $table->string('nombre_via')->nullable();
-
             $table->timestamp('created_at')->nullable();
         });
     }

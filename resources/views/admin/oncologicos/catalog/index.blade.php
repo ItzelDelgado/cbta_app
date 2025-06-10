@@ -26,16 +26,23 @@
                         <td class="px-6 py-4">{{ $med->denominacion }}</td>
                         <td class="px-6 py-4">{{ $med->presentacion }}</td>
                         <td class="px-6 py-4">
-                            <a href="{{ route('admin.oncologicos.medicines.catalog.edit', $med->id) }}"
-                                class="text-blue-600 hover:underline text-sm">Editar</a>
-                            <form action="{{ route('admin.oncologicos.medicines.catalog.destroy', $med->id) }}"
-                                method="POST" class="inline-block form-eliminar">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:underline text-sm eliminar-btn">
-                                    Deshabilitar
-                                </button>
-                            </form>
+                            <div class="flex space-x-2">
+                                <a href="{{ route('admin.oncologicos.medicines.catalog.edit', $med->id) }}"
+                                    class="inline-block bg-yellow-400 hover:bg-yellow-500 text-white text-xs font-semibold px-3 py-1 rounded shadow">
+                                    <i class="fas fa-edit mr-1"></i> Editar
+                                </a>
+
+                                <form action="{{ route('admin.oncologicos.medicines.catalog.destroy', $med->id) }}"
+                                    method="POST" class="inline-block form-eliminar">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                        class="bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-1 rounded shadow eliminar-btn">
+                                        <i class="fas fa-trash-alt mr-1"></i> Deshabilitar
+                                    </button>
+                                </form>
+                            </div>
+
                         </td>
                     </tr>
                 @empty

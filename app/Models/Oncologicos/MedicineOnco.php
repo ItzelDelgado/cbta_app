@@ -20,14 +20,6 @@ class MedicineOnco extends Model {
         ->withTimestamps();
     }
 
-    public function diluents() {
-        return $this->belongsToMany(Diluent::class, 'medicine_diluents', 'medicine_id', 'diluent_id');
-    }
-
-    public function routes() {
-        return $this->belongsToMany(AdministrationRoute::class, 'medicine_routes', 'medicine_id', 'route_id');
-    }
-
     public function catalog()
     {
         return $this->belongsTo(MedicinesCatalog::class, 'catalog_id');

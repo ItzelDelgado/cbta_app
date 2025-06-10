@@ -18,4 +18,15 @@ class MedicinesCatalog extends Model
     {
         return $this->hasMany(MedicineOnco::class, 'catalog_id');
     }
+
+    public function diluents()
+    {
+        return $this->belongsToMany(Diluent::class, 'diluent_medicine_catalog', 'medicine_catalog_id', 'diluent_id');
+    }
+
+    public function administrationRoutes()
+    {
+        return $this->belongsToMany(AdministrationRoute::class, 'administration_route_medicine_catalog', 'medicine_catalog_id', 'administration_route_id');
+    }
+
 }

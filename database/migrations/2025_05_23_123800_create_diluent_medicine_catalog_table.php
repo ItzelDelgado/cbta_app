@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('medicines_catalog', function (Blueprint $table) {
+        Schema::create('diluent_medicine_catalog', function (Blueprint $table) {
             $table->id();
-            $table->string('denominacion');
-            $table->string('presentacion');
-            $table->boolean('state')->default(true); // true = activo, false = deshabilitado
+            $table->foreignId('diluent_id')->constrained('diluents')->onDelete('cascade');
+            $table->foreignId('medicine_catalog_id')->constrained('medicines_catalog')->onDelete('cascade');
             $table->timestamps();
         });
+
     }
 
     /**
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('medicines_catalog');
+        Schema::dropIfExists('diluent_medicine_catalog');
     }
 };
