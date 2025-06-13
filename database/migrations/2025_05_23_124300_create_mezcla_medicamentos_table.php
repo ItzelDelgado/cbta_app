@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('nombre_medicamento')->nullable();
             $table->decimal('dosis', 8, 2)->nullable();
             $table->decimal('precio_unitario', 10, 2)->nullable();
-            $table->timestamp('created_at')->nullable();
+            $table->timestamps();
         });
     }
 

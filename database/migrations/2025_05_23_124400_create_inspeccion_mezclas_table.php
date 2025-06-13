@@ -43,7 +43,7 @@ return new class extends Migration
             $table->text('observaciones');
             $table->string('reviso_nombre');
             $table->string('aprobo_nombre');
-            $table->timestamp('created_at');
+            $table->timestamps();
         });
 
     }

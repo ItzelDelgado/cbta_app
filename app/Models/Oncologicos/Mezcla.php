@@ -7,6 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 
 // 6. Mezcla
 class Mezcla extends Model {
+
+    protected $fillable = [
+    'solicitud_id',
+    'volumen_dilucion',
+    'tiempo_infusion',
+    'estado',
+    ];
+
+    protected $table = 'mezclas'; // si es necesario
+    use HasFactory;
+
     public function solicitud() {
         return $this->belongsTo(SolicitudOnco::class, 'solicitud_id');
     }
