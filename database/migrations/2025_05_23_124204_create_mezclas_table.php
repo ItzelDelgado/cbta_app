@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('solicitud_id')->constrained('solicitud_oncos')->onDelete('cascade');
             $table->enum('estado', ['pendiente', 'preparando', 'cancelado', 'entregado'])->nullable();
-            $table->timestamp('created_at')->nullable();
+            $table->timestamps();
             $table->string('remision', 50)->nullable();
             $table->string('lote', 50)->nullable();
             $table->decimal('volumen_dilucion', 8, 2);

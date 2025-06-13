@@ -3,15 +3,23 @@
 namespace App\Http\Controllers\Admin\Oncologicos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Oncologicos\Mezcla;
+use App\Models\Oncologicos\MezclaMedicamento;
+use App\Models\Oncologicos\SolicitudOnco;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class SolicitudController extends Controller
 {
     public function index()
     {
-        return view('admin.oncologicos.solicitudes.index');
+        $solicitudes = SolicitudOnco::with(['user.hospital'])
+        ->orderByDesc('id')
+        ->get();
+
+        return view('admin.oncologicos.solicitudes.index', compact('solicitudes'));
     }
 
     public function create()
@@ -64,98 +72,83 @@ class SolicitudController extends Controller
 
     public function store(Request $request)
     {
-        dd($request->all()); // Para depurar, eliminar en producción
+        // Validación general
         $request->validate([
-            'paciente_nombre' => 'required|string',
-            'paciente_apellido' => 'required|string',
-            'servicio' => 'required|string',
-            'registro' => 'required|string',
+            'paciente_nombre' => 'required|string|max:255',
+            'paciente_apellido' => 'required|string|max:255',
+            'servicio' => 'required|string|max:255',
+            'registro' => 'required|string|max:255',
             'sexo' => 'required|in:M,F',
             'fecha_nacimiento' => 'required|date',
-            'peso' => 'required|numeric',
-            'piso' => 'required|string',
-            'cama' => 'required|string',
-            'diagnostico' => 'required|string',
-            'medico_nombre' => 'required|string',
-            'medico_cedula' => 'required|string',
+            'peso' => 'required|numeric|min:1',
+            'piso' => 'required|string|max:50',
+            'cama' => 'required|string|max:50',
+            'diagnostico' => 'required|string|max:255',
+            'medico_nombre' => 'required|string|max:255',
+            'medico_cedula' => 'required|string|max:255',
             'fecha_entrega' => 'required|date',
+            'observaciones' => 'nullable|string|max:500',
+            'mezclas' => 'required|string'
         ]);
 
+        $mezclas = json_decode($request->mezclas, true);
+        if (!is_array($mezclas)) {
+            return back()->withErrors(['mezclas' => 'El formato del campo mezclas no es válido.'])->withInput();
+        }
+
         DB::beginTransaction();
-
         try {
-            $user = Auth::user();
-            $edad = \Carbon\Carbon::parse($request->fecha_nacimiento)->age;
-            $fecha = \Carbon\Carbon::parse($request->fecha_entrega);
-
-            // 1. Paciente
-            $paciente = DB::table('solicitud_patients')->insertGetId([
-                'nombre_paciente' => $request->paciente_nombre,
-                'apellidos_paciente' => $request->paciente_apellido,
+            // Guardar la solicitud principal
+            $solicitud = SolicitudOnco::create([
+                'user_id' => auth()->id(),
                 'servicio' => $request->servicio,
+                'nombre_paciente' => $request->paciente_nombre,
+                'sexo' => $request->sexo,
+                'edad' => null, // calcula si es necesario
+                'peso' => $request->peso,
                 'cama' => $request->cama,
                 'piso' => $request->piso,
-                'registro' => $request->registro,
-                'diagnostico' => $request->diagnostico,
+                'registro_paciente' => $request->registro,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
-                'edad' => $edad,
-                'peso' => $request->peso,
-                'sexo' => $request->sexo === 'M' ? 'Masculino' : 'Femenino',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            // 2. Detalle
-            $detalle = DB::table('solicitud_details')->insertGetId([
-                'via_administracion' => 'Central', // o recibirlo desde el frontend si es dinámico
-                'npt' => 'ADULT', // también configurable
-                'nombre_medico' => $request->medico_nombre,
-                'cedula' => $request->medico_cedula,
-                'fecha_hora_entrega' => $request->fecha_entrega,
+                'diagnostico' => $request->diagnostico,
+                'fecha_solicitud' => now()->toDateString(),
+                'horario_entrega' => \Carbon\Carbon::parse($request->fecha_entrega)->format('H:i:s'),
                 'observaciones' => $request->observaciones,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'nombre_medico' => $request->medico_nombre,
+                'cedula_medico' => $request->medico_cedula,
+                'estado' => 'pendiente',
+                'remision' => null,
             ]);
 
-            // 3. Solicitud principal
-            $solicitudId = DB::table('solicituds')->insertGetId([
-                'user_id' => $user->id,
-                'solicitud_patient_id' => $paciente,
-                'solicitud_detail_id' => $detalle,
-                'is_active' => true,
-                'is_aprobada' => 'Pendiente',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            // 4. Mezclas y medicamentos
-            $mezclas = json_decode($request->mezclas, true); // este JSON debe venir del frontend
-            foreach ($mezclas as $mezcla) {
-                $mezclaId = DB::table('mezclas')->insertGetId([
-                    'solicitud_id' => $solicitudId,
-                    'volumen_dilucion' => $mezcla['volumen_dilucion'],
-                    'tiempo_infusion' => $mezcla['tiempo_infusion'],
-                    'created_at' => now(),
+            // Guardar mezclas y medicamentos
+            foreach ($mezclas as $mezclaData) {
+                $mezcla = Mezcla::create([
+                    'solicitud_id' => $solicitud->id,
+                    'volumen_dilucion' => $mezclaData['volumen_dilucion'],
+                    'tiempo_infusion' => $mezclaData['tiempo_infusion'],
+                    'estado' => 'pendiente',
                 ]);
 
-                foreach ($mezcla['medicamentos'] as $medicamento) {
-                    DB::table('mezcla_medicamentos')->insert([
-                        'mezcla_id' => $mezclaId,
+                foreach ($mezclaData['medicamentos'] as $medicamento) {
+                    MezclaMedicamento::create([
+                        'mezcla_id' => $mezcla->id,
                         'medicamento_id' => $medicamento['medicamento_id'],
                         'nombre_medicamento' => $medicamento['nombre'],
                         'dosis' => $medicamento['dosis'],
-                        'precio_unitario' => $medicamento['precio'],
-                        'created_at' => now(),
+                        'precio_unitario' => 0, // puedes calcularlo si tienes precios
                     ]);
                 }
             }
 
             DB::commit();
-            return redirect()->route('admin.oncologicos.solicitudes.index')->with('success', 'Solicitud guardada exitosamente.');
+            return redirect()->route('admin.oncologicos.solicitudes.index')
+                            ->with('success', 'Solicitud registrada correctamente.');
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->withInput()->with('error', 'Error al guardar la solicitud: ' . $e->getMessage());
+
+            // 🔍 Mostrar el mensaje real del error (solo para desarrollo)
+            return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
     }
 
