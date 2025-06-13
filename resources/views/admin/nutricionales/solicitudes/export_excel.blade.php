@@ -11,6 +11,7 @@
             <th>Diagnostico</th>
             <th>Edad</th>
             <th>Sexo</th>
+            <th>Peso</th>
             <th>Sobrellenado</th>
             <th>Volumen total</th>
             <th>NPT</th>
@@ -78,6 +79,7 @@
                 <td>{{ $solicitud->solicitud_patient->diagnostico ?? '' }}</td>
                 <td>{{ $solicitud->solicitud_patient->edad ?? '' }}</td>
                 <td>{{ $solicitud->solicitud_patient->sexo ?? '' }}</td>
+                <td>{{ $solicitud->solicitud_patient->peso ?? '' }} kg</td>
                 <td>{{ $solicitud->solicitud_detail->sobrellenado_ml ?? '' }}</td>
                 <td>{{ $solicitud->solicitud_detail->volumen_total ?? '' }}</td>
                 <td>{{ $solicitud->solicitud_detail->npt ?? '' }}</td>
