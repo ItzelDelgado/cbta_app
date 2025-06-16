@@ -36,6 +36,8 @@ class SolicitudesExport implements FromQuery, WithMapping, WithHeadings, WithChu
             $query->where('user_id', $this->user->id);
         }
 
+          dd($query->take(10)->get());
+
         return $query;
     }
 
@@ -75,8 +77,6 @@ class SolicitudesExport implements FromQuery, WithMapping, WithHeadings, WithChu
             $getMl(30), $getMl(31), $getMl(32), $getMl(33), $getMl(34),
             $getMl(35),
         ];
-
-
     }
 
     public function headings(): array

@@ -276,6 +276,14 @@
                             1</strong></td>
                 </tr>
             </table>
+            <table>
+                <tr>
+                    <td style="border: none"><strong>Observaciones:</strong></td>
+                </tr>
+                <tr>
+                    <td>{{ $solicitud_detalles->solicitud_detail->observaciones }}</td>
+                </tr>
+            </table>
             <br>
             <table style="margin: 0 9rem; margin-bottom: 1rem;">
                 <tr>

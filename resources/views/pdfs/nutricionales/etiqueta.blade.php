@@ -1,7 +1,7 @@
 @php
 
-
-    function ajustarUnidad($unidad, $npt) {
+    function ajustarUnidad($unidad, $npt)
+    {
         if ($npt === 'ADULT') {
             if ($unidad === 'g/Kg') {
                 return 'g/día';
@@ -11,8 +11,6 @@
         }
         return $unidad; // Devuelve la unidad original si no se cumplen las condiciones.
     }
-
-
 
 @endphp
 <!DOCTYPE html>
@@ -71,7 +69,7 @@
             border: 1px solid black;
             text-align: left;
             padding: 0px 3px;
-            font-size: 9px
+            font-size: 6px
         }
 
         th {
@@ -79,7 +77,7 @@
         }
 
         p {
-            font-size: 12px
+            font-size: 10px
         }
 
         .tabla-format table {
@@ -118,27 +116,47 @@
             </table>
             <table class="introduccion">
                 <tr>
-                    <td><strong>Cliente: {{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</strong></td>
-                    <td><strong>Lote: {{ $solicitud_detalles->solicitud_aprobada['lote'] }}</strong></td>
+                    <td style="width: 70%"><strong>Cliente:
+                            {{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</strong>
+                    </td>
+                    <td style="width: 30%"><strong>Lote: {{ $solicitud_detalles->solicitud_aprobada['lote'] }}</strong></td>
                 </tr>
+            </table>
+            <table class="introduccion">
                 <tr>
-                    <td><strong>Paciente: {{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
-                        {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</strong></td>
-                    <td><strong>FN: {{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</strong></td>
+                    <td style="width: 40%"><strong>Paciente:
+                            {{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
+                            {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</strong></td>
+                    <td style="width: 20%"><strong>Registro: {{ $solicitud_detalles->solicitud_patient['registro'] }}</strong></td>
+                    <td style="width: 20%"><strong>Peso: {{ $solicitud_detalles->solicitud_patient['peso'] }}
+                            Kg</strong></td>
+                    <td style="width: 20%"><strong>FN:
+                            {{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</strong>
+                    </td>
                 </tr>
+            </table>
+            <table class="introduccion">
                 <tr>
-                    <td><strong>Médico: {{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}</strong></td>
+                    <td style="width: 40%"><strong>Médico:
+                            {{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}</strong></td>
+                    <td style="width: 30%"><strong>Cédula:
+                            {{ $solicitud_detalles->solicitud_detail['cedula'] }}</strong></td>
+                    <td style="width: 30%"><strong>Servicio:
+                            {{ $solicitud_detalles->solicitud_patient['servicio'] }}</strong></td>
                 </tr>
             </table>
             <table>
                 <tr>
-                    <td style="text-align: center; border: none; font-size: 0.55rem; font-style: italic"><strong>NUTRICIÓN PARENTERAL</strong></td>
+                    <td style="text-align: center; border: none; font-size: 0.55rem; font-style: italic">
+                        <strong>NUTRICIÓN PARENTERAL</strong></td>
                 </tr>
             </table>
             <table>
                 <tr>
-                    <td style="border: none; border-bottom: 1px solid black; text-align: center; width: 80%"><strong>COMPONENTES</strong></td>
-                    <td style="border: none; border-bottom: 1px solid black; text-align: center; width: 20%"><strong>CONTENIDO</strong></td>
+                    <td style="border: none; border-bottom: 1px solid black; text-align: center; width: 80%">
+                        <strong>COMPONENTES</strong></td>
+                    <td style="border: none; border-bottom: 1px solid black; text-align: center; width: 20%">
+                        <strong>CONTENIDO</strong></td>
                 </tr>
                 @php
                     $osmolaridad_total = 0; // Inicializamos la variable total
@@ -160,22 +178,29 @@
                             @endisset
                         </td>
                         <td style="border:none; text-align: center; width: 50%; padding: 0; margin:0;"><strong>
-                            @php
-                                $valor = $input_completo['valor'];
-                                $valorFormateado = strpos($valor, '.') !== false ? number_format($valor, 3, '.', '') : number_format($valor, 0);
-                            @endphp
-                            {{ $valorFormateado }}</strong>
-                            {{ ajustarUnidad($input_completo->input->unidad, $solicitud_detalles->solicitud_detail['npt']) }}</td>
+                                @php
+                                    $valor = $input_completo['valor'];
+                                    $valorFormateado =
+                                        strpos($valor, '.') !== false
+                                            ? number_format($valor, 3, '.', '')
+                                            : number_format($valor, 0);
+                                @endphp
+                                {{ $valorFormateado }}</strong>
+                            {{ ajustarUnidad($input_completo->input->unidad, $solicitud_detalles->solicitud_detail['npt']) }}
+                        </td>
                     </tr>
                 @endforeach
 
             </table>
             <table>
                 <tr style="padding: 0; margin: 0">
-                    <td style="border: none; border-top: 1px solid black; padding: 0; margin: 0"><strong>Osmolaridad:</strong> {{ number_format($osmolaridad_total, 2) }} mOSM/mL</td>
-                    <td style="border: none; border-top: 1px solid black; padding: 0; margin: 0"><strong>Vol. tot:</strong> @if (
-                        $solicitud_detalles->solicitud_detail['volumen_total'] == null ||
-                            $solicitud_detalles->solicitud_detail['volumen_total'] == 0)
+                    <td style="border: none; border-top: 1px solid black; padding: 0; margin: 0">
+                        <strong>Osmolaridad:</strong> {{ number_format($osmolaridad_total, 2) }} mOSM/mL</td>
+                    <td style="border: none; border-top: 1px solid black; padding: 0; margin: 0"><strong>Vol.
+                            tot:</strong>
+                        @if (
+                            $solicitud_detalles->solicitud_detail['volumen_total'] == null ||
+                                $solicitud_detalles->solicitud_detail['volumen_total'] == 0)
                             {{ number_format($solicitud_detalles->solicitud_detail['suma_volumen'], 2) }}
                         @else
                             {{ number_format($solicitud_detalles->solicitud_detail['volumen_total'], 2) }}
@@ -183,7 +208,8 @@
                     </td>
                 </tr>
                 <tr style="padding: 0; margin: 0">
-                    <td style="border: none; padding: 0; margin: 0"><strong>Sobrellenado:</strong> @isset($solicitud_detalles->solicitud_detail['sobrellenado_ml'])
+                    <td style="border: none; padding: 0; margin: 0"><strong>Sobrellenado:</strong>
+                        @isset($solicitud_detalles->solicitud_detail['sobrellenado_ml'])
                             {{ $solicitud_detalles->solicitud_detail['sobrellenado_ml'] }}
                         @else
                             0
@@ -222,11 +248,19 @@
             </table>
             <table>
                 <tr>
-                    <td style="border: none; text-align: center; border-top: 1px solid black;"><strong>MANTENER EN REFIGERACIÓN <br>
-                        HASTA UNA HORA ANTES DE SU ADMINISTRACIÓN</strong></td>
+                    <td style="border: none; text-align: center; border-top: 1px solid black;"><strong>MANTENER EN
+                            REFIGERACIÓN <br>
+                            HASTA UNA HORA ANTES DE SU ADMINISTRACIÓN</strong></td>
                 </tr>
                 <tr>
-                    <td style="border: none; text-align: center; padding: 0; margin: 0"><strong>Fecha y hora de preparación:</strong>
+                    <td style="border: none; text-align: center; padding: 0; margin: 0"><strong>Fecha y hora de
+                        Solicitud    :</strong>
+                        {{ date('d-m-Y H:i', strtotime($solicitud_detalles['created_at'])) }}h
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border: none; text-align: center; padding: 0; margin: 0"><strong>Fecha y hora de
+                            preparación:</strong>
                         {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h
                     </td>
                 </tr>
