@@ -86,14 +86,16 @@
 
                         <td class="px-6 py-4">
                             <div class="flex space-x-2">
-                                <a href="#" class="text-blue-600 hover:text-blue-900"><i
-                                        class="fa-solid fa-eye"></i></a>
-                                <a href="#" class="text-yellow-600 hover:text-yellow-900"><i
-                                        class="fa-solid fa-pen-to-square"></i></a>
+                                <a href="{{ route('admin.oncologicos.mezclas.index', $solicitud->id) }}"
+                                    class="btn-ver px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition">
+                                    Ver
+                                </a>
                                 <form method="POST" action="#">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900"><i
-                                            class="fa-solid fa-trash"></i></button>
+                                    <button type="submit"
+                                        class="btn-eliminar px-4 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition">
+                                        Eliminar
+                                    </button>
                                 </form>
                             </div>
                         </td>

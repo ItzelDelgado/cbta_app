@@ -69,7 +69,7 @@
             border: 1px solid black;
             text-align: left;
             padding: 0px 3px;
-            font-size: 6px
+            font-size: 8px
         }
 
         th {
@@ -119,20 +119,24 @@
                     <td style="width: 70%"><strong>Cliente:
                             {{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</strong>
                     </td>
-                    <td style="width: 30%"><strong>Lote: {{ $solicitud_detalles->solicitud_aprobada['lote'] }}</strong></td>
+                    <td style="width: 30%"><strong>Lote: {{ $solicitud_detalles->solicitud_aprobada['lote'] }}</strong>
+                    </td>
                 </tr>
             </table>
             <table class="introduccion">
                 <tr>
-                    <td style="width: 40%"><strong>Paciente:
+                    <td style="width: 70%"><strong>Paciente:
                             {{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
                             {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</strong></td>
-                    <td style="width: 20%"><strong>Registro: {{ $solicitud_detalles->solicitud_patient['registro'] }}</strong></td>
-                    <td style="width: 20%"><strong>Peso: {{ $solicitud_detalles->solicitud_patient['peso'] }}
-                            Kg</strong></td>
-                    <td style="width: 20%"><strong>FN:
+                    <td style="width: 30%"><strong>FN:
                             {{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</strong>
                     </td>
+                </tr>
+                <tr>
+                    <td style="width: 20%"><strong>Registro:
+                            {{ $solicitud_detalles->solicitud_patient['registro'] }}</strong></td>
+                    <td style="width: 20%"><strong>Peso: {{ $solicitud_detalles->solicitud_patient['peso'] }}
+                            Kg</strong></td>
                 </tr>
             </table>
             <table class="introduccion">
@@ -148,15 +152,18 @@
             <table>
                 <tr>
                     <td style="text-align: center; border: none; font-size: 0.55rem; font-style: italic">
-                        <strong>NUTRICIÓN PARENTERAL</strong></td>
+                        <strong>NUTRICIÓN PARENTERAL</strong>
+                    </td>
                 </tr>
             </table>
             <table>
                 <tr>
                     <td style="border: none; border-bottom: 1px solid black; text-align: center; width: 80%">
-                        <strong>COMPONENTES</strong></td>
+                        <strong>COMPONENTES</strong>
+                    </td>
                     <td style="border: none; border-bottom: 1px solid black; text-align: center; width: 20%">
-                        <strong>CONTENIDO</strong></td>
+                        <strong>CONTENIDO</strong>
+                    </td>
                 </tr>
                 @php
                     $osmolaridad_total = 0; // Inicializamos la variable total
@@ -195,7 +202,8 @@
             <table>
                 <tr style="padding: 0; margin: 0">
                     <td style="border: none; border-top: 1px solid black; padding: 0; margin: 0">
-                        <strong>Osmolaridad:</strong> {{ number_format($osmolaridad_total, 2) }} mOSM/mL</td>
+                        <strong>Osmolaridad:</strong> {{ number_format($osmolaridad_total, 2) }} mOSM/mL
+                    </td>
                     <td style="border: none; border-top: 1px solid black; padding: 0; margin: 0"><strong>Vol.
                             tot:</strong>
                         @if (
@@ -254,7 +262,7 @@
                 </tr>
                 <tr>
                     <td style="border: none; text-align: center; padding: 0; margin: 0"><strong>Fecha y hora de
-                        Solicitud    :</strong>
+                            Solicitud :</strong>
                         {{ date('d-m-Y H:i', strtotime($solicitud_detalles['created_at'])) }}h
                     </td>
                 </tr>

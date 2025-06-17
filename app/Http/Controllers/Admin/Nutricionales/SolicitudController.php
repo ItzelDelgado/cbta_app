@@ -573,11 +573,12 @@ class SolicitudController extends Controller
 
         //return $request->all();
         $fecha_nacimiento = $request->input('fecha_nacimiento');
-        $fecha_hora_preparacion = $request->input('fecha_hora_preparacion');
+        // $fecha_hora_preparacion = $request->input('fecha_hora_preparacion');
+        $fecha_hora_preparacion = now();
         // Crear un objeto Carbon a partir de la fecha y hora proporcionadas
-        $carbonFechaHora = Carbon::parse($fecha_hora_preparacion);
-        // Sumar 48 horas al objeto Carbon
-        $fecha_hora_limite = $carbonFechaHora->addHours(48);
+        // $carbonFechaHora = Carbon::parse($fecha_hora_preparacion);
+        // // Sumar 48 horas al objeto Carbon
+        // $fecha_hora_limite = $carbonFechaHora->addHours(48);
         // Se calcula la edad del paciente
         $edad = $this->calcularEdad($fecha_nacimiento);
         //return $request->all();
@@ -601,7 +602,7 @@ class SolicitudController extends Controller
             'fecha_hora_entrega' => 'required|date_format:Y-m-d\TH:i',
             'nombre_medico' => 'required|string|max:255',
             'cedula' => 'required|string|max:50',
-            'fecha_hora_preparacion' => 'required|date_format:Y-m-d\TH:i',
+            // 'fecha_hora_preparacion' => 'required|date_format:Y-m-d\TH:i',
             'bolsa_eva' => 'required',
             'lote_bolsa_eva' => 'required',
             'caducidad_bolsa_eva' => 'required',
@@ -944,6 +945,10 @@ class SolicitudController extends Controller
                 ]
             );
         } elseif ($solicitud['is_aprobada'] == 'Aprobada') {
+
+            $fecha_hora_preparacion = now()->addMinutes(45); // Hora exacta del momento de aprobación + 45 minutos
+            $fecha_hora_limite = $fecha_hora_preparacion->copy()->addHours(48);
+
             $solicitud_aprobadas['solicitud_id'] = $solicitud->id;
             $solicitud_aprobadas['fecha_hora_preparacion'] = $fecha_hora_preparacion;
             $solicitud_aprobadas['fecha_hora_limite_uso'] = $fecha_hora_limite;

@@ -36,7 +36,7 @@ class SolicitudesExport implements FromQuery, WithMapping, WithHeadings, WithChu
             $query->where('user_id', $this->user->id);
         }
 
-          dd($query->take(10)->get());
+        //   dd($query->take(10)->get());
 
         return $query;
     }

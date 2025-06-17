@@ -152,6 +152,13 @@ class SolicitudController extends Controller
         }
     }
 
+    public function show($id)
+    {
+        // $solicitud = SolicitudOnco::with(['user.hospital', 'mezclas'])
+        //     ->findOrFail($id);
+
+        // return view('admin.oncologicos.solicitudes.show', compact('solicitud'));
+    }
 
 
 

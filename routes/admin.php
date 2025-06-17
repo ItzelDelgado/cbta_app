@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route; //Importamos para generar nuestras rutas.
 use App\Exports\SolicitudesExport;
 use App\Http\Controllers\Admin\Oncologicos\MedicineCatalogController;
 use App\Http\Controllers\Admin\Oncologicos\MedicineController as OncologicosMedicineController;
+use App\Http\Controllers\Admin\Oncologicos\MezclaController;
 use App\Http\Controllers\Admin\Oncologicos\SolicitudController as OncologicosSolicitudController;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -106,6 +107,19 @@ Route::get('oncologicos/solicitudes', [OncologicosSolicitudController::class, 'i
 Route::get('oncologicos/solicitudes/create', [OncologicosSolicitudController::class, 'create'])->name('oncologicos.solicitudes.create');
 
 Route::post('oncologicos/solicitudes', [OncologicosSolicitudController::class, 'store'])->name('oncologicos.solicitudes.store');
+
+Route::get('oncologicos/solicitudes/{id}', [OncologicosSolicitudController::class, 'show'])->name('oncologicos.solicitudes.show');
+
+//RUTAS PARA MEZCLAS ONCOLOGICAS
+
+Route::get('oncologicos/solicitudes/mezclas/{mezcla}', [MezclaController::class, 'index'])->name('oncologicos.mezclas.index');
+Route::get('oncologicos/mezclas/create', [MezclaController::class, 'create'])->name('oncologicos.mezclas.create');
+Route::get('oncologicos/mezclas/{mezcla}', [MezclaController::class, 'show'])->name('oncologicos.mezclas.show');
+Route::post('oncologicos/mezclas', [MezclaController::class, 'store'])->name('oncologicos.mezclas.store');
+Route::get('oncologicos/mezclas/{mezcla}/edit', [MezclaController::class, 'edit'])->name('oncologicos.mezclas.edit');
+Route::put('oncologicos/mezclas/{mezcla}', [MezclaController::class, 'update'])->name('oncologicos.mezclas.update');
+
+
 
 
 Route::resource('oncologicos/medicines/catalog', MedicineCatalogController::class)
