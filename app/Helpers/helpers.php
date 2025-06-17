@@ -1,5 +1,8 @@
 <?php
 // Define una función que utiliza el fragmento de código y toma $input como argumento
+
+use App\Models\Nutricionales\Input;
+
 function renderInputSection($id, $inputs_solicitud)
 {
     $inputValue = '';
@@ -47,33 +50,31 @@ function renderInputMLSobrellenadoSection($id, $inputs_solicitud)
 // Define una función que utiliza el fragmento de código y toma $input como argumento
 function renderLoteSection($id, $inputs_solicitud)
 {
-    $inputLote = '';
     foreach ($inputs_solicitud as $inputItem) {
-        if ($inputItem->input_id == $id) {
-            $inputLote = $inputItem->lote;
-            break;
+        if ($inputItem->input_id == $id && !empty($inputItem->lote)) {
+            return $inputItem->lote;
         }
     }
 
-    // Devuelve el valor de $inputValue
-    return $inputLote;
+    // Fallback: obtener lote del medicamento relacionado si se pasó como relación
+    $input = Input::with('medicine')->find($id);
+    return $input->medicine->lote ?? '';
 }
-
 
 // Define una función que utiliza el fragmento de código y toma $input como argumento
 function renderCaducidadSection($id, $inputs_solicitud)
 {
-    $inputCaducidad = '';
     foreach ($inputs_solicitud as $inputItem) {
-        if ($inputItem->input_id == $id) {
-            $inputCaducidad = $inputItem->caducidad;
-            break;
+        if ($inputItem->input_id == $id && !empty($inputItem->caducidad)) {
+            return \Carbon\Carbon::parse($inputItem->caducidad)->format('Y-m-d');
         }
     }
 
-    // Devuelve el valor de $inputValue
-    return $inputCaducidad;
+    // Fallback: obtener caducidad del medicamento
+    $input = Input::with('medicine')->find($id);
+    return optional($input->medicine->caducidad)->format('Y-m-d') ?? '';
 }
+
 
 
 

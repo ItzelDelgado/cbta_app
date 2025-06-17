@@ -493,56 +493,31 @@ class SolicitudController extends Controller
     {
         $user = Auth::user(); // Obtener el usuario actual
         $role = $user->roles[0]->name;
-        if ($solicitud->is_aprobada != 'Aprobada') {
-            if ($role === 'Admin' or $role === 'Super Admin') {
-                $solicitud = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
-                    ->where('is_aprobada', '!=', 'Aprobada')
-                    ->find($solicitud->id);
 
-
-                //$solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
-                // ->get();
-
-                // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
-                $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-                //return $inputs_solicitud;
-                $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
-                    ->leftJoin('medicines', 'medicines.input_id', '=', 'inputs.id')
-                    ->where('inputs.is_active', 1)
-                    ->orderBy('orden_enum', 'asc')
-                    ->select(
-                        'inputs.*',
-                        'inputs.id AS input_id', // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
-                        'medicines.lote AS lote', // Obtener el lote de la medicina
-                        'medicines.caducidad AS caducidad',
-                        'medicines.presentacion_ml'
-                    ) // Obtener la caducidad de la medicina
-                    ->get();
-                //return $inputs;
-                return view('admin.nutricionales.solicitudes.edit', compact('solicitud', 'inputs', 'inputs_solicitud'));
-            }
-            // } elseif ($role === 'Cliente') {
-            //     $solicitud = Solicitud::where('user_id', $user->id)
-            //         ->where('is_aprobada', '!=', 'Aprobada')
-            //         ->with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
-            //         ->find($solicitud->id);
-            //     //$solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
-            //     // ->get(); /solicitudes/183/edit
-
-            //     // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
-            //     $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-            //     //return $inputs_solicitud;
-            //     $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
-            //         ->where('inputs.is_active', 1)
-            //         ->orderBy('orden_enum', 'asc')
-            //         ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
-            //         ->get();
-
-            //     return view('admin.nutricionales.solicitudes.edit', compact('solicitud', 'inputs', 'inputs_solicitud'));
-            // }
-        } else {
-            abort(Response::HTTP_NOT_FOUND, 'Página no encontrada');
+        // Solo se bloquea la edición a usuarios que NO sean Admin ni Super Admin
+        if ($solicitud->is_aprobada === 'Aprobada' && !in_array($role, ['Admin', 'Super Admin'])) {
+            abort(Response::HTTP_FORBIDDEN, 'No tienes permisos para editar esta solicitud.');
         }
+
+        $solicitud = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+            ->findOrFail($solicitud->id);
+
+        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud->id)->get();
+
+        $inputs = Input::join('categories', 'inputs.category_id', '=', 'categories.id')
+            ->leftJoin('medicines', 'medicines.input_id', '=', 'inputs.id')
+            ->where('inputs.is_active', 1)
+            ->orderBy('orden_enum', 'asc')
+            ->select(
+                'inputs.*',
+                'inputs.id AS input_id',
+                'medicines.lote AS lote',
+                'medicines.caducidad AS caducidad',
+                'medicines.presentacion_ml'
+            )
+            ->get();
+
+        return view('admin.nutricionales.solicitudes.edit', compact('solicitud', 'inputs', 'inputs_solicitud'));
     }
 
     /**
@@ -1088,6 +1063,7 @@ class SolicitudController extends Controller
             ];
         }
 
+
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
             ->whereNotIn('input_id', function ($query) {
                 $query->select('id')
@@ -1113,6 +1089,17 @@ class SolicitudController extends Controller
 
         return $pdf->stream();
     }
+
+
+    // public function destroy(Solicitud $solicitud)
+    // {
+    //     $solicitud->is_aprobada = 'No Aprobada';
+    //     $solicitud->save();
+
+    //     return redirect()->back()->with('success', 'La solicitud fue cancelada correctamente.');
+    // }
+
+
     public function ordenPreparacion(Solicitud $solicitud)
     {
         // $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])

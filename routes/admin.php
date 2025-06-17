@@ -82,6 +82,13 @@ Route::get('nutricionales/solicitudes/{solicitud}/edit', [SolicitudController::c
 Route::put('nutricionales/solicitudes/{solicitud}', [SolicitudController::class, 'update'])->name('nutricionales.solicitudes.update')
 ->middleware(['can:solicitudes_update']);
 
+// // Ruta para eliminar una solicitud específica
+// Route::delete('nutricionales/solicitudes/{solicitud}', [SolicitudController::class, 'destroy'])->name('nutricionales.solicitudes.destroy')
+// ->middleware(['can:solicitudes_destroy']);
+
+
+
+
 // También puedes excluir la ruta de eliminación
 // Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy']);
 

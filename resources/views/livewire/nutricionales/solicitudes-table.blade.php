@@ -33,12 +33,12 @@
                             {{ $solicitud->solicitud_patient->apellidos_paciente ?? '' }}
                         </td>
                         <td class="px-0 py-2">
-                            @if ($solicitud->is_aprobada === 'Pendiente')
-                                <a href="{{ route('admin.nutricionales.solicitudes.edit', $solicitud) }}"
-                                    class="text-white bg-blue-600 hover:bg-blue-800 rounded-full text-sm px-2 py-2">
-                                    <i class="fa-solid fa-pen pr-1"></i> Aprobar
-                                </a>
-                            @endif
+
+                            <a href="{{ route('admin.nutricionales.solicitudes.edit', $solicitud) }}"
+                                class="text-white bg-blue-600 hover:bg-blue-800 rounded-full text-sm px-2 py-2">
+                                <i class="fa-solid fa-pen pr-1"></i> Aprobar
+                            </a>
+
                         </td>
                         <td class="px-2 py-2">{{ $solicitud->created_at->format('Y-m-d H:i') }}</td>
                         <td class="px-2 py-2">

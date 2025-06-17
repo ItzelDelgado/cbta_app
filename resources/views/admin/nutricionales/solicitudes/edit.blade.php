@@ -559,7 +559,7 @@
                                                     value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                     name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                                     step="0.0001" placeholder=""
-                                                    value="{{ $input->medicine->lote ?? '' }}" />
+                                                   />
                                             </div>
                                         </div>
                                         <div class="flex w-[25%]">
@@ -575,7 +575,7 @@
                                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                     id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                                     class="" placeholder=""
-                                                    value="{{ $input->medicine->caducidad ?? '' }}" />
+                                                    />
                                             </div>
                                         </div>
                                     </div>
@@ -1135,53 +1135,39 @@
             });
 
             function updateIsAprobada(value) {
-                if (value == 'Aprobada') {
-                    Swal.fire({
-                        title: "¿Seguro que deseas aprobar esta solicitud?",
-                        showCancelButton: true,
-                        confirmButtonText: "Confirmar",
-                        cancelButtonText: `Cancelar`,
-                        customClass: {
-                            confirmButton: 'swal-button-confirm',
-                            cancelButton: 'swal-button-cancel'
-                        }
-                    }).then((result) => {
-                        /* Read more about isConfirmed, isDenied below */
-                        if (result.isConfirmed) {
-                            //document.getElementById('is_aprobada_input').value = 'Aprobada';
-                            //Swal.fire("Saved!", "", "success");
-                            // Obtener el formulario por su ID
-                            document.getElementById('is_aprobada_input').value = 'Aprobada';
-                            let form = document.getElementById('solicitudForm');
-                            // Enviar el formulario
-                            form.submit();
-                        }
-                    });
-                } else if (value == 'No Aprobada') {
-                    Swal.fire({
-                        title: "¿Seguro que deseas rechazar esta solicitud?",
-                        showCancelButton: true,
-                        confirmButtonText: "Confirmar",
-                        cancelButtonText: `Cancelar`,
-                        customClass: {
-                            confirmButton: 'swal-button-confirm',
-                            cancelButton: 'swal-button-cancel'
-                        }
-                    }).then((result) => {
-                        /* Read more about isConfirmed, isDenied below */
-                        if (result.isConfirmed) {
-                            //document.getElementById('is_aprobada_input').value = 'Aprobada';
-                            //Swal.fire("Saved!", "", "success");
-                            // Obtener el formulario por su ID
-                            document.getElementById('is_aprobada_input').value = 'No Aprobada';
-                            let form = document.getElementById('solicitudForm');
-                            // Enviar el formulario
-                            form.submit();
-                        }
-                    });
+                const form = document.getElementById('solicitudForm');
+                const inputAprobada = document.getElementById('is_aprobada_input');
 
-                }
+                Swal.fire({
+                    title: `¿Seguro que deseas ${value === 'Aprobada' ? 'aprobar' : 'rechazar'} esta solicitud?`,
+                    showCancelButton: true,
+                    confirmButtonText: "Confirmar",
+                    cancelButtonText: `Cancelar`,
+                    customClass: {
+                        confirmButton: 'swal-button-confirm',
+                        cancelButton: 'swal-button-cancel'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        inputAprobada.value = value;
 
+                        if (form.checkValidity()) {
+                            form.submit();
+                        } else {
+                            const primerCampoInvalido = form.querySelector(':invalid');
+                            if (primerCampoInvalido) {
+                                primerCampoInvalido.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                });
+                                setTimeout(() => {
+                                    primerCampoInvalido.focus();
+                                    primerCampoInvalido.reportValidity();
+                                }, 300); // espera a que el scroll se complete antes de mostrar el mensaje
+                            }
+                        }
+                    }
+                });
             }
 
             document.addEventListener("DOMContentLoaded", function() {
