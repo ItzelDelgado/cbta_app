@@ -24,8 +24,7 @@ return new class extends Migration
             $table->string('registro_paciente')->nullable();
             $table->date('fecha_nacimiento')->nullable();
             $table->text('diagnostico');
-            $table->date('fecha_solicitud');
-            $table->time('horario_entrega');
+            $table->dateTime('fecha_entrega')->nullable();
             $table->text('observaciones')->nullable();
             $table->string('nombre_medico');
             $table->string('cedula_medico', 50);

@@ -61,6 +61,7 @@ class SolicitudesExport implements FromQuery, WithMapping, WithHeadings, WithChu
             $s->solicitud_patient->edad ?? '',
             $s->solicitud_patient->sexo ?? '',
             isset($s->solicitud_patient->peso) ? $s->solicitud_patient->peso . ' Kg' : '',
+            $s->solicitud_patient->cama ?? '',
             $s->solicitud_detail->sobrellenado_ml ?? '',
             $s->solicitud_detail->volumen_total ?? '',
             $s->solicitud_detail->npt ?? '',
@@ -83,7 +84,7 @@ class SolicitudesExport implements FromQuery, WithMapping, WithHeadings, WithChu
     {
         return [
             'ID', 'Remisión', 'Lote', 'Hospital', 'Paciente', 'Servicio', 'Registro',
-            'Diagnóstico', 'Edad', 'Sexo', 'Peso', 'Sobrellenado', 'Volumen total', 'NPT',
+            'Diagnóstico', 'Edad', 'Sexo', 'Peso', 'Cama', 'Sobrellenado', 'Volumen total', 'NPT',
             'Fecha de solicitud', 'Nombre del médico', 'Cédula profesional',
             'Observaciones', 'Estatus',
             'Aminoácidos pediátricos 10%', 'Cloruro de Sodio 0.9%', 'Dextrosa 50%',

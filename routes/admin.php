@@ -117,6 +117,10 @@ Route::post('oncologicos/solicitudes', [OncologicosSolicitudController::class, '
 
 Route::get('oncologicos/solicitudes/{id}', [OncologicosSolicitudController::class, 'show'])->name('oncologicos.solicitudes.show');
 
+Route::get('oncologicos/solicitudes/{id}/edit', [OncologicosSolicitudController::class, 'edit'])->name('oncologicos.solicitudes.edit');
+
+Route::put('oncologicos/solicitudes/{id}', [OncologicosSolicitudController::class, 'update'])->name('oncologicos.solicitudes.update');
+
 //RUTAS PARA MEZCLAS ONCOLOGICAS
 
 Route::get('oncologicos/solicitudes/mezclas/{mezcla}', [MezclaController::class, 'index'])->name('oncologicos.mezclas.index');

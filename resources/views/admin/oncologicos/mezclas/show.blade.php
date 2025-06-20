@@ -1,42 +1,146 @@
 <x-admin-layout>
-    <div class="mb-4">
-        <h1 class="text-2xl font-bold">Solicitud #{{ $mezcla->solicitud->id }} - Mezcla #{{ $mezcla->id }}</h1>
-    </div>
+    <div class="flex flex-col">
+        <div class="mt-2 mb-4">
+            <h1 class="text-2xl font-medium text-gray-800">Visualizar Mezcla #{{ $mezcla->id }} - Solicitud #{{ $mezcla->solicitud->id }}</h1>
+        </div>
 
-    <div class="grid grid-cols-2 gap-4 mb-6 bg-white p-6 rounded shadow">
-        <div><strong>Paciente:</strong> {{ $mezcla->solicitud->nombre_paciente }}</div>
-        <div><strong>Servicio:</strong> {{ $mezcla->solicitud->servicio }}</div>
-        <div><strong>Registro:</strong> {{ $mezcla->solicitud->registro_paciente }}</div>
-        <div><strong>Sexo:</strong> {{ $mezcla->solicitud->sexo }}</div>
-        <div><strong>Fecha de nacimiento:</strong> {{ $mezcla->solicitud->fecha_nacimiento }}</div>
-        <div><strong>Peso:</strong> {{ $mezcla->solicitud->peso }} kg</div>
-        <div><strong>Diagnóstico:</strong> {{ $mezcla->solicitud->diagnostico }}</div>
-        <div><strong>Fecha de entrega:</strong> {{ $mezcla->solicitud->fecha_solicitud }} {{ $mezcla->solicitud->horario_entrega }}</div>
-        <div><strong>Nombre del Médico:</strong> {{ $mezcla->solicitud->nombre_medico }}</div>
-        <div><strong>Cédula:</strong> {{ $mezcla->solicitud->cedula_medico }}</div>
-        <div><strong>Observaciones:</strong> {{ $mezcla->solicitud->observaciones }}</div>
-    </div>
+        <div class="bg-white rounded-lg p-6 shadow-lg space-y-4">
 
-    <h2 class="text-lg font-bold mb-2">Medicamentos</h2>
-    <table class="w-full text-sm text-left text-gray-600 border border-gray-200">
-        <thead class="bg-gray-100 text-xs uppercase">
-            <tr>
-                <th class="p-3">Medicamento</th>
-                <th class="p-3">Dosis</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($mezcla->medicamentos as $med)
-            <tr class="border-t">
-                <td class="p-3">{{ $med->nombre_medicamento }}</td>
-                <td class="p-3">{{ $med->dosis }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
+            {{-- Datos del paciente --}}
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="text-sm font-semibold">Paciente Nombre(s)</label>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->nombre_paciente }}
+                    </p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold">Servicio</label>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->servicio }}
+                    </p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold">Registro</label>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->registro_paciente }}
+                    </p>
+                </div>
+            </div>
 
-    <div class="mt-6">
-        <a href="{{ route('admin.oncologicos.solicitudes.index') }}"
-           class="text-blue-600 hover:underline">&laquo; Volver</a>
+            <div class="grid grid-cols-4 gap-4">
+                <div>
+                    <label class="text-sm font-semibold">Sexo</label>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->sexo }}
+                    </p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold">Fecha de nacimiento</label>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->fecha_nacimiento }}
+                    </p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold">Peso</label>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->peso }} kg
+                    </p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold">Cama</label>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->cama }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-4">
+                <div>
+                    <label class="text-sm font-semibold">Piso</label>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->piso }}
+                    </p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold">Fecha de entrega</label>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->fecha_solicitud }} {{ $mezcla->solicitud->horario_entrega }}
+                    </p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold">Médico</label>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->nombre_medico }}
+                    </p>
+                </div>
+                <div>
+                    <label class="text-sm font-semibold">Cédula</label>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->cedula_medico }}
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-sm font-semibold">Diagnóstico</label>
+                <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                    {{ $mezcla->solicitud->diagnostico }}
+                </p>
+            </div>
+
+            <div>
+                <label class="text-sm font-semibold">Observaciones</label>
+                <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                    {{ $mezcla->solicitud->observaciones }}
+                </p>
+            </div>
+
+            {{-- Mezcla visualizada --}}
+            <div class="mt-6 border border-gray-300 p-4 rounded-lg">
+                <h2 class="text-lg font-semibold mb-2">Mezcla #1</h2>
+
+                <table class="table-auto w-full text-sm border border-gray-200 mb-4">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="border px-4 py-2">Medicamento</th>
+                            <th class="border px-4 py-2">Dosis</th>
+                            <th class="border px-4 py-2">Diluyente</th>
+                            <th class="border px-4 py-2">Vía de administración</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($mezcla->medicamentos as $med)
+                        <tr>
+                            <td class="border px-4 py-2">{{ $med->nombre_medicamento }}</td>
+                            <td class="border px-4 py-2">{{ $med->dosis }}</td>
+                            <td class="border px-4 py-2">{{ $med->diluyente }}</td>
+                            <td class="border px-4 py-2">{{ $med->via_administracion }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-sm font-semibold">Volumen total de dilución (ml)</label>
+                        <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                            {{ $mezcla->volumen_total_dilucion }}
+                        </p>
+                    </div>
+                    <div>
+                        <label class="text-sm font-semibold">Tiempo de infusión (min)</label>
+                        <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                            {{ $mezcla->tiempo_infusion }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <a href="{{ route('admin.oncologicos.solicitudes.index') }}"
+                   class="text-blue-600 hover:underline">&laquo; Volver</a>
+            </div>
+        </div>
     </div>
 </x-admin-layout>

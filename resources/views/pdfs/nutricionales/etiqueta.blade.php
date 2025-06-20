@@ -132,10 +132,14 @@
                             {{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</strong>
                     </td>
                 </tr>
+            </table>
+            <table class="introduccion">
                 <tr>
-                    <td style="width: 20%"><strong>Registro:
+                    <td style="width: 45%"><strong>Registro:
                             {{ $solicitud_detalles->solicitud_patient['registro'] }}</strong></td>
-                    <td style="width: 20%"><strong>Peso: {{ $solicitud_detalles->solicitud_patient['peso'] }}
+                    <td style="width: 27.5%"><strong>Cama:
+                            {{ $solicitud_detalles->solicitud_patient['cama'] }}</strong></td>
+                    <td style="width: 27.5%"><strong>Peso: {{ $solicitud_detalles->solicitud_patient['peso'] }}
                             Kg</strong></td>
                 </tr>
             </table>

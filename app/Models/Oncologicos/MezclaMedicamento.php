@@ -13,6 +13,8 @@ class MezclaMedicamento extends Model {
     'nombre_medicamento',
     'dosis',
     'precio_unitario',
+    'diluyente_id',
+    'via_administracion_id',
 ];
     protected $table = 'mezcla_medicamentos'; // si es necesario
     use HasFactory;

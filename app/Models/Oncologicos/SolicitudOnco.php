@@ -10,6 +10,10 @@ class SolicitudOnco extends Model {
 
     protected $table = 'solicitud_oncos'; // si es necesario
 
+    protected $casts = [
+        'fecha_entrega' => 'datetime',
+    ];
+
     protected $fillable = [
         'user_id',
         'servicio',
@@ -22,8 +26,7 @@ class SolicitudOnco extends Model {
         'registro_paciente',
         'fecha_nacimiento',
         'diagnostico',
-        'fecha_solicitud',
-        'horario_entrega',
+        'fecha_entrega',
         'observaciones',
         'nombre_medico',
         'cedula_medico',

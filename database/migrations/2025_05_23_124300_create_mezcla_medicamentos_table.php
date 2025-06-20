@@ -17,6 +17,8 @@ return new class extends Migration
             $table->foreignId('medicamento_id')->nullable()->constrained('medicine_oncos')->onDelete('set null');
             $table->string('nombre_medicamento')->nullable();
             $table->decimal('dosis', 8, 2)->nullable();
+            $table->foreignId('diluyente_id')->nullable()->constrained('diluents')->onDelete('set null');
+            $table->foreignId('via_administracion_id')->nullable()->constrained('administration_routes')->onDelete('set null');
             $table->decimal('precio_unitario', 10, 2)->nullable();
             $table->timestamps();
         });

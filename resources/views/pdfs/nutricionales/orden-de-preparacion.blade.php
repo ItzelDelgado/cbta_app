@@ -280,7 +280,7 @@
                 </tr>
                 <tr>
                     <td style="border: none; padding: 0 auto;" colspan="5"><strong>Sitio de procedencia:</strong>
-                        <span style="">S/D</span>
+                        <span style="">{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</span>
                     </td>
 
                 </tr>

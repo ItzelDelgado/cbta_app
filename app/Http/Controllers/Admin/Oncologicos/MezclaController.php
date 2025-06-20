@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Admin\Oncologicos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Oncologicos\Mezcla;
 use App\Models\Oncologicos\SolicitudOnco;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class MezclaController extends Controller
 {
@@ -58,24 +61,63 @@ class MezclaController extends Controller
 
         return view('admin.oncologicos.mezclas.show', compact('mezcla'));
     }
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+
     public function edit($id)
     {
-        // Logic to show the edit form for a specific mix
-        // Retrieve the mix by ID and return a view with the mix data
+
+        // Cargar la mezcla con solicitud y medicamentos
+        $mezcla = Mezcla::with(['solicitud', 'medicamentos'])->findOrFail($id);
+        $solicitud = $mezcla->solicitud;
+
+        $user = Auth::user();
+        $listaId = $user->medicine_list_id;
+
+        // Medicamentos de la lista personalizada
+        $medicamentos = DB::table('medicine_medicine_lists')
+            ->join('medicine_oncos', 'medicine_medicine_lists.medicine_id', '=', 'medicine_oncos.id')
+            ->join('medicines_catalog', 'medicine_oncos.catalog_id', '=', 'medicines_catalog.id')
+            ->where('medicine_medicine_lists.medicine_list_id', $listaId)
+            ->select(
+                'medicine_oncos.id as id',
+                'medicine_oncos.precio',
+                'medicine_oncos.lote',
+                'medicine_oncos.caducidad',
+                'medicines_catalog.denominacion',
+                'medicines_catalog.presentacion',
+                'medicines_catalog.id as catalog_id'
+            )
+            ->get();
+
+        // Información adicional para cada medicamento
+        $infoAdicional = [];
+
+        foreach ($medicamentos as $med) {
+            $diluyentes = DB::table('diluent_medicine_catalog')
+                ->join('diluents', 'diluent_medicine_catalog.diluent_id', '=', 'diluents.id')
+                ->where('diluent_medicine_catalog.medicine_catalog_id', $med->catalog_id)
+                ->select('diluents.id', 'diluents.name')
+                ->get();
+
+            $vias = DB::table('administration_route_medicine_catalog')
+                ->join('administration_routes', 'administration_route_medicine_catalog.administration_route_id', '=', 'administration_routes.id')
+                ->where('administration_route_medicine_catalog.medicine_catalog_id', $med->catalog_id)
+                ->select('administration_routes.id', 'administration_routes.name')
+                ->get();
+
+            $infoAdicional[$med->id] = [
+                'diluyentes' => $diluyentes,
+                'vias' => $vias
+            ];
+        }
+
+        // dd(
+        //     $infoAdicional, $medicamentos, $mezcla, $solicitud, $user->medicine_list_id, $listaId
+        // );
+        // Devolver la mezcla, solicitud, medicamentos y las relaciones adicionales a la vista
+        return view('admin.oncologicos.mezclas.edit', compact('mezcla', 'solicitud', 'medicamentos', 'infoAdicional'));
     }
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+
+
     public function update(Request $request, $id)
     {
         // Logic to update the mix

@@ -3,15 +3,28 @@
         <h1 class="text-3xl font-bold text-gray-800">Detalle de Solicitud #{{ $solicitud->id }}</h1>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 bg-white shadow rounded-lg p-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-white shadow rounded-lg p-6">
         <div>
-            <p class="text-gray-700"><span class="font-semibold text-gray-900">Hospital:</span> {{ $solicitud->user->hospital->name ?? 'N/A' }}</p>
-            <p class="text-gray-700"><span class="font-semibold text-gray-900">Paciente:</span> {{ $solicitud->nombre_paciente }}</p>
+            <p class="text-gray-700"><span class="font-semibold text-gray-900">Hospital:</span>
+                {{ $solicitud->user->hospital->name ?? 'N/A' }}</p>
+            <p class="text-gray-700"><span class="font-semibold text-gray-900">Paciente:</span>
+                {{ $solicitud->nombre_paciente }}</p>
         </div>
         <div>
-            <p class="text-gray-700"><span class="font-semibold text-gray-900">Fecha de Solicitud:</span> {{ $solicitud->fecha_solicitud }} {{ $solicitud->created_at->format('H:i') }}</p>
-            <p class="text-gray-700"><span class="font-semibold text-gray-900">Fecha de Entrega:</span> {{ \Carbon\Carbon::parse($solicitud->fecha_solicitud . ' ' . $solicitud->horario_entrega)->format('Y-m-d H:i') }}</p>
+            <p class="text-gray-700"><span class="font-semibold text-gray-900">Fecha de Solicitud:</span>
+                {{ $solicitud->fecha_solicitud }} {{ $solicitud->created_at->format('H:i') }}</p>
+            <p class="text-gray-700"><span class="font-semibold text-gray-900">Fecha de Entrega:</span>
+                {{ \Carbon\Carbon::parse($solicitud->fecha_solicitud . ' ' . $solicitud->horario_entrega)->format('Y-m-d H:i') }}
+            </p>
         </div>
+        <div>
+            <a href="{{ route('admin.oncologicos.solicitudes.edit', $solicitud->id) }}"
+                class="inline-block px-6 py-3 bg-yellow-500 text-white text-base font-semibold rounded-lg hover:bg-yellow-600 transition duration-200">
+                Ver Solicitud Completa
+            </a>
+
+        </div>
+
     </div>
 
     <div class="relative overflow-x-auto rounded-lg shadow">
@@ -24,9 +37,9 @@
                     <th class="px-6 py-3">Fecha y hora de solicitud</th>
                     <th class="px-6 py-3">Fecha y hora de entrega</th>
                     <th class="px-6 py-3">Estado</th>
+                    <th class="px-6 py-3">Acciones</th>
                     <th class="px-6 py-3">Remisión</th>
                     <th class="px-6 py-3">Lote</th>
-                    <th class="px-6 py-3">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -35,24 +48,34 @@
                         <td class="px-6 py-4">{{ $mezcla->id }}</td>
                         <td class="px-6 py-4">{{ $solicitud->user->hospital->name ?? 'N/A' }}</td>
                         <td class="px-6 py-4">{{ $solicitud->nombre_paciente }}</td>
-                        <td class="px-6 py-4">{{ $solicitud->fecha_solicitud }} {{ $solicitud->created_at->format('H:i') }}</td>
-                        <td class="px-6 py-4">{{ \Carbon\Carbon::parse($solicitud->fecha_solicitud . ' ' . $solicitud->horario_entrega)->format('Y-m-d H:i') }}</td>
+                        <td class="px-6 py-4">{{ $solicitud->fecha_solicitud }}
+                            {{ $solicitud->created_at->format('H:i') }}</td>
                         <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full
-                                {{ match($mezcla->estado) {
+                            {{ \Carbon\Carbon::parse($solicitud->fecha_solicitud . ' ' . $solicitud->horario_entrega)->format('Y-m-d H:i') }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span
+                                class="px-2 py-1 text-xs font-semibold rounded-full
+                                {{ match ($mezcla->estado) {
                                     'pendiente' => 'bg-yellow-100 text-yellow-800',
                                     'aprobada' => 'bg-green-100 text-green-800',
                                     'cancelada' => 'bg-red-100 text-red-800',
-                                    default => 'bg-gray-100 text-gray-800'
+                                    default => 'bg-gray-100 text-gray-800',
                                 } }}">
                                 {{ ucfirst($mezcla->estado) }}
                             </span>
                         </td>
+                        <td class="px-6 py-4">
+                            <a href="{{ route('admin.oncologicos.mezclas.show', $mezcla->id) }}"
+                                class="btn-ver px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition">Ver</a>
+                            <a href="{{ route('admin.oncologicos.mezclas.edit', $mezcla->id) }}"
+                                class="btn-editar px-4 py-1 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600 transition">
+                                Editar
+                            </a>
+                        </td>
                         <td class="px-6 py-4">{{ $solicitud->remision ?? '—' }}</td>
                         <td class="px-6 py-4">{{ $mezcla->lote ?? '—' }}</td>
-                        <td class="px-6 py-4">
-                            <a href="{{ route('admin.oncologicos.mezclas.show', $mezcla->id) }}" class="text-indigo-600 hover:text-indigo-900 font-medium text-sm">Ver</a>
-                        </td>
+
                     </tr>
                 @empty
                     <tr>
@@ -65,7 +88,7 @@
 
     <div class="mt-6">
         <a href="{{ route('admin.oncologicos.solicitudes.index') }}"
-           class="inline-block px-4 py-2 text-sm text-blue-600 hover:underline">
+            class="inline-block px-4 py-2 text-sm text-blue-600 hover:underline">
             &laquo; Volver a listado
         </a>
     </div>

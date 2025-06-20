@@ -24,28 +24,22 @@
         <form id="formularioSolicitud" action="{{ route('admin.oncologicos.solicitudes.store') }}" method="POST"
             class="bg-white rounded-lg p-6 shadow-lg">
             @csrf
+
             <div class="flex justify-between mb-4 gap-4">
-                <div class="w-1/4">
+                <div class="w-1/3">
                     <label for="paciente_nombre">Paciente Nombre(s)</label>
                     <input type="text" name="paciente_nombre" id="paciente_nombre"
                         value="{{ old('paciente_nombre') }}"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                         placeholder="Nombre(s) del Paciente">
                 </div>
-                <div class="w-1/4">
-                    <label for="paciente_apellido">Paciente Apellido(s)</label>
-                    <input type="text" name="paciente_apellido" id="paciente_apellido"
-                        value="{{ old('paciente_apellido') }}"
-                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        placeholder="Apellido(s) del Paciente">
-                </div>
-                <div class="w-1/4">
+                <div class="w-1/3">
                     <label for="servicio">Servicio*</label>
                     <input type="text" name="servicio" id="servicio" value="{{ old('servicio') }}"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                         placeholder="Servicio">
                 </div>
-                <div class="w-1/4">
+                <div class="w-1/3">
                     <label for="registro">Registro*</label>
                     <input type="text" name="registro" id="registro" value="{{ old('registro') }}"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
@@ -220,15 +214,11 @@
                 <td class="border">
                     <select data-name="diluyente" class="w-full border rounded px-2 py-1 text-sm">
                         <option value="">Diluyentes</option>
-                        <option value="NaCl">NaCl 0.9%</option>
-                        <option value="Glucosa">Glucosa 5%</option>
                     </select>
                 </td>
                 <td class="border">
                     <select data-name="via_administracion" class="w-full border rounded px-2 py-1 text-sm">
                         <option value="">Vía de admin</option>
-                        <option value="IV">Intravenosa</option>
-                        <option value="IM">Intramuscular</option>
                     </select>
                 </td>
                 <td class="border">
@@ -296,8 +286,8 @@
                             nombre: medicamentoSelect.options[medicamentoSelect
                                 .selectedIndex].text,
                             dosis: dosisInput.value,
-                            diluyente: diluyenteSelect?.value || "",
-                            via_administracion: viaSelect?.value || ""
+                            diluyente_id: diluyenteSelect?.value || null,
+                            via_administracion_id: viaSelect?.value || null
                         });
                     }
                 });
