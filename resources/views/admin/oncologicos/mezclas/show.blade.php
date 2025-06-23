@@ -1,7 +1,8 @@
 <x-admin-layout>
     <div class="flex flex-col">
         <div class="mt-2 mb-4">
-            <h1 class="text-2xl font-medium text-gray-800">Visualizar Mezcla #{{ $mezcla->id }} - Solicitud #{{ $mezcla->solicitud->id }}</h1>
+            <h1 class="text-2xl font-medium text-gray-800">Visualizar Mezcla #{{ $mezcla->id }} - Solicitud
+                #{{ $mezcla->solicitud->id }}</h1>
         </div>
 
         <div class="bg-white rounded-lg p-6 shadow-lg space-y-4">
@@ -65,7 +66,9 @@
                 <div>
                     <label class="text-sm font-semibold">Fecha de entrega</label>
                     <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
-                        {{ $mezcla->solicitud->fecha_solicitud }} {{ $mezcla->solicitud->horario_entrega }}
+                        {{ \Carbon\Carbon::parse($mezcla->solicitud->fecha_entrega)->format('Y-m-d\TH:i') }}
+
+
                     </p>
                 </div>
                 <div>
@@ -111,21 +114,33 @@
                     </thead>
                     <tbody>
                         @foreach ($mezcla->medicamentos as $med)
-                        <tr>
-                            <td class="border px-4 py-2">{{ $med->nombre_medicamento }}</td>
-                            <td class="border px-4 py-2">{{ $med->dosis }}</td>
-                            <td class="border px-4 py-2">{{ $med->diluyente }}</td>
-                            <td class="border px-4 py-2">{{ $med->via_administracion }}</td>
-                        </tr>
+                            @php
+                                $info = $infoAdicional[$med->medicamento_id] ?? null;
+
+                                $diluyenteNombre = $info
+                                    ? optional($info['diluyentes']->firstWhere('id', $med->diluyente_id))->name
+                                    : '—';
+
+                                $viaNombre = $info
+                                    ? optional($info['vias']->firstWhere('id', $med->via_administracion_id))->name
+                                    : '—';
+                            @endphp
+                            <tr>
+                                <td class="border px-4 py-2">{{ $med->nombre_medicamento }}</td>
+                                <td class="border px-4 py-2">{{ $med->dosis }}</td>
+                                <td class="border px-4 py-2">{{ $diluyenteNombre ?? '—' }}</td>
+                                <td class="border px-4 py-2">{{ $viaNombre ?? '—' }}</td>
+                            </tr>
                         @endforeach
                     </tbody>
+
                 </table>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="text-sm font-semibold">Volumen total de dilución (ml)</label>
                         <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
-                            {{ $mezcla->volumen_total_dilucion }}
+                            {{ $mezcla->volumen_dilucion }}
                         </p>
                     </div>
                     <div>
@@ -139,7 +154,7 @@
 
             <div class="mt-6">
                 <a href="{{ route('admin.oncologicos.solicitudes.index') }}"
-                   class="text-blue-600 hover:underline">&laquo; Volver</a>
+                    class="text-blue-600 hover:underline">&laquo; Volver</a>
             </div>
         </div>
     </div>
