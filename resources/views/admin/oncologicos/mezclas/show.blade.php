@@ -126,7 +126,7 @@
                                     : '—';
                             @endphp
                             <tr>
-                                <td class="border px-4 py-2">{{ $med->nombre_medicamento }}</td>
+                                <td class="border px-4 py-2">{{ $info['denominacion'] ?? '—' }}</td>
                                 <td class="border px-4 py-2">{{ $med->dosis }}</td>
                                 <td class="border px-4 py-2">{{ $diluyenteNombre ?? '—' }}</td>
                                 <td class="border px-4 py-2">{{ $viaNombre ?? '—' }}</td>

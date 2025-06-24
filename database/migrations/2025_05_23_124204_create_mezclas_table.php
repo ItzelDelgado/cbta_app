@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('mezclas', function (Blueprint $table) {
             $table->id();
             $table->foreignId('solicitud_id')->constrained('solicitud_oncos')->onDelete('cascade');
-            $table->enum('estado', ['pendiente', 'preparando', 'cancelado', 'entregado'])->nullable();
+            $table->enum('estado', ['pendiente', 'aprobada' ,'preparada', 'cancelada', 'entregada'])->nullable();
             $table->timestamps();
             $table->string('remision', 50)->nullable();
             $table->string('lote', 50)->nullable();

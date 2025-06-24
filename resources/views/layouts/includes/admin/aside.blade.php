@@ -13,7 +13,7 @@
                     <span class="ms-3">Nutricionales</span>
                 </button>
                 <ul x-show="openMenu === 'nutricionales'" class="pl-4 space-y-2">
-                    @can('solicitudes_index')
+                    @can('nutricionales_solicitudes_index')
                         <li>
                             <a href="{{ route('admin.nutricionales.solicitudes.index') }}"
                                 class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group {{ request()->routeIs('admin.nutricionales.solicitudes.*') ? 'bg-gray-100' : '' }}">
@@ -43,7 +43,7 @@
                 </button>
 
                 <ul x-show="openMenu === 'oncologicas'" class="pl-4 space-y-2">
-                    @can('solicitudes_index')
+                    @can('nutricionales_solicitudes_index')
                         <li>
                             <a href="{{ route('admin.oncologicos.solicitudes.index') }}"
                                 class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group {{ request()->routeIs('admin.nutricionales.solicitudes.*') ? 'bg-gray-100' : '' }}">

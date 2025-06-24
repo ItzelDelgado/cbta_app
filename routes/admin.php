@@ -30,7 +30,7 @@ Route::get('/dashboard', function(){
 
 Route::get('nutricionales/solicitudes/exportar', [SolicitudController::class, 'exportarExcel'])
     ->name('nutricionales.solicitudes.exportar')
-    ->middleware(['can:nutricionales_nutricionales_solicitudes_index']);
+    ->middleware(['can:nutricionales_solicitudes_index']);
 
 
 Route::resource('/users', UserController::class)
@@ -64,23 +64,23 @@ Route::get('nutricionales/solicitudes', [SolicitudController::class, 'index'])->
 ->middleware(['can:nutricionales_solicitudes_index']);
 // Ruta para mostrar el formulario de creación de solicitud
 Route::get('nutricionales/solicitudes/create', [SolicitudController::class, 'create'])->name('nutricionales.solicitudes.create')
-->middleware(['can:solicitudes_create']);
+->middleware(['can:nutricionales_solicitudes_create']);
 
 // Ruta para almacenar una nueva solicitud
 Route::post('nutricionales/solicitudes', [SolicitudController::class, 'store'])->name('nutricionales.solicitudes.store')
-->middleware(['can:solicitudes_store']);
+->middleware(['can:nutricionales_solicitudes_store']);
 
 // Ruta para mostrar una solicitud específica
 Route::get('nutricionales/solicitudes/{solicitud}', [SolicitudController::class, 'show'])->name('nutricionales.solicitudes.show')
-->middleware(['can:solicitudes_show']);
+->middleware(['can:nutricionales_solicitudes_show']);
 
 // Ruta para mostrar el formulario de edición de una solicitud
 Route::get('nutricionales/solicitudes/{solicitud}/edit', [SolicitudController::class, 'edit'])->name('nutricionales.solicitudes.edit')
-->middleware(['can:solicitudes_edit']);
+->middleware(['can:nutricionales_solicitudes_edit']);
 
 // Ruta para actualizar una solicitud específica
 Route::put('nutricionales/solicitudes/{solicitud}', [SolicitudController::class, 'update'])->name('nutricionales.solicitudes.update')
-->middleware(['can:solicitudes_update']);
+->middleware(['can:nutricionales_solicitudes_update']);
 
 // // Ruta para eliminar una solicitud específica
 // Route::delete('nutricionales/solicitudes/{solicitud}', [SolicitudController::class, 'destroy'])->name('nutricionales.solicitudes.destroy')

@@ -156,6 +156,17 @@ class MezclaController extends Controller
 
     public function update(Request $request, $id)
     {
+        if ($request->accion === 'preparada') {
+            $mezcla = Mezcla::findOrFail($id);
+            $mezcla->estado = 'preparada';
+            $mezcla->save();
+
+            return redirect()
+                ->route('admin.oncologicos.mezclas.index', $mezcla->solicitud->id)
+                ->with('success', 'Mezcla marcada como preparada.');
+        }
+
+
         $request->validate([
             'mezcla_json' => 'required|json',
             'paciente_nombre' => 'required|string',
@@ -172,6 +183,7 @@ class MezclaController extends Controller
             'fecha_entrega' => 'nullable|date',
             'observaciones' => 'nullable|string',
         ]);
+
 
         $mezcla = Mezcla::with('solicitud')->findOrFail($id);
         $mezclaData = json_decode($request->mezcla_json, true);
@@ -215,6 +227,13 @@ class MezclaController extends Controller
                     'diluyente_id' => $med['diluyente_id'],
                     'via_administracion_id' => $med['via_administracion_id'],
                 ]);
+            }
+
+
+
+            if ($request->accion === 'aprobar') {
+                $mezcla->estado = 'aprobada'; // Asegúrate de que el campo exista en tu tabla 'mezclas'
+                $mezcla->save();
             }
 
             DB::commit();

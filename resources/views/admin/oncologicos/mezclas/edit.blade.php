@@ -134,8 +134,13 @@
         <div id="contenedorMezcla"></div>
         <input type="hidden" name="mezcla_json" id="mezcla_json">
 
-        <div class="flex justify-end mt-4">
-            <x-button>ACTUALIZAR MEZCLA</x-button>
+        <div class="flex justify-end mt-4 gap-4">
+            <input type="hidden" name="accion" id="accion" value="actualizar">
+
+            <x-button onclick="document.getElementById('accion').value='actualizar'">ACTUALIZAR MEZCLA</x-button>
+
+            <x-button type="submit" class="bg-green-600 hover:bg-green-700"
+                onclick="document.getElementById('accion').value='aprobar'">APROBAR MEZCLA</x-button>
         </div>
     </form>
 

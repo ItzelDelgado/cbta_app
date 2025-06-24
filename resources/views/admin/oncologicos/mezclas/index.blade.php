@@ -72,6 +72,19 @@
                                 class="btn-editar px-4 py-1 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600 transition">
                                 Editar
                             </a>
+                            @if ($mezcla->estado === 'aprobada')
+                                <form id="formPreparar-{{ $mezcla->id }}"
+                                    action="{{ route('admin.oncologicos.mezclas.update', $mezcla->id) }}"
+                                    method="POST" class="inline">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="accion" value="preparada">
+                                    <button type="button" onclick="confirmarPreparada({{ $mezcla->id }})"
+                                        class="btn-aprobar px-4 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition">
+                                        Preparada
+                                    </button>
+                                </form>
+                            @endif
                         </td>
                         <td class="px-6 py-4">{{ $solicitud->remision ?? '—' }}</td>
                         <td class="px-6 py-4">{{ $mezcla->lote ?? '—' }}</td>
@@ -92,4 +105,25 @@
             &laquo; Volver a listado
         </a>
     </div>
+
+    @push('js')
+        <script>
+            function confirmarPreparada(id) {
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: '¿Estás seguro de que esta mezcla ya fue preparada?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, marcar como preparada',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('formPreparar-' + id).submit();
+                    }
+                });
+            }
+        </script>
+    @endpush
 </x-admin-layout>
