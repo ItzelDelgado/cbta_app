@@ -19,7 +19,7 @@ class SolicitudesTable extends Component
 
     public function aplicarBusqueda()
     {
-        $this->search = $this->buscar;
+        $this->search = trim($this->buscar);
         $this->resetPage();
     }
 

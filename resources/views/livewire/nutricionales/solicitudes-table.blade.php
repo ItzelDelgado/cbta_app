@@ -1,12 +1,14 @@
 <div>
-    <div class="mb-4 flex items-center gap-2">
-        <input type="text" wire:model="buscar" placeholder="Buscar ..."
-            class="border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200 focus:ring-opacity-50 w-1/3 p-2">
+    <form wire:submit.prevent="aplicarBusqueda">
+        <div class="mb-4 flex items-center gap-2">
+            <input type="text" wire:model="buscar" placeholder="Buscar ..."
+                class="border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200 focus:ring-opacity-50 w-1/3 p-2">
 
-        <button wire:click="aplicarBusqueda" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-800">
-            Buscar
-        </button>
-    </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-800">
+                Buscar
+            </button>
+        </div>
+    </form>
 
     <div class="overflow-x-auto">
         <table class="w-full text-sm text-left text-gray-500">
