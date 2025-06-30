@@ -239,7 +239,7 @@ class MezclaController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('admin.oncologicos.mezclas.edit', $mezcla->id)
+                ->route('admin.oncologicos.mezclas.index', $solicitud->id)
                 ->with('success', 'Mezcla y solicitud actualizadas correctamente.');
         } catch (\Exception $e) {
             DB::rollBack();

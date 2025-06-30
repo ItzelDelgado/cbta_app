@@ -67,11 +67,15 @@
                         </td>
                         <td class="px-6 py-4">
                             <a href="{{ route('admin.oncologicos.mezclas.show', $mezcla->id) }}"
-                                class="btn-ver px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition">Ver</a>
+                                class="btn-ver px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition">
+                                Ver
+                            </a>
+
                             <a href="{{ route('admin.oncologicos.mezclas.edit', $mezcla->id) }}"
-                                class="btn-editar px-4 py-1 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600 transition">
+                                class="btn-editar ml-2 px-4 py-1 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600 transition">
                                 Editar
                             </a>
+
                             @if ($mezcla->estado === 'aprobada')
                                 <form id="formPreparar-{{ $mezcla->id }}"
                                     action="{{ route('admin.oncologicos.mezclas.update', $mezcla->id) }}"
@@ -80,11 +84,20 @@
                                     @method('PUT')
                                     <input type="hidden" name="accion" value="preparada">
                                     <button type="button" onclick="confirmarPreparada({{ $mezcla->id }})"
-                                        class="btn-aprobar px-4 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition">
+                                        class="btn-aprobar ml-2 px-4 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition">
                                         Preparada
                                     </button>
                                 </form>
                             @endif
+                            @if ($mezcla->estado === 'preparada')
+                                <x-button
+                                    onclick="window.dispatchEvent(new CustomEvent('abrir-modal-inspeccion', { detail: [{{ $mezcla->id }}] }))"
+                                    class="ml-2 bg-purple-600 hover:bg-purple-700">
+                                    Inspección
+                                </x-button>
+                            @endif
+
+
                         </td>
                         <td class="px-6 py-4">{{ $solicitud->remision ?? '—' }}</td>
                         <td class="px-6 py-4">{{ $mezcla->lote ?? '—' }}</td>
@@ -95,8 +108,11 @@
                         <td colspan="9" class="px-6 py-4 text-center text-gray-500">No hay mezclas registradas.</td>
                     </tr>
                 @endforelse
+
+
             </tbody>
         </table>
+        @livewire('oncologicas.inspeccion-mezcla')
     </div>
 
     <div class="mt-6">

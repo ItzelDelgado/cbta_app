@@ -1228,6 +1228,7 @@ class SolicitudController extends Controller
         $pdf = Pdf::loadView('pdfs.nutricionales.etiqueta', \compact('solicitud_detalles', 'inputs_solicitud'))
             ->setPaper($customPaper, 'landscape');
 
+
         return $pdf->stream();
     }
 
