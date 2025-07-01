@@ -15,7 +15,24 @@ class SolicitudesTable extends Component
     public $buscar = ''; // <-- input del usuario
     public $search = ''; // <-- filtro que se aplica realmente
 
+    public $sortField = 'id';
+    public $sortDirection = 'desc';
+
     protected $paginationTheme = 'tailwind';
+
+
+
+    public function sortBy($field)
+    {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
+
+        $this->resetPage();
+    }
 
     public function aplicarBusqueda()
     {
@@ -52,13 +69,15 @@ class SolicitudesTable extends Component
                             ->orWhere('apellidos_paciente', 'like', "%{$this->search}%");
                     })
                     ->orWhereHas('solicitud_aprobada', function ($q) {
-                        $q->where('id', 'like', "%{$this->search}%");
-                        // 🔴 El filtro por 'lote' fue eliminado aquí
+                        $q->where('id', 'like', "%{$this->search}%")
+                        ->orWhere('lote', 'like', "%{$this->search}%"); // ✅ AÑADIDO
                     });
             });
         }
 
-        $solicitudes = $query->orderByDesc('id')->paginate(50);
+
+        $solicitudes = $query->orderBy($this->sortField, $this->sortDirection)->paginate(50);
+
 
         return view('livewire.nutricionales.solicitudes-table', compact('solicitudes'));
     }
