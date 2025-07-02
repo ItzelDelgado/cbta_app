@@ -98,8 +98,7 @@
                 </div>
                 <div class="w-1/4">
                     <label for="medico_cedula">Cédula del Médico</label>
-                    <input type="text" name="medico_cedula" id="medico_cedula"
-                        value="{{ old('medico_cedula') }}"
+                    <input type="text" name="medico_cedula" id="medico_cedula" value="{{ old('medico_cedula') }}"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                         placeholder="Cédula del Médico">
                 </div>
@@ -153,45 +152,67 @@
             mezclaDiv.dataset.idInterno = idInternoMezcla;
 
             mezclaDiv.innerHTML = `
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-lg font-semibold mezcla-titulo">Mezcla</h3>
-                    <button type="button" onclick="eliminarMezcla(this)" class="bg-red-600 text-white px-3 py-1 rounded text-sm">
-                        <i class="fas fa-trash"></i> Eliminar Mezcla
-                    </button>
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold mezcla-titulo">Mezcla</h3>
+                <button type="button" onclick="eliminarMezcla(this)" class="bg-red-600 text-white px-3 py-1 rounded text-sm">
+                    <i class="fas fa-trash"></i> Eliminar Mezcla
+                </button>
+            </div>
+            <table class="table-auto w-full border text-center">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border px-4 py-2 text-xs">MEDICAMENTO</th>
+                        <th class="border px-4 py-2 text-xs">DOSIS</th>
+                        <th class="border px-4 py-2 text-xs">DILUYENTE</th>
+                        <th class="border px-4 py-2 text-xs">VÍA DE ADMINISTRACIÓN</th>
+                        <th class="border px-4 py-2 text-xs">ACCIÓN</th>
+                    </tr>
+                </thead>
+                <tbody id="medicamentos_mezcla_${idInternoMezcla}">
+                </tbody>
+            </table>
+            <div class="my-2">
+                <button type="button" onclick="agregarFilaMedicamento(${idInternoMezcla})" class="bg-green-500 text-white px-4 py-2 rounded text-sm">
+                    <i class="fas fa-plus"></i> Agregar Medicamento
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                    <label>Volumen total de dilución (ml)*</label>
+                    <input type="number" data-name="volumen_dilucion" class="w-full border rounded px-2 py-1 text-sm">
                 </div>
-                <table class="table-auto w-full border text-center">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="border px-4 py-2 text-xs">MEDICAMENTO</th>
-                            <th class="border px-4 py-2 text-xs">DOSIS</th>
-                            <th class="border px-4 py-2 text-xs">DILUYENTE</th>
-                            <th class="border px-4 py-2 text-xs">VÍA DE ADMINISTRACIÓN</th>
-                            <th class="border px-4 py-2 text-xs">ACCIÓN</th>
-                        </tr>
-                    </thead>
-                    <tbody id="medicamentos_mezcla_${idInternoMezcla}">
-                    </tbody>
-                </table>
-                <div class="my-2">
-                    <button type="button" onclick="agregarFilaMedicamento(${idInternoMezcla})" class="bg-green-500 text-white px-4 py-2 rounded text-sm">
-                        <i class="fas fa-plus"></i> Agregar Medicamento
-                    </button>
+                <div>
+                    <label>Tiempo de infusión (min)*</label>
+                    <input type="number" data-name="tiempo_infusion" class="w-full border rounded px-2 py-1 text-sm">
                 </div>
-                <div class="grid grid-cols-2 gap-4 mt-4">
-                    <div>
-                        <label>Volumen total de dilución (ml)*</label>
-                        <input type="number" data-name="volumen_dilucion" class="w-full border rounded px-2 py-1 text-sm">
-                    </div>
-                    <div>
-                        <label>Tiempo de infusión (min)*</label>
-                        <input type="number" data-name="tiempo_infusion" class="w-full border rounded px-2 py-1 text-sm">
-                    </div>
-                </div>
-            `;
+            </div>
+        `;
 
             document.getElementById('contenedorMezclas').appendChild(mezclaDiv);
             agregarFilaMedicamento(idInternoMezcla);
             actualizarNumeracionMezclas();
+        }
+
+        function actualizarOpcionesMedicamentos(idMezcla) {
+            const selects = document.querySelectorAll(`#medicamentos_mezcla_${idMezcla} select[data-name="medicamento"]`);
+            const seleccionados = Array.from(selects).map(s => s.value).filter(v => v);
+
+            selects.forEach(select => {
+                const valorActual = select.value;
+                select.innerHTML = '<option value="">Seleccione el medicamento</option>';
+
+                medicamentos.forEach(m => {
+                    if (!seleccionados.includes(m.id.toString()) || m.id.toString() === valorActual) {
+                        const option = document.createElement('option');
+                        option.value = m.id;
+                        option.text = `${m.denominacion} (${m.presentacion})`;
+                        if (m.id.toString() === valorActual) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    }
+                });
+            });
         }
 
         function agregarFilaMedicamento(idMezcla) {
@@ -201,43 +222,50 @@
             fila.id = `fila_m${idMezcla}_f${contadorFilasGlobal}`;
 
             fila.innerHTML = `
-                <td class="border">
-                    <select data-name="medicamento" class="w-full border rounded px-2 py-1 text-sm"
-                        onchange="actualizarDiluentesYVias(this, ${idMezcla}, ${contadorFilasGlobal})">
-                        <option value="">Seleccione el medicamento</option>
-                        ${medicamentos.map(m => `<option value="${m.id}">${m.denominacion} (${m.presentacion})</option>`).join('')}
-                    </select>
-                </td>
-                <td class="border">
-                    <input type="number" data-name="dosis" class="w-full border-none px-2 py-1 text-sm">
-                </td>
-                <td class="border">
-                    <select data-name="diluyente" class="w-full border rounded px-2 py-1 text-sm">
-                        <option value="">Diluyentes</option>
-                    </select>
-                </td>
-                <td class="border">
-                    <select data-name="via_administracion" class="w-full border rounded px-2 py-1 text-sm">
-                        <option value="">Vía de admin</option>
-                    </select>
-                </td>
-                <td class="border">
-                    <button type="button" onclick="eliminarFila('${fila.id}')" class="bg-red-500 text-white px-2 py-1 rounded">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            `;
+            <td class="border">
+                <select data-name="medicamento" class="w-full border rounded px-2 py-1 text-sm"
+                    onchange="actualizarDiluentesYVias(this, ${idMezcla}, ${contadorFilasGlobal}); actualizarOpcionesMedicamentos(${idMezcla})">
+                    <option value="">Seleccione el medicamento</option>
+                    ${medicamentos.map(m => `<option value="${m.id}">${m.denominacion} (${m.presentacion})</option>`).join('')}
+                </select>
+            </td>
+            <td class="border">
+                <input type="number" data-name="dosis" class="w-full border-none px-2 py-1 text-sm">
+            </td>
+            <td class="border">
+                <select data-name="diluyente" class="w-full border rounded px-2 py-1 text-sm">
+                    <option value="">Diluyentes</option>
+                </select>
+            </td>
+            <td class="border">
+                <select data-name="via_administracion" class="w-full border rounded px-2 py-1 text-sm">
+                    <option value="">Vía de admin</option>
+                </select>
+            </td>
+            <td class="border">
+                <button type="button" onclick="eliminarFila('${fila.id}'); actualizarOpcionesMedicamentos(${idMezcla})" class="bg-red-500 text-white px-2 py-1 rounded">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
 
             tbody.appendChild(fila);
+            actualizarOpcionesMedicamentos(idMezcla);
         }
 
         function eliminarMezcla(btn) {
-            btn.closest(".border").remove();
+            const mezcla = btn.closest(".border");
+            const idMezcla = mezcla.dataset.idInterno;
+            mezcla.remove();
             actualizarNumeracionMezclas();
+            actualizarOpcionesMedicamentos(idMezcla);
         }
 
         function eliminarFila(idFila) {
-            document.getElementById(idFila)?.remove();
+            const fila = document.getElementById(idFila);
+            const idMezcla = fila.closest("tbody").id.split("_").pop();
+            fila.remove();
+            actualizarOpcionesMedicamentos(idMezcla);
         }
 
         function actualizarNumeracionMezclas() {
@@ -264,7 +292,7 @@
         }
 
         document.getElementById("formularioSolicitud").addEventListener("submit", function(e) {
-            e.preventDefault(); // prevenir envío inmediato
+            e.preventDefault();
 
             const mezclas = [];
 
@@ -303,7 +331,6 @@
 
             document.getElementById("mezclas_json").value = JSON.stringify(mezclas);
 
-            // SweetAlert de confirmación
             Swal.fire({
                 title: '¿Estás seguro?',
                 text: "Esta solicitud será registrada.",
@@ -315,7 +342,7 @@
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    e.target.submit(); // enviar si confirma
+                    e.target.submit();
                 }
             });
         });

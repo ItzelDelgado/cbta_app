@@ -3,6 +3,7 @@
 namespace App\Livewire\Oncologicas;
 
 use App\Models\Oncologicos\InspeccionMezcla as OncologicosInspeccionMezcla;
+use App\Models\Oncologicos\Mezcla;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -113,9 +114,14 @@ class InspeccionMezcla extends Component
             'aprobo_nombre' => $this->aprobo_nombre,
         ]);
 
+            // ✅ Actualizar el estado de la mezcla a "revisada"
+        Mezcla::where('id', $this->mezclaId)->update(['estado' => 'revisada']);
+
+
         $this->mostrarModalInspeccion = false;
 
-        session()->flash('success', 'Inspección registrada correctamente.');
+          // ✅ Emitir evento JS
+        $this->dispatch('mezcla-inspeccionada');
     }
 
     public function render()

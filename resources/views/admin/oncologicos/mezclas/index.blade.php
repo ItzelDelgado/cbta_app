@@ -90,11 +90,11 @@
                                 </form>
                             @endif
                             @if ($mezcla->estado === 'preparada')
-                                <x-button
+                                <button type="button"
                                     onclick="window.dispatchEvent(new CustomEvent('abrir-modal-inspeccion', { detail: [{{ $mezcla->id }}] }))"
-                                    class="ml-2 bg-purple-600 hover:bg-purple-700">
+                                    class="ml-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded px-4 py-1 transition">
                                     Inspección
-                                </x-button>
+                                </button>
                             @endif
 
 
