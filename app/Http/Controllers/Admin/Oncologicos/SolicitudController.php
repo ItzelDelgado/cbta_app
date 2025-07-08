@@ -19,6 +19,7 @@ class SolicitudController extends Controller
         ->orderByDesc('id')
         ->get();
 
+
         return view('admin.oncologicos.solicitudes.index', compact('solicitudes'));
     }
 
@@ -210,7 +211,6 @@ class SolicitudController extends Controller
 
     public function update(Request $request, $id)
     {
-
 
         $request->validate([
             'paciente_nombre' => 'required|string|max:255',

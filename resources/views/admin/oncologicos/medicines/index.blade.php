@@ -64,8 +64,10 @@
                             text: "Esta acción no se puede deshacer.",
                             icon: 'warning',
                             showCancelButton: true,
-                            confirmButtonColor: '#dc2626',
-                            cancelButtonColor: '#6b7280',
+                            customClass: {
+                                confirmButton: 'swal-button-confirm',
+                                cancelButton: 'swal-button-cancel'
+                            }
                             confirmButtonText: 'Sí, eliminar',
                             cancelButtonText: 'Cancelar'
                         }).then((result) => {

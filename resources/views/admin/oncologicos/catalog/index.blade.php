@@ -64,7 +64,10 @@
                     icon: 'success',
                     title: '¡Éxito!',
                     text: '{{ session('success') }}',
-                    confirmButtonColor: '#2563eb'
+                    customClass: {
+                        confirmButton: 'swal-button-confirm',
+                        cancelButton: 'swal-button-cancel'
+                    }
                 });
             </script>
         @endif
@@ -82,8 +85,10 @@
                             text: "Este medicamento será deshabilitado.",
                             icon: 'warning',
                             showCancelButton: true,
-                            confirmButtonColor: '#3085d6',
-                            cancelButtonColor: '#d33',
+                            customClass: {
+                                confirmButton: 'swal-button-confirm',
+                                cancelButton: 'swal-button-cancel'
+                            },
                             confirmButtonText: 'Sí, deshabilitar',
                             cancelButtonText: 'Cancelar'
                         }).then((result) => {

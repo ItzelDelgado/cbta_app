@@ -55,7 +55,12 @@
             </thead>
             <tbody>
                 @foreach ($solicitudes as $solicitud)
-                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50">
+                    <tr @class([
+                            'border-b dark:bg-gray-800 dark:border-gray-700',
+                            'bg-green-200 font-bold' => $solicitud->estado === 'finalizada',
+                            'bg-blue-200 font-semibold' => $solicitud->estado === 'enproceso',
+                            'bg-gray-200' => $solicitud->estado === 'pendiente',
+                        ])>
 
                         <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                             {{ $solicitud->id }}
@@ -90,13 +95,18 @@
                                     class="btn-ver px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition">
                                     Ver
                                 </a>
-                                <form method="POST" action="#">
-                                    @csrf @method('DELETE')
-                                    <button type="submit"
-                                        class="btn-eliminar px-4 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition">
-                                        Eliminar
-                                    </button>
-                                </form>
+
+                                @if ($solicitud->estado !== 'enproceso')
+                                    <form method="POST"
+                                        action="#">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="btn-eliminar px-4 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </td>
 

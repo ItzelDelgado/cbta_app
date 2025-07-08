@@ -355,8 +355,10 @@
                 showCancelButton: true,
                 confirmButtonText: 'Sí, actualizar',
                 cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#2563eb',
-                cancelButtonColor: '#e3342f'
+                customClass: {
+                    confirmButton: 'swal-button-confirm',
+                    cancelButton: 'swal-button-cancel'
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
                     e.target.submit(); // envía el formulario si se confirma
@@ -371,7 +373,10 @@
                 icon: 'success',
                 title: '¡Éxito!',
                 text: '{{ session('success') }}',
-                confirmButtonColor: '#3085d6'
+                customClass: {
+                    confirmButton: 'swal-button-confirm',
+                    cancelButton: 'swal-button-cancel'
+                }
             });
         </script>
     @endif
@@ -382,7 +387,10 @@
                 icon: 'error',
                 title: 'Error',
                 html: `{!! implode('<br>', $errors->all()) !!}`,
-                confirmButtonColor: '#e3342f'
+                customClass: {
+                    confirmButton: 'swal-button-confirm',
+                    cancelButton: 'swal-button-cancel'
+                }
             });
         </script>
     @endif

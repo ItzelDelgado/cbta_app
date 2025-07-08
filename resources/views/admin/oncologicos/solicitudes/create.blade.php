@@ -141,6 +141,7 @@
     <script>
         const medicamentos = @json($medicamentos);
         const infoAdicional = @json($infoAdicional);
+        const mezclasOld = @json(old('mezclas') ? json_decode(old('mezclas'), true) : []);
 
         let idInternoMezcla = 0;
         let contadorFilasGlobal = 0;
@@ -152,40 +153,40 @@
             mezclaDiv.dataset.idInterno = idInternoMezcla;
 
             mezclaDiv.innerHTML = `
-            <div class="flex justify-between items-center mb-2">
-                <h3 class="text-lg font-semibold mezcla-titulo">Mezcla</h3>
-                <button type="button" onclick="eliminarMezcla(this)" class="bg-red-600 text-white px-3 py-1 rounded text-sm">
-                    <i class="fas fa-trash"></i> Eliminar Mezcla
-                </button>
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="text-lg font-semibold mezcla-titulo">Mezcla</h3>
+            <button type="button" onclick="eliminarMezcla(this)" class="bg-red-600 text-white px-3 py-1 rounded text-sm">
+                <i class="fas fa-trash"></i> Eliminar Mezcla
+            </button>
+        </div>
+        <table class="table-auto w-full border text-center">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="border px-4 py-2 text-xs">MEDICAMENTO</th>
+                    <th class="border px-4 py-2 text-xs">DOSIS</th>
+                    <th class="border px-4 py-2 text-xs">DILUYENTE</th>
+                    <th class="border px-4 py-2 text-xs">VÍA DE ADMINISTRACIÓN</th>
+                    <th class="border px-4 py-2 text-xs">ACCIÓN</th>
+                </tr>
+            </thead>
+            <tbody id="medicamentos_mezcla_${idInternoMezcla}">
+            </tbody>
+        </table>
+        <div class="my-2">
+            <button type="button" onclick="agregarFilaMedicamento(${idInternoMezcla})" class="bg-green-500 text-white px-4 py-2 rounded text-sm">
+                <i class="fas fa-plus"></i> Agregar Medicamento
+            </button>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mt-4">
+            <div>
+                <label>Volumen total de dilución (ml)*</label>
+                <input type="number" data-name="volumen_dilucion" class="w-full border rounded px-2 py-1 text-sm">
             </div>
-            <table class="table-auto w-full border text-center">
-                <thead class="bg-gray-100">
-                    <tr>
-                        <th class="border px-4 py-2 text-xs">MEDICAMENTO</th>
-                        <th class="border px-4 py-2 text-xs">DOSIS</th>
-                        <th class="border px-4 py-2 text-xs">DILUYENTE</th>
-                        <th class="border px-4 py-2 text-xs">VÍA DE ADMINISTRACIÓN</th>
-                        <th class="border px-4 py-2 text-xs">ACCIÓN</th>
-                    </tr>
-                </thead>
-                <tbody id="medicamentos_mezcla_${idInternoMezcla}">
-                </tbody>
-            </table>
-            <div class="my-2">
-                <button type="button" onclick="agregarFilaMedicamento(${idInternoMezcla})" class="bg-green-500 text-white px-4 py-2 rounded text-sm">
-                    <i class="fas fa-plus"></i> Agregar Medicamento
-                </button>
+            <div>
+                <label>Tiempo de infusión (min)*</label>
+                <input type="number" data-name="tiempo_infusion" class="w-full border rounded px-2 py-1 text-sm">
             </div>
-            <div class="grid grid-cols-2 gap-4 mt-4">
-                <div>
-                    <label>Volumen total de dilución (ml)*</label>
-                    <input type="number" data-name="volumen_dilucion" class="w-full border rounded px-2 py-1 text-sm">
-                </div>
-                <div>
-                    <label>Tiempo de infusión (min)*</label>
-                    <input type="number" data-name="tiempo_infusion" class="w-full border rounded px-2 py-1 text-sm">
-                </div>
-            </div>
+        </div>
         `;
 
             document.getElementById('contenedorMezclas').appendChild(mezclaDiv);
@@ -193,22 +194,139 @@
             actualizarNumeracionMezclas();
         }
 
+        function agregarMezclaDesdeOld(mezclaData) {
+            idInternoMezcla++;
+            const mezclaDiv = document.createElement('div');
+            mezclaDiv.classList.add("border", "border-black", "p-4", "relative");
+            mezclaDiv.dataset.idInterno = idInternoMezcla;
+
+            mezclaDiv.innerHTML = `
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="text-lg font-semibold mezcla-titulo">Mezcla</h3>
+            <button type="button" onclick="eliminarMezcla(this)" class="bg-red-600 text-white px-3 py-1 rounded text-sm">
+                <i class="fas fa-trash"></i> Eliminar Mezcla
+            </button>
+        </div>
+        <table class="table-auto w-full border text-center">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="border px-4 py-2 text-xs">MEDICAMENTO</th>
+                    <th class="border px-4 py-2 text-xs">DOSIS</th>
+                    <th class="border px-4 py-2 text-xs">DILUYENTE</th>
+                    <th class="border px-4 py-2 text-xs">VÍA DE ADMINISTRACIÓN</th>
+                    <th class="border px-4 py-2 text-xs">ACCIÓN</th>
+                </tr>
+            </thead>
+            <tbody id="medicamentos_mezcla_${idInternoMezcla}"></tbody>
+        </table>
+        <div class="my-2">
+            <button type="button" onclick="agregarFilaMedicamento(${idInternoMezcla})" class="bg-green-500 text-white px-4 py-2 rounded text-sm">
+                <i class="fas fa-plus"></i> Agregar Medicamento
+            </button>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mt-4">
+            <div>
+                <label>Volumen total de dilución (ml)*</label>
+                <input type="number" data-name="volumen_dilucion" value="${mezclaData.volumen_dilucion ?? ''}" class="w-full border rounded px-2 py-1 text-sm">
+            </div>
+            <div>
+                <label>Tiempo de infusión (min)*</label>
+                <input type="number" data-name="tiempo_infusion" value="${mezclaData.tiempo_infusion ?? ''}" class="w-full border rounded px-2 py-1 text-sm">
+            </div>
+        </div>
+        `;
+
+            document.getElementById('contenedorMezclas').appendChild(mezclaDiv);
+            mezclaData.medicamentos.forEach(m => agregarFilaMedicamentoDesdeOld(idInternoMezcla, m));
+            actualizarNumeracionMezclas();
+        }
+
+        function agregarFilaMedicamentoDesdeOld(idMezcla, med) {
+            contadorFilasGlobal++;
+            const tbody = document.getElementById(`medicamentos_mezcla_${idMezcla}`);
+            const fila = document.createElement('tr');
+            fila.id = `fila_m${idMezcla}_f${contadorFilasGlobal}`;
+
+            fila.innerHTML = `
+        <td class="border">
+            <select data-name="medicamento" class="w-full border rounded px-2 py-1 text-sm"
+                onchange="actualizarDiluentesYVias(this, ${idMezcla}, ${contadorFilasGlobal}); actualizarOpcionesMedicamentos(${idMezcla})">
+                <option value="">Seleccione el medicamento</option>
+                ${medicamentos.map(m => `<option value="${m.id}" ${m.id == med.medicamento_id ? 'selected' : ''}>${m.denominacion} (${m.presentacion})</option>`).join('')}
+            </select>
+        </td>
+        <td class="border">
+            <input type="number" data-name="dosis" value="${med.dosis ?? ''}" class="w-full border-none px-2 py-1 text-sm">
+        </td>
+        <td class="border">
+            <select data-name="diluyente" class="w-full border rounded px-2 py-1 text-sm"></select>
+        </td>
+        <td class="border">
+            <select data-name="via_administracion" class="w-full border rounded px-2 py-1 text-sm"></select>
+        </td>
+        <td class="border">
+            <button type="button" onclick="eliminarFila('${fila.id}'); actualizarOpcionesMedicamentos(${idMezcla})" class="bg-red-500 text-white px-2 py-1 rounded">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+        `;
+
+            tbody.appendChild(fila);
+
+            actualizarDiluentesYVias(fila.querySelector('[data-name="medicamento"]'), idMezcla, contadorFilasGlobal);
+
+            setTimeout(() => {
+                fila.querySelector('[data-name="diluyente"]').value = med.diluyente_id ?? '';
+                fila.querySelector('[data-name="via_administracion"]').value = med.via_administracion_id ?? '';
+            }, 100);
+
+            actualizarOpcionesMedicamentos(idMezcla);
+        }
+
         function actualizarOpcionesMedicamentos(idMezcla) {
             const selects = document.querySelectorAll(`#medicamentos_mezcla_${idMezcla} select[data-name="medicamento"]`);
             const seleccionados = Array.from(selects).map(s => s.value).filter(v => v);
+
+            // Construir conjuntos de diluyentes y vías a partir de los medicamentos seleccionados
+            const diluyentesSet = new Set();
+            const viasSet = new Set();
+
+            seleccionados.forEach(id => {
+                const info = infoAdicional[id];
+                if (info) {
+                    info.diluyentes.forEach(d => diluyentesSet.add(d.id));
+                    info.vias.forEach(v => viasSet.add(v.id));
+                }
+            });
 
             selects.forEach(select => {
                 const valorActual = select.value;
                 select.innerHTML = '<option value="">Seleccione el medicamento</option>';
 
                 medicamentos.forEach(m => {
-                    if (!seleccionados.includes(m.id.toString()) || m.id.toString() === valorActual) {
+                    const mId = m.id.toString();
+                    const info = infoAdicional[m.id];
+                    if (!info) return;
+
+                    // Ya seleccionado en otra fila distinta
+                    const yaSeleccionado = seleccionados.includes(mId) && mId !== valorActual;
+
+                    // Si es el primer medicamento, permitir todos
+                    const esPrimero = seleccionados.length === 0 || (seleccionados.length === 1 &&
+                        valorActual === mId);
+
+                    // Compatibilidad con al menos un diluyente y una vía
+                    const compatibleDiluyente = info.diluyentes.some(d => diluyentesSet.has(d.id));
+                    const compatibleVia = info.vias.some(v => viasSet.has(v.id));
+                    const esCompatible = compatibleDiluyente && compatibleVia;
+
+                    if (yaSeleccionado) return; // ❌ evitar repetidos
+
+                    if (esPrimero || esCompatible || mId === valorActual) {
                         const option = document.createElement('option');
                         option.value = m.id;
                         option.text = `${m.denominacion} (${m.presentacion})`;
-                        if (m.id.toString() === valorActual) {
-                            option.selected = true;
-                        }
+                        if (mId === valorActual) option.selected = true;
                         select.appendChild(option);
                     }
                 });
@@ -216,41 +334,7 @@
         }
 
         function agregarFilaMedicamento(idMezcla) {
-            contadorFilasGlobal++;
-            const tbody = document.getElementById(`medicamentos_mezcla_${idMezcla}`);
-            const fila = document.createElement('tr');
-            fila.id = `fila_m${idMezcla}_f${contadorFilasGlobal}`;
-
-            fila.innerHTML = `
-            <td class="border">
-                <select data-name="medicamento" class="w-full border rounded px-2 py-1 text-sm"
-                    onchange="actualizarDiluentesYVias(this, ${idMezcla}, ${contadorFilasGlobal}); actualizarOpcionesMedicamentos(${idMezcla})">
-                    <option value="">Seleccione el medicamento</option>
-                    ${medicamentos.map(m => `<option value="${m.id}">${m.denominacion} (${m.presentacion})</option>`).join('')}
-                </select>
-            </td>
-            <td class="border">
-                <input type="number" data-name="dosis" class="w-full border-none px-2 py-1 text-sm">
-            </td>
-            <td class="border">
-                <select data-name="diluyente" class="w-full border rounded px-2 py-1 text-sm">
-                    <option value="">Diluyentes</option>
-                </select>
-            </td>
-            <td class="border">
-                <select data-name="via_administracion" class="w-full border rounded px-2 py-1 text-sm">
-                    <option value="">Vía de admin</option>
-                </select>
-            </td>
-            <td class="border">
-                <button type="button" onclick="eliminarFila('${fila.id}'); actualizarOpcionesMedicamentos(${idMezcla})" class="bg-red-500 text-white px-2 py-1 rounded">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
-
-            tbody.appendChild(fila);
-            actualizarOpcionesMedicamentos(idMezcla);
+            agregarFilaMedicamentoDesdeOld(idMezcla, {});
         }
 
         function eliminarMezcla(btn) {
@@ -282,42 +366,58 @@
                 vias: []
             };
 
-            const selectDiluyente = fila.querySelector(`[data-name="diluyente"]`);
+            const selectDiluyente = fila.querySelector('[data-name="diluyente"]');
             selectDiluyente.innerHTML = `<option value="">Diluyentes</option>` + data.diluyentes.map(d =>
                 `<option value="${d.id}">${d.name}</option>`).join('');
 
-            const selectVia = fila.querySelector(`[data-name="via_administracion"]`);
+            const selectVia = fila.querySelector('[data-name="via_administracion"]');
             selectVia.innerHTML = `<option value="">Vía de admin</option>` + data.vias.map(v =>
                 `<option value="${v.id}">${v.name}</option>`).join('');
         }
 
         document.getElementById("formularioSolicitud").addEventListener("submit", function(e) {
             e.preventDefault();
-
             const mezclas = [];
+            let errorMezclaInvalida = false;
 
             document.querySelectorAll('#contenedorMezclas > .border').forEach((mezclaDiv) => {
                 const idInterno = mezclaDiv.dataset.idInterno;
-                const volumen = mezclaDiv.querySelector(`[data-name="volumen_dilucion"]`)?.value;
-                const tiempo = mezclaDiv.querySelector(`[data-name="tiempo_infusion"]`)?.value;
+                const volumen = mezclaDiv.querySelector('[data-name="volumen_dilucion"]')?.value;
+                const tiempo = mezclaDiv.querySelector('[data-name="tiempo_infusion"]')?.value;
 
                 const medicamentos = [];
-                mezclaDiv.querySelectorAll(`#medicamentos_mezcla_${idInterno} tr`).forEach((fila) => {
-                    const medicamentoSelect = fila.querySelector(`[data-name="medicamento"]`);
-                    const dosisInput = fila.querySelector(`[data-name="dosis"]`);
-                    const diluyenteSelect = fila.querySelector(`[data-name="diluyente"]`);
-                    const viaSelect = fila.querySelector(`[data-name="via_administracion"]`);
+                let diluyenteRef = null;
+                let viaRef = null;
 
-                    if (medicamentoSelect && dosisInput && medicamentoSelect.value !== "") {
-                        medicamentos.push({
-                            medicamento_id: medicamentoSelect.value,
-                            nombre: medicamentoSelect.options[medicamentoSelect
-                                .selectedIndex].text,
-                            dosis: dosisInput.value,
-                            diluyente_id: diluyenteSelect?.value || null,
-                            via_administracion_id: viaSelect?.value || null
-                        });
+                mezclaDiv.querySelectorAll(`#medicamentos_mezcla_${idInterno} tr`).forEach((fila,
+                    index) => {
+                    const medicamentoSelect = fila.querySelector('[data-name="medicamento"]');
+                    const dosisInput = fila.querySelector('[data-name="dosis"]');
+                    const diluyenteSelect = fila.querySelector('[data-name="diluyente"]');
+                    const viaSelect = fila.querySelector('[data-name="via_administracion"]');
+
+                    if (!medicamentoSelect?.value || !dosisInput?.value) return;
+
+                    const diluyente = diluyenteSelect?.value;
+                    const via = viaSelect?.value;
+
+                    if (index === 0) {
+                        diluyenteRef = diluyente;
+                        viaRef = via;
+                    } else {
+                        if (diluyente !== diluyenteRef || via !== viaRef) {
+                            errorMezclaInvalida = true;
+                        }
                     }
+
+                    medicamentos.push({
+                        medicamento_id: medicamentoSelect.value,
+                        nombre: medicamentoSelect.options[medicamentoSelect.selectedIndex]
+                            .text,
+                        dosis: dosisInput.value,
+                        diluyente_id: diluyente || null,
+                        via_administracion_id: via || null
+                    });
                 });
 
                 if (medicamentos.length > 0) {
@@ -329,6 +429,19 @@
                 }
             });
 
+            if (errorMezclaInvalida) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error en mezcla',
+                    text: 'Todos los medicamentos de una mezcla deben tener el mismo diluyente y la misma vía de administración.',
+                    customClass: {
+                        confirmButton: 'swal-button-confirm',
+                        cancelButton: 'swal-button-cancel'
+                    }
+                });
+                return;
+            }
+
             document.getElementById("mezclas_json").value = JSON.stringify(mezclas);
 
             Swal.fire({
@@ -336,10 +449,13 @@
                 text: "Esta solicitud será registrada.",
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#2563eb',
-                cancelButtonColor: '#e11d48',
                 confirmButtonText: 'Sí, guardar',
-                cancelButtonText: 'Cancelar'
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'swal-button-confirm',
+                    cancelButton: 'swal-button-cancel'
+                }
+
             }).then((result) => {
                 if (result.isConfirmed) {
                     e.target.submit();
@@ -347,8 +463,16 @@
             });
         });
 
-        document.addEventListener("DOMContentLoaded", () => agregarMezcla());
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (mezclasOld.length > 0) {
+                mezclasOld.forEach(m => agregarMezclaDesdeOld(m));
+            } else {
+                agregarMezcla();
+            }
+        });
     </script>
+
 
     @if (session('success'))
         <script>
@@ -356,7 +480,10 @@
                 icon: 'success',
                 title: '¡Éxito!',
                 text: '{{ session('success') }}',
-                confirmButtonColor: '#3085d6'
+                customClass: {
+                    confirmButton: 'swal-button-confirm',
+                    cancelButton: 'swal-button-cancel'
+                }
             });
         </script>
     @endif
@@ -367,7 +494,10 @@
                 icon: 'error',
                 title: 'Error',
                 html: `{!! implode('<br>', $errors->all()) !!}`,
-                confirmButtonColor: '#e3342f'
+                customClass: {
+                    confirmButton: 'swal-button-confirm',
+                    cancelButton: 'swal-button-cancel'
+                }
             });
         </script>
     @endif

@@ -6,27 +6,34 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 // 6. Mezcla
-class Mezcla extends Model {
+class Mezcla extends Model
+{
 
     protected $fillable = [
-    'solicitud_id',
-    'volumen_dilucion',
-    'tiempo_infusion',
-    'estado',
+        'solicitud_id',
+        'volumen_dilucion',
+        'tiempo_infusion',
+        'estado',
+        'lote',
+        'remision', // ✅ agregar este campo
     ];
+
 
     protected $table = 'mezclas'; // si es necesario
     use HasFactory;
 
-    public function solicitud() {
+    public function solicitud()
+    {
         return $this->belongsTo(SolicitudOnco::class, 'solicitud_id');
     }
 
-    public function medicamentos() {
+    public function medicamentos()
+    {
         return $this->hasMany(MezclaMedicamento::class, 'mezcla_id');
     }
 
-    public function inspeccion() {
+    public function inspeccion()
+    {
         return $this->hasOne(InspeccionMezcla::class, 'mezcla_id');
     }
 }

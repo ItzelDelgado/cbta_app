@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Oncologicos;
 use App\Http\Controllers\Controller;
 use App\Models\Oncologicos\Mezcla;
 use App\Models\Oncologicos\SolicitudOnco;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -157,15 +158,60 @@ class MezclaController extends Controller
     public function update(Request $request, $id)
     {
         if ($request->accion === 'preparada') {
-            $mezcla = Mezcla::findOrFail($id);
+            $mezcla = Mezcla::with('solicitud')->findOrFail($id);
             $mezcla->estado = 'preparada';
+
+            // 🔢 Generar número de lote y remisión
+            $fechaHoy = Carbon::today();
+            $conteoHoy = Mezcla::whereDate('updated_at', $fechaHoy)
+                ->whereNotNull('lote') // solo las que ya tienen lote
+                ->count();
+
+            $numero = str_pad($conteoHoy + 1, 3, '00', STR_PAD_LEFT);
+            $fechaFormateada = $fechaHoy->format('dmy'); // ej. 080725
+
+            $mezcla->lote = 'L' . $fechaFormateada . $numero;
+            $mezcla->remision = 'R' . $fechaFormateada . $numero;
+
+
             $mezcla->save();
+
+            // ✅ Verificar si la solicitud debe cambiar a "enproceso"
+            $solicitud = $mezcla->solicitud;
+            if ($solicitud && $solicitud->estado === 'pendiente') {
+                $tienePreparadas = $solicitud->mezclas()->where('estado', 'preparada')->exists();
+                if ($tienePreparadas) {
+                    $solicitud->estado = 'enproceso';
+                    $solicitud->save();
+                }
+            }
 
             return redirect()
                 ->route('admin.oncologicos.mezclas.index', $mezcla->solicitud->id)
-                ->with('success', 'Mezcla marcada como preparada.');
+                ->with('success', 'Mezcla marcada como preparada con lote y remisión generados.');
         }
 
+        if ($request->accion === 'entregada') {
+            $mezcla = Mezcla::with('solicitud')->findOrFail($id);
+            $mezcla->estado = 'entregada';
+            $mezcla->save();
+
+            // ✅ Verificar si todas las mezclas ya están entregadas para marcar la solicitud como finalizada
+            $solicitud = $mezcla->solicitud;
+
+            if ($solicitud) {
+                $todasEntregadas = $solicitud->mezclas()->where('estado', '!=', 'entregada')->doesntExist();
+
+                if ($todasEntregadas) {
+                    $solicitud->estado = 'finalizada';
+                    $solicitud->save();
+                }
+            }
+
+            return redirect()
+                ->route('admin.oncologicos.mezclas.index', $mezcla->solicitud->id)
+                ->with('success', 'Mezcla marcada como entregada.');
+        }
 
         $request->validate([
             'mezcla_json' => 'required|json',
@@ -184,14 +230,13 @@ class MezclaController extends Controller
             'observaciones' => 'nullable|string',
         ]);
 
-
         $mezcla = Mezcla::with('solicitud')->findOrFail($id);
         $mezclaData = json_decode($request->mezcla_json, true);
 
         DB::beginTransaction();
 
         try {
-            // 1. Actualizar campos de la mezcla
+            // 1. Actualizar mezcla
             $mezcla->volumen_dilucion = $mezclaData['volumen_dilucion'];
             $mezcla->tiempo_infusion = $mezclaData['tiempo_infusion'];
             $mezcla->save();
@@ -229,10 +274,9 @@ class MezclaController extends Controller
                 ]);
             }
 
-
-
+            // 5. Si viene una acción para aprobar
             if ($request->accion === 'aprobar') {
-                $mezcla->estado = 'aprobada'; // Asegúrate de que el campo exista en tu tabla 'mezclas'
+                $mezcla->estado = 'aprobada';
                 $mezcla->save();
             }
 

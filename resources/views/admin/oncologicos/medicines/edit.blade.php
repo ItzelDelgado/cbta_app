@@ -186,8 +186,10 @@
                     text: "Se actualizará esta lista de medicamentos.",
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#2563eb',
-                    cancelButtonColor: '#d33',
+                    customClass: {
+                        confirmButton: 'swal-button-confirm',
+                        cancelButton: 'swal-button-cancel'
+                    }
                     confirmButtonText: 'Sí, actualizar',
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {

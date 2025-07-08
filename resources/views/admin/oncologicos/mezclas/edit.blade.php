@@ -139,8 +139,10 @@
 
             <x-button onclick="document.getElementById('accion').value='actualizar'">ACTUALIZAR MEZCLA</x-button>
 
-            <x-button type="submit" class="bg-green-600 hover:bg-green-700"
-                onclick="document.getElementById('accion').value='aprobar'">APROBAR MEZCLA</x-button>
+            @if ($mezcla->estado === 'pendiente')
+                <x-button type="submit" class="bg-green-600 hover:bg-green-700"
+                    onclick="document.getElementById('accion').value='aprobar'">APROBAR MEZCLA</x-button>
+            @endif
         </div>
     </form>
 
@@ -338,8 +340,10 @@
                 showCancelButton: true,
                 confirmButtonText: 'Sí, actualizar',
                 cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#2563eb',
-                cancelButtonColor: '#e3342f'
+                customClass: {
+                    confirmButton: 'swal-button-confirm',
+                    cancelButton: 'swal-button-cancel'
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
                     e.target.submit();
@@ -352,7 +356,10 @@
                 icon: 'error',
                 title: 'Error al actualizar',
                 html: `{!! implode('<br>', $errors->all()) !!}`,
-                confirmButtonColor: '#e3342f'
+                customClass: {
+                    confirmButton: 'swal-button-confirm',
+                    cancelButton: 'swal-button-cancel'
+                }
             });
         @endif
 
@@ -361,7 +368,10 @@
                 icon: 'error',
                 title: 'Error',
                 text: '{{ session('error') }}',
-                confirmButtonColor: '#e3342f'
+                customClass: {
+                    confirmButton: 'swal-button-confirm',
+                    cancelButton: 'swal-button-cancel'
+                }
             });
         @endif
 
@@ -370,7 +380,10 @@
                 icon: 'success',
                 title: '¡Éxito!',
                 text: '{{ session('success') }}',
-                confirmButtonColor: '#3085d6'
+                customClass: {
+                    confirmButton: 'swal-button-confirm',
+                    cancelButton: 'swal-button-cancel'
+                }
             });
         @endif
     </script>

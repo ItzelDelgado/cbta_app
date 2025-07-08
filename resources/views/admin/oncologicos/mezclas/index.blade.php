@@ -44,7 +44,23 @@
             </thead>
             <tbody>
                 @forelse($solicitud->mezclas as $mezcla)
-                    <tr class="border-b hover:bg-gray-50">
+                    <tr @class([
+                        'border-b dark:bg-gray-800 dark:border-gray-700',
+                        'bg-gray-200 text-black' => $mezcla->estado === 'pendiente',
+                        'bg-yellow-200 text-black font-semibold' => $mezcla->estado === 'aprobada',
+                        'bg-cyan-200 text-black font-semibold' => $mezcla->estado === 'preparada',
+                        'bg-indigo-200 text-black font-semibold' => $mezcla->estado === 'revisada',
+                        'bg-red-200 text-black font-bold' => $mezcla->estado === 'cancelada',
+                        'bg-green-200 text-black font-bold' => $mezcla->estado === 'entregada',
+                        'bg-white' => !in_array($mezcla->estado, [
+                            'pendiente',
+                            'aprobada',
+                            'preparada',
+                            'revisada',
+                            'cancelada',
+                            'entregada',
+                        ]),
+                    ])>
                         <td class="px-6 py-4">{{ $mezcla->id }}</td>
                         <td class="px-6 py-4">{{ $solicitud->user->hospital->name ?? 'N/A' }}</td>
                         <td class="px-6 py-4">{{ $solicitud->nombre_paciente }}</td>
@@ -97,9 +113,23 @@
                                 </button>
                             @endif
 
+                            @if ($mezcla->estado === 'revisada')
+                                <form id="formEntregar-{{ $mezcla->id }}"
+                                    action="{{ route('admin.oncologicos.mezclas.update', $mezcla->id) }}"
+                                    method="POST" class="inline">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="accion" value="entregada">
+                                    <button type="button" onclick="confirmarEntregada({{ $mezcla->id }})"
+                                        class="ml-2 px-4 py-1 bg-emerald-600 text-white text-sm rounded hover:bg-emerald-700 transition">
+                                        Entregada
+                                    </button>
+                                </form>
+                            @endif
+
 
                         </td>
-                        <td class="px-6 py-4">{{ $solicitud->remision ?? '—' }}</td>
+                        <td class="px-6 py-4">{{ $mezcla->remision ?? '—' }}</td>
                         <td class="px-6 py-4">{{ $mezcla->lote ?? '—' }}</td>
 
                     </tr>
@@ -130,8 +160,10 @@
                     text: '¿Estás seguro de que esta mezcla ya fue preparada?',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#28a745',
-                    cancelButtonColor: '#d33',
+                    customClass: {
+                        confirmButton: 'swal-button-confirm',
+                        cancelButton: 'swal-button-cancel'
+                    },
                     confirmButtonText: 'Sí, marcar como preparada',
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
@@ -140,6 +172,26 @@
                     }
                 });
             }
+
+            function confirmarEntregada(id) {
+                Swal.fire({
+                    title: '¿Confirmar entrega?',
+                    text: 'Esta mezcla será marcada como entregada.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    customClass: {
+                        confirmButton: 'swal-button-confirm',
+                        cancelButton: 'swal-button-cancel'
+                    },
+                    confirmButtonText: 'Sí, entregar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('formEntregar-' + id).submit();
+                    }
+                });
+            }
         </script>
     @endpush
+
 </x-admin-layout>

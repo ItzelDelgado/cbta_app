@@ -67,7 +67,10 @@
                     icon: 'success',
                     title: '¡Éxito!',
                     text: '{{ session('success') }}',
-                    confirmButtonColor: '#2563eb'
+                    customClass: {
+                        confirmButton: 'swal-button-confirm',
+                        cancelButton: 'swal-button-cancel'
+                    }
                 });
             </script>
         @endif
