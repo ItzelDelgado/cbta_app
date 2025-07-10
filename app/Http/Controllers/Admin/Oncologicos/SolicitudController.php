@@ -16,8 +16,8 @@ class SolicitudController extends Controller
     public function index()
     {
         $solicitudes = SolicitudOnco::with(['user.hospital'])
-        ->orderByDesc('id')
-        ->get();
+            ->orderByDesc('id')
+            ->get();
 
 
         return view('admin.oncologicos.solicitudes.index', compact('solicitudes'));
@@ -99,13 +99,20 @@ class SolicitudController extends Controller
 
         DB::beginTransaction();
         try {
-            // Guardar la solicitud principal
+            $user = auth()->user();
+
+            // 1. Obtener mapa de precios personalizado
+            $precios = DB::table('medicine_medicine_lists')
+                ->where('medicine_list_id', $user->medicine_list_id)
+                ->pluck('precio', 'medicine_id'); // devuelve [medicamento_id => precio]
+
+            // 2. Guardar la solicitud principal
             $solicitud = SolicitudOnco::create([
-                'user_id' => auth()->id(),
+                'user_id' => $user->id,
                 'servicio' => $request->servicio,
                 'nombre_paciente' => $request->paciente_nombre,
                 'sexo' => $request->sexo,
-                'edad' => null, // calcula si es necesario
+                'edad' => null,
                 'peso' => $request->peso,
                 'cama' => $request->cama,
                 'piso' => $request->piso,
@@ -120,7 +127,7 @@ class SolicitudController extends Controller
                 'remision' => null,
             ]);
 
-            // Guardar mezclas y medicamentos
+            // 3. Guardar mezclas y medicamentos
             foreach ($mezclas as $mezclaData) {
                 $mezcla = Mezcla::create([
                     'solicitud_id' => $solicitud->id,
@@ -129,9 +136,9 @@ class SolicitudController extends Controller
                     'estado' => 'pendiente',
                 ]);
 
-                // dd($mezclaData['medicamentos']);
-
                 foreach ($mezclaData['medicamentos'] as $medicamento) {
+                    $precio = $precios[$medicamento['medicamento_id']] ?? 0;
+
                     MezclaMedicamento::create([
                         'mezcla_id' => $mezcla->id,
                         'medicamento_id' => $medicamento['medicamento_id'],
@@ -139,18 +146,16 @@ class SolicitudController extends Controller
                         'dosis' => $medicamento['dosis'],
                         'diluyente_id' => $medicamento['diluyente_id'],
                         'via_administracion_id' => $medicamento['via_administracion_id'],
-                        'precio_unitario' => 0, // puedes calcularlo si tienes precios
+                        'precio_unitario' => $precio,
                     ]);
                 }
             }
 
             DB::commit();
             return redirect()->route('admin.oncologicos.solicitudes.index')
-                            ->with('success', 'Solicitud registrada correctamente.');
-
+                ->with('success', 'Solicitud registrada correctamente.');
         } catch (\Throwable $e) {
             DB::rollBack();
-
             return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
     }
@@ -285,13 +290,10 @@ class SolicitudController extends Controller
 
             DB::commit();
             return redirect()->route('admin.oncologicos.mezclas.index', ['mezcla' => $solicitud->id])
-                            ->with('success', 'Solicitud actualizada correctamente.');
+                ->with('success', 'Solicitud actualizada correctamente.');
         } catch (\Throwable $e) {
             DB::rollBack();
             return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
     }
-
-
-
 }

@@ -233,6 +233,13 @@ class MezclaController extends Controller
         $mezcla = Mezcla::with('solicitud')->findOrFail($id);
         $mezclaData = json_decode($request->mezcla_json, true);
 
+        $user = auth()->user();
+
+        $precios = DB::table('medicine_medicine_lists')
+            ->where('medicine_list_id', $user->medicine_list_id)
+            ->pluck('precio', 'medicine_id')
+            ->mapWithKeys(fn($valor, $clave) => [(int) $clave => $valor]);
+
         DB::beginTransaction();
 
         try {
@@ -265,12 +272,16 @@ class MezclaController extends Controller
 
             // 4. Insertar medicamentos actualizados
             foreach ($mezclaData['medicamentos'] as $med) {
+                $medicamentoId = (int) $med['medicamento_id'];
+                $precio = $precios[$medicamentoId] ?? 0;
+
                 $mezcla->medicamentos()->create([
-                    'medicamento_id' => $med['medicamento_id'],
+                    'medicamento_id' => $medicamentoId,
                     'nombre_medicamento' => $med['nombre'] ?? '',
                     'dosis' => $med['dosis'],
                     'diluyente_id' => $med['diluyente_id'],
                     'via_administracion_id' => $med['via_administracion_id'],
+                    'precio_unitario' => $precio,
                 ]);
             }
 

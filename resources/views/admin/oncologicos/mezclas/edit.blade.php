@@ -307,6 +307,8 @@
                 const fila = medicamentoSelect.closest('tr');
                 mezclaPayload.medicamentos.push({
                     medicamento_id: medicamentoSelect.value,
+                    nombre: medicamentoSelect.options[medicamentoSelect.selectedIndex]
+                    .text, // ← nombre
                     dosis: fila.querySelector('[name="dosis_existente[]"]').value,
                     diluyente_id: fila.querySelector('[name="diluyente_existente[]"]').value ||
                         null,
@@ -321,6 +323,8 @@
                 if (medicamentoSelect.value) {
                     mezclaPayload.medicamentos.push({
                         medicamento_id: medicamentoSelect.value,
+                        nombre: medicamentoSelect.options[medicamentoSelect.selectedIndex]
+                        .text, // ← nombre
                         dosis: fila.querySelector('[name="nueva_dosis[]"]').value,
                         diluyente_id: fila.querySelector('[name="nuevo_diluyente[]"]').value ||
                             null,
@@ -350,6 +354,7 @@
                 }
             });
         });
+
 
         @if ($errors->any())
             Swal.fire({

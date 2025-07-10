@@ -189,7 +189,7 @@
                     customClass: {
                         confirmButton: 'swal-button-confirm',
                         cancelButton: 'swal-button-cancel'
-                    }
+                    },
                     confirmButtonText: 'Sí, actualizar',
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
