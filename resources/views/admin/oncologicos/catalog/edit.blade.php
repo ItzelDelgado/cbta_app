@@ -23,6 +23,27 @@
                     class="w-full p-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500">
             </div>
         </div>
+        <div class="flex gap-4">
+            <div class="mb-4 w-1/2">
+                <label for="cantidad_medicamento" class="block mb-2 text-sm font-medium text-gray-700">
+                    Cantidad de medicamento (mg)
+                </label>
+                <input type="number" name="cantidad_medicamento" id="cantidad_medicamento"
+                    value="{{ old('cantidad_medicamento', $medicamento->cantidad_medicamento ?? '') }}" step="0.01"
+                    min="0"
+                    class="w-full p-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500">
+            </div>
+
+            <div class="mb-4 w-1/2">
+                <label for="volumen_diluyente" class="block mb-2 text-sm font-medium text-gray-700">
+                    Volumen del diluyente (ml)
+                </label>
+                <input type="number" name="volumen_diluyente" id="volumen_diluyente"
+                    value="{{ old('volumen_diluyente', $medicamento->volumen_diluyente ?? '') }}" step="0.01"
+                    min="0"
+                    class="w-full p-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500">
+            </div>
+        </div>
 
         <div class="flex gap-4">
             <div class="mb-4">

@@ -216,7 +216,6 @@ class SolicitudController extends Controller
 
     public function update(Request $request, $id)
     {
-
         $request->validate([
             'paciente_nombre' => 'required|string|max:255',
             'servicio' => 'required|string|max:255',
@@ -239,11 +238,15 @@ class SolicitudController extends Controller
             return back()->withErrors(['mezclas' => 'El formato del campo mezclas no es válido.'])->withInput();
         }
 
+        // Filtrar solo mezclas nuevas (sin la bandera "existente")
+        $nuevasMezclas = array_filter($mezclas, function ($m) {
+            return empty($m['existente']);
+        });
+
         DB::beginTransaction();
         try {
             $solicitud = SolicitudOnco::findOrFail($id);
 
-            // Actualizar solicitud
             $solicitud->update([
                 'servicio' => $request->servicio,
                 'nombre_paciente' => $request->paciente_nombre,
@@ -260,14 +263,28 @@ class SolicitudController extends Controller
                 'cedula_medico' => $request->medico_cedula,
             ]);
 
-            // Borrar mezclas anteriores (y sus medicamentos)
-            foreach ($solicitud->mezclas as $mezcla) {
-                $mezcla->medicamentos()->delete();
-                $mezcla->delete();
-            }
+            $user = auth()->user();
+            $precios = DB::table('medicine_medicine_lists')
+                ->where('medicine_list_id', $user->medicine_list_id)
+                ->pluck('precio', 'medicine_id');
 
-            // Insertar nuevas mezclas
-            foreach ($mezclas as $mezclaData) {
+            $mezclasExistentes = $solicitud->mezclas;
+
+            foreach ($nuevasMezclas as $mezclaData) {
+                $coincidencia = $mezclasExistentes->first(function ($mezclaExistente) use ($mezclaData) {
+                    $coincidenMedicamentos = $mezclaExistente->medicamentos->pluck('medicamento_id')->sort()->values()->all() ===
+                        collect($mezclaData['medicamentos'])->pluck('medicamento_id')->sort()->values()->all();
+
+                    return $mezclaExistente->volumen_dilucion == $mezclaData['volumen_dilucion']
+                        && $mezclaExistente->tiempo_infusion == $mezclaData['tiempo_infusion']
+                        && $mezclaExistente->medicamentos->count() === count($mezclaData['medicamentos'])
+                        && $coincidenMedicamentos;
+                });
+
+                if ($coincidencia) {
+                    continue; // ya existe mezcla parecida
+                }
+
                 $mezcla = Mezcla::create([
                     'solicitud_id' => $solicitud->id,
                     'volumen_dilucion' => $mezclaData['volumen_dilucion'],
@@ -276,6 +293,8 @@ class SolicitudController extends Controller
                 ]);
 
                 foreach ($mezclaData['medicamentos'] as $medicamento) {
+                    $precio = $precios[$medicamento['medicamento_id']] ?? 0;
+
                     MezclaMedicamento::create([
                         'mezcla_id' => $mezcla->id,
                         'medicamento_id' => $medicamento['medicamento_id'],
@@ -283,7 +302,7 @@ class SolicitudController extends Controller
                         'dosis' => $medicamento['dosis'],
                         'diluyente_id' => $medicamento['diluyente_id'],
                         'via_administracion_id' => $medicamento['via_administracion_id'],
-                        'precio_unitario' => 0,
+                        'precio_unitario' => $precio,
                     ]);
                 }
             }

@@ -5,22 +5,20 @@ namespace App\Livewire\Nutricionales;
 use App\Models\Nutricionales\Solicitud as NutricionalesSolicitud;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Solicitud;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class SolicitudesTable extends Component
 {
     use WithPagination;
 
-    public $buscar = ''; // <-- input del usuario
-    public $search = ''; // <-- filtro que se aplica realmente
+    public $buscar = ''; // input del usuario
+    public $search = ''; // filtro aplicado realmente
 
     public $sortField = 'id';
     public $sortDirection = 'desc';
 
     protected $paginationTheme = 'tailwind';
-
-
 
     public function sortBy($field)
     {
@@ -58,9 +56,9 @@ class SolicitudesTable extends Component
 
         if ($this->search !== '') {
             $query->where(function ($query) {
-                $query->where('id', 'like', "%{$this->search}%")
-                    ->orWhere('is_aprobada', 'like', "%{$this->search}%")
-                    ->orWhereDate('created_at', $this->search)
+                $query->where('solicituds.id', 'like', "%{$this->search}%")
+                    ->orWhere('solicituds.is_aprobada', 'like', "%{$this->search}%")
+                    ->orWhereDate('solicituds.created_at', $this->search)
                     ->orWhereHas('user.hospital', function ($q) {
                         $q->where('name', 'like', "%{$this->search}%");
                     })
@@ -70,14 +68,22 @@ class SolicitudesTable extends Component
                     })
                     ->orWhereHas('solicitud_aprobada', function ($q) {
                         $q->where('id', 'like', "%{$this->search}%")
-                        ->orWhere('lote', 'like', "%{$this->search}%"); // ✅ AÑADIDO
+                            ->orWhere('lote', 'like', "%{$this->search}%");
                     });
             });
         }
 
+        if ($this->sortField === 'solicitud_aprobadas.lote') {
+            $query = $query
+                ->leftJoin('solicitud_aprobadas', 'solicituds.id', '=', 'solicitud_aprobadas.solicitud_id')
+                ->whereNotNull('solicitud_aprobadas.lote')
+                ->orderBy('solicitud_aprobadas.lote', $this->sortDirection)
+                ->select('solicituds.*');
+        } else {
+            $query->orderBy($this->sortField, $this->sortDirection);
+        }
 
-        $solicitudes = $query->orderBy($this->sortField, $this->sortDirection)->paginate(50);
-
+        $solicitudes = $query->paginate(50);
 
         return view('livewire.nutricionales.solicitudes-table', compact('solicitudes'));
     }

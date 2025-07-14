@@ -13,35 +13,39 @@
         <table class="w-full text-sm text-left text-gray-500">
             <thead class="text-xs text-gray-700 bg-gray-50 uppercase">
                 <tr>
-                    <th class="px-2 py-2 w-1/12 text-center cursor-pointer" wire:click="sortBy('id')">
+                    <th class="px-2 py-2 text-center cursor-pointer" wire:click="sortBy('id')">
                         ID
                         <span class="{{ $sortField === 'id' ? 'font-bold text-blue-700' : 'text-gray-400' }}">
                             {!! $sortField === 'id' ? ($sortDirection === 'asc' ? '▲' : '▼') : '↕' !!}
                         </span>
                     </th>
-                    <th class="px-2 py-2 w-3/12 text-center cursor-pointer" wire:click="sortBy('user_id')">
+                    <th class="px-2 py-2 text-center cursor-pointer" wire:click="sortBy('user_id')">
                         Hospital
                         <span class="{{ $sortField === 'user_id' ? 'font-bold text-blue-700' : 'text-gray-400' }}">
                             {!! $sortField === 'user_id' ? ($sortDirection === 'asc' ? '▲' : '▼') : '↕' !!}
                         </span>
                     </th>
-                    <th class="px-2 py-2 w-2/12 text-center">Paciente</th>
-                    <th class="px-0 py-2 w-1/12 text-center">Modificar</th>
-                    <th class="px-2 py-2 w-2/12 text-center cursor-pointer" wire:click="sortBy('created_at')">
+                    <th class="px-2 py-2 text-center">Paciente</th>
+                    <th class="px-0 py-2 text-center">Modificar</th>
+                    <th class="px-2 py-2 text-center cursor-pointer" wire:click="sortBy('created_at')">
                         Fecha y Hora
                         <span class="{{ $sortField === 'created_at' ? 'font-bold text-blue-700' : 'text-gray-400' }}">
                             {!! $sortField === 'created_at' ? ($sortDirection === 'asc' ? '▲' : '▼') : '↕' !!}
                         </span>
                     </th>
-                    <th class="px-2 py-2 w-1/12 text-center cursor-pointer" wire:click="sortBy('is_aprobada')">
+                    <th class="px-2 py-2 text-center cursor-pointer" wire:click="sortBy('is_aprobada')">
                         Estado
                         <span class="{{ $sortField === 'is_aprobada' ? 'font-bold text-blue-700' : 'text-gray-400' }}">
                             {!! $sortField === 'is_aprobada' ? ($sortDirection === 'asc' ? '▲' : '▼') : '↕' !!}
                         </span>
                     </th>
-                    <th class="px-2 py-2 w-1/12 text-center">Detalles</th>
-                    <th class="px-2 py-2 w-1/12 text-center">Remisión</th>
-                    <th class="px-2 py-2 w-1/12 text-center">Lote</th>
+                    <th class="px-2 py-2 text-center">Detalles</th>
+                    <th class="px-2 py-2 text-center cursor-pointer" wire:click="sortBy('solicitud_aprobadas.lote')">
+                        Lote
+                        <span class="{{ $sortField === 'solicitud_aprobada.lote' ? 'font-bold text-blue-700' : 'text-gray-400' }}">
+                            {!! $sortField === 'solicitud_aprobada.lote' ? ($sortDirection === 'asc' ? '▲' : '▼') : '↕' !!}
+                        </span>
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -76,9 +80,6 @@
                                 class="text-white bg-indigo-600 hover:bg-indigo-800 rounded-full text-sm px-4 py-2">
                                 <i class="fa-solid fa-eye pr-1"></i> Ver
                             </a>
-                        </td>
-                        <td class="px-2 py-2 text-center">
-                            {{ $solicitud->solicitud_aprobada->id ?? '' }}
                         </td>
                         <td class="px-2 py-2 text-center">
                             {{ $solicitud->solicitud_aprobada->lote ?? '' }}
