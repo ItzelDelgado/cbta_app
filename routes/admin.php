@@ -17,13 +17,13 @@ use App\Http\Controllers\Admin\Oncologicos\SolicitudController as OncologicosSol
 use Maatwebsite\Excel\Facades\Excel;
 
 //Debemos avisarle a laravel que hemos creado un nuevo archivo de rutas en providers
-Route::get('/dashboard', function(){
-//     session()->flash('swal', [
-//         'icon'=>"error",
-//         'title'=>"Oops...",
-//         'text'=>"Something went wrong :(!",
-//         'footer'=>'<a href="#">Why do I have this issue?</a>'
-// ]);
+Route::get('/dashboard', function () {
+    //     session()->flash('swal', [
+    //         'icon'=>"error",
+    //         'title'=>"Oops...",
+    //         'text'=>"Something went wrong :(!",
+    //         'footer'=>'<a href="#">Why do I have this issue?</a>'
+    // ]);
     return view('admin.dashboard');
 })->name('dashboard');
 
@@ -46,7 +46,7 @@ Route::resource('/permissions', PermissionController::class)
 
 
 Route::resource('/hospitals', HospitalController::class)
-    ->except(['show','destroy'])
+    ->except(['show', 'destroy'])
     ->middleware(['can:hospitales']);
 
 Route::resource('nutricionales/medicines', MedicineController::class)
@@ -59,28 +59,28 @@ Route::resource('nutricionales/medicines', MedicineController::class)
 // Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy'])
 //     ->middleware(['can:solicitudes']);
 
-    // Ruta para mostrar todas las solicitudes
+// Ruta para mostrar todas las solicitudes
 Route::get('nutricionales/solicitudes', [SolicitudController::class, 'index'])->name('nutricionales.solicitudes.index')
-->middleware(['can:nutricionales_solicitudes_index']);
+    ->middleware(['can:nutricionales_solicitudes_index']);
 // Ruta para mostrar el formulario de creación de solicitud
 Route::get('nutricionales/solicitudes/create', [SolicitudController::class, 'create'])->name('nutricionales.solicitudes.create')
-->middleware(['can:nutricionales_solicitudes_create']);
+    ->middleware(['can:nutricionales_solicitudes_create']);
 
 // Ruta para almacenar una nueva solicitud
 Route::post('nutricionales/solicitudes', [SolicitudController::class, 'store'])->name('nutricionales.solicitudes.store')
-->middleware(['can:nutricionales_solicitudes_store']);
+    ->middleware(['can:nutricionales_solicitudes_store']);
 
 // Ruta para mostrar una solicitud específica
 Route::get('nutricionales/solicitudes/{solicitud}', [SolicitudController::class, 'show'])->name('nutricionales.solicitudes.show')
-->middleware(['can:nutricionales_solicitudes_show']);
+    ->middleware(['can:nutricionales_solicitudes_show']);
 
 // Ruta para mostrar el formulario de edición de una solicitud
 Route::get('nutricionales/solicitudes/{solicitud}/edit', [SolicitudController::class, 'edit'])->name('nutricionales.solicitudes.edit')
-->middleware(['can:nutricionales_solicitudes_edit']);
+    ->middleware(['can:nutricionales_solicitudes_edit']);
 
 // Ruta para actualizar una solicitud específica
 Route::put('nutricionales/solicitudes/{solicitud}', [SolicitudController::class, 'update'])->name('nutricionales.solicitudes.update')
-->middleware(['can:nutricionales_solicitudes_update']);
+    ->middleware(['can:nutricionales_solicitudes_update']);
 
 // // Ruta para eliminar una solicitud específica
 // Route::delete('nutricionales/solicitudes/{solicitud}', [SolicitudController::class, 'destroy'])->name('nutricionales.solicitudes.destroy')
@@ -131,6 +131,13 @@ Route::get('oncologicos/mezclas/{mezcla}/edit', [MezclaController::class, 'edit'
 Route::put('oncologicos/mezclas/{mezcla}', [MezclaController::class, 'update'])->name('oncologicos.mezclas.update');
 
 
+Route::get('oncologicos/mezclas/orden-de-preparacion/{mezcla}', [MezclaController::class, 'ordenPreparacion'])->name('oncologicos.mezclas.ordenPreparacion')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+Route::get('oncologicos/mezclas/inspeccion/{mezcla}', [MezclaController::class, 'inspeccion'])->name('oncologicos.mezclas.inspeccion')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+
 
 
 Route::resource('oncologicos/medicines/catalog', MedicineCatalogController::class)
@@ -141,4 +148,3 @@ Route::resource('oncologicos/medicines/catalog', MedicineCatalogController::clas
 Route::resource('oncologicos/medicines', OncologicosMedicineController::class)
     ->middleware(['can:medicamentos_oncologicos'])
     ->names('oncologicos.medicines');
-

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin\Oncologicos;
 
 use App\Http\Controllers\Controller;
 use App\Models\Oncologicos\Mezcla;
+use App\Models\Oncologicos\MezclaMedicamento;
 use App\Models\Oncologicos\SolicitudOnco;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -318,4 +320,28 @@ class MezclaController extends Controller
         // Find the mix by ID and delete it
         // Redirect or return a response
     }
+
+    public function ordenPreparacion(Mezcla $mezcla)
+    {
+        // 1. Obtener la mezcla con su solicitud
+        $mezcla_detalles = Mezcla::with('solicitud')->findOrFail($mezcla->id);
+
+        // 3. Preparar el PDF con los datos
+        $pdf = Pdf::loadView('pdfs.oncologicos.orden-de-preparacion', compact('mezcla_detalles'));
+
+        return $pdf->stream();
+    }
+
+    public function inspeccion(Mezcla $mezcla)
+    {
+        // 1. Obtener la mezcla con su solicitud
+        $mezcla_detalles = Mezcla::with('solicitud')->findOrFail($mezcla->id);
+
+        // 3. Preparar el PDF con los datos
+        $pdf = Pdf::loadView('pdfs.oncologicos.inspeccion', compact('mezcla_detalles'));
+
+        return $pdf->stream();
+
+    }
+
 }
