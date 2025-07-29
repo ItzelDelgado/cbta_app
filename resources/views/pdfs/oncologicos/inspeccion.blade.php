@@ -56,7 +56,7 @@
         td {
             border: 0px solid black;
             padding: 0px;
-            font-size: 11px
+            font-size: 12px
         }
 
         .border-1 {
@@ -75,6 +75,7 @@
         .mt-2 {
             margin-top: 0.5rem;
         }
+
         .px-1 {
             padding-left: 0.25rem;
             padding-right: 0.25rem;
@@ -125,6 +126,14 @@
             border-bottom: none;
         }
 
+        .border-l-1 {
+            border-left: 1px solid black;
+        }
+
+        .border-r-1 {
+            border-right: 1px solid black;
+        }
+
         .border-0 {
             border: none;
         }
@@ -167,7 +176,7 @@
 
 <body>
 
-    <div class="contenedor border-1">
+    <div class="contenedor border-1 px-1">
         <!-- Contenedor principal con borde negro -->
         <div class="introduccion">
             <table style="">
@@ -191,266 +200,257 @@
                 </td>
             </tr>
             <tr style="background-color: #1F4E78; color: white; font-weight: bold;">
-                <td style="text-align: center;">ORDEN DE PREPARACIÓN DE NUTRICIÓN PARENTERAL TOTAL</td>
+                <td style="text-align: center;">INSPECCIÓN DE MEZCLAS ÉSTERILES ONCOLOGICAS</td>
             </tr>
         </table>
-        <table class="mx-1">
-            <tr>
-                <td></td>
-                <td>Fecha de elaboración</td>
-            </tr>
-            <tr>
-                <td><strong>LIBERACIÓN DE ÁREA</strong></td>
-                <td></td>
-            </tr>
-        </table>
-        <div class="border-1 mx-1 px-1 py-1">
+        <p>VERIFICACIÓN DE ÁREAS</p>
+        <div class="border-1 py-1 px-1">
             <table>
                 <tr>
-                    <td style="width: 80%"></td>
-                    <td style="width: 10%" class="border-1 text-center">Si</td>
-                    <td style="width: 10%" class="border-1 text-center">No</td>
+                    <td style="width: 90%"></td>
+                    <td class="border-1 text-center" style="width: 5%"><strong>SI</strong></td>
+                    <td class="border-1 text-center" style="width: 5%"><strong>NO</strong></td>
                 </tr>
                 <tr>
-                    <td>¿El personal encargado de la preparación porta el uniforme correspondiente a la actividad a
-                        realizar?</td>
-                    <td class="border-1"></td>
-                    <td class="border-1"></td>
-                </tr>
-                <tr>
-                    <td>¿El área de cuarto de mezclas y aislador se encuentran limpios?</td>
+                    <td class="text-right px-1">¿El área se encuentra limpia y disponible?</td>
                     <td class="border-1"></td>
                     <td class="border-1"></td>
                 </tr>
                 <tr>
-                    <td>¿La zona de paso de material y de trabajo del aislador se encuentra libre de material?</td>
+                    <td class="text-right px-1">¿El área se encuentra libre de material y documentos ajenos a la mezcla
+                        en
+                        turno a inspeccionar?</td>
                     <td class="border-1"></td>
                     <td class="border-1"></td>
                 </tr>
-                <tr>
-                    <td>¿El cuarto de mezclas se encuentra libre de material y documentos ajenos a la mezcla en turno a
-                        preparar?</td>
-                    <td class="border-1"></td>
-                    <td class="border-1"></td>
-                </tr>
-                <tr>
-                    <td><strong>¿Se considera liberada el área para la preparación de la mezcla?</strong></td>
-                    <td class="border-1"></td>
-                    <td class="border-1"></td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td style="width: 5%">Sanitizante:</td>
-                    <td style="width: 5%" class="border-1"></td>
-                    <td style="width: 15%">Alcohol Isoopropílico</td>
-                    <td style="width: 5%" class="border-1"></td>
-                    <td style="width: 10%">Critical 0.2%</td>
-                    <td style="width: 60%"></td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td style="width: 50%"></td>
-                    <td style="width: 50%"></td>
-                </tr>
-            </table>
-            <table>
-                <td style="width: 20%">Selecciona con una ü lo que corresponda.</td>
-                <td style="width: 35%"></td>
-                <td style="width: 45%">Verifico requerimientos y liberó el área (nombre y firma)</td>
             </table>
         </div>
 
-        <table class="mx-1">
-            <tr>
-                <td><strong>No. de Lote de la mezcla:</strong></td>
-                <td><strong>No. de orden de preparación:</strong></td>
-            </tr>
-        </table>
-        <table class="mx-1 mt-2">
-            <tr>
-                <td><strong>DATOS DEL PACIENTE</strong></td>
-            </tr>
-        </table>
-        <div class="border-1 mx-1 px-1 py-1">
+        <div class="mx-1">
             <table>
                 <tr>
-                    <td style="width: 5%">Nombre:</td>
-                    <td style="width: 40%" class="border-b-1"></td>
-                    <td style="width: 11.5%">Médico tratante:</td>
-                    <td style="width: 43%" class="border-b-1"></td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td style="width: 5%">Registro:</td>
+                    <td style="width: 70%" class="text-right">No. de lote:</td>
                     <td style="width: 30%" class="border-b-1"></td>
-                    <td style="width: 5%">Diagnostico:</td>
-                    <td style="" class="border-b-1"></td>
+                </tr>
+                <tr>
+                    <td style="width: 70%" class="text-right">No. de orden de preparación:</td>
+                    <td style="width: 30%" class="border-b-1"></td>
                 </tr>
             </table>
             <table>
                 <tr>
-                    <td style="width: 15.4%">Fecha de nacimiento:</td>
-                    <td class="border-b-1"></td>
-                    <td style="width: 5%">Genero:</td>
-                    <td class="border-b-1"></td>
-                    <td style="width: 4%">Talla:</td>
-                    <td class="border-b-1"></td>
-                    <td style="width: 4%">Peso:</td>
-                    <td class="border-b-1"></td>
-                    <td style="width: 3%">SC:</td>
-                    <td class="border-b-1"></td>
+                    <td style="width: 5%">Fecha:</td>
+                    <td style="width: 10%" class="border-b-1"></td>
+                    <td style="width: 35%"></td>
+                    <td style="width: 20%" class="text-right">Hora de inspección:</td>
+                    <td style="width: 30%" class="border-b-1"></td>
                 </tr>
             </table>
-            <table>
+            <table class="mt-2">
                 <tr>
-                    <td style="width: 15%">Sitio de procedencia:</td>
-                    <td class="border-b-1"></td>
-                    <td style="width: 10%">Dosis/Volumen:</td>
-                    <td class="border-b-1"></td>
-                </tr>
-            </table>
-        </div>
-        <p class="mx-1"><strong>MEZCLA ESTERIL ONCOLÓGICA </strong></p>
-        <div class="border-1 mx-1 px-1 py-1">
-            <table>
-                <tr>
-                    <td colspan="1">Hora de preparación:</td>
-                    <td colspan="2" class="border-b-1"></td>
-                    <td colspan="5"></td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td style="width: 40%"></td>
-                    <td style="width: 20%" class="text-center"><strong>Medicamentos</strong></td>
-                    <td style="width: 40%"></td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="border-1" rowspan="2"><strong>1</strong></td>
-                    <td class="border-1 text-center"><strong>No. de lote</strong></td>
-                    <td class="border-1 text-center"><strong>Caducidad</strong></td>
-                    <td class="border-1 text-center"><strong>Denominación comercial</strong></td>
-                    <td class="border-1 text-center"><strong>Denominación genérica</strong></td>
-                    <td class="border-1 text-center"><strong>Presentación</strong></td>
-                    <td class="border-1 text-center"><strong>Dosis</strong></td>
-                    <td class="border-1 text-center"><strong>Volumen</strong></td>
-                </tr>
-                <tr>
-                    <td class="border-1 text-center"></td>
-                    <td class="border-1 text-center"></td>
-                    <td class="border-1 text-center"></td>
-                    <td class="border-1 text-center"></td>
-                    <td class="border-1 text-center"></td>
-                    <td class="border-1 text-center"></td>
-                    <td class="border-1 text-center"></td>
-                </tr>
-                <tr>
-                    <td colspan="4"></td>
-                    <td colspan="1">Contenedor y volumen final:</td>
-                    <td colspan="3"></td>
-                </tr>
-                <tr>
-                    <td colspan="8" style="text-align: center"><strong>Equipo de infusión/Infusor</strong></td>
-                </tr>
-                <tr>
-                    <td rowspan="2" class="border-1 text-center"><strong>1</strong></td>
-                    <td colspan="1" class="border-1 text-center"><strong>No. de lote</strong></td>
-                    <td colspan="1" class="border-1 text-center"><strong>Caducidad</strong></td>
-                    <td colspan="2" class="border-1 text-center"><strong>Nombre comercial</strong></td>
-                    <td colspan="3" class="border-1 text-center"><strong>Nombre genérico</strong></td>
-                </tr>
-                <tr>
-                    <td colspan="1" class="border-1 text-center"></td>
-                    <td colspan="1" class="border-1 text-center"></td>
-                    <td colspan="2" class="border-1 text-center"></td>
-                    <td colspan="3" class="border-1 text-center"></td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td>Cálculos y forma de preparación:</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td style="width: 5%">Reconstituir:</td>
-                    <td class="border-b-1"></td>
-                    <td></td>
-                </tr>
-            </table>
-
-            <table>
-                <tr>
-                    <td style="width: 5%">Extraer:</td>
-                    <td class="border-b-1" style="width: 10%"></td>
-                    <td style="width: 30%">Dx 5% / CS 0.9% / SH / Agua inyectable</td>
-                    <td style="width: 15%"></td>
-                    <td style="width: 15%">Dx=5% dextrosa 5%</td>
-                    <td></td>
-                    <td style="width: 15%">SH=sln. Hartman</td>
-                    <td></td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td style="width: 5%">Agregar:</td>
-                    <td class="border-b-1"></td>
+                    <td style="width: 20%" class="text-left"><strong>Tipo de contenedor</strong></td>
+                    <td style="width: 10%" class="text-left"><strong>Frasco/bolsa</strong></td>
                     <td style="width: 5%"></td>
-                    <td style="width: 20%">CS=Cloruro de sodio 0.9%</td>
-                    <td></td>
+                    <td style="width: 5%" class="border-1"></td>
+                    <td style="width: 10%" class="text-center"><strong>Jeringa</strong></td>
+                    <td style="width: 5%" class="border-1"></td>
+                    <td style="width: 10%" class="text-center"><strong>Otro</strong></td>
+                    <td style="width: 5%" class="border-1"></td>
+                    <td style="width: 5%"></td>
+                    <td style="width: 10%" class="border-b-1"></td>
                 </tr>
-
             </table>
-            <table>
+            <table class="mt-2">
                 <tr>
-                    <td style="width: 5%">Cálculos:</td>
-                    <td style="width: 10%" class="border-b-1"></td>
-                    <td style="width: 6%">UL mg /</td>
-                    <td style="width: 10%" class="border-b-1"></td>
-                    <td style="width: 3%">ml = </td>
-                    <td style="width: 10%" class="border-b-1"></td>
-                    <td style="width: 50%"></td>
+                    <td style="width: 48%">
+                        <table class="">
+                            <tr>
+                                <td class="border-1 px-1 text-center"><strong>Inspección fisica del contenedor</strong></td>
+                            </tr>
+                        </table>
+                        <table>
+                            <tr>
+                                <td style="width: 70%" class="border-l-1 px-1"></td>
+                                <td style="width: 15%" class=" text-center"><strong>Si</strong></td>
+                                <td style="width: 15%" class="border-r-1 text-center"><strong>No</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">¿Esta rotulado</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">No. De lote</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">Medicamento</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">Dosis / volumen total</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">Volumen de medicamento</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">Rubrica del preparador</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">¿Tiene sello de seguridad?</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">¿Presenta grietas?</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">¿Presenta fugas?</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">¿Se encuentra roto?</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                        </table>
+
+
+                        <table class="border-1 mt-2">
+                            <tr>
+                                <td style="width: 70%" class="border-1 px-1">¿Aprueba la inspección física del
+                                    contenedor?</td>
+                                <td style="width: 15%" class="border-1 px-1"></td>
+                                <td style="width: 15%" class="border-1 px-1"></td>
+                            </tr>
+                        </table>
+
+                    </td>
+                    <td style="width: 4%"></td>
+                    <td style="width: 48%">
+                        <table>
+                            <tr>
+                                <td class="border-1 px-1 text-center"><strong>Inspección del contenido</strong></td>
+                            </tr>
+                        </table>
+                        <table>
+                            <tr>
+                                <td style="width: 70%" class="px-1 border-l-1"></td>
+                                <td style="width: 15%" class="text-center px-1"><strong>Si</strong></td>
+                                <td style="width: 15%" class="text-center px-1 border-r-1"><strong>No</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">¿La coloración es apropiada?</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">¿Es homogéneo?</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">¿Presenta partículas?</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">¿Presenta turbidez?</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                            <tr>
+                                <td class="border-1 px-1">¿Volumen correcto?</td>
+                                <td class="border-1 px-1"></td>
+                                <td class="border-1 px-1"></td>
+                            </tr>
+                        </table>
+                        <table class="mt-2">
+                            <tr>
+                                <td style="width: 70%" class="border-1 px-1">¿Aprueba la inspección del contenido?
+                                </td>
+                                <td style="width: 15%" class="border-1 px-1"></td>
+                                <td style="width: 15%" class="border-1 px-1"></td>
+                            </tr>
+                        </table>
+                        <table class="mt-2">
+                            <tr>
+                                <td style="width: 50%" class="text-right">Dosis en volumen (mL):</td>
+                                <td style="width: 50%" class="border-b-1"></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 50%" class="text-right">Peso de la mezcla (g):</td>
+                                <td style="width: 50%" class="border-b-1"></td>
+                            </tr>
+                        </table>
+                    </td>
                 </tr>
-                {{-- <tr>
-                <td>Selecciona encerrando en un circulo la solución y las unidades correspondientes.</td>
-                <td></td>
-            </tr> --}}
+            </table>
+            <div class="mt-2">
+                <table class="px-1">
+                    <tr class="">
+                        <td class="border-1 px-1" style="width: 60%">LA MEZCLA SE CONSIDERA APROBADA:</td>
+                        <td class="border-1 text-center" style="width: 5%"><strong>Si</strong></td>
+                        <td class="border-1" style="width: 5%"></td>
+                        <td class="border-1 text-center" style="width: 5%"><strong>No</strong></td>
+                        <td class="border-1" style="width: 5%"></td>
+                        <td style="width: 20%"></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="mt-2 border-1">
+                <table class="px-1">
+                    <tr class="">
+                        <td>Observaciones:</td>
+                    </tr>
+                </table>
+            </div>
+            <table class="mt-2" style="margin-top: 4rem; margin-bottom: 3rem;">
+                <tr>
+                    <td style="width: 10%"></td>
+                    <td style="width: 35%" class="border-b-1"></td>
+                    <td style="width: 10%"></td>
+                    <td style="width: 35%" class="border-b-1"></td>
+                    <td style="width: 10%"></td>
+                </tr>
+                <tr>
+                    <td style="width: 10%"></td>
+                    <td style="width: 35%" class="text-center">Revisó</td>
+                    <td style="width: 10%"></td>
+                    <td style="width: 35%" class="text-center">Aprobó</td>
+                    <td style="width: 10%"></td>
+                </tr>
+                <tr>
+                    <td style="width: 10%"></td>
+                    <td style="width: 35%" class="text-center">Nombre/sello y firma</td>
+                    <td style="width: 10%"></td>
+                    <td style="width: 35%" class="text-center">Nombre/sello y firma</td>
+                    <td style="width: 10%"></td>
+                </tr>
+                <tr>
+                    <td style="width: 10%"></td>
+                    <td style="width: 35%" class="text-center">Unidad de Calidad</td>
+                    <td style="width: 10%"></td>
+                    <td style="width: 35%" class="text-center">Unidad de Calidad</td>
+                    <td style="width: 10%"></td>
+                </tr>
             </table>
         </div>
-        <table class="mt-8">
-            <tr>
-                <td style="width: 5%"></td>
-                <td style="width: 26.66%" class="border-b-1"></td>
-                <td style="width: 5%"></td>
-                <td style="width: 26.66%" class="border-b-1"></td>
-                <td style="width: 5%"></td>
-                <td style="width: 26.66%" class="border-b-1"></td>
-                 <td style="width: 5%"></td>
-            </tr>
-            <tr>
-                <td style="width: 5%"></td>
-                <td style="width: 26.66%" class="text-center">Elaboró</td>
-                <td style="width: 5%"></td>
-                <td style="width: 26.66%" class="text-center">Validó</td>
-                <td style="width: 5%"></td>
-                <td style="width: 26.66%" class="text-center">Preparó</td>
-                <td style="width: 5%"></td>
-            </tr>
-            <tr>
-                <td></td>
-                <td class="text-center">Nombre/sello y forma</td>
-                <td></td>
-                <td class="text-center">Nombre/sello y firma</td>
-                <td></td>
-                <td class="text-center">Nombre/sello y firma</td>
-                <td></td>
-            </tr>
-        </table>
+
+
+
+
 
     </div>
 
