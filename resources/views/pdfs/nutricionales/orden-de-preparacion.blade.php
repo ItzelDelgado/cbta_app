@@ -61,7 +61,7 @@
             border: 1px solid black;
             text-align: left;
             padding: 8px;
-            font-size: 9px
+            font-size: 11px
         }
 
         th {
@@ -69,7 +69,7 @@
         }
 
         p {
-            font-size: 9px
+            font-size: 11px
         }
 
         .liberacion-area td {
@@ -163,7 +163,7 @@
         <table>
             <tr>
                 <td style="text-align: right; color: blue; padding: 2px 8px;">
-                    FTO-NPT-023-005
+                    FTO-NPT-025-005
                 </td>
             </tr>
             <tr style="background-color: #1F4E78; color: white; font-weight: bold;">
@@ -171,7 +171,7 @@
             </tr>
         </table>
 
-        <div style="border-left: 1px solid black; border-right: 1px solid black;margin-bottom: 0rem;">
+         <div style="border-left: 1px solid black; border-right: 1px solid black;margin-bottom: 0rem;">
             <table>
                 <tr>
                     <td style="border: none; text-align: right"><strong>Fecha de elaboración:</strong>
@@ -179,10 +179,10 @@
                     </td>
                 </tr>
                 <tr>
-                    <td style="border: none; margin:0; padding: 0 8px;"><strong>LIBERACIÓN DE ÁREA</strong></td>
+                    {{-- <td style="border: none; margin:0; padding: 0 8px;"><strong>LIBERACIÓN DE ÁREA</strong></td> --}}
                 </tr>
             </table>
-            <table class="liberacion-area" style="margin-bottom: 0.3rem;">
+           {{--<table class="liberacion-area" style="margin-bottom: 0.3rem;">
                 <tr>
                     <td style="border: none;"></td>
                     <td style="border-button: none">Si</td>
@@ -234,7 +234,7 @@
                     <td style="width: 20px; border-bottom: none; padding: 2px 4px;"></td>
                 </tr>
             </table>
-        </div>
+        </div> --}}
         <div style=" border: 1px solid black; margin-bottom: 0rem;">
             <table style="padding: 0; margin: 0">
                 <tr style="margin: 0; padding: 0">
@@ -321,7 +321,7 @@
                                 }
                             @endphp
 
-                            <td>{{ $valor_final }} mL</td>
+                            <td style="font-size: 9px">{{ $valor_final }} mL</td>
                             @php
                                 // Lógica para formatear el valor sin ceros innecesarios
                                 $valor_formateado =
@@ -349,7 +349,7 @@
                                     Medicamento no disponible
                                 @endisset
                             </td>
-                            <td style="text-align: center">
+                            <td style="text-align: center" >
                                 @isset($input_completo->input->medicine)
                                     {{ $input_completo->input->medicine->presentacion_ml }} ML
                                 @else
@@ -358,8 +358,8 @@
                             </td>
                             {{-- <td>{{ $input_completo['lote'] }}</td>
                             <td>{{  date('d-m-Y', strtotime($input_completo['caducidad'])) }}</td> --}}
-                            <td>{{ $input_completo['lote'] ? $input_completo['lote'] : '' }}</td>
-                            <td style="font-size: 7px">{{ $input_completo['caducidad'] ? date('d-m-Y', strtotime($input_completo['caducidad'])) : '' }}
+                            <td style="font-size: 9px">{{ $input_completo['lote'] ? $input_completo['lote'] : '' }}</td>
+                            <td style="font-size: 9px">{{ $input_completo['caducidad'] ? date('d-m-Y', strtotime($input_completo['caducidad'])) : '' }}
                             </td>
                         </tr>
                     @endif
@@ -482,7 +482,7 @@
             </tr>
         </table>
         <div>
-            <p style="margin: 0.5rem">VERIFICACIÓN DE ÁREAS</p>
+            {{-- <p style="margin: 0.5rem">VERIFICACIÓN DE ÁREAS</p>
             <div class="border-1" style="padding: 0.5rem; margin: 0.5rem">
                 <table class="border-0">
                     <tr>
@@ -505,7 +505,7 @@
                         <td></td>
                     </tr>
                 </table>
-            </div>
+            </div> --}}
             <table>
                 <tr>
                     <td class="border-0" style="width: 50%">Fecha: <span>{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_aprobada['created_at'])) }}</span></td>

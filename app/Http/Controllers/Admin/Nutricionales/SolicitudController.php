@@ -1221,9 +1221,10 @@ class SolicitudController extends Controller
             ->get();
 
         //return $inputs_solicitud;
-        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
+        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'input.medicine','user.hospital')
             ->find($solicitud->id);
-        //return $solicitud_detalles;
+
+    //  return $solicitud_detalles;
         $customPaper = [0, 0, 368.50, 255.12]; // 9cm x 13cm en puntos
         $pdf = Pdf::loadView('pdfs.nutricionales.etiqueta', \compact('solicitud_detalles', 'inputs_solicitud'))
             ->setPaper($customPaper, 'landscape');

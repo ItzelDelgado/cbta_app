@@ -9,22 +9,22 @@
         @method('PUT')
 
         <div class="flex gap-4">
-            <div class="mb-4 w-1/2">
+            <div class="mb-4 w-1/4">
                 <label for="denominacion" class="block mb-2 text-sm font-medium text-gray-700">Denominación</label>
                 <input type="text" name="denominacion" id="denominacion"
                     value="{{ old('denominacion', $medicamento->denominacion) }}" required
                     class="w-full p-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500">
             </div>
 
-            <div class="mb-4 w-1/2">
+            <div class="mb-4 w-1/4">
                 <label for="presentacion" class="block mb-2 text-sm font-medium text-gray-700">Presentación</label>
                 <input type="text" name="presentacion" id="presentacion"
                     value="{{ old('presentacion', $medicamento->presentacion) }}" required
                     class="w-full p-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500">
             </div>
-        </div>
-        <div class="flex gap-4">
-            <div class="mb-4 w-1/2">
+
+
+            <div class="mb-4 w-1/4">
                 <label for="cantidad_medicamento" class="block mb-2 text-sm font-medium text-gray-700">
                     Cantidad de medicamento (mg)
                 </label>
@@ -34,7 +34,7 @@
                     class="w-full p-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500">
             </div>
 
-            <div class="mb-4 w-1/2">
+            <div class="mb-4 w-1/4">
                 <label for="volumen_diluyente" class="block mb-2 text-sm font-medium text-gray-700">
                     Volumen del diluyente (ml)
                 </label>
@@ -42,6 +42,35 @@
                     value="{{ old('volumen_diluyente', $medicamento->volumen_diluyente ?? '') }}" step="0.01"
                     min="0"
                     class="w-full p-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500">
+            </div>
+        </div>
+
+        <div class="flex gap-4">
+            <div class="mb-4 w-1/4">
+                <label for="conc_min" class="block mb-2 text-sm font-medium text-gray-700">
+                    Concentración mínima (mOsm/mL)
+                </label>
+                <input type="number" name="conc_min" id="conc_min"
+                    value="{{ old('conc_min', $medicamento->conc_min ?? '') }}" step="0.01" min="0"
+                    class="w-full p-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500">
+            </div>
+
+            <div class="mb-4 w-1/4">
+                <label for="conc_max" class="block mb-2 text-sm font-medium text-gray-700">
+                    Concentración máxima (mOsm/mL)
+                </label>
+                <input type="number" name="conc_max" id="conc_max"
+                    value="{{ old('conc_max', $medicamento->conc_max ?? '') }}" step="0.01" min="0"
+                    class="w-full p-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500">
+            </div>
+
+            <div class="mb-4 w-full">
+                <label for="legend" class="block mb-2 text-sm font-medium text-gray-700">
+                    Leyenda de protección
+                </label>
+                <textarea name="legend" id="legend" rows="2"
+                    placeholder="Ej. No agitar. Conservar a temperatura ambiente o refrigerar de 2-8°C"
+                    class="w-full p-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500">{{ old('legend', $medicamento->legend ?? '') }}</textarea>
             </div>
         </div>
 

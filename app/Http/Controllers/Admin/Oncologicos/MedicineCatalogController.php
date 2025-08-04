@@ -39,22 +39,29 @@ class MedicineCatalogController extends Controller
         $request->validate([
             'denominacion' => 'required|string|max:255',
             'presentacion' => 'required|string|max:255',
+            'cantidad_medicamento' => 'nullable|numeric|min:0',
+            'volumen_diluyente' => 'nullable|numeric|min:0',
+            'conc_min' => 'nullable|numeric|min:0',
+            'conc_max' => 'nullable|numeric|min:0',
+            'legend' => 'nullable|string|max:1000',
             'diluents' => 'nullable|array',
             'routes' => 'nullable|array',
         ]);
 
-        // Crear medicamento
         $med = \App\Models\Oncologicos\MedicinesCatalog::create([
             'denominacion' => $request->denominacion,
             'presentacion' => $request->presentacion,
+            'cantidad_medicamento' => $request->cantidad_medicamento,
+            'volumen_diluyente' => $request->volumen_diluyente,
+            'conc_min' => $request->conc_min,
+            'conc_max' => $request->conc_max,
+            'legend' => $request->legend,
         ]);
 
-        // Relacionar diluyentes
         if ($request->filled('diluents')) {
             $med->diluents()->sync($request->diluents);
         }
 
-        // Relacionar vías de administración
         if ($request->filled('routes')) {
             $med->administrationRoutes()->sync($request->routes);
         }
@@ -92,23 +99,33 @@ class MedicineCatalogController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+   public function update(Request $request, $id)
     {
         $request->validate([
             'denominacion' => 'required|string|max:255',
             'presentacion' => 'required|string|max:255',
+            'cantidad_medicamento' => 'nullable|numeric|min:0',
+            'volumen_diluyente' => 'nullable|numeric|min:0',
+            'conc_min' => 'nullable|numeric|min:0',
+            'conc_max' => 'nullable|numeric|min:0',
+            'legend' => 'nullable|string|max:1000',
         ]);
 
         $medicamento = MedicinesCatalog::findOrFail($id);
         $medicamento->update([
             'denominacion' => $request->denominacion,
             'presentacion' => $request->presentacion,
+            'cantidad_medicamento' => $request->cantidad_medicamento,
+            'volumen_diluyente' => $request->volumen_diluyente,
+            'conc_min' => $request->conc_min,
+            'conc_max' => $request->conc_max,
+            'legend' => $request->legend,
         ]);
 
         if ($request->filled('diluents')) {
             $medicamento->diluents()->sync($request->diluents);
         } else {
-            $medicamento->diluents()->detach(); // Limpia si no seleccionaron
+            $medicamento->diluents()->detach();
         }
 
         if ($request->filled('routes')) {

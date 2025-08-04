@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin\Oncologicos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Oncologicos\MedicineOnco;
+use App\Models\Oncologicos\MedicinesCatalog;
 use App\Models\Oncologicos\Mezcla;
 use App\Models\Oncologicos\MezclaMedicamento;
 use App\Models\Oncologicos\SolicitudOnco;
@@ -73,8 +75,7 @@ class SolicitudController extends Controller
 
     public function store(Request $request)
     {
-
-        // Validación general
+        // Validación general del formulario
         $request->validate([
             'paciente_nombre' => 'required|string|max:255',
             'servicio' => 'required|string|max:255',
@@ -101,12 +102,12 @@ class SolicitudController extends Controller
         try {
             $user = auth()->user();
 
-            // 1. Obtener mapa de precios personalizado
+            // Obtener precios personalizados
             $precios = DB::table('medicine_medicine_lists')
                 ->where('medicine_list_id', $user->medicine_list_id)
-                ->pluck('precio', 'medicine_id'); // devuelve [medicamento_id => precio]
+                ->pluck('precio', 'medicine_id');
 
-            // 2. Guardar la solicitud principal
+            // Crear solicitud principal
             $solicitud = SolicitudOnco::create([
                 'user_id' => $user->id,
                 'servicio' => $request->servicio,
@@ -127,7 +128,6 @@ class SolicitudController extends Controller
                 'remision' => null,
             ]);
 
-            // 3. Guardar mezclas y medicamentos
             foreach ($mezclas as $mezclaData) {
                 $mezcla = Mezcla::create([
                     'solicitud_id' => $solicitud->id,
@@ -137,13 +137,34 @@ class SolicitudController extends Controller
                 ]);
 
                 foreach ($mezclaData['medicamentos'] as $medicamento) {
+                    $medicine = MedicineOnco::with('catalog')->find($medicamento['medicamento_id']);
+
+                    if (!$medicine || !$medicine->catalog) {
+                        throw new \Exception("No se encontró información del catálogo para el medicamento ID {$medicamento['medicamento_id']}.");
+                    }
+
+                    $catalog = $medicine->catalog;
+
+                    if (!$catalog) {
+                        throw new \Exception("No se encontró información del catálogo para el medicamento ID {$medicamento['medicamento_id']}.");
+                    }
+
+                    // Validar concentración
+                    $volumen = floatval($mezclaData['volumen_dilucion']);
+                    $dosis = floatval($medicamento['dosis']);
+                    $concentracion = $volumen > 0 ? $dosis / $volumen : 0;
+
+                    if ($concentracion < $catalog->conc_min || $concentracion > $catalog->conc_max) {
+                        throw new \Exception("La concentración de '{$catalog->denominacion}' está fuera del rango permitido ({$catalog->conc_min} - {$catalog->conc_max} mL). Dosis: {$dosis}, Volumen: {$volumen}.");
+                    }
+
                     $precio = $precios[$medicamento['medicamento_id']] ?? 0;
 
                     MezclaMedicamento::create([
                         'mezcla_id' => $mezcla->id,
                         'medicamento_id' => $medicamento['medicamento_id'],
                         'nombre_medicamento' => $medicamento['nombre'],
-                        'dosis' => $medicamento['dosis'],
+                        'dosis' => $dosis,
                         'diluyente_id' => $medicamento['diluyente_id'],
                         'via_administracion_id' => $medicamento['via_administracion_id'],
                         'precio_unitario' => $precio,
@@ -159,6 +180,7 @@ class SolicitudController extends Controller
             return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
     }
+
 
 
     public function show($id)

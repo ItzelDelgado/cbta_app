@@ -31,4 +31,9 @@ class SolicitudInput extends Model
     {
         return $this->belongsTo(Input::class);
     }
+
+    public function medicine()
+    {
+        return $this->hasOne(Medicine::class, 'input_id', 'input_id');
+    }
 }

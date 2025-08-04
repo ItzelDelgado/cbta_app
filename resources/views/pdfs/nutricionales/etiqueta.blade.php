@@ -30,6 +30,8 @@
         })
         ->sum('valor');
 
+    $inputs_solicitud;
+
 @endphp
 
 <!DOCTYPE html>
@@ -228,11 +230,28 @@
             </table>
             <table>
                 <tr style="padding: 0; margin: 0">
+
                     <td style="border: none; border-top: 1px solid black; padding: 0; margin: 0">
-                        {{-- <strong><strong>Osmolaridad:</strong></strong> {{ number_format($osmolaridad_total, 2) }} mOSM/mL --}}
+                        <strong>Osmolaridad:</strong>
+
+                        @php
+                            $volumenTotal = $solicitud_detalles->solicitud_detail['volumen_total'] ?? 0;
+                            $sumaOsmolaridad = 0;
+
+                            if ($volumenTotal > 0) {
+                                foreach ($solicitud_detalles->input as $medicamento) {
+                                    $volumen = $medicamento['valor_ml'] ?? 0;
+                                    $osmolaridad = $medicamento['medicine']['osmolaridad'] ?? 0;
+
+                                    $sumaOsmolaridad += ($volumen * $osmolaridad) / $volumenTotal;
+                                }
+                            }
+                        @endphp
+
+                        {{ $volumenTotal > 0 ? number_format($sumaOsmolaridad, 2) : '—' }} mOsm/mL
                     </td>
                     <td style="border: none; border-top: 1px solid black; padding: 0; margin: 0"><strong>Vol.
-                            tot:</strong>
+                            total:</strong>
                         @if (
                             $solicitud_detalles->solicitud_detail['volumen_total'] == null ||
                                 $solicitud_detalles->solicitud_detail['volumen_total'] == 0)
@@ -254,45 +273,74 @@
                         <strong>GKM:</strong>
                         {{ isset($sumaDosisDeGlucosa, $solicitud_detalles->solicitud_detail['tiempo_infusion_min']) &&
                         $solicitud_detalles->solicitud_detail['tiempo_infusion_min'] != 0
-                            ? number_format(($sumaDosisDeGlucosa * 1000) / ($solicitud_detalles->solicitud_detail['tiempo_infusion_min'] * 60), 2)
-                            : '—' }} mg/kg/min
+                            ? number_format(
+                                ($sumaDosisDeGlucosa * 1000) / ($solicitud_detalles->solicitud_detail['tiempo_infusion_min'] * 60),
+                                2,
+                            )
+                            : '—' }}
+                        mg/kg/min
                     </td>
                 </tr>
                 <tr style="padding: 0; margin: 0">
                     <td style="border: none; padding: 0; margin: 0">
                         <strong>Calorías totales:</strong>
-                        {{ isset(
-                            $sumaDosisDeAA,
-                            $sumaDosisDeLipidos,
-                            $sumaDosisDeGlucosa,
-                            $solicitud_detalles->solicitud_patient['peso'],
-                        )
-                            ? number_format(
-                                $sumaDosisDeAA * $solicitud_detalles->solicitud_patient['peso'] * 4 +
-                                    $sumaDosisDeLipidos * $solicitud_detalles->solicitud_patient['peso'] * 9 +
-                                    $sumaDosisDeGlucosa * $solicitud_detalles->solicitud_patient['peso'] * 4,
-                                2,
+                        @if ($solicitud_detalles->solicitud_detail['npt'] != 'ADULT')
+                            {{ isset(
+                                $sumaDosisDeAA,
+                                $sumaDosisDeLipidos,
+                                $sumaDosisDeGlucosa,
+                                $solicitud_detalles->solicitud_patient['peso'],
                             )
-                            : '—' }} kcal
+                                ? number_format(
+                                    $sumaDosisDeAA * $solicitud_detalles->solicitud_patient['peso'] * 4 +
+                                        $sumaDosisDeLipidos * $solicitud_detalles->solicitud_patient['peso'] * 9 +
+                                        $sumaDosisDeGlucosa * $solicitud_detalles->solicitud_patient['peso'] * 3.4,
+                                    2,
+                                )
+                                : '—' }}
+                            kcal
+                        @else
+                            {{ isset($sumaDosisDeAA, $sumaDosisDeLipidos, $sumaDosisDeGlucosa)
+                                ? number_format($sumaDosisDeAA * 4 + $sumaDosisDeLipidos * 9 + $sumaDosisDeGlucosa * 3.4, 2)
+                                : '—' }}
+                            kcal
+                        @endif
                     </td>
 
                     <td style="border: none; padding: 0; margin: 0">
                         <strong>Densidad calórica:</strong>
-                        {{ isset(
-                            $sumaDosisDeAA,
-                            $sumaDosisDeLipidos,
-                            $sumaDosisDeGlucosa,
-                            $solicitud_detalles->solicitud_patient['peso'],
-                            $solicitud_detalles->solicitud_detail['volumen_total'],
-                        ) && $solicitud_detalles->solicitud_detail['volumen_total'] != 0
-                            ? number_format(
-                                ($sumaDosisDeAA * $solicitud_detalles->solicitud_patient['peso'] * 4 +
-                                    $sumaDosisDeLipidos * $solicitud_detalles->solicitud_patient['peso'] * 9 +
-                                    $sumaDosisDeGlucosa * $solicitud_detalles->solicitud_patient['peso'] * 4) /
-                                    $solicitud_detalles->solicitud_detail['volumen_total'],
-                                2,
-                            )
-                            : '—' }} kcal/mL
+                        @if ($solicitud_detalles->solicitud_detail['npt'] != 'ADULT')
+                            {{ isset(
+                                $sumaDosisDeAA,
+                                $sumaDosisDeLipidos,
+                                $sumaDosisDeGlucosa,
+                                $solicitud_detalles->solicitud_patient['peso'],
+                                $solicitud_detalles->solicitud_detail['volumen_total'],
+                            ) && $solicitud_detalles->solicitud_detail['volumen_total'] != 0
+                                ? number_format(
+                                    ($sumaDosisDeAA * $solicitud_detalles->solicitud_patient['peso'] * 4 +
+                                        $sumaDosisDeLipidos * $solicitud_detalles->solicitud_patient['peso'] * 9 +
+                                        $sumaDosisDeGlucosa * $solicitud_detalles->solicitud_patient['peso'] * 3.4) /
+                                        $solicitud_detalles->solicitud_detail['volumen_total'],
+                                    2,
+                                )
+                                : '—' }}
+                            kcal/mL
+                        @else
+                            {{ isset(
+                                $sumaDosisDeAA,
+                                $sumaDosisDeLipidos,
+                                $sumaDosisDeGlucosa,
+                                $solicitud_detalles->solicitud_detail['volumen_total'],
+                            ) && $solicitud_detalles->solicitud_detail['volumen_total'] != 0
+                                ? number_format(
+                                    ($sumaDosisDeAA * 4 + $sumaDosisDeLipidos * 9 + $sumaDosisDeGlucosa * 3.4) /
+                                        $solicitud_detalles->solicitud_detail['volumen_total'],
+                                    2,
+                                )
+                                : '—' }}
+                            kcal/mL
+                        @endif
                     </td>
                 </tr>
                 <tr style="padding: 0; margin: 0">

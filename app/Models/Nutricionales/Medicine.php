@@ -32,5 +32,5 @@ class Medicine extends Model
     public function input(){
         return $this->belongsTo(Input::class);
     }
-}
 
+}

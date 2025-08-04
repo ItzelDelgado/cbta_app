@@ -16,6 +16,11 @@ return new class extends Migration
             $table->string('denominacion');
             $table->string('presentacion');
             $table->boolean('state')->default(true); // true = activo, false = deshabilitado
+            $table->decimal('cantidad_medicamento', 10, 2)->nullable(); // mg
+            $table->decimal('volumen_diluyente', 10, 2)->nullable();
+            $table->decimal('conc_min', 8, 2)->nullable();
+            $table->decimal('conc_max', 8, 2)->nullable();
+            $table->text('legend')->nullable();
             $table->timestamps();
         });
     }

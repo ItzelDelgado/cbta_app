@@ -8,7 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class MedicineOnco extends Model {
     protected $table = 'medicine_oncos';
 
-    protected $fillable = ['catalog_id', 'precio'];
+    protected $fillable = [
+        'catalog_id', // <-- FALTA ESTE
+        'precio',
+        'lote',
+        'caducidad'
+    ];
 
     public function mezclaMedicamentos() {
         return $this->hasMany(MezclaMedicamento::class, 'medicamento_id');
