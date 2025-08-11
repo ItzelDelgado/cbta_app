@@ -213,15 +213,30 @@
                 </tr>
                 <tr>
                     <td class="text-right px-1">¿El área se encuentra limpia y disponible?</td>
-                    <td class="border-1"></td>
-                    <td class="border-1"></td>
+                    <td class="border-1 text-center">
+                        @if ($inspeccion->es_limpia)
+                            X
+                        @endif
+                    </td>
+                    <td class="border-1 text-center">
+                        @if (!$inspeccion->es_limpia)
+                            X
+                        @endif
+                    </td>
                 </tr>
                 <tr>
                     <td class="text-right px-1">¿El área se encuentra libre de material y documentos ajenos a la mezcla
-                        en
-                        turno a inspeccionar?</td>
-                    <td class="border-1"></td>
-                    <td class="border-1"></td>
+                        en turno a inspeccionar?</td>
+                    <td class="border-1 text-center">
+                        @if ($inspeccion->es_libre)
+                            X
+                        @endif
+                    </td>
+                    <td class="border-1 text-center">
+                        @if (!$inspeccion->es_libre)
+                            X
+                        @endif
+                    </td>
                 </tr>
             </table>
         </div>
@@ -230,20 +245,21 @@
             <table>
                 <tr>
                     <td style="width: 70%" class="text-right">No. de lote:</td>
-                    <td style="width: 30%" class="border-b-1"></td>
+                    <td style="width: 30%" class="border-b-1">{{ $mezcla->lote ?? '—' }}</td>
                 </tr>
                 <tr>
                     <td style="width: 70%" class="text-right">No. de orden de preparación:</td>
-                    <td style="width: 30%" class="border-b-1"></td>
+                    <td style="width: 30%" class="border-b-1">{{ $mezcla->id }}</td>
                 </tr>
             </table>
             <table>
                 <tr>
                     <td style="width: 5%">Fecha:</td>
-                    <td style="width: 10%" class="border-b-1"></td>
+                    <td style="width: 15%" class="border-b-1">Falta preguntar</td>
                     <td style="width: 35%"></td>
                     <td style="width: 20%" class="text-right">Hora de inspección:</td>
-                    <td style="width: 30%" class="border-b-1"></td>
+                    <td style="width: 30%" class="border-b-1">
+                        {{ \Carbon\Carbon::parse($inspeccion->hora_inspeccion)->format('H:i') }}</td>
                 </tr>
             </table>
             <table class="mt-2">
@@ -251,21 +267,50 @@
                     <td style="width: 20%" class="text-left"><strong>Tipo de contenedor</strong></td>
                     <td style="width: 10%" class="text-left"><strong>Frasco/bolsa</strong></td>
                     <td style="width: 5%"></td>
-                    <td style="width: 5%" class="border-1"></td>
+                    <td style="width: 5%" class="border-1 text-center">
+                        @if ($inspeccion->tipo_contenedor === 'Frasco')
+                            X
+                        @endif
+                    </td>
                     <td style="width: 10%" class="text-center"><strong>Jeringa</strong></td>
-                    <td style="width: 5%" class="border-1"></td>
+                    <td style="width: 5%" class="border-1 text-center">
+                        @if ($inspeccion->tipo_contenedor === 'Jeringa')
+                            X
+                        @endif
+                    </td>
                     <td style="width: 10%" class="text-center"><strong>Otro</strong></td>
-                    <td style="width: 5%" class="border-1"></td>
+                    <td style="width: 5%" class="border-1 text-center">
+                        @if ($inspeccion->tipo_contenedor === 'Otro')
+                            X
+                        @endif
+                    </td>
                     <td style="width: 5%"></td>
                     <td style="width: 10%" class="border-b-1"></td>
                 </tr>
             </table>
+
+            @php
+                $camposFisicos = [
+                    'esta_rotulado',
+                    'numero_lote',
+                    'medicamento',
+                    'dosis_volumen_total',
+                    'volumen_medicamento',
+                    'rubrica_preparador',
+                    'sello_seguridad',
+                    'presenta_grietas',
+                    'presenta_fugas',
+                    'esta_roto',
+                ];
+            @endphp
+
             <table class="mt-2">
                 <tr>
                     <td style="width: 48%">
                         <table class="">
                             <tr>
-                                <td class="border-1 px-1 text-center"><strong>Inspección fisica del contenedor</strong></td>
+                                <td class="border-1 px-1 text-center"><strong>Inspección fisica del contenedor</strong>
+                                </td>
                             </tr>
                         </table>
                         <table>
@@ -274,56 +319,21 @@
                                 <td style="width: 15%" class=" text-center"><strong>Si</strong></td>
                                 <td style="width: 15%" class="border-r-1 text-center"><strong>No</strong></td>
                             </tr>
-                            <tr>
-                                <td class="border-1 px-1">¿Esta rotulado</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
-                            <tr>
-                                <td class="border-1 px-1">No. De lote</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
-                            <tr>
-                                <td class="border-1 px-1">Medicamento</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
-                            <tr>
-                                <td class="border-1 px-1">Dosis / volumen total</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
-                            <tr>
-                                <td class="border-1 px-1">Volumen de medicamento</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
-                            <tr>
-                                <td class="border-1 px-1">Rubrica del preparador</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
-                            <tr>
-                                <td class="border-1 px-1">¿Tiene sello de seguridad?</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
-                            <tr>
-                                <td class="border-1 px-1">¿Presenta grietas?</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
-                            <tr>
-                                <td class="border-1 px-1">¿Presenta fugas?</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
-                            <tr>
-                                <td class="border-1 px-1">¿Se encuentra roto?</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
+                            @foreach ($camposFisicos as $campo)
+                                <tr>
+                                    <td class="border-1 px-1">{{ ucfirst(str_replace('_', ' ', $campo)) }}</td>
+                                    <td class="border-1 text-center">
+                                        @if ($inspeccion->$campo)
+                                            X
+                                        @endif
+                                    </td>
+                                    <td class="border-1 text-center">
+                                        @if (!$inspeccion->$campo)
+                                            X
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
                         </table>
 
 
@@ -331,8 +341,16 @@
                             <tr>
                                 <td style="width: 70%" class="border-1 px-1">¿Aprueba la inspección física del
                                     contenedor?</td>
-                                <td style="width: 15%" class="border-1 px-1"></td>
-                                <td style="width: 15%" class="border-1 px-1"></td>
+                                <td style="width: 15%" class="border-1 px-1 text-center">
+                                    @if ($inspeccion->aprueba_contenedor)
+                                        X
+                                    @endif
+                                </td>
+                                <td style="width: 15%" class="border-1 px-1 text-center">
+                                    @if (!$inspeccion->aprueba_contenedor)
+                                        X
+                                    @endif
+                                </td>
                             </tr>
                         </table>
 
@@ -344,37 +362,30 @@
                                 <td class="border-1 px-1 text-center"><strong>Inspección del contenido</strong></td>
                             </tr>
                         </table>
+
+                        @php
+                            $camposContenido = [
+                                'coloracion_apropiada',
+                                'contenido_homogeneo',
+                                'presenta_particulas',
+                                'presenta_turbidez',
+                                'volumen_correcto',
+                            ];
+                        @endphp
+
                         <table>
                             <tr>
                                 <td style="width: 70%" class="px-1 border-l-1"></td>
                                 <td style="width: 15%" class="text-center px-1"><strong>Si</strong></td>
                                 <td style="width: 15%" class="text-center px-1 border-r-1"><strong>No</strong></td>
                             </tr>
-                            <tr>
-                                <td class="border-1 px-1">¿La coloración es apropiada?</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
-                            <tr>
-                                <td class="border-1 px-1">¿Es homogéneo?</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
-                            <tr>
-                                <td class="border-1 px-1">¿Presenta partículas?</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
-                            <tr>
-                                <td class="border-1 px-1">¿Presenta turbidez?</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
-                            <tr>
-                                <td class="border-1 px-1">¿Volumen correcto?</td>
-                                <td class="border-1 px-1"></td>
-                                <td class="border-1 px-1"></td>
-                            </tr>
+                            @foreach ($camposContenido as $campo)
+                                <tr>
+                                    <td class="border-1 px-1">¿Aprueba la inspección del contenido?</td>
+                                    <td class="border-1 text-center">@if($inspeccion->aprueba_contenido) X @endif</td>
+                                    <td class="border-1 text-center">@if(!$inspeccion->aprueba_contenido) X @endif</td>
+                                </tr>
+                            @endforeach
                         </table>
                         <table class="mt-2">
                             <tr>
@@ -387,11 +398,11 @@
                         <table class="mt-2">
                             <tr>
                                 <td style="width: 50%" class="text-right">Dosis en volumen (mL):</td>
-                                <td style="width: 50%" class="border-b-1"></td>
+                                <td style="width: 50%" class="border-b-1">{{ $inspeccion->dosis_volumen }}</td>
                             </tr>
                             <tr>
                                 <td style="width: 50%" class="text-right">Peso de la mezcla (g):</td>
-                                <td style="width: 50%" class="border-b-1"></td>
+                                <td style="width: 50%" class="border-b-1">{{ $inspeccion->peso_mezcla }}</td>
                             </tr>
                         </table>
                     </td>
@@ -402,9 +413,9 @@
                     <tr class="">
                         <td class="border-1 px-1" style="width: 60%">LA MEZCLA SE CONSIDERA APROBADA:</td>
                         <td class="border-1 text-center" style="width: 5%"><strong>Si</strong></td>
-                        <td class="border-1" style="width: 5%"></td>
+                        <td class="border-1 text-center" style="width: 5%">@if($inspeccion->mezcla_aprobada) X @endif</td>
                         <td class="border-1 text-center" style="width: 5%"><strong>No</strong></td>
-                        <td class="border-1" style="width: 5%"></td>
+                        <td class="border-1 text-center" style="width: 5%">@if(!$inspeccion->mezcla_aprobada) X @endif</td>
                         <td style="width: 20%"></td>
                     </tr>
                 </table>
@@ -414,14 +425,17 @@
                     <tr class="">
                         <td>Observaciones:</td>
                     </tr>
+                    <tr>
+                        <td>{{ $inspeccion->observaciones }}</td>
+                    </tr>
                 </table>
             </div>
             <table class="mt-2" style="margin-top: 4rem; margin-bottom: 3rem;">
                 <tr>
                     <td style="width: 10%"></td>
-                    <td style="width: 35%" class="border-b-1"></td>
+                    <td style="width: 35%" class="border-b-1 text-center">{{ $inspeccion->reviso_nombre }}</td>
                     <td style="width: 10%"></td>
-                    <td style="width: 35%" class="border-b-1"></td>
+                    <td style="width: 35%" class="border-b-1 text-center">{{ $inspeccion->aprobo_nombre }}</td>
                     <td style="width: 10%"></td>
                 </tr>
                 <tr>

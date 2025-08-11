@@ -323,25 +323,114 @@ class MezclaController extends Controller
 
     public function ordenPreparacion(Mezcla $mezcla)
     {
-        // 1. Obtener la mezcla con su solicitud
-        $mezcla_detalles = Mezcla::with('solicitud')->findOrFail($mezcla->id);
+        // Mezcla y solicitud asociada
+        $mezcla = Mezcla::with('solicitud')->findOrFail($mezcla->id);
 
-        // 3. Preparar el PDF con los datos
-        $pdf = Pdf::loadView('pdfs.oncologicos.orden-de-preparacion', compact('mezcla_detalles'));
+        // Medicamentos de la mezcla con info del catálogo y lote/caducidad
+        $medicamentos = DB::table('mezcla_medicamentos')
+            ->join('medicine_oncos', 'mezcla_medicamentos.medicamento_id', '=', 'medicine_oncos.id')
+            ->join('medicines_catalog', 'medicine_oncos.catalog_id', '=', 'medicines_catalog.id')
+            ->leftJoin('diluents', 'mezcla_medicamentos.diluyente_id', '=', 'diluents.id')
+            ->leftJoin('administration_routes', 'mezcla_medicamentos.via_administracion_id', '=', 'administration_routes.id')
+            ->where('mezcla_medicamentos.mezcla_id', $mezcla->id)
+            ->select(
+                'medicine_oncos.lote',
+                'medicine_oncos.caducidad',
+                'medicines_catalog.denominacion as denominacion_comercial',
+                'medicines_catalog.presentacion',
+                'mezcla_medicamentos.dosis',
+                'mezcla_medicamentos.precio_unitario',
+                'mezcla_medicamentos.nombre_medicamento',
+                'diluents.name as diluyente',
+                'administration_routes.name as via'
+            )
+            ->get();
 
-        return $pdf->stream();
+        // Fecha de preparación (si la mezcla ya fue aprobada)
+        $aprobada = DB::table('solicitud_aprobadas')
+            ->where('solicitud_id', $mezcla->solicitud_id)
+            ->first();
+
+        // Preparar PDF con la vista y todos los datos
+        $pdf = Pdf::loadView('pdfs.oncologicos.orden-de-preparacion', [
+            'mezcla' => $mezcla,
+            'medicamentos' => $medicamentos,
+            'fecha_preparacion' => optional($aprobada)->fecha_hora_preparacion,
+            'fecha_limite_uso' => optional($aprobada)->fecha_hora_limite_uso,
+        ]);
+
+        // return ([
+        //     'mezcla' => $mezcla,
+        //     'solicitud' => $mezcla->solicitud,
+        //     'medicamentos' => $medicamentos,
+        //     'fecha_preparacion' => optional($aprobada)->fecha_hora_preparacion,
+        //     'fecha_limite_uso' => optional($aprobada)->fecha_hora_limite_uso,
+        // ]);
+
+        return $pdf->stream("orden-preparacion-{$mezcla->id}.pdf");
     }
 
     public function inspeccion(Mezcla $mezcla)
     {
-        // 1. Obtener la mezcla con su solicitud
-        $mezcla_detalles = Mezcla::with('solicitud')->findOrFail($mezcla->id);
+        // Mezcla y solicitud relacionada
+        $mezcla = Mezcla::with('solicitud')->findOrFail($mezcla->id);
 
-        // 3. Preparar el PDF con los datos
-        $pdf = Pdf::loadView('pdfs.oncologicos.inspeccion', compact('mezcla_detalles'));
+        // Buscar inspección asociada
+        $inspeccion = DB::table('inspeccion_mezclas')
+            ->where('mezcla_id', $mezcla->id)
+            ->first();
 
-        return $pdf->stream();
+        // Preparar PDF
+        $pdf = Pdf::loadView('pdfs.oncologicos.inspeccion', [
+            'mezcla' => $mezcla,
+            'solicitud' => $mezcla->solicitud,
+            'inspeccion' => $inspeccion,
+        ]);
 
+        // return ([
+        //     'mezcla' => $mezcla,
+        //     'solicitud' => $mezcla->solicitud,
+        //     'inspeccion' => $inspeccion
+        // ]);
+
+        return $pdf->stream("inspeccion-mezcla-{$mezcla->id}.pdf");
     }
 
+    public function etiqueta(Mezcla $mezcla)
+    {
+        $mezcla = Mezcla::with('solicitud')->findOrFail($mezcla->id);
+
+        // Buscar si la mezcla tiene aprobación con fechas
+        $aprobada = DB::table('solicitud_aprobadas')
+            ->where('solicitud_id', $mezcla->solicitud_id)
+            ->first();
+
+        $medicamentos = DB::table('mezcla_medicamentos')
+            ->join('medicine_oncos', 'mezcla_medicamentos.medicamento_id', '=', 'medicine_oncos.id')
+            ->join('medicines_catalog', 'medicine_oncos.catalog_id', '=', 'medicines_catalog.id')
+            ->where('mezcla_medicamentos.mezcla_id', $mezcla->id)
+            ->select(
+                'medicines_catalog.denominacion as nombre',
+                'mezcla_medicamentos.dosis'
+            )
+            ->get();
+
+        $customPaper = [0, 0, 368.50, 255.12]; // 9cm x 13cm
+        $pdf = Pdf::loadView('pdfs.oncologicos.etiqueta', [
+            'mezcla' => $mezcla,
+            'solicitud' => $mezcla->solicitud,
+            'aprobada' => $aprobada,
+            'medicamentos' => $medicamentos,
+        ])->setPaper($customPaper, 'landscape');
+
+        // return ([
+        //      'mezcla' => $mezcla,
+        //     'solicitud' => $mezcla->solicitud,
+        //     'aprobada' => $aprobada,
+        //     'medicamentos' => $medicamentos,
+        // ]);
+
+
+        return $pdf->stream();
+    }
 }

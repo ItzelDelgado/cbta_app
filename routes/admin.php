@@ -130,6 +130,7 @@ Route::post('oncologicos/mezclas', [MezclaController::class, 'store'])->name('on
 Route::get('oncologicos/mezclas/{mezcla}/edit', [MezclaController::class, 'edit'])->name('oncologicos.mezclas.edit');
 Route::put('oncologicos/mezclas/{mezcla}', [MezclaController::class, 'update'])->name('oncologicos.mezclas.update');
 
+// PDF para solicitud de mezcla oncologicas
 
 Route::get('oncologicos/mezclas/orden-de-preparacion/{mezcla}', [MezclaController::class, 'ordenPreparacion'])->name('oncologicos.mezclas.ordenPreparacion')
     ->middleware(['can:oncologicos_mezclas_index']);
@@ -137,6 +138,17 @@ Route::get('oncologicos/mezclas/orden-de-preparacion/{mezcla}', [MezclaControlle
 Route::get('oncologicos/mezclas/inspeccion/{mezcla}', [MezclaController::class, 'inspeccion'])->name('oncologicos.mezclas.inspeccion')
     ->middleware(['can:oncologicos_mezclas_index']);
 
+Route::get('oncologicos/mezclas/etiqueta/{mezcla}', [MezclaController::class, 'etiqueta'])->name('oncologicos.mezclas.etiqueta')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+Route::get('oncologicos/mezclas/solicitud-completa/{solicitud}', [OncologicosSolicitudController::class, 'solicitud'])->name('oncologicos.mezclas.solicitudCompleta')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+Route::get('oncologicos/mezclas/envio/{solicitud}', [OncologicosSolicitudController::class, 'envio'])->name('oncologicos.mezclas.envio')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+Route::get('oncologicos/mezclas/remision/{solicitud}', [OncologicosSolicitudController::class, 'remision'])->name('oncologicos.mezclas.remision')
+    ->middleware(['can:oncologicos_mezclas_index']);
 
 
 

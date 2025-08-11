@@ -6,7 +6,6 @@ use App\Models\Nutricionales\Solicitud as NutricionalesSolicitud;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class SolicitudesTable extends Component
 {
@@ -64,22 +63,36 @@ class SolicitudesTable extends Component
                     })
                     ->orWhereHas('solicitud_patient', function ($q) {
                         $q->where('nombre_paciente', 'like', "%{$this->search}%")
-                            ->orWhere('apellidos_paciente', 'like', "%{$this->search}%");
+                          ->orWhere('apellidos_paciente', 'like', "%{$this->search}%");
                     })
                     ->orWhereHas('solicitud_aprobada', function ($q) {
                         $q->where('id', 'like', "%{$this->search}%")
-                            ->orWhere('lote', 'like', "%{$this->search}%");
+                          ->orWhere('lote', 'like', "%{$this->search}%");
                     });
             });
         }
 
+        // Ordenamientos especiales
         if ($this->sortField === 'solicitud_aprobadas.lote') {
+            // Ordena por fecha del lote (ddmmaa) y luego por consecutivo (NNN).
+            // Empuja los NULL al final.
+            $dir = $this->sortDirection; // 'asc' | 'desc'
+
             $query = $query
-                ->leftJoin('solicitud_aprobadas', 'solicituds.id', '=', 'solicitud_aprobadas.solicitud_id')
-                ->whereNotNull('solicitud_aprobadas.lote')
-                ->orderBy('solicitud_aprobadas.lote', $this->sortDirection)
-                ->select('solicituds.*');
+                ->leftJoin('solicitud_aprobadas as sa', 'solicituds.id', '=', 'sa.solicitud_id')
+                ->select('solicituds.*')
+                // NULLs al final
+                ->orderByRaw("CASE WHEN sa.lote IS NULL THEN 1 ELSE 0 END ASC")
+                // Fecha del lote: SUBSTRING(lote,2,6) => ddmmaa
+                ->orderByRaw("STR_TO_DATE(SUBSTRING(sa.lote, 2, 6), '%d%m%y') {$dir}")
+                // Consecutivo: SUBSTRING(lote,8,3) => NNN
+                ->orderByRaw("CAST(SUBSTRING(sa.lote, 8, 3) AS UNSIGNED) {$dir}");
+        } elseif ($this->sortField === 'is_aprobada') {
+            // Estado + más recientes primero
+            $query->orderBy('is_aprobada', $this->sortDirection)
+                  ->orderBy('created_at', 'desc');
         } else {
+            // Default
             $query->orderBy($this->sortField, $this->sortDirection);
         }
 

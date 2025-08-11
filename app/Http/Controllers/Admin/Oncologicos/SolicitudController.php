@@ -11,6 +11,7 @@ use App\Models\Oncologicos\SolicitudOnco;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Validator;
 
 class SolicitudController extends Controller
@@ -336,5 +337,33 @@ class SolicitudController extends Controller
             DB::rollBack();
             return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
+    }
+
+
+    # PDF para solicitud de mezcla oncologicas
+    public function solicitud(SolicitudOnco $solicitud)
+    {
+        $solicitud_onco = SolicitudOnco::findOrFail($solicitud->id);
+        //return $solicitud_detalles;
+        $pdf = Pdf::loadView('pdfs.oncologicos.solicitud', compact('solicitud_onco'));
+        return $pdf->stream();
+    }
+
+
+    # PDF para solicitud de mezcla oncologicas
+    public function envio(SolicitudOnco $solicitud)
+    {
+        $solicitud_onco = SolicitudOnco::findOrFail($solicitud->id);
+        //return $solicitud_detalles;
+        $pdf = Pdf::loadView('pdfs.oncologicos.envio', compact('solicitud_onco'));
+        return $pdf->stream();
+    }
+
+    public function remision(SolicitudOnco $solicitud)
+    {
+        $solicitud_onco = SolicitudOnco::findOrFail($solicitud->id);
+        //return $solicitud_detalles;
+        $pdf = Pdf::loadView('pdfs.oncologicos.remision', compact('solicitud_onco'));
+        return $pdf->stream();
     }
 }

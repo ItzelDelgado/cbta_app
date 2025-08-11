@@ -16,7 +16,13 @@
                 </div>
                 <div class="mt-4">
                     <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                        href="{{ route('admin.oncologicos.mezclas.inspeccion', $mezcla) }}" target="_blank">Inspección</a>
+                        href="{{ route('admin.oncologicos.mezclas.inspeccion', $mezcla) }}"
+                        target="_blank">Inspección</a>
+                </div>
+                <div class="mt-4">
+                    <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                        href="{{ route('admin.oncologicos.mezclas.etiqueta', $mezcla) }}"
+                        target="_blank">Etiqueta</a>
                 </div>
             </div>
 

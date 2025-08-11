@@ -1,6 +1,22 @@
 <x-admin-layout>
-    <div class="mt-4 mb-6">
+    <div class="mt-4 mb-6 flex justify-between items-center">
         <h1 class="text-3xl font-bold text-gray-800">Detalle de Solicitud #{{ $solicitud->id }}</h1>
+        <div class="flex">
+            <div class="mt-4">
+                <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                    href="{{ route('admin.oncologicos.mezclas.solicitudCompleta', $solicitud) }}"
+                    target="_blank">Solicitud Completa</a>
+            </div>
+            <div class="mt-4">
+                <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                    href="{{ route('admin.oncologicos.mezclas.envio', $solicitud) }}" target="_blank">Registros de
+                    Envio</a>
+            </div>
+            <div class="mt-4">
+                <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                    href="{{ route('admin.oncologicos.mezclas.remision', $solicitud) }}" target="_blank">Remisión</a>
+            </div>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-white shadow rounded-lg p-6">

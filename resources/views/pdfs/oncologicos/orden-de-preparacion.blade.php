@@ -22,6 +22,11 @@
             /* Fondo blanco para el body */
         }
 
+        .bg-cbta {
+            background-color: #1F4E78;
+            color: white;
+        }
+
         .title {
             text-align: center;
             font-weight: bold;
@@ -63,6 +68,24 @@
             border: 1px solid black;
         }
 
+        .border-x-1 {
+            border-left: 1px solid black;
+            border-right: 1px solid black;
+        }
+
+        .border-y-1 {
+            border-top: 1px solid black;
+            border-bottom: 1px solid black;
+        }
+
+        .border-l-0 {
+            border-left: none;
+        }
+
+        .border-r-0 {
+            border-right: none;
+        }
+
         .mx-1 {
             margin-left: 0.25rem;
             margin-right: 0.5rem;
@@ -72,9 +95,22 @@
             margin-top: 2rem;
         }
 
+        .mt-12 {
+            margin-top: 3rem;
+        }
+
         .mt-2 {
             margin-top: 0.5rem;
         }
+
+        .mt-4 {
+            margin-top: 1rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+
         .px-1 {
             padding-left: 0.25rem;
             padding-right: 0.25rem;
@@ -125,6 +161,14 @@
             border-bottom: none;
         }
 
+        .border-l-1 {
+            border-left: 1px solid black;
+        }
+
+        .border-r-1 {
+            border-right: 1px solid black;
+        }
+
         .border-0 {
             border: none;
         }
@@ -153,7 +197,7 @@
             text-align: center;
         }
 
-        .fond-bold {
+        .font-bold {
             font-weight: bold;
         }
 
@@ -162,11 +206,8 @@
         }
     </style>
 
-</head>
-
 
 <body>
-
     <div class="contenedor border-1">
         <!-- Contenedor principal con borde negro -->
         <div class="introduccion">
@@ -276,32 +317,28 @@
         <div class="border-1 mx-1 px-1 py-1">
             <table>
                 <tr>
-                    <td style="width: 5%">Nombre:</td>
-                    <td style="width: 40%" class="border-b-1"></td>
+                    <td style="width: 5%">Nombre: </td>
+                    <td style="width: 40%" class="border-b-1">{{ $mezcla->solicitud['nombre_paciente'] }}</td>
                     <td style="width: 11.5%">Médico tratante:</td>
-                    <td style="width: 43%" class="border-b-1"></td>
+                    <td style="width: 43%" class="border-b-1">{{ $mezcla->solicitud['nombre_medico'] }}</td>
                 </tr>
             </table>
             <table>
                 <tr>
                     <td style="width: 5%">Registro:</td>
-                    <td style="width: 30%" class="border-b-1"></td>
+                    <td style="width: 30%" class="border-b-1">{{ $mezcla->solicitud['registro_paciente'] }}</td>
                     <td style="width: 5%">Diagnostico:</td>
-                    <td style="" class="border-b-1"></td>
+                    <td style="" class="border-b-1">{{ $mezcla->solicitud['diagnostico'] }}</td>
                 </tr>
             </table>
             <table>
                 <tr>
                     <td style="width: 15.4%">Fecha de nacimiento:</td>
-                    <td class="border-b-1"></td>
+                    <td class="border-b-1">{{ $mezcla->solicitud['fecha_nacimiento'] }}</td>
                     <td style="width: 5%">Genero:</td>
-                    <td class="border-b-1"></td>
-                    <td style="width: 4%">Talla:</td>
-                    <td class="border-b-1"></td>
+                    <td class="border-b-1">{{ $mezcla->solicitud['sexo'] }}</td>
                     <td style="width: 4%">Peso:</td>
-                    <td class="border-b-1"></td>
-                    <td style="width: 3%">SC:</td>
-                    <td class="border-b-1"></td>
+                    <td class="border-b-1">{{ $mezcla->solicitud['peso'] }} Kg</td>
                 </tr>
             </table>
             <table>
@@ -309,7 +346,7 @@
                     <td style="width: 15%">Sitio de procedencia:</td>
                     <td class="border-b-1"></td>
                     <td style="width: 10%">Dosis/Volumen:</td>
-                    <td class="border-b-1"></td>
+                    <td class="border-b-1">{{$mezcla->volumen_dilucion}} ML</td>
                 </tr>
             </table>
         </div>
@@ -318,7 +355,9 @@
             <table>
                 <tr>
                     <td colspan="1">Hora de preparación:</td>
-                    <td colspan="2" class="border-b-1"></td>
+                    <td colspan="2" class="border-b-1">
+                        {{ $fecha_preparacion ? \Carbon\Carbon::parse($fecha_preparacion)->format('H:i') : '—' }}
+                    </td>
                     <td colspan="5"></td>
                 </tr>
             </table>
@@ -329,30 +368,40 @@
                     <td style="width: 40%"></td>
                 </tr>
             </table>
+
+
             <table>
                 <tr>
-                    <td class="border-1" rowspan="2"><strong>1</strong></td>
-                    <td class="border-1 text-center"><strong>No. de lote</strong></td>
-                    <td class="border-1 text-center"><strong>Caducidad</strong></td>
-                    <td class="border-1 text-center"><strong>Denominación comercial</strong></td>
-                    <td class="border-1 text-center"><strong>Denominación genérica</strong></td>
-                    <td class="border-1 text-center"><strong>Presentación</strong></td>
-                    <td class="border-1 text-center"><strong>Dosis</strong></td>
-                    <td class="border-1 text-center"><strong>Volumen</strong></td>
+                    <td class="border-1 text-center" style="width: 1%"><strong></strong></td>
+                    <td class="border-1 text-center" style="width: 5%"><strong>No. de lote</strong></td>
+                    <td class="border-1 text-center" style="width: 6%"><strong>Caducidad</strong></td>
+                    <td class="border-1 text-center" style="width: 10%"><strong>Denominación comercial</strong></td>
+                    <td class="border-1 text-center" style="width: 10%"><strong>Denominación genérica</strong></td>
+                    <td class="border-1 text-center" style="width: 7%"><strong>Presentación</strong></td>
+                    <td class="border-1 text-center" style="width: 5%"><strong>Dosis</strong></td>
+                    <td class="border-1 text-center" style="width: 5%"><strong>Volumen</strong></td>
                 </tr>
+
+                @foreach ($medicamentos as $i => $med)
+                    <tr>
+                        <td class="border-1 border-t-0 text-center"><strong>{{ $i + 1 }}</strong></td>
+                        <td class="border-1 border-t-0 text-center">{{ $med->lote ?? '—' }}</td>
+                        <td class="border-1 border-t-0 text-center">
+                            {{ $med->caducidad ? \Carbon\Carbon::parse($med->caducidad)->format('d/m/Y') : '—' }}</td>
+                        <td class="border-1 border-t-0 text-center">{{ $med->denominacion_comercial ?? '—' }}</td>
+                        <td class="border-1 border-t-0 text-center">{{ $med->nombre_medicamento ?? '—' }}</td>
+                        <td class="border-1 border-t-0 text-center">{{ $med->presentacion ?? '—' }}</td>
+                        <td class="border-1 border-t-0 text-center">{{ $med->dosis ?? '—' }}</td>
+                        <td class="border-1 border-t-0 text-center">{{ $med->precio_unitario ?? '—' }}</td>
+                    </tr>
+                @endforeach
+            </table>
+
+            <table>
                 <tr>
-                    <td class="border-1 text-center"></td>
-                    <td class="border-1 text-center"></td>
-                    <td class="border-1 text-center"></td>
-                    <td class="border-1 text-center"></td>
-                    <td class="border-1 text-center"></td>
-                    <td class="border-1 text-center"></td>
-                    <td class="border-1 text-center"></td>
-                </tr>
-                <tr>
-                    <td colspan="4"></td>
-                    <td colspan="1">Contenedor y volumen final:</td>
-                    <td colspan="3"></td>
+                    <td colspan="6"></td>
+                    <td colspan="1">Contenedor y volumen final: {{$mezcla->volumen_dilucion}} ML</td>
+                    <td colspan="1"></td>
                 </tr>
                 <tr>
                     <td colspan="8" style="text-align: center"><strong>Equipo de infusión/Infusor</strong></td>
@@ -371,6 +420,8 @@
                     <td colspan="3" class="border-1 text-center"></td>
                 </tr>
             </table>
+
+
             <table>
                 <tr>
                     <td>Cálculos y forma de preparación:</td>
@@ -430,7 +481,7 @@
                 <td style="width: 26.66%" class="border-b-1"></td>
                 <td style="width: 5%"></td>
                 <td style="width: 26.66%" class="border-b-1"></td>
-                 <td style="width: 5%"></td>
+                <td style="width: 5%"></td>
             </tr>
             <tr>
                 <td style="width: 5%"></td>
