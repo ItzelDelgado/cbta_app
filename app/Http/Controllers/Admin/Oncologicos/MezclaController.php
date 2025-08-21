@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin\Oncologicos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Oncologicos\MedicineOnco;
 use App\Models\Oncologicos\Mezcla;
 use App\Models\Oncologicos\MezclaMedicamento;
 use App\Models\Oncologicos\SolicitudOnco;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -62,27 +64,36 @@ class MezclaController extends Controller
         $mezcla = Mezcla::with(['solicitud', 'medicamentos'])->findOrFail($id);
 
         $user = Auth::user();
-        $listaId = $user->medicine_list_id;
+        $listaId = $user->medicine_list_id; // puede ser null
 
-        // Obtener medicamentos del usuario
-        $medicamentos = DB::table('medicine_medicine_lists')
-            ->join('medicine_oncos', 'medicine_medicine_lists.medicine_id', '=', 'medicine_oncos.id')
-            ->join('medicines_catalog', 'medicine_oncos.catalog_id', '=', 'medicines_catalog.id')
-            ->where('medicine_medicine_lists.medicine_list_id', $listaId)
+        // Base: medicine_oncos (mo) + catalog (mc); LEFT JOIN a la lista (mml)
+        $query = DB::table('medicine_oncos as mo')
+            ->join('medicines_catalog as mc', 'mo.catalog_id', '=', 'mc.id')
+            ->leftJoin('medicine_medicine_lists as mml', function ($join) use ($listaId) {
+                $join->on('mml.medicine_id', '=', 'mo.id');
+                if ($listaId) {
+                    $join->where('mml.medicine_list_id', '=', $listaId);
+                }
+            })
             ->select(
-                'medicine_oncos.id as id',
-                'medicine_oncos.precio',
-                'medicine_oncos.lote',
-                'medicine_oncos.caducidad',
-                'medicines_catalog.denominacion',
-                'medicines_catalog.presentacion',
-                'medicines_catalog.id as catalog_id'
-            )
-            ->get();
+                'mo.id as id',
+                DB::raw('COALESCE(mml.precio, mo.precio) as precio'), // precio lista > precio base
+                'mc.lote',        // <- desde catalog
+                'mc.caducidad',   // <- desde catalog
+                'mc.denominacion',
+                'mc.presentacion',
+                'mc.id as catalog_id'
+            );
 
-        // Obtener diluyentes y vías por catalog_id
+        // Si HAY lista asignada, filtra a los que están en esa lista.
+        if ($listaId) {
+            $query->where('mml.medicine_list_id', $listaId);
+        }
+
+        $medicamentos = $query->get();
+
+        // Cargar diluyentes y vías por cada catalog_id
         $infoAdicional = [];
-
         foreach ($medicamentos as $med) {
             $diluyentes = DB::table('diluent_medicine_catalog')
                 ->join('diluents', 'diluent_medicine_catalog.diluent_id', '=', 'diluents.id')
@@ -99,8 +110,11 @@ class MezclaController extends Controller
             $infoAdicional[$med->id] = [
                 'denominacion' => $med->denominacion,
                 'presentacion' => $med->presentacion,
-                'diluyentes' => $diluyentes,
-                'vias' => $vias
+                'lote'         => $med->lote,
+                'caducidad'    => $med->caducidad,
+                'precio'       => $med->precio,
+                'diluyentes'   => $diluyentes,
+                'vias'         => $vias,
             ];
         }
 
@@ -110,29 +124,40 @@ class MezclaController extends Controller
 
     public function edit($id)
     {
-        $mezcla = Mezcla::with(['medicamentos'])->findOrFail($id);
+        $mezcla = Mezcla::with(['medicamentos', 'solicitud'])->findOrFail($id);
 
-        $solicitud = $mezcla->solicitud; // para mostrar datos del paciente y solicitud asociada
-        $user = Auth::user();
-        $listaId = $user->medicine_list_id;
+        $solicitud = $mezcla->solicitud;
+        $user      = Auth::user();
+        $listaId   = $user->medicine_list_id; // puede ser null
 
-        $medicamentos = DB::table('medicine_medicine_lists')
-            ->join('medicine_oncos', 'medicine_medicine_lists.medicine_id', '=', 'medicine_oncos.id')
-            ->join('medicines_catalog', 'medicine_oncos.catalog_id', '=', 'medicines_catalog.id')
-            ->where('medicine_medicine_lists.medicine_list_id', $listaId)
+        // Base: medicine_oncos (mo) + catalog (mc) y LEFT JOIN a la lista (mml)
+        $query = DB::table('medicine_oncos as mo')
+            ->join('medicines_catalog as mc', 'mo.catalog_id', '=', 'mc.id')
+            ->leftJoin('medicine_medicine_lists as mml', function ($join) use ($listaId) {
+                $join->on('mml.medicine_id', '=', 'mo.id');
+                if ($listaId) {
+                    $join->where('mml.medicine_list_id', '=', $listaId);
+                }
+            })
             ->select(
-                'medicine_oncos.id as id',
-                'medicine_oncos.precio',
-                'medicine_oncos.lote',
-                'medicine_oncos.caducidad',
-                'medicines_catalog.denominacion',
-                'medicines_catalog.presentacion',
-                'medicines_catalog.id as catalog_id'
-            )
-            ->get();
+                'mo.id as id',
+                DB::raw('COALESCE(mml.precio, mo.precio) as precio'), // precio de lista > precio base
+                'mc.lote',        // <- AHORA desde catalog
+                'mc.caducidad',   // <- AHORA desde catalog
+                'mc.denominacion',
+                'mc.presentacion',
+                'mc.id as catalog_id'
+            );
 
+        // Si hay lista asignada, limita a los meds de la lista
+        if ($listaId) {
+            $query->where('mml.medicine_list_id', $listaId);
+        }
+
+        $medicamentos = $query->get();
+
+        // Cargar diluyentes y vías por catálogo
         $infoAdicional = [];
-
         foreach ($medicamentos as $med) {
             $diluyentes = DB::table('diluent_medicine_catalog')
                 ->join('diluents', 'diluent_medicine_catalog.diluent_id', '=', 'diluents.id')
@@ -147,11 +172,15 @@ class MezclaController extends Controller
                 ->get();
 
             $infoAdicional[$med->id] = [
-                'diluyentes' => $diluyentes,
-                'vias' => $vias
+                'denominacion' => $med->denominacion,
+                'presentacion' => $med->presentacion,
+                'lote'         => $med->lote,
+                'caducidad'    => $med->caducidad,
+                'precio'       => $med->precio,
+                'diluyentes'   => $diluyentes,
+                'vias'         => $vias,
             ];
         }
-
 
         return view('admin.oncologicos.mezclas.edit', compact('mezcla', 'solicitud', 'medicamentos', 'infoAdicional'));
     }
@@ -159,135 +188,206 @@ class MezclaController extends Controller
 
     public function update(Request $request, $id)
     {
-        if ($request->accion === 'preparada') {
-            $mezcla = Mezcla::with('solicitud')->findOrFail($id);
-            $mezcla->estado = 'preparada';
+        // Helpers internos
+        $generarLotePorMezcla = function (Mezcla $mezcla) {
+            if ($mezcla->lote) return; // no sobreescribir si ya existe
 
-            // 🔢 Generar número de lote y remisión
-            $fechaHoy = Carbon::today();
-            $conteoHoy = Mezcla::whereDate('updated_at', $fechaHoy)
-                ->whereNotNull('lote') // solo las que ya tienen lote
+            $hoy = Carbon::today();
+
+            // Consecutivo diario para LOTES: cuenta mezclas del día con lote ya asignado
+            $conteoHoy = Mezcla::whereDate('created_at', $hoy)
+                ->whereNotNull('lote')
+                ->lockForUpdate() // usar dentro de transacción
                 ->count();
 
-            $numero = str_pad($conteoHoy + 1, 3, '00', STR_PAD_LEFT);
-            $fechaFormateada = $fechaHoy->format('dmy'); // ej. 080725
+            $consecutivo = str_pad($conteoHoy + 1, 3, '0', STR_PAD_LEFT);
 
-            $mezcla->lote = 'L' . $fechaFormateada . $numero;
-            $mezcla->remision = 'R' . $fechaFormateada . $numero;
+            // Mes abreviado (ES) sin depender del locale
+            $abbr = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+            $mesAbbr = $abbr[$hoy->month - 1];
 
+            $dia  = $hoy->format('d');
+            $anio = $hoy->format('y');
 
-            $mezcla->save();
+            // Lote por mezcla: L+DD+MES+YY+###
+            $mezcla->lote = 'L' . $dia . $mesAbbr . $anio . $consecutivo;
+        };
 
-            // ✅ Verificar si la solicitud debe cambiar a "enproceso"
-            $solicitud = $mezcla->solicitud;
-            if ($solicitud && $solicitud->estado === 'pendiente') {
-                $tienePreparadas = $solicitud->mezclas()->where('estado', 'preparada')->exists();
-                if ($tienePreparadas) {
-                    $solicitud->estado = 'enproceso';
-                    $solicitud->save();
+        $asegurarRemisionPorSolicitud = function (SolicitudOnco $solicitud) {
+            if ($solicitud->remision) return $solicitud->remision; // reutiliza
+
+            $hoy = Carbon::today();
+
+            // Consecutivo diario para REMISIONES: cuenta solicitudes del día con remisión ya asignada
+            $conteoHoy = SolicitudOnco::whereDate('created_at', $hoy)
+                ->whereNotNull('remision')
+                ->lockForUpdate()
+                ->count();
+
+            $consecutivo = str_pad($conteoHoy + 1, 3, '0', STR_PAD_LEFT);
+
+            $abbr = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+            $mesAbbr = $abbr[$hoy->month - 1];
+
+            $dia  = $hoy->format('d');
+            $anio = $hoy->format('y');
+
+            // Remisión por solicitud: R+DD+MES+YY+###
+            $solicitud->remision = 'R' . $dia . $mesAbbr . $anio . $consecutivo;
+            $solicitud->save();
+
+            return $solicitud->remision;
+        };
+
+        // Acciones rápidas
+        if ($request->accion === 'preparada') {
+            $mezcla = Mezcla::with('solicitud')->findOrFail($id);
+
+            DB::transaction(function () use ($mezcla, $generarLotePorMezcla, $asegurarRemisionPorSolicitud) {
+                $mezcla->estado = 'preparada';
+
+                // 1) LOTE por mezcla
+                $generarLotePorMezcla($mezcla);
+
+                // 2) REMISIÓN por solicitud (todas las mezclas comparten)
+                if ($mezcla->solicitud) {
+                    $remision = $asegurarRemisionPorSolicitud($mezcla->solicitud);
+                    $mezcla->remision = $remision;
+
+                    // Poner solicitud en "enproceso" si corresponde
+                    if ($mezcla->solicitud->estado === 'pendiente') {
+                        if ($mezcla->solicitud->mezclas()->where('estado', 'preparada')->exists()) {
+                            $mezcla->solicitud->estado = 'enproceso';
+                            $mezcla->solicitud->save();
+                        }
+                    }
                 }
-            }
+
+                $mezcla->save();
+            });
 
             return redirect()
                 ->route('admin.oncologicos.mezclas.index', $mezcla->solicitud->id)
-                ->with('success', 'Mezcla marcada como preparada con lote y remisión generados.');
+                ->with('success', 'Mezcla marcada como preparada con lote (por mezcla) y remisión (por solicitud).');
         }
 
         if ($request->accion === 'entregada') {
             $mezcla = Mezcla::with('solicitud')->findOrFail($id);
-            $mezcla->estado = 'entregada';
-            $mezcla->save();
 
-            // ✅ Verificar si todas las mezclas ya están entregadas para marcar la solicitud como finalizada
-            $solicitud = $mezcla->solicitud;
+            DB::transaction(function () use ($mezcla) {
+                $mezcla->estado = 'entregada';
+                $mezcla->save();
 
-            if ($solicitud) {
-                $todasEntregadas = $solicitud->mezclas()->where('estado', '!=', 'entregada')->doesntExist();
-
-                if ($todasEntregadas) {
-                    $solicitud->estado = 'finalizada';
-                    $solicitud->save();
+                // Si todas las mezclas están entregadas, finaliza
+                if ($mezcla->solicitud) {
+                    $todasEntregadas = $mezcla->solicitud->mezclas()->where('estado', '!=', 'entregada')->doesntExist();
+                    if ($todasEntregadas) {
+                        $mezcla->solicitud->estado = 'finalizada';
+                        $mezcla->solicitud->save();
+                    }
                 }
-            }
+            });
 
             return redirect()
                 ->route('admin.oncologicos.mezclas.index', $mezcla->solicitud->id)
                 ->with('success', 'Mezcla marcada como entregada.');
         }
 
+        // ----- Edición normal (sin tocar lote/remisión) -----
         $request->validate([
-            'mezcla_json' => 'required|json',
-            'paciente_nombre' => 'required|string',
-            'servicio' => 'required|string',
-            'registro' => 'required|string',
-            'sexo' => 'nullable|in:M,F',
+            'mezcla_json'      => 'required|json',
+            'paciente_nombre'  => 'required|string',
+            'servicio'         => 'required|string',
+            'registro'         => 'required|string',
+            'sexo'             => 'nullable|in:M,F',
             'fecha_nacimiento' => 'nullable|date',
-            'peso' => 'nullable|numeric',
-            'piso' => 'nullable|string',
-            'cama' => 'nullable|string',
-            'diagnostico' => 'nullable|string',
-            'medico_nombre' => 'nullable|string',
-            'medico_cedula' => 'nullable|string',
-            'fecha_entrega' => 'nullable|date',
-            'observaciones' => 'nullable|string',
+            'peso'             => 'nullable|numeric',
+            'piso'             => 'nullable|string',
+            'cama'             => 'nullable|string',
+            'diagnostico'      => 'nullable|string',
+            'medico_nombre'    => 'nullable|string',
+            'medico_cedula'    => 'nullable|string',
+            'fecha_entrega'    => 'nullable|date',
+            'observaciones'    => 'nullable|string',
         ]);
 
         $mezcla = Mezcla::with('solicitud')->findOrFail($id);
         $mezclaData = json_decode($request->mezcla_json, true);
 
         $user = auth()->user();
-
         $precios = DB::table('medicine_medicine_lists')
             ->where('medicine_list_id', $user->medicine_list_id)
             ->pluck('precio', 'medicine_id')
-            ->mapWithKeys(fn($valor, $clave) => [(int) $clave => $valor]);
+            ->mapWithKeys(fn($v, $k) => [(int)$k => $v]);
 
         DB::beginTransaction();
-
         try {
-            // 1. Actualizar mezcla
-            $mezcla->volumen_dilucion = $mezclaData['volumen_dilucion'];
-            $mezcla->tiempo_infusion = $mezclaData['tiempo_infusion'];
+            // 1) Mezcla
+            $volumenDilucion = (float) ($mezclaData['volumen_dilucion'] ?? 0);
+            $tiempoInfusion  = $mezclaData['tiempo_infusion'] ?? null;
+
+            $mezcla->volumen_dilucion = $volumenDilucion;
+            $mezcla->tiempo_infusion  = $tiempoInfusion;
             $mezcla->save();
 
-            // 2. Actualizar solicitud asociada
-            $solicitud = $mezcla->solicitud;
-            if ($solicitud) {
-                $solicitud->nombre_paciente = $request->paciente_nombre;
-                $solicitud->servicio = $request->servicio;
-                $solicitud->registro_paciente = $request->registro;
-                $solicitud->sexo = $request->sexo;
-                $solicitud->fecha_nacimiento = $request->fecha_nacimiento;
-                $solicitud->peso = $request->peso;
-                $solicitud->piso = $request->piso;
-                $solicitud->cama = $request->cama;
-                $solicitud->diagnostico = $request->diagnostico;
-                $solicitud->nombre_medico = $request->medico_nombre;
-                $solicitud->cedula_medico = $request->medico_cedula;
-                $solicitud->fecha_entrega = $request->fecha_entrega;
-                $solicitud->observaciones = $request->observaciones;
-                $solicitud->save();
+            // 2) Solicitud
+            if ($mezcla->solicitud) {
+                $mezcla->solicitud->nombre_paciente   = $request->paciente_nombre;
+                $mezcla->solicitud->servicio          = $request->servicio;
+                $mezcla->solicitud->registro_paciente = $request->registro;
+                $mezcla->solicitud->sexo              = $request->sexo;
+                $mezcla->solicitud->fecha_nacimiento  = $request->fecha_nacimiento;
+                $mezcla->solicitud->peso              = $request->peso;
+                $mezcla->solicitud->piso              = $request->piso;
+                $mezcla->solicitud->cama              = $request->cama;
+                $mezcla->solicitud->diagnostico       = $request->diagnostico;
+                $mezcla->solicitud->nombre_medico     = $request->medico_nombre;
+                $mezcla->solicitud->cedula_medico     = $request->medico_cedula;
+                $mezcla->solicitud->fecha_entrega     = $request->fecha_entrega;
+                $mezcla->solicitud->observaciones     = $request->observaciones;
+                $mezcla->solicitud->save();
             }
 
-            // 3. Eliminar medicamentos anteriores
+            // 3) Medicamentos
             $mezcla->medicamentos()->delete();
 
-            // 4. Insertar medicamentos actualizados
             foreach ($mezclaData['medicamentos'] as $med) {
                 $medicamentoId = (int) $med['medicamento_id'];
-                $precio = $precios[$medicamentoId] ?? 0;
+                $nombre        = $med['nombre'] ?? '';
+                $diluyenteId   = $med['diluyente_id'] ?? null;
+                $viaAdminId    = $med['via_administracion_id'] ?? null;
+                $dosis         = (float) ($med['dosis'] ?? 0);
+                $precio        = $precios[$medicamentoId] ?? 0;
+
+                $medicine = MedicineOnco::with('catalog')->find($medicamentoId);
+                if (!$medicine || !$medicine->catalog) {
+                    throw new Exception("No se encontró información del catálogo para el medicamento ID {$medicamentoId}.");
+                }
+                $catalog = $medicine->catalog;
+
+                $concentracion = $volumenDilucion > 0 ? $dosis / $volumenDilucion : 0;
+                if ($concentracion < (float)$catalog->conc_min || $concentracion > (float)$catalog->conc_max) {
+                    throw new Exception("La concentración de '{$catalog->denominacion}' está fuera del rango permitido ({$catalog->conc_min} - {$catalog->conc_max}). Dosis: {$dosis}, Volumen: {$volumenDilucion}.");
+                }
+
+                $dosisML = null;
+                if ((float)$catalog->cantidad_medicamento > 0) {
+                    $dosisML = ($dosis * (float)$catalog->volumen_diluyente) / (float)$catalog->cantidad_medicamento;
+                    $dosisML = round($dosisML, 2);
+                }
 
                 $mezcla->medicamentos()->create([
-                    'medicamento_id' => $medicamentoId,
-                    'nombre_medicamento' => $med['nombre'] ?? '',
-                    'dosis' => $med['dosis'],
-                    'diluyente_id' => $med['diluyente_id'],
-                    'via_administracion_id' => $med['via_administracion_id'],
-                    'precio_unitario' => $precio,
+                    'medicamento_id'        => $medicamentoId,
+                    'nombre_medicamento'    => $nombre,
+                    'dosis'                 => $dosis,
+                    'dosis_ml'              => $dosisML,
+                    'diluyente_id'          => $diluyenteId,
+                    'via_administracion_id' => $viaAdminId,
+                    'precio_unitario'       => $precio,
                 ]);
             }
 
-            // 5. Si viene una acción para aprobar
+            // Si la acción es "aprobar" no tocamos lote/remisión
             if ($request->accion === 'aprobar') {
                 $mezcla->estado = 'aprobada';
                 $mezcla->save();
@@ -296,9 +396,9 @@ class MezclaController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('admin.oncologicos.mezclas.index', $solicitud->id)
+                ->route('admin.oncologicos.mezclas.index', $mezcla->solicitud->id)
                 ->with('success', 'Mezcla y solicitud actualizadas correctamente.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
 
             return redirect()
@@ -326,45 +426,52 @@ class MezclaController extends Controller
         // Mezcla y solicitud asociada
         $mezcla = Mezcla::with('solicitud')->findOrFail($mezcla->id);
 
-        // Medicamentos de la mezcla con info del catálogo y lote/caducidad
-        $medicamentos = DB::table('mezcla_medicamentos')
-            ->join('medicine_oncos', 'mezcla_medicamentos.medicamento_id', '=', 'medicine_oncos.id')
-            ->join('medicines_catalog', 'medicine_oncos.catalog_id', '=', 'medicines_catalog.id')
-            ->leftJoin('diluents', 'mezcla_medicamentos.diluyente_id', '=', 'diluents.id')
-            ->leftJoin('administration_routes', 'mezcla_medicamentos.via_administracion_id', '=', 'administration_routes.id')
-            ->where('mezcla_medicamentos.mezcla_id', $mezcla->id)
+        // Medicamentos de la mezcla con info del catálogo (lote/caducidad vienen del catálogo)
+        $medicamentos = DB::table('mezcla_medicamentos as mm')
+            ->join('medicine_oncos as mo', 'mm.medicamento_id', '=', 'mo.id')
+            ->join('medicines_catalog as mc', 'mo.catalog_id', '=', 'mc.id')
+            ->leftJoin('diluents as d', 'mm.diluyente_id', '=', 'd.id')
+            ->leftJoin('administration_routes as ar', 'mm.via_administracion_id', '=', 'ar.id')
+            ->where('mm.mezcla_id', $mezcla->id)
             ->select(
-                'medicine_oncos.lote',
-                'medicine_oncos.caducidad',
-                'medicines_catalog.denominacion as denominacion_comercial',
-                'medicines_catalog.presentacion',
-                'mezcla_medicamentos.dosis',
-                'mezcla_medicamentos.precio_unitario',
-                'mezcla_medicamentos.nombre_medicamento',
-                'diluents.name as diluyente',
-                'administration_routes.name as via'
+                'mc.lote',                                 // <- desde catálogo
+                'mc.caducidad',                            // <- desde catálogo
+                'mc.denominacion as denominacion_comercial',
+                'mc.presentacion',
+                'mm.dosis',
+                'mm.dosis_ml',
+                'mm.precio_unitario',
+                'mm.nombre_medicamento',
+                'd.name as diluyente',
+                'ar.name as via'
             )
             ->get();
 
-        // Fecha de preparación (si la mezcla ya fue aprobada)
+        // Fecha de preparación/limite (si no usas solicitud_aprobadas en onco, hacemos fallback)
         $aprobada = DB::table('solicitud_aprobadas')
             ->where('solicitud_id', $mezcla->solicitud_id)
             ->first();
 
-        // Preparar PDF con la vista y todos los datos
+        $fechaPreparacion = optional($aprobada)->fecha_hora_preparacion
+            ? Carbon::parse($aprobada->fecha_hora_preparacion)
+            : Carbon::parse($mezcla->created_at);            // fallback
+
+        $fechaLimiteUso = optional($aprobada)->fecha_hora_limite_uso
+            ? Carbon::parse($aprobada->fecha_hora_limite_uso)
+            : $fechaPreparacion->copy()->addHours(48);        // regla general
+
         $pdf = Pdf::loadView('pdfs.oncologicos.orden-de-preparacion', [
-            'mezcla' => $mezcla,
-            'medicamentos' => $medicamentos,
-            'fecha_preparacion' => optional($aprobada)->fecha_hora_preparacion,
-            'fecha_limite_uso' => optional($aprobada)->fecha_hora_limite_uso,
-        ]);
+            'mezcla'             => $mezcla,
+            'medicamentos'       => $medicamentos,
+            'fecha_preparacion'  => $fechaPreparacion,
+            'fecha_limite_uso'   => $fechaLimiteUso,
+        ])->setPaper('letter', 'portrait');
 
         // return ([
         //     'mezcla' => $mezcla,
-        //     'solicitud' => $mezcla->solicitud,
         //     'medicamentos' => $medicamentos,
-        //     'fecha_preparacion' => optional($aprobada)->fecha_hora_preparacion,
-        //     'fecha_limite_uso' => optional($aprobada)->fecha_hora_limite_uso,
+        //     'fecha_preparacion' => $fechaPreparacion,
+        //     'fecha_limite_uso' => $fechaLimiteUso
         // ]);
 
         return $pdf->stream("orden-preparacion-{$mezcla->id}.pdf");

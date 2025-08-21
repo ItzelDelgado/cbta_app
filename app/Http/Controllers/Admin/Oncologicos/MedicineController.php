@@ -35,47 +35,44 @@ class MedicineController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request->all());
-        // Validación básica SIN eliminar antes los medicamentos
         $request->validate([
             'name' => 'required|string|max:255|unique:medicine_lists,name',
             'description' => 'nullable|string',
+            'active_brands' => 'nullable|boolean',
             'medicamentos' => 'required|array|min:1',
             'medicamentos.*.id' => 'required|exists:medicines_catalog,id',
             'medicamentos.*.precio' => 'required|numeric|min:0',
         ]);
 
-
-        // Después de la validación, limpiar filas incompletas por seguridad
         $medicamentosFiltrados = collect($request->input('medicamentos', []))
-            ->filter(function ($item) {
-                return isset($item['id'], $item['precio']) && $item['id'] !== null && $item['precio'] !== null;
-            })->values()->toArray();
+            ->filter(fn($item) => isset($item['id'], $item['precio']))
+            ->values()->toArray();
 
         if (count($medicamentosFiltrados) === 0) {
-            return back()->withInput()->withErrors(['medicamentos' => 'Debes ingresar al menos un medicamento válido con precio.']);
+            return back()->withInput()->withErrors([
+                'medicamentos' => 'Debes ingresar al menos un medicamento válido con precio.'
+            ]);
         }
 
-        // Crear la lista
+        // Crear lista incluyendo active_brands
         $lista = MedicineList::create([
             'name' => $request->name,
             'description' => $request->description,
+            'active_brands' => $request->boolean('active_brands', false),
         ]);
 
-        // Asociar medicamentos con precio
         $data = [];
         foreach ($medicamentosFiltrados as $med) {
             $catalogItem = MedicinesCatalog::find($med['id']);
             if (!$catalogItem) continue;
 
-        $medicineOnco = MedicineOnco::firstOrCreate(
-            ['catalog_id' => $catalogItem->id], // <-- condición
-            [
-                'catalog_id' => $catalogItem->id, // <-- incluirlo también al crear
-                'precio' => $med['precio']
-            ]
-        );
-
+            $medicineOnco = MedicineOnco::firstOrCreate(
+                ['catalog_id' => $catalogItem->id],
+                [
+                    'catalog_id' => $catalogItem->id,
+                    'precio' => $med['precio']
+                ]
+            );
 
             $data[$medicineOnco->id] = ['precio' => $med['precio']];
         }
@@ -112,23 +109,38 @@ class MedicineController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:medicine_lists,name,' . $id,
-            'description' => 'nullable|string',
-            'medicamentos' => 'required|array|min:1',
-            'medicamentos.*.precio' => 'required|numeric|min:0',
+            'name'                     => 'required|string|max:255|unique:medicine_lists,name,' . $id,
+            'description'              => 'nullable|string',
+            'active_brands'            => 'nullable|boolean',
+            'medicamentos'             => 'required|array|min:1',
+            'medicamentos.*.id'        => 'required|exists:medicines_catalog,id',
+            'medicamentos.*.precio'    => 'required|numeric|min:0',
         ]);
+
+        // Filtra por seguridad cualquier fila incompleta
+        $medicamentosFiltrados = collect($request->input('medicamentos', []))
+            ->filter(function ($item) {
+                return isset($item['id'], $item['precio']) && $item['id'] !== null && $item['precio'] !== null;
+            })
+            ->values()
+            ->toArray();
+
+        if (count($medicamentosFiltrados) === 0) {
+            return back()->withInput()->withErrors([
+                'medicamentos' => 'Debes ingresar al menos un medicamento válido con precio.'
+            ]);
+        }
 
         $lista = MedicineList::findOrFail($id);
         $lista->update([
-            'name' => $request->name,
-            'description' => $request->description,
+            'name'          => $request->name,
+            'description'   => $request->description,
+            'active_brands' => $request->boolean('active_brands', false),
         ]);
 
-        // Limpiar y volver a asociar medicamentos
-        $lista->medicines()->detach();
-
+        // Reasociar medicamentos con precio
         $data = [];
-        foreach ($request->medicamentos as $med) {
+        foreach ($medicamentosFiltrados as $med) {
             $catalogItem = MedicinesCatalog::find($med['id']);
             if (!$catalogItem) continue;
 
@@ -136,14 +148,15 @@ class MedicineController extends Controller
                 ['catalog_id' => $catalogItem->id],
                 [
                     'catalog_id' => $catalogItem->id,
-                    'precio' => $med['precio']
+                    'precio'     => $med['precio'],
                 ]
             );
 
             $data[$medicineOnco->id] = ['precio' => $med['precio']];
         }
 
-        $lista->medicines()->attach($data);
+        // Puedes usar sync para simplificar (reemplaza detach + attach)
+        $lista->medicines()->sync($data);
 
         return redirect()->route('admin.oncologicos.medicines.index')
             ->with('success', 'Lista de medicamentos actualizada correctamente.');

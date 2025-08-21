@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('medicines_catalog', function (Blueprint $table) {
             $table->id();
             $table->string('denominacion');
+            $table->string('denominacion_comercial');
             $table->string('presentacion');
             $table->boolean('state')->default(true); // true = activo, false = deshabilitado
             $table->decimal('cantidad_medicamento', 10, 2)->nullable(); // mg
@@ -21,6 +22,8 @@ return new class extends Migration
             $table->decimal('conc_min', 8, 2)->nullable();
             $table->decimal('conc_max', 8, 2)->nullable();
             $table->text('legend')->nullable();
+            $table->string('lote', 100)->nullable();
+            $table->date('caducidad')->nullable();
             $table->timestamps();
         });
     }

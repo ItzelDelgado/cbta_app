@@ -392,7 +392,7 @@
                         <td class="border-1 border-t-0 text-center">{{ $med->nombre_medicamento ?? '—' }}</td>
                         <td class="border-1 border-t-0 text-center">{{ $med->presentacion ?? '—' }}</td>
                         <td class="border-1 border-t-0 text-center">{{ $med->dosis ?? '—' }}</td>
-                        <td class="border-1 border-t-0 text-center">{{ $med->precio_unitario ?? '—' }}</td>
+                        <td class="border-1 border-t-0 text-center">{{ $med->dosis_ml ?? '—' }} mL</td>
                     </tr>
                 @endforeach
             </table>

@@ -15,6 +15,12 @@
                     value="{{ old('denominacion', $medicamento->denominacion) }}" required
                     class="w-full p-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500">
             </div>
+            <div class="mb-4 w-1/4">
+                <label for="denominacion_comercial" class="block mb-2 text-sm font-medium text-gray-700">Denominación comercial</label>
+                <input type="text" name="denominacion_comercial" id="denominacion_comercial"
+                    value="{{ old('denominacion_comercial', $medicamento->denominacion_comercial) }}" required
+                    class="w-full p-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500">
+            </div>
 
             <div class="mb-4 w-1/4">
                 <label for="presentacion" class="block mb-2 text-sm font-medium text-gray-700">Presentación</label>
@@ -48,7 +54,7 @@
         <div class="flex gap-4">
             <div class="mb-4 w-1/4">
                 <label for="conc_min" class="block mb-2 text-sm font-medium text-gray-700">
-                    Concentración mínima (mOsm/mL)
+                    Concentración mínima (mg/mL)
                 </label>
                 <input type="number" name="conc_min" id="conc_min"
                     value="{{ old('conc_min', $medicamento->conc_min ?? '') }}" step="0.01" min="0"
@@ -57,7 +63,7 @@
 
             <div class="mb-4 w-1/4">
                 <label for="conc_max" class="block mb-2 text-sm font-medium text-gray-700">
-                    Concentración máxima (mOsm/mL)
+                    Concentración máxima (mg/mL)
                 </label>
                 <input type="number" name="conc_max" id="conc_max"
                     value="{{ old('conc_max', $medicamento->conc_max ?? '') }}" step="0.01" min="0"
@@ -74,33 +80,63 @@
             </div>
         </div>
 
-        <div class="flex gap-4">
-            <div class="mb-4">
-                <label class="block mb-2 text-sm font-medium text-gray-700">Diluyentes</label>
-                <div class="grid grid-cols-1 gap-2">
-                    @foreach ($diluents as $diluent)
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="diluents[]" value="{{ $diluent->id }}"
-                                @checked(in_array($diluent->id, old('diluents', $selectedDiluents)))>
-                            <span class="ml-2">{{ $diluent->name }}</span>
-                        </label>
-                    @endforeach
+        <div class="flex gap-8">
+            <div class="flex gap-4">
+                <div class="mb-4">
+                    <label class="block mb-2 text-sm font-medium text-gray-700">Diluyentes</label>
+                    <div class="grid grid-cols-1 gap-2">
+                        @foreach ($diluents as $diluent)
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="diluents[]" value="{{ $diluent->id }}"
+                                    @checked(in_array($diluent->id, old('diluents', $selectedDiluents)))>
+                                <span class="ml-2">{{ $diluent->name }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block mb-2 text-sm font-medium text-gray-700">Vías de administración</label>
+                    <div class="grid grid-cols-1 gap-2">
+                        @foreach ($routes as $route)
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="routes[]" value="{{ $route->id }}"
+                                    @checked(in_array($route->id, old('routes', $selectedRoutes)))>
+                                <span class="ml-2">{{ $route->name }}</span>
+                            </label>
+                        @endforeach
+                    </div>
                 </div>
             </div>
+            <div class="flex gap-8 w-[30rem]">
+                <div class="mb-4 w-full">
+                    <label for="lote" class="block mb-2 text-sm font-medium text-gray-700">
+                        Lote
+                    </label>
+                    <input type="text" name="lote" id="lote"
+                        value="{{ old('lote', $medicamento->lote ?? '') }}"
+                        class="w-full p-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg
+                   focus:ring focus:ring-blue-200 focus:border-blue-500">
+                    @error('lote')
+                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
 
-            <div class="mb-4">
-                <label class="block mb-2 text-sm font-medium text-gray-700">Vías de administración</label>
-                <div class="grid grid-cols-1 gap-2">
-                    @foreach ($routes as $route)
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="routes[]" value="{{ $route->id }}"
-                                @checked(in_array($route->id, old('routes', $selectedRoutes)))>
-                            <span class="ml-2">{{ $route->name }}</span>
-                        </label>
-                    @endforeach
+                <div class="mb-4 w-full">
+                    <label for="caducidad" class="block mb-2 text-sm font-medium text-gray-700">
+                        Fecha de caducidad
+                    </label>
+                    <input type="date" name="caducidad" id="caducidad"
+                        value="{{ old('caducidad', isset($medicamento->caducidad) ? \Carbon\Carbon::parse($medicamento->caducidad)->format('Y-m-d') : '') }}"
+                        class="w-full p-2 text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg
+                   focus:ring focus:ring-blue-200 focus:border-blue-500">
+                    @error('caducidad')
+                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
         </div>
+
 
 
         <div class="mt-4 text-right">

@@ -1,3 +1,31 @@
+@php
+    use Carbon\Carbon;
+
+    // ---- Datos base de solicitud_oncos ----
+    $pacienteNombre = $solicitud->nombre_paciente ?? '—';
+    $fechaNac = $solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') : '—';
+    $edad = $solicitud->edad ?? ($solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento)->age : '—');
+
+    // Sexo en solicitud_oncos es enum('M','F')
+    $sexo = match ($solicitud->sexo) {
+        'M' => 'Masculino',
+        'F' => 'Femenino',
+        default => '—',
+    };
+
+    $diagnostico = $solicitud->diagnostico ?? '—';
+    $servicio = $solicitud->servicio ?? '—';
+    $expediente = $solicitud->registro_paciente ?? '—';
+    $medico = $solicitud->nombre_medico ?? '—';
+
+    // Domicilio cliente receptor (hospital del usuario)
+    $domicilioHospital = optional(optional($solicitud->user)->hospital)->adress ?? '—';
+
+    // Contador filas de medicamentos
+    $contador = 1;
+@endphp
+
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -208,7 +236,7 @@
 <body>
 
     <div class="contenedor border-1">
-        <!-- Contenedor principal con borde negro -->
+        <!-- Encabezado -->
         <div class="introduccion">
             <table style="padding-top: 0.5rem">
                 <tr>
@@ -218,12 +246,11 @@
                     <td style="width: 60%; margin: 0 auto; text-align: center; font-size: 13px">
                         <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM <br> NUTRICIONES PARENTERALES</strong>
                     </td>
-                    <td style="width: 20%">
-
-                    </td>
+                    <td style="width: 20%"></td>
                 </tr>
             </table>
         </div>
+
         <table>
             <tr>
                 <td style="text-align: right; color: blue; padding: 2px 8px;">
@@ -234,52 +261,59 @@
                 <td style="text-align: center;">ENTREGA DE LAS MEZCLAS ONCOLÓGICAS PREPARADAS EN CMP</td>
             </tr>
         </table>
+
         <table>
             <tr>
-                <td class="px-1">Fecha de envío:</td>
-                <td class="px-1 text-right">DOMICILIO CLIENTE RECEPTOR:</td>
+                <td class="px-1">Fecha de envío: <strong>{{ $fechaEnvio ?? now()->format('d/m/Y H:i') }}</strong></td>
+                <td class="px-1 text-right">DOMICILIO CLIENTE RECEPTOR: <strong>{{ $domicilioHospital }}</strong></td>
             </tr>
         </table>
+
+        <!-- Datos del paciente -->
         <table>
             <tr>
                 <td class="px-1 text-center">DATOS DEL PACIENTE</td>
             </tr>
         </table>
+
         <table>
             <tr>
                 <td class="border-1 border-l-0 px-1 bg-cbta text-center font-bold">Nombre completo</td>
                 <td class="border-1 px-1 bg-cbta text-center font-bold">Fecha de nacimiento</td>
                 <td class="border-1 px-1 bg-cbta text-center font-bold">Edad</td>
-                <td class="border-1 border-r-0 px-1 bg-cbta text-center font-bold">Genero</td>
+                <td class="border-1 border-r-0 px-1 bg-cbta text-center font-bold">Género</td>
             </tr>
             <tr>
-                <td class="border-x-1 border-l-0 px-1 text-center">ABATACEPT</td>
-                <td class="border-x-1 px-1 text-center">20/08/1998</td>
-                <td class="border-x-1 px-1 text-center">27</td>
-                <td class="border-x-1 border-r-0 px-1 text-center">Masculino</td>
+                <td class="border-x-1 border-l-0 px-1 text-center">{{ $pacienteNombre }}</td>
+                <td class="border-x-1 px-1 text-center">{{ $fechaNac }}</td>
+                <td class="border-x-1 px-1 text-center">{{ $edad }}</td>
+                <td class="border-x-1 border-r-0 px-1 text-center">{{ $sexo }}</td>
             </tr>
         </table>
+
         <table>
             <tr>
-                <td class="border-1 border-l-0 px-1 bg-cbta text-center font-bold">Diagnostico</td>
+                <td class="border-1 border-l-0 px-1 bg-cbta text-center font-bold">Diagnóstico</td>
                 <td class="border-1 px-1 bg-cbta text-center font-bold">Servicio</td>
                 <td class="border-1 px-1 bg-cbta text-center font-bold">No. de Expediente</td>
                 <td class="border-1 border-r-0 px-1 bg-cbta text-center font-bold">Médico tratante</td>
             </tr>
             <tr>
-                <td class="border-1 border-l-0 px-1 text-center">Cancér de pulmón</td>
-                <td class="border-1 px-1 text-center">Mezcla Oncologica</td>
-                <td class="border-1 px-1 text-center">4522942</td>
-                <td class="border-1 border-r-0 px-1 text-center">Luis Dorantes</td>
+                <td class="border-1 border-l-0 px-1 text-center">{{ $diagnostico }}</td>
+                <td class="border-1 px-1 text-center">{{ $servicio }}</td>
+                <td class="border-1 px-1 text-center">{{ $solicitud->registro_paciente ?? '—'  }}</td>
+                <td class="border-1 border-r-0 px-1 text-center">{{ $medico }}</td>
             </tr>
         </table>
+
+        <!-- Datos de las mezclas -->
         <table>
             <tr>
                 <td class="text-center">DATOS DE LAS MEZCLAS</td>
             </tr>
         </table>
-        <table>
 
+        <table>
             <tr>
                 <td class="border-1 border-l-0 px-1 text-center">No</td>
                 <td class="border-1 px-1 text-center">Medicamento</td>
@@ -288,29 +322,85 @@
                 <td class="border-1 px-1 text-center">Volumen</td>
                 <td class="border-1 px-1 text-center">Lote de la mezcla</td>
                 <td class="border-1 px-1 text-center">Fecha/Hora de <br> preparación</td>
-                <td class="border-1 border-r-0 px-1 text-center">Fecha/Hora de <br> limite de uso</td>
+                <td class="border-1 border-r-0 px-1 text-center">Fecha/Hora de <br> límite de uso</td>
             </tr>
-            <tr>
-                <td class="border-1 border-l-0 px-1 text-center">1</td>
-                <td class="border-1 px-1 text-center">ABATACEPT</td>
-                <td class="border-1 px-1 text-center">100 mg</td>
-                <td class="border-1 px-1 text-center">Solución salina</td>
-                <td class="border-1 px-1 text-center">50 ml</td>
-                <td class="border-1 px-1 text-center">123456</td>
-                <td class="border-1 px-1 text-center">8/5/2023 - 10:00</td>
-                <td class="border-1 border-r-0 px-1 text-center">8/5/2023 - 12:00</td>
-            </tr>
+
+            @php
+                $contador = $contador ?? 1;
+            @endphp
+
+            @foreach ($mezclas as $mezcla)
+                @php
+                    // Fecha/hora de preparación (puedes ajustar si tienes un campo dedicado)
+                    $prep = $mezcla->created_at ? Carbon::parse($mezcla->created_at) : null;
+                    $limite = $prep ? $prep->copy()->addHours(48) : null;
+
+                    $prepFmt = $prep ? $prep->format('d/m/Y - H:i') : '—';
+                    $limiteFmt = $limite ? $limite->format('d/m/Y - H:i') : '—';
+
+                    $loteMezcla = $mezcla->lote ?? '—';
+
+                    // Volumen correcto: volumen_dilucion de la mezcla
+                    $volumenDilucion = $mezcla->volumen_dilucion ?? null;
+                    $volumenFmt = is_numeric($volumenDilucion)
+                        ? rtrim(rtrim(number_format($volumenDilucion, 2, '.', ''), '0'), '.') . ' mL'
+                        : ($volumenDilucion ?:
+                        '—');
+                @endphp
+
+                @forelse($mezcla->medicamentos as $med)
+                    @php
+                        // Denominación desde el catálogo o nombre capturado
+                        $denom =
+                            optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
+                            ($med->nombre_medicamento ?? '—');
+
+                        // Dosis
+                        $dosis = isset($med->dosis)
+                            ? (is_numeric($med->dosis)
+                                ? rtrim(rtrim(number_format($med->dosis, 2, '.', ''), '0'), '.')
+                                : $med->dosis)
+                            : '—';
+
+                        // Diluyente
+                        $diluyente = optional($med->diluyente)->name ?? '—';
+                    @endphp
+
+                    <tr>
+                        <td class="border-1 border-l-0 px-1 text-center">{{ $contador++ }}</td>
+                        <td class="border-1 px-1 text-center">{{ $denom }}</td>
+                        <td class="border-1 px-1 text-center">{{ $dosis }}</td>
+                        <td class="border-1 px-1 text-center">{{ $diluyente }}</td>
+                        {{-- Volumen de la mezcla --}}
+                        <td class="border-1 px-1 text-center">{{ $volumenFmt }}</td>
+                        <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
+                        <td class="border-1 px-1 text-center">{{ $prepFmt }}</td>
+                        <td class="border-1 border-r-0 px-1 text-center">{{ $limiteFmt }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td class="border-1 border-l-0 px-1 text-center" colspan="8">
+                            Sin medicamentos en esta mezcla.
+                        </td>
+                    </tr>
+                @endforelse
+            @endforeach
         </table>
+
         <table>
             <tr>
-                <td class="text-right border-b-1">Cantidad total de mezclas</td>
+                <td class="text-right border-b-1">
+                    Cantidad total de mezclas: <strong>{{ $mezclas->count() }}</strong>
+                </td>
             </tr>
         </table>
+
         <table class="mt-4">
             <tr>
                 <td class="text-center">Recepción Cliente</td>
             </tr>
         </table>
+
         <table>
             <tr>
                 <td style="width: 30%"></td>
@@ -331,6 +421,7 @@
                 <td style="width: 30%"></td>
             </tr>
         </table>
+
         <table class="mt-4 mb-4">
             <tr>
                 <td style="width: 30%"></td>
@@ -341,9 +432,6 @@
         </table>
 
     </div>
-
-
-
 
 </body>
 

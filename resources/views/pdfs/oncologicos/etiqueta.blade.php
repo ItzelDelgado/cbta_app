@@ -185,15 +185,18 @@
                     <td class="px-1">No. Registro: {{ $solicitud->registro_paciente ?? '—' }}</td>
                 </tr>
                 <tr>
-                    <td style="border: none; border-top: 2px dotted black; border-bottom: 2px dotted black;"
-                        class="px-1">Medicamento: </td>
-                    <td style="border: none; border-top: 2px dotted black; border-bottom: 2px dotted black;"
-                        class="px-1">Dosis: </td>
+                    <td colspan="2" class="px-1"
+                        style="border-top: 2px dotted black; border-bottom: 2px dotted black;">
+                        <strong>Medicamentos:</strong>
+                    </td>
                 </tr>
-                <tr>
-                    <td class="px-1">{{ $mezcla->dosis_total ?? '—' }}</td>
-                    <td class="px-1">mg</td>
-                </tr>
+                @foreach ($medicamentos as $med)
+                    <tr>
+                        <td class="px-1 text-left">{{ $med->nombre }}</td>
+                        <td class="px-1 text-left">{{ $med->dosis }} mg</td>
+                    </tr>
+                @endforeach
+
                 <tr>
                     <td class="px-1">{{ $mezcla->volumen_dilucion }}</td>
                     <td class="px-1">ml</td>
@@ -210,17 +213,22 @@
             </table>
             <table>
                 <tr>
-                    <td class="px-1">Usese antes de: {{ $aprobada && $aprobada->fecha_hora_limite_uso ? \Carbon\Carbon::parse($aprobada->fecha_hora_limite_uso)->format('d/m/Y') : '—' }}</td>
+                    <td class="px-1">Usese antes de:
+                        {{ $aprobada && $aprobada->fecha_hora_limite_uso ? \Carbon\Carbon::parse($aprobada->fecha_hora_limite_uso)->format('d/m/Y') : '—' }}
+                    </td>
                     <td class="px-1">Vel. de infusión: {{ $solicitud->velocidad_infusion ?? '—' }}</td>
                 </tr>
                 <tr>
-                    <td class="px-1">a las: {{ $aprobada && $aprobada->fecha_hora_limite_uso ? \Carbon\Carbon::parse($aprobada->fecha_hora_limite_uso)->format('H:i') : '—' }}</td>
+                    <td class="px-1">a las:
+                        {{ $aprobada && $aprobada->fecha_hora_limite_uso ? \Carbon\Carbon::parse($aprobada->fecha_hora_limite_uso)->format('H:i') : '—' }}
+                    </td>
                     <td class="px-1">Administrar en: {{ $mezcla->tiempo_infusion }} min IV</td>
                 </tr>
             </table>
             <table>
                 <tr>
-                    <td style="border-top: 2px dotted black;" class="px-1">Leyenda de proyección: {{ $mezcla->leyenda ?? '—' }}</td>
+                    <td style="border-top: 2px dotted black;" class="px-1">Leyenda de proyección:
+                        {{ $mezcla->leyenda ?? '—' }}</td>
                 </tr>
                 <tr>
                     <td class="px-1">Preparada por:</td>

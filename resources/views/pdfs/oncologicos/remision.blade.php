@@ -1,3 +1,30 @@
+@php
+    use Carbon\Carbon;
+
+    // ===== Datos del paciente / solicitud =====
+    $pacienteNombre = $solicitud->nombre_paciente ?? '—';
+    $fechaNac = $solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') : '—';
+    $observaciones = $solicitud->observaciones;
+    $edad = $solicitud->edad ?? ($solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento)->age : '—');
+    $sexo = $solicitud->sexo === 'M' ? 'Masculino' : ($solicitud->sexo === 'F' ? 'Femenino' : '—');
+    $diagnostico = $solicitud->diagnostico ?? '—';
+    $servicio = $solicitud->servicio ?? '—';
+    $expediente = $solicitud->registro_paciente ?? '—';
+    $medico = $solicitud->nombre_medico ?? '—';
+
+    // ===== Auxiliares de cálculo =====
+    $total = 0;
+    $contador = 1;
+
+    function money_fmt($v)
+    {
+        return '$' . number_format((float) $v, 2, '.', ',');
+    }
+
+    // Colección de medicamentos en la lista ASIGNADA del usuario (si existe)
+    $listaAsig = optional($solicitud->user->assignedMedicineList)->medicines ?? collect();
+@endphp
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -212,7 +239,7 @@
 <body>
 
     <div class="contenedor border-1">
-        <!-- Contenedor principal con borde negro -->
+        <!-- Encabezado -->
         <div class="introduccion">
             <table style="padding-top: 0.5rem">
                 <tr>
@@ -222,12 +249,11 @@
                     <td style="width: 60%; margin: 0 auto; text-align: center; font-size: 13px">
                         <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM <br> NUTRICIONES PARENTERALES</strong>
                     </td>
-                    <td style="width: 20%">
-
-                    </td>
+                    <td style="width: 20%"></td>
                 </tr>
             </table>
         </div>
+
         <table>
             <tr>
                 <td style="text-align: right; color: blue; padding: 2px 8px;">
@@ -238,12 +264,16 @@
                 <td style="text-align: center;">ENTREGA DE LAS MEZCLAS ONCOLÓGICAS PREPARADAS EN CMP</td>
             </tr>
         </table>
+
         <table>
             <tr>
-                <td class="px-1">Fecha de envío:</td>
+                <td class="px-1">Fecha de envío: <strong>{{ $fechaEmision ?? now()->format('d/m/Y H:i') }}</strong>
+                </td>
                 <td class="px-1 text-right">DOMICILIO CLIENTE RECEPTOR:</td>
             </tr>
         </table>
+
+        <!-- Datos del paciente -->
         <table>
             <tr>
                 <td class="px-1 text-center">DATOS DEL PACIENTE</td>
@@ -254,35 +284,39 @@
                 <td class="border-1 border-l-0 px-1 bg-cbta text-center font-bold">Nombre completo</td>
                 <td class="border-1 px-1 bg-cbta text-center font-bold">Fecha de nacimiento</td>
                 <td class="border-1 px-1 bg-cbta text-center font-bold">Edad</td>
-                <td class="border-1 border-r-0 px-1 bg-cbta text-center font-bold">Genero</td>
+                <td class="border-1 border-r-0 px-1 bg-cbta text-center font-bold">Género</td>
             </tr>
             <tr>
-                <td class="border-x-1 border-l-0 px-1 text-center">Luis Angel Rojas Espinoza</td>
-                <td class="border-x-1 px-1 text-center">20/08/1998</td>
-                <td class="border-x-1 px-1 text-center">27</td>
-                <td class="border-x-1 border-r-0 px-1 text-center">Masculino</td>
+                <td class="border-x-1 border-l-0 px-1 text-center">{{ $pacienteNombre }}</td>
+                <td class="border-x-1 px-1 text-center">{{ $fechaNac }}</td>
+                <td class="border-x-1 px-1 text-center">{{ $edad }}</td>
+                <td class="border-x-1 border-r-0 px-1 text-center">{{ $sexo }}</td>
             </tr>
         </table>
+
         <table>
             <tr>
-                <td class="border-1 border-l-0 px-1 bg-cbta text-center font-bold">Diagnostico</td>
+                <td class="border-1 border-l-0 px-1 bg-cbta text-center font-bold">Diagnóstico</td>
                 <td class="border-1 px-1 bg-cbta text-center font-bold">Servicio</td>
                 <td class="border-1 px-1 bg-cbta text-center font-bold">No. de Expediente</td>
                 <td class="border-1 border-r-0 px-1 bg-cbta text-center font-bold">Médico tratante</td>
             </tr>
             <tr>
-                <td class="border-1 border-l-0 px-1 text-center">Cancér de pulmón</td>
-                <td class="border-1 px-1 text-center">Mezcla Oncologica</td>
-                <td class="border-1 px-1 text-center">4522942</td>
-                <td class="border-1 border-r-0 px-1 text-center">Luis Dorantes</td>
+                <td class="border-1 border-l-0 px-1 text-center">{{ $diagnostico }}</td>
+                <td class="border-1 px-1 text-center">{{ $servicio }}</td>
+                <td class="border-1 px-1 text-center">{{ $expediente }}</td>
+                <td class="border-1 border-r-0 px-1 text-center">{{ $medico }}</td>
             </tr>
         </table>
+
+        <!-- Encabezado de tabla de remisión -->
         <table>
             <tr>
                 <td class="text-center">DATOS DE LAS MEZCLAS</td>
                 <td class="text-center">COSTO MEDICAMENTO</td>
             </tr>
         </table>
+
         <table>
             <tr>
                 <td class="border-1 border-l-0 px-1 text-center bg-cbta font-bold">No</td>
@@ -296,22 +330,81 @@
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Precio unitario</td>
                 <td class="border-1 border-r-0 px-1 text-center bg-cbta font-bold">Subtotal</td>
             </tr>
+
+            @foreach ($mezclas as $mezcla)
+                @php
+                    $loteMezcla = $mezcla->lote ?? '—';
+                    // volumen_dilucion está en la mezcla (ml)
+                    $volumenMezcla = isset($mezcla->volumen_dilucion) ? $mezcla->volumen_dilucion . ' ml' : '—';
+                @endphp
+
+                @forelse($mezcla->medicamentos as $med)
+                    @php
+                        // Denominación desde el catálogo (si existe) o el nombre capturado
+                        $denom =
+                            optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
+                            ($med->nombre_medicamento ?? '—');
+
+                        // Dosis en mg (ajusta si usas otra unidad)
+                        $dosis = $med->dosis ?? 0;
+
+                        // Cantidad por presentación (mg por vial, por ejemplo) para calcular piezas
+                        $cantPorPieza =
+                            optional(optional($med->medicamentoOnco)->catalog)->cantidad_medicamento ?: null;
+                        $piezas = $cantPorPieza && $dosis ? (int) ceil($dosis / (float) $cantPorPieza) : 1;
+
+                        // Diluyente
+                        $diluyente = optional($med->diluyente)->name ?? '—';
+
+                        // ===== Precio unitario con prioridad =====
+                        // 1) precio_unitario capturado en mezcla_medicamentos
+                        // 2) precio de la lista asignada del usuario (pivot)
+                        // 3) precio base del onco
+                        $itemLista = $listaAsig->firstWhere('id', $med->medicamento_id);
+                        $precioLista = optional($itemLista)->pivot->precio ?? null;
+
+                        $precioUnit =
+                            $med->precio_unitario ?? ($precioLista ?? (optional($med->medicamentoOnco)->precio ?? 0));
+
+                        // Subtotal y acumulado
+                        $subtotal = $piezas * (float) $precioUnit;
+                        $total += $subtotal;
+
+                        $unidad = 'pieza';
+                    @endphp
+
+                    <tr>
+                        <td class="border-1 border-l-0 px-1 text-center">{{ $contador++ }}</td>
+                        <td class="border-1 px-1 text-center">{{ $denom }}</td>
+                        <td class="border-1 px-1 text-center">
+                            {{ is_numeric($dosis) ? rtrim(rtrim(number_format($dosis, 2, '.', ''), '0'), '.') . ' mg' : $dosis }}
+                        </td>
+                        <td class="border-1 px-1 text-center">{{ $diluyente }}</td>
+                        <td class="border-1 px-1 text-center">{{ $volumenMezcla }}</td>
+                        <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
+                        <td class="border-1 px-1 text-center">{{ ucfirst($unidad) }}</td>
+                        <td class="border-1 px-1 text-center">{{ $piezas }}</td>
+                        <td class="border-1 px-1 text-center">{{ money_fmt($precioUnit) }}</td>
+                        <td class="border-1 border-r-0 px-1 text-center">{{ money_fmt($subtotal) }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td class="border-1 border-l-0 px-1 text-center" colspan="10">Sin medicamentos en esta mezcla.
+                        </td>
+                    </tr>
+                @endforelse
+            @endforeach
+        </table>
+
+        <table>
             <tr>
-                <td class="border-1 border-l-0 px-1 text-center">1</td>
-                <td class="border-1 px-1 text-center">ABATACEPT</td>
-                <td class="border-1 px-1 text-center">250 mg</td>
-                <td class="border-1 px-1 text-center">Solución salina</td>
-                <td class="border-1 px-1 text-center">100 ml</td>
-                <td class="border-1 px-1 text-center">L230601</td>
-                <td class="border-1 px-1 text-center">mg</td>
-                <td class="border-1 px-1 text-center">2</td>
-                <td class="border-1 px-1 text-center">$1,500.00</td>
-                <td class="border-1 border-r-0 px-1 text-center">$3,000.00</td>
+                <td class="text-right">Total {{ money_fmt($total) }}</td>
             </tr>
         </table>
         <table>
             <tr>
-                <td class="text-right border-b-1">Total $0,00</td>
+                <td class="border-1 px-1" style="width: 10%">Observaciones:</td>
+                <td class="border-1 px-1">{{$observaciones}}</td>
             </tr>
         </table>
 
@@ -331,9 +424,6 @@
         </table>
 
     </div>
-
-
-
 
 </body>
 

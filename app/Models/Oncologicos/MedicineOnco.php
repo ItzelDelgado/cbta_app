@@ -11,8 +11,6 @@ class MedicineOnco extends Model {
     protected $fillable = [
         'catalog_id', // <-- FALTA ESTE
         'precio',
-        'lote',
-        'caducidad'
     ];
 
     public function mezclaMedicamentos() {

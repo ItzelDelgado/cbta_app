@@ -30,7 +30,18 @@
                 <textarea name="description" rows="3"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-200 focus:outline-none">{{ old('description') }}</textarea>
             </div>
-
+            <!-- Activa Marcas -->
+            <div class="flex items-center">
+                <input type="hidden" name="active_brands" value="0"> {{-- valor por defecto --}}
+                <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="active_brands" value="1" class="sr-only peer"
+                        {{ old('active_brands') ? 'checked' : '' }}>
+                    <div
+                        class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
+                    </div>
+                    <span class="ml-3 text-sm font-medium text-gray-700">Activar marcas</span>
+                </label>
+            </div>
             <!-- Tabla -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Medicamentos:</label>
@@ -82,6 +93,7 @@
                     + Agregar Medicamento
                 </button>
             </div>
+
 
             <!-- Botón de Guardar -->
             <div class="flex justify-end">

@@ -86,7 +86,7 @@ class User extends Authenticatable
         return $this->hasMany(MedicineList::class);
     }
 
-    public function assignedMedicineList()
+    public function medicineList()
     {
         return $this->belongsTo(MedicineList::class, 'medicine_list_id');
     }

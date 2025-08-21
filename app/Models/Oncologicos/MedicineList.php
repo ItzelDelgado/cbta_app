@@ -11,7 +11,8 @@ class MedicineList extends Model {
     protected $fillable = [
         'user_id',
         'name',
-        'description'
+        'description',
+        'active_brands'
     ];
 
     public function medicines() {

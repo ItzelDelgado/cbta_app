@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin\Oncologicos;
 
 use App\Http\Controllers\Controller;
 use App\Models\Oncologicos\MedicineOnco;
-use App\Models\Oncologicos\MedicinesCatalog;
 use App\Models\Oncologicos\Mezcla;
 use App\Models\Oncologicos\MezclaMedicamento;
 use App\Models\Oncologicos\SolicitudOnco;
@@ -12,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Validator;
 
 class SolicitudController extends Controller
 {
@@ -29,22 +27,35 @@ class SolicitudController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $listaId = $user->medicine_list_id;
+        $listaId = $user->medicine_list_id; // puede ser null
 
-        $medicamentos = DB::table('medicine_medicine_lists')
-            ->join('medicine_oncos', 'medicine_medicine_lists.medicine_id', '=', 'medicine_oncos.id')
-            ->join('medicines_catalog', 'medicine_oncos.catalog_id', '=', 'medicines_catalog.id')
-            ->where('medicine_medicine_lists.medicine_list_id', $listaId)
+        // Construimos la consulta base
+        $query = DB::table('medicine_oncos as mo')
+            // LEFT JOIN a la lista para que, si no hay lista o no hay precio en lista, no se caiga el join
+            ->leftJoin('medicine_medicine_lists as mml', function ($join) use ($listaId) {
+                $join->on('mml.medicine_id', '=', 'mo.id');
+                if ($listaId) {
+                    $join->where('mml.medicine_list_id', '=', $listaId);
+                }
+            })
+            ->join('medicines_catalog as mc', 'mo.catalog_id', '=', 'mc.id')
             ->select(
-                'medicine_oncos.id as id',
-                'medicine_oncos.precio',
-                'medicine_oncos.lote',
-                'medicine_oncos.caducidad',
-                'medicines_catalog.denominacion',
-                'medicines_catalog.presentacion',
-                'medicines_catalog.id as catalog_id'
-            )
-            ->get();
+                'mo.id as id',
+                DB::raw('COALESCE(mml.precio, mo.precio) as precio'), // 👈 precio lista > precio base
+                'mc.lote',         // 👈 ahora desde catalog
+                'mc.caducidad',    // 👈 ahora desde catalog
+                'mc.denominacion',
+                'mc.presentacion',
+                'mc.id as catalog_id'
+            );
+
+        // Si tienes lista asignada, filtra a los que están en esa lista.
+        // Si NO tienes lista, muestra todos los medicine_oncos (sin filtrar por mml).
+        if ($listaId) {
+            $query->where('mml.medicine_list_id', $listaId);
+        }
+
+        $medicamentos = $query->get();
 
         // Cargar diluyentes y vías por catálogo
         $infoAdicional = [];
@@ -64,13 +75,13 @@ class SolicitudController extends Controller
 
             $infoAdicional[$med->id] = [
                 'diluyentes' => $diluyentes,
-                'vias' => $vias
+                'vias'       => $vias,
             ];
         }
 
         return view('admin.oncologicos.solicitudes.create', [
-            'medicamentos' => $medicamentos,
-            'infoAdicional' => $infoAdicional // ✅ Esto sí funciona con @json()
+            'medicamentos'   => $medicamentos,
+            'infoAdicional'  => $infoAdicional, // ✅ Esto sí funciona con @json()
         ]);
     }
 
@@ -146,10 +157,6 @@ class SolicitudController extends Controller
 
                     $catalog = $medicine->catalog;
 
-                    if (!$catalog) {
-                        throw new \Exception("No se encontró información del catálogo para el medicamento ID {$medicamento['medicamento_id']}.");
-                    }
-
                     // Validar concentración
                     $volumen = floatval($mezclaData['volumen_dilucion']);
                     $dosis = floatval($medicamento['dosis']);
@@ -159,6 +166,12 @@ class SolicitudController extends Controller
                         throw new \Exception("La concentración de '{$catalog->denominacion}' está fuera del rango permitido ({$catalog->conc_min} - {$catalog->conc_max} mL). Dosis: {$dosis}, Volumen: {$volumen}.");
                     }
 
+                    // Calcular dosis en mL usando la fórmula (dosis * volumen_diluyente) / cantidad_medicamento
+                    $dosisML = null;
+                    if ($catalog->cantidad_medicamento > 0) {
+                        $dosisML = ($dosis * $catalog->volumen_diluyente) / $catalog->cantidad_medicamento;
+                    }
+
                     $precio = $precios[$medicamento['medicamento_id']] ?? 0;
 
                     MezclaMedicamento::create([
@@ -166,6 +179,7 @@ class SolicitudController extends Controller
                         'medicamento_id' => $medicamento['medicamento_id'],
                         'nombre_medicamento' => $medicamento['nombre'],
                         'dosis' => $dosis,
+                        'dosis_ml' => $dosisML,
                         'diluyente_id' => $medicamento['diluyente_id'],
                         'via_administracion_id' => $medicamento['via_administracion_id'],
                         'precio_unitario' => $precio,
@@ -204,9 +218,9 @@ class SolicitudController extends Controller
             ->where('medicine_medicine_lists.medicine_list_id', $listaId)
             ->select(
                 'medicine_oncos.id as id',
-                'medicine_oncos.precio',
-                'medicine_oncos.lote',
-                'medicine_oncos.caducidad',
+                'medicine_medicine_lists.precio as precio', // <--- precio desde pivot
+                DB::raw('NULL as lote'),                    // <--- alias para no romper la vista
+                DB::raw('NULL as caducidad'),               // <--- alias para no romper la vista
                 'medicines_catalog.denominacion',
                 'medicines_catalog.presentacion',
                 'medicines_catalog.id as catalog_id'
@@ -214,7 +228,6 @@ class SolicitudController extends Controller
             ->get();
 
         $infoAdicional = [];
-
         foreach ($medicamentos as $med) {
             $diluyentes = DB::table('diluent_medicine_catalog')
                 ->join('diluents', 'diluent_medicine_catalog.diluent_id', '=', 'diluents.id')
@@ -340,12 +353,18 @@ class SolicitudController extends Controller
     }
 
 
-    # PDF para solicitud de mezcla oncologicas
     public function solicitud(SolicitudOnco $solicitud)
     {
-        $solicitud_onco = SolicitudOnco::findOrFail($solicitud->id);
-        //return $solicitud_detalles;
-        $pdf = Pdf::loadView('pdfs.oncologicos.solicitud', compact('solicitud_onco'));
+        $solicitud = SolicitudOnco::with([
+            'mezclas.medicamentos.medicamentoOnco.catalog',
+            'mezclas.medicamentos.diluyente',
+            'mezclas.medicamentos.viaAdministracion'
+        ])->findOrFail($solicitud->id);
+
+        $pdf = Pdf::loadView('pdfs.oncologicos.solicitud', [
+            'solicitud' => $solicitud,
+        ]);
+
         return $pdf->stream();
     }
 
@@ -353,17 +372,55 @@ class SolicitudController extends Controller
     # PDF para solicitud de mezcla oncologicas
     public function envio(SolicitudOnco $solicitud)
     {
-        $solicitud_onco = SolicitudOnco::findOrFail($solicitud->id);
-        //return $solicitud_detalles;
-        $pdf = Pdf::loadView('pdfs.oncologicos.envio', compact('solicitud_onco'));
+        // Eager load solo lo necesario en Onco
+        $solicitud_onco = SolicitudOnco::with([
+            'user.hospital',
+            'mezclas.medicamentos.medicamentoOnco.catalog',
+            'mezclas.medicamentos.diluyente',
+            'mezclas.medicamentos.viaAdministracion',
+        ])->findOrFail($solicitud->id);
+
+        // Si en algún momento guardas explícitamente fecha/hora de preparación en onco,
+        // cámbialo aquí. Por ahora tomamos created_at de cada mezcla.
+        $fechaEnvio = now()->format('d/m/Y H:i');
+
+        $pdf = Pdf::loadView('pdfs.oncologicos.envio', [
+            'solicitud'  => $solicitud_onco,
+            'mezclas'    => $solicitud_onco->mezclas,
+            'fechaEnvio' => $fechaEnvio,
+        ])->setPaper('letter', 'portrait');
+
+        // return ([
+        //     'solicitud' => $solicitud_onco,
+        //     'mezclas' => $solicitud_onco->mezclas,
+        //     'fechaEnvio' => $fechaEnvio,
+        // ]);
+
         return $pdf->stream();
     }
 
     public function remision(SolicitudOnco $solicitud)
     {
-        $solicitud_onco = SolicitudOnco::findOrFail($solicitud->id);
-        //return $solicitud_detalles;
-        $pdf = Pdf::loadView('pdfs.oncologicos.remision', compact('solicitud_onco'));
+        // Trae todo lo necesario en una consulta
+        $solicitud_onco = SolicitudOnco::with([
+            'user.hospital',
+            'user.medicineList.medicines', // 👈 ahora esta
+            'mezclas.medicamentos.medicamentoOnco.catalog',
+            'mezclas.medicamentos.diluyente',
+        ])->findOrFail($solicitud->id);
+
+
+        $pdf = Pdf::loadView('pdfs.oncologicos.remision', [
+            'solicitud'  => $solicitud_onco,
+            'mezclas'    => $solicitud_onco->mezclas,
+            'fechaEmision' => now()->format('d/m/Y H:i'),
+        ])->setPaper('letter', 'portrait');
+
+        // return ([
+        //     'solicitud' => $solicitud_onco,
+        //     'mezclas' => $solicitud_onco->mezclas,
+        // ]);
+
         return $pdf->stream();
     }
 }

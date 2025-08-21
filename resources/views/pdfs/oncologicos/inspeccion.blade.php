@@ -1,3 +1,55 @@
+@php
+    use Carbon\Carbon;
+
+    // Helpers seguros
+    $safe = function ($v, $fallback = '—') {
+        return isset($v) && $v !== '' ? $v : $fallback;
+    };
+    $mark = function ($cond) {
+        return $cond === true ? 'X' : '';
+    };
+    $fmtTime = function ($v) {
+        if (!$v) {
+            return '—';
+        }
+        try {
+            return Carbon::parse($v)->format('H:i');
+        } catch (\Exception $e) {
+            return '—';
+        }
+    };
+    $val = function ($obj, $key, $default = null) {
+        return data_get($obj, $key, $default);
+    };
+
+    $ins = $inspeccion ?? (object) [];
+
+    // Listas de campos con etiquetas legibles
+    $camposFisicos = [
+        'esta_rotulado' => 'Está rotulado',
+        'numero_lote' => 'Número de lote visible',
+        'medicamento' => 'Nombre del medicamento',
+        'dosis_volumen_total' => 'Dosis / Volumen total',
+        'volumen_medicamento' => 'Volumen del medicamento',
+        'rubrica_preparador' => 'Rúbrica del preparador',
+        'sello_seguridad' => 'Sello de seguridad',
+        'presenta_grietas' => 'Presenta grietas',
+        'presenta_fugas' => 'Presenta fugas',
+        'esta_roto' => 'Está roto',
+    ];
+
+    $camposContenido = [
+        'coloracion_apropiada' => 'Coloración apropiada',
+        'contenido_homogeneo' => 'Contenido homogéneo',
+        'presenta_particulas' => 'Presenta partículas',
+        'presenta_turbidez' => 'Presenta turbidez',
+        'volumen_correcto' => 'Volumen correcto',
+    ];
+
+    // Tipo contenedor actual
+    $tipoCont = $val($ins, 'tipo_contenedor');
+@endphp
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -177,9 +229,9 @@
 <body>
 
     <div class="contenedor border-1 px-1">
-        <!-- Contenedor principal con borde negro -->
+        <!-- Encabezado -->
         <div class="introduccion">
-            <table style="">
+            <table>
                 <tr>
                     <td style="width: 20%">
                         <img style="width: 10rem" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
@@ -187,22 +239,20 @@
                     <td style="width: 60%; margin: 0 auto; text-align: center; font-size: 13px">
                         <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM <br> NUTRICIONES PARENTERALES</strong>
                     </td>
-                    <td style="width: 20%">
-
-                    </td>
+                    <td style="width: 20%"></td>
                 </tr>
             </table>
         </div>
+
         <table>
             <tr>
-                <td style="text-align: right; color: blue; padding: 2px 8px;">
-                    FTO-NPT-023-005
-                </td>
+                <td style="text-align: right; color: blue; padding: 2px 8px;">FTO-NPT-023-005</td>
             </tr>
             <tr style="background-color: #1F4E78; color: white; font-weight: bold;">
-                <td style="text-align: center;">INSPECCIÓN DE MEZCLAS ÉSTERILES ONCOLOGICAS</td>
+                <td style="text-align: center;">INSPECCIÓN DE MEZCLAS ÉSTERILES ONCOLÓGICAS</td>
             </tr>
         </table>
+
         <p>VERIFICACIÓN DE ÁREAS</p>
         <div class="border-1 py-1 px-1">
             <table>
@@ -213,30 +263,14 @@
                 </tr>
                 <tr>
                     <td class="text-right px-1">¿El área se encuentra limpia y disponible?</td>
-                    <td class="border-1 text-center">
-                        @if ($inspeccion->es_limpia)
-                            X
-                        @endif
-                    </td>
-                    <td class="border-1 text-center">
-                        @if (!$inspeccion->es_limpia)
-                            X
-                        @endif
-                    </td>
+                    <td class="border-1 text-center">{{ $mark($val($ins, 'es_limpia')) }}</td>
+                    <td class="border-1 text-center">{{ $mark($val($ins, 'es_limpia') === false) }}</td>
                 </tr>
                 <tr>
                     <td class="text-right px-1">¿El área se encuentra libre de material y documentos ajenos a la mezcla
                         en turno a inspeccionar?</td>
-                    <td class="border-1 text-center">
-                        @if ($inspeccion->es_libre)
-                            X
-                        @endif
-                    </td>
-                    <td class="border-1 text-center">
-                        @if (!$inspeccion->es_libre)
-                            X
-                        @endif
-                    </td>
+                    <td class="border-1 text-center">{{ $mark($val($ins, 'es_libre')) }}</td>
+                    <td class="border-1 text-center">{{ $mark($val($ins, 'es_libre') === false) }}</td>
                 </tr>
             </table>
         </div>
@@ -245,71 +279,46 @@
             <table>
                 <tr>
                     <td style="width: 70%" class="text-right">No. de lote:</td>
-                    <td style="width: 30%" class="border-b-1">{{ $mezcla->lote ?? '—' }}</td>
+                    <td style="width: 30%" class="border-b-1">{{ $safe($val($mezcla ?? null, 'lote')) }}</td>
                 </tr>
                 <tr>
                     <td style="width: 70%" class="text-right">No. de orden de preparación:</td>
-                    <td style="width: 30%" class="border-b-1">{{ $mezcla->id }}</td>
+                    <td style="width: 30%" class="border-b-1">{{ $safe($val($mezcla ?? null, 'id')) }}</td>
                 </tr>
             </table>
+
             <table>
                 <tr>
                     <td style="width: 5%">Fecha:</td>
-                    <td style="width: 15%" class="border-b-1">Falta preguntar</td>
+                    <td style="width: 15%" class="border-b-1">{{ $safe($val($ins, 'fecha')) }}</td>
                     <td style="width: 35%"></td>
                     <td style="width: 20%" class="text-right">Hora de inspección:</td>
-                    <td style="width: 30%" class="border-b-1">
-                        {{ \Carbon\Carbon::parse($inspeccion->hora_inspeccion)->format('H:i') }}</td>
+                    <td style="width: 30%" class="border-b-1">{{ $fmtTime($val($ins, 'hora_inspeccion')) }}</td>
                 </tr>
             </table>
+
             <table class="mt-2">
                 <tr>
                     <td style="width: 20%" class="text-left"><strong>Tipo de contenedor</strong></td>
                     <td style="width: 10%" class="text-left"><strong>Frasco/bolsa</strong></td>
                     <td style="width: 5%"></td>
-                    <td style="width: 5%" class="border-1 text-center">
-                        @if ($inspeccion->tipo_contenedor === 'Frasco')
-                            X
-                        @endif
-                    </td>
+                    <td style="width: 5%" class="border-1 text-center">{{ $mark($tipoCont === 'Frasco') }}</td>
                     <td style="width: 10%" class="text-center"><strong>Jeringa</strong></td>
-                    <td style="width: 5%" class="border-1 text-center">
-                        @if ($inspeccion->tipo_contenedor === 'Jeringa')
-                            X
-                        @endif
-                    </td>
+                    <td style="width: 5%" class="border-1 text-center">{{ $mark($tipoCont === 'Jeringa') }}</td>
                     <td style="width: 10%" class="text-center"><strong>Otro</strong></td>
-                    <td style="width: 5%" class="border-1 text-center">
-                        @if ($inspeccion->tipo_contenedor === 'Otro')
-                            X
-                        @endif
-                    </td>
+                    <td style="width: 5%" class="border-1 text-center">{{ $mark($tipoCont === 'Otro') }}</td>
                     <td style="width: 5%"></td>
                     <td style="width: 10%" class="border-b-1"></td>
                 </tr>
             </table>
 
-            @php
-                $camposFisicos = [
-                    'esta_rotulado',
-                    'numero_lote',
-                    'medicamento',
-                    'dosis_volumen_total',
-                    'volumen_medicamento',
-                    'rubrica_preparador',
-                    'sello_seguridad',
-                    'presenta_grietas',
-                    'presenta_fugas',
-                    'esta_roto',
-                ];
-            @endphp
-
+            <!-- Inspección física del contenedor -->
             <table class="mt-2">
                 <tr>
                     <td style="width: 48%">
-                        <table class="">
+                        <table>
                             <tr>
-                                <td class="border-1 px-1 text-center"><strong>Inspección fisica del contenedor</strong>
+                                <td class="border-1 px-1 text-center"><strong>Inspección física del contenedor</strong>
                                 </td>
                             </tr>
                         </table>
@@ -319,43 +328,32 @@
                                 <td style="width: 15%" class=" text-center"><strong>Si</strong></td>
                                 <td style="width: 15%" class="border-r-1 text-center"><strong>No</strong></td>
                             </tr>
-                            @foreach ($camposFisicos as $campo)
+
+                            @foreach ($camposFisicos as $campo => $etiqueta)
+                                @php $valor = $val($ins, $campo); @endphp
                                 <tr>
-                                    <td class="border-1 px-1">{{ ucfirst(str_replace('_', ' ', $campo)) }}</td>
-                                    <td class="border-1 text-center">
-                                        @if ($inspeccion->$campo)
-                                            X
-                                        @endif
-                                    </td>
-                                    <td class="border-1 text-center">
-                                        @if (!$inspeccion->$campo)
-                                            X
-                                        @endif
-                                    </td>
+                                    <td class="border-1 px-1">{{ $etiqueta }}</td>
+                                    <td class="border-1 text-center">{{ $mark($valor) }}</td>
+                                    <td class="border-1 text-center">{{ $mark($valor === false) }}</td>
                                 </tr>
                             @endforeach
                         </table>
 
-
                         <table class="border-1 mt-2">
+                            @php $aprCont = $val($ins, 'aprueba_contenedor'); @endphp
                             <tr>
                                 <td style="width: 70%" class="border-1 px-1">¿Aprueba la inspección física del
                                     contenedor?</td>
+                                <td style="width: 15%" class="border-1 px-1 text-center">{{ $mark($aprCont) }}</td>
                                 <td style="width: 15%" class="border-1 px-1 text-center">
-                                    @if ($inspeccion->aprueba_contenedor)
-                                        X
-                                    @endif
-                                </td>
-                                <td style="width: 15%" class="border-1 px-1 text-center">
-                                    @if (!$inspeccion->aprueba_contenedor)
-                                        X
-                                    @endif
-                                </td>
+                                    {{ $mark($aprCont === false) }}</td>
                             </tr>
                         </table>
-
                     </td>
+
                     <td style="width: 4%"></td>
+
+                    <!-- Inspección del contenido -->
                     <td style="width: 48%">
                         <table>
                             <tr>
@@ -363,79 +361,81 @@
                             </tr>
                         </table>
 
-                        @php
-                            $camposContenido = [
-                                'coloracion_apropiada',
-                                'contenido_homogeneo',
-                                'presenta_particulas',
-                                'presenta_turbidez',
-                                'volumen_correcto',
-                            ];
-                        @endphp
-
                         <table>
                             <tr>
                                 <td style="width: 70%" class="px-1 border-l-1"></td>
                                 <td style="width: 15%" class="text-center px-1"><strong>Si</strong></td>
                                 <td style="width: 15%" class="text-center px-1 border-r-1"><strong>No</strong></td>
                             </tr>
-                            @foreach ($camposContenido as $campo)
+
+                            @foreach ($camposContenido as $campo => $etiqueta)
+                                @php $valor = $val($ins, $campo); @endphp
                                 <tr>
-                                    <td class="border-1 px-1">¿Aprueba la inspección del contenido?</td>
-                                    <td class="border-1 text-center">@if($inspeccion->aprueba_contenido) X @endif</td>
-                                    <td class="border-1 text-center">@if(!$inspeccion->aprueba_contenido) X @endif</td>
+                                    <td class="border-1 px-1">{{ $etiqueta }}</td>
+                                    <td class="border-1 text-center">{{ $mark($valor) }}</td>
+                                    <td class="border-1 text-center">{{ $mark($valor === false) }}</td>
                                 </tr>
                             @endforeach
                         </table>
+
                         <table class="mt-2">
+                            @php $aprConten = $val($ins, 'aprueba_contenido'); @endphp
                             <tr>
-                                <td style="width: 70%" class="border-1 px-1">¿Aprueba la inspección del contenido?
-                                </td>
-                                <td style="width: 15%" class="border-1 px-1"></td>
-                                <td style="width: 15%" class="border-1 px-1"></td>
+                                <td style="width: 70%" class="border-1 px-1">¿Aprueba la inspección del contenido?</td>
+                                <td style="width: 15%" class="border-1 px-1 text-center">{{ $mark($aprConten) }}</td>
+                                <td style="width: 15%" class="border-1 px-1 text-center">
+                                    {{ $mark($aprConten === false) }}</td>
                             </tr>
                         </table>
+
                         <table class="mt-2">
                             <tr>
                                 <td style="width: 50%" class="text-right">Dosis en volumen (mL):</td>
-                                <td style="width: 50%" class="border-b-1">{{ $inspeccion->dosis_volumen }}</td>
+                                <td style="width: 50%" class="border-b-1">{{ $safe($val($ins, 'dosis_volumen')) }}
+                                </td>
                             </tr>
                             <tr>
                                 <td style="width: 50%" class="text-right">Peso de la mezcla (g):</td>
-                                <td style="width: 50%" class="border-b-1">{{ $inspeccion->peso_mezcla }}</td>
+                                <td style="width: 50%" class="border-b-1">{{ $safe($val($ins, 'peso_mezcla')) }}</td>
                             </tr>
                         </table>
                     </td>
                 </tr>
             </table>
+
             <div class="mt-2">
                 <table class="px-1">
-                    <tr class="">
+                    @php $aprobada = $val($ins, 'mezcla_aprobada'); @endphp
+                    <tr>
                         <td class="border-1 px-1" style="width: 60%">LA MEZCLA SE CONSIDERA APROBADA:</td>
                         <td class="border-1 text-center" style="width: 5%"><strong>Si</strong></td>
-                        <td class="border-1 text-center" style="width: 5%">@if($inspeccion->mezcla_aprobada) X @endif</td>
+                        <td class="border-1 text-center" style="width: 5%">{{ $mark($aprobada) }}</td>
                         <td class="border-1 text-center" style="width: 5%"><strong>No</strong></td>
-                        <td class="border-1 text-center" style="width: 5%">@if(!$inspeccion->mezcla_aprobada) X @endif</td>
+                        <td class="border-1 text-center" style="width: 5%">{{ $mark($aprobada === false) }}</td>
                         <td style="width: 20%"></td>
                     </tr>
                 </table>
             </div>
+
             <div class="mt-2 border-1">
                 <table class="px-1">
-                    <tr class="">
+                    <tr>
                         <td>Observaciones:</td>
                     </tr>
                     <tr>
-                        <td>{{ $inspeccion->observaciones }}</td>
+                        <td>{{ $safe($val($ins, 'observaciones'), '&nbsp;') }}</td>
                     </tr>
                 </table>
             </div>
+
             <table class="mt-2" style="margin-top: 4rem; margin-bottom: 3rem;">
                 <tr>
                     <td style="width: 10%"></td>
-                    <td style="width: 35%" class="border-b-1 text-center">{{ $inspeccion->reviso_nombre }}</td>
+                    <td style="width: 35%" class="border-b-1 text-center">{{ $safe($val($ins, 'reviso_nombre')) }}
+                    </td>
                     <td style="width: 10%"></td>
-                    <td style="width: 35%" class="border-b-1 text-center">{{ $inspeccion->aprobo_nombre }}</td>
+                    <td style="width: 35%" class="border-b-1 text-center">{{ $safe($val($ins, 'aprobo_nombre')) }}
+                    </td>
                     <td style="width: 10%"></td>
                 </tr>
                 <tr>
@@ -461,15 +461,7 @@
                 </tr>
             </table>
         </div>
-
-
-
-
-
     </div>
-
-
-
 
 </body>
 

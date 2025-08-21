@@ -13,7 +13,6 @@
                 </ul>
             </div>
         @endif
-
         <form id="formActualizar" action="{{ route('admin.oncologicos.medicines.update', $lista->id) }}" method="POST"
             class="space-y-6">
             @csrf
@@ -32,7 +31,20 @@
                 <textarea name="description" rows="3"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-200 focus:outline-none">{{ old('description', $lista->description) }}</textarea>
             </div>
-
+            <div class="flex items-center">
+                <input type="hidden" name="active_brands" value="0">
+                <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="active_brands" value="1" class="sr-only peer"
+                        {{ old('active_brands', $lista->active_brands ?? false) ? 'checked' : '' }}>
+                    <div
+                        class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative
+                    after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                    after:bg-white after:border-gray-300 after:border after:rounded-full
+                    after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
+                    </div>
+                    <span class="ml-3 text-sm font-medium text-gray-700">Activar marcas</span>
+                </label>
+            </div>
             <!-- Tabla de medicamentos -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Medicamentos:</label>

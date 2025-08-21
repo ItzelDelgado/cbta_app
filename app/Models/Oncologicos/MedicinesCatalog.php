@@ -11,14 +11,19 @@ class MedicinesCatalog extends Model
 
     protected $table = 'medicines_catalog';
 
-    protected $fillable = ['denominacion',
-                            'presentacion',
-                            'state',
-                            'cantidad_medicamento',
-                            'volumen_diluyente',
-                            'conc_min',
-                            'conc_max',
-                            'legend',];
+    protected $fillable = [
+        'denominacion',
+        'denominacion_comercial',
+        'presentacion',
+        'state',
+        'cantidad_medicamento',
+        'volumen_diluyente',
+        'conc_min',
+        'conc_max',
+        'legend',
+        'lote',
+        'caducidad',
+    ];
 
     // Una medicina del catálogo puede estar en muchas configuraciones con precio personalizado
     public function medicineOncos()
@@ -35,5 +40,4 @@ class MedicinesCatalog extends Model
     {
         return $this->belongsToMany(AdministrationRoute::class, 'administration_route_medicine_catalog', 'medicine_catalog_id', 'administration_route_id');
     }
-
 }
