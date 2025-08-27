@@ -16,6 +16,8 @@ return new class extends Migration
             $table->foreignId('diluent_id')->constrained('diluents')->onDelete('cascade');
             $table->foreignId('medicine_catalog_id')->constrained('medicines_catalog')->onDelete('cascade');
             $table->timestamps();
+
+            $table->unique(['diluent_id', 'medicine_catalog_id']);
         });
 
     }

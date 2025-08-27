@@ -91,6 +91,11 @@
             margin-right: 0.5rem;
         }
 
+        .mx-2{
+            margin-left: 0.5rem;
+            margin-right: 1rem;
+        }
+
         .mt-8 {
             margin-top: 2rem;
         }
@@ -119,6 +124,10 @@
         .py-1 {
             padding-top: 0.25rem;
             padding-bottom: 0.25rem;
+        }
+
+        .pt-2{
+            padding-top: 0.5rem;
         }
 
         th {
@@ -211,7 +220,7 @@
     <div class="contenedor border-1">
         <!-- Contenedor principal con borde negro -->
         <div class="introduccion">
-            <table style="">
+            <table class="mt-2">
                 <tr>
                     <td style="width: 20%">
                         <img style="width: 10rem" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
@@ -238,70 +247,10 @@
         <table class="mx-1">
             <tr>
                 <td></td>
-                <td>Fecha de elaboración</td>
+                <td class="text-right px-1"><strong>Fecha de elaboración:</strong></td>
             </tr>
-            <tr>
-                <td><strong>LIBERACIÓN DE ÁREA</strong></td>
-                <td></td>
-            </tr>
+
         </table>
-        <div class="border-1 mx-1 px-1 py-1">
-            <table>
-                <tr>
-                    <td style="width: 80%"></td>
-                    <td style="width: 10%" class="border-1 text-center">Si</td>
-                    <td style="width: 10%" class="border-1 text-center">No</td>
-                </tr>
-                <tr>
-                    <td>¿El personal encargado de la preparación porta el uniforme correspondiente a la actividad a
-                        realizar?</td>
-                    <td class="border-1"></td>
-                    <td class="border-1"></td>
-                </tr>
-                <tr>
-                    <td>¿El área de cuarto de mezclas y aislador se encuentran limpios?</td>
-                    <td class="border-1"></td>
-                    <td class="border-1"></td>
-                </tr>
-                <tr>
-                    <td>¿La zona de paso de material y de trabajo del aislador se encuentra libre de material?</td>
-                    <td class="border-1"></td>
-                    <td class="border-1"></td>
-                </tr>
-                <tr>
-                    <td>¿El cuarto de mezclas se encuentra libre de material y documentos ajenos a la mezcla en turno a
-                        preparar?</td>
-                    <td class="border-1"></td>
-                    <td class="border-1"></td>
-                </tr>
-                <tr>
-                    <td><strong>¿Se considera liberada el área para la preparación de la mezcla?</strong></td>
-                    <td class="border-1"></td>
-                    <td class="border-1"></td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td style="width: 5%">Sanitizante:</td>
-                    <td style="width: 5%" class="border-1"></td>
-                    <td style="width: 15%">Alcohol Isoopropílico</td>
-                    <td style="width: 5%" class="border-1"></td>
-                    <td style="width: 10%">Critical 0.2%</td>
-                    <td style="width: 60%"></td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td style="width: 50%"></td>
-                    <td style="width: 50%"></td>
-                </tr>
-            </table>
-            <table>
-                <td style="width: 20%">Selecciona con una ü lo que corresponda.</td>
-                <td style="width: 35%"></td>
-                <td style="width: 45%">Verifico requerimientos y liberó el área (nombre y firma)</td>
-            </table>
-        </div>
 
         <table class="mx-1">
             <tr>
@@ -343,33 +292,28 @@
             </table>
             <table>
                 <tr>
-                    <td style="width: 15%">Sitio de procedencia:</td>
+                    <td style="width: 15%">Hospital que solicita:</td>
                     <td class="border-b-1"></td>
                     <td style="width: 10%">Dosis/Volumen:</td>
-                    <td class="border-b-1">{{$mezcla->volumen_dilucion}} ML</td>
+                    <td class="border-b-1">{{ $mezcla->volumen_dilucion }} ML</td>
                 </tr>
             </table>
         </div>
         <p class="mx-1"><strong>MEZCLA ESTERIL ONCOLÓGICA </strong></p>
+
         <div class="border-1 mx-1 px-1 py-1">
             <table>
                 <tr>
-                    <td colspan="1">Hora de preparación:</td>
+                    <td colspan="1"><strong>Hora de preparación:</strong>
+                        {{ $fecha_preparacion ? \Carbon\Carbon::parse($fecha_preparacion)->format('H:i') : '—' }}</td>
                     <td colspan="2" class="border-b-1">
-                        {{ $fecha_preparacion ? \Carbon\Carbon::parse($fecha_preparacion)->format('H:i') : '—' }}
-                    </td>
-                    <td colspan="5"></td>
                 </tr>
             </table>
             <table>
                 <tr>
-                    <td style="width: 40%"></td>
-                    <td style="width: 20%" class="text-center"><strong>Medicamentos</strong></td>
-                    <td style="width: 40%"></td>
+                    <td class="text-center border-x-1 border-t-1"><strong>Medicamentos</strong></td>
                 </tr>
             </table>
-
-
             <table>
                 <tr>
                     <td class="border-1 text-center" style="width: 1%"><strong></strong></td>
@@ -389,22 +333,46 @@
                         <td class="border-1 border-t-0 text-center">
                             {{ $med->caducidad ? \Carbon\Carbon::parse($med->caducidad)->format('d/m/Y') : '—' }}</td>
                         <td class="border-1 border-t-0 text-center">{{ $med->denominacion_comercial ?? '—' }}</td>
-                        <td class="border-1 border-t-0 text-center">{{ $med->nombre_medicamento ?? '—' }}</td>
+                        <td class="border-1 border-t-0 text-center">{{ $med->denominacion ?? '—' }}</td>
                         <td class="border-1 border-t-0 text-center">{{ $med->presentacion ?? '—' }}</td>
                         <td class="border-1 border-t-0 text-center">{{ $med->dosis ?? '—' }}</td>
                         <td class="border-1 border-t-0 text-center">{{ $med->dosis_ml ?? '—' }} mL</td>
                     </tr>
                 @endforeach
             </table>
-
             <table>
                 <tr>
-                    <td colspan="6"></td>
-                    <td colspan="1">Contenedor y volumen final: {{$mezcla->volumen_dilucion}} ML</td>
-                    <td colspan="1"></td>
+                    <td class="text-right border-x-1 border-b-1"><strong>Contenedor y volumen final: {{ $mezcla->volumen_dilucion }}
+                            ML</strong></td>
+                </tr>
+            </table>
+
+            <table class="mt-2">
+                <tr>
+                    <td class="border-1 text-center"><strong>Solución y volumen</strong></td>
                 </tr>
                 <tr>
-                    <td colspan="8" style="text-align: center"><strong>Equipo de infusión/Infusor</strong></td>
+                    <td class="border-1 text-center"><em>Verificar que los lotes y caduciodades coincidan con los
+                            medicamentos
+                            entregados</em></td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="border-x-1 border-b-1 text-center"><strong>1</strong></td>
+                    <td class="border-x-1 border-b-1 text-center"><strong>No. de lote</strong></td>
+                    <td class="border-x-1 border-b-1 text-center"><strong>Caducidad</strong></td>
+                    <td class="border-x-1 border-b-1 text-center"><strong>Denominación comercial</strong></td>
+                    <td class="border-x-1 border-b-1 text-center"><strong>Deniminación genética</strong></td>
+                    <td class="border-x-1 border-b-1 text-center"><strong>Presentación</strong></td>
+                    <td class="border-x-1 border-b-1 text-center"><strong>Volumen total</strong></td>
+                    <td class="border-x-1 border-b-1 text-center"><strong>Volumen</strong></td>
+                </tr>
+            </table>
+
+            <table class="mt-2">
+                <tr>
+                    <td class="border-x-1 border-t-1" colspan="8" style="text-align: center"><strong>Equipo de infusión/Infusor</strong></td>
                 </tr>
                 <tr>
                     <td rowspan="2" class="border-1 text-center"><strong>1</strong></td>
@@ -429,77 +397,27 @@
             </table>
             <table>
                 <tr>
-                    <td style="width: 5%">Reconstituir:</td>
-                    <td class="border-b-1"></td>
-                    <td></td>
-                </tr>
-            </table>
-
-            <table>
-                <tr>
-                    <td style="width: 5%">Extraer:</td>
-                    <td class="border-b-1" style="width: 10%"></td>
-                    <td style="width: 30%">Dx 5% / CS 0.9% / SH / Agua inyectable</td>
-                    <td style="width: 15%"></td>
-                    <td style="width: 15%">Dx=5% dextrosa 5%</td>
-                    <td></td>
-                    <td style="width: 15%">SH=sln. Hartman</td>
-                    <td></td>
+                    <td style="">Extraer:</td>
                 </tr>
             </table>
             <table>
                 <tr>
                     <td style="width: 5%">Agregar:</td>
-                    <td class="border-b-1"></td>
-                    <td style="width: 5%"></td>
-                    <td style="width: 20%">CS=Cloruro de sodio 0.9%</td>
-                    <td></td>
                 </tr>
-
-            </table>
-            <table>
                 <tr>
-                    <td style="width: 5%">Cálculos:</td>
-                    <td style="width: 10%" class="border-b-1"></td>
-                    <td style="width: 6%">UL mg /</td>
-                    <td style="width: 10%" class="border-b-1"></td>
-                    <td style="width: 3%">ml = </td>
-                    <td style="width: 10%" class="border-b-1"></td>
-                    <td style="width: 50%"></td>
+                    <td>Leyenda de protección</td>
                 </tr>
-                {{-- <tr>
-                <td>Selecciona encerrando en un circulo la solución y las unidades correspondientes.</td>
-                <td></td>
-            </tr> --}}
             </table>
         </div>
-        <table class="mt-8">
+        <table class="mx-2">
             <tr>
-                <td style="width: 5%"></td>
-                <td style="width: 26.66%" class="border-b-1"></td>
-                <td style="width: 5%"></td>
-                <td style="width: 26.66%" class="border-b-1"></td>
-                <td style="width: 5%"></td>
-                <td style="width: 26.66%" class="border-b-1"></td>
-                <td style="width: 5%"></td>
+                <td>Recepción y validación:</td>
             </tr>
             <tr>
-                <td style="width: 5%"></td>
-                <td style="width: 26.66%" class="text-center">Elaboró</td>
-                <td style="width: 5%"></td>
-                <td style="width: 26.66%" class="text-center">Validó</td>
-                <td style="width: 5%"></td>
-                <td style="width: 26.66%" class="text-center">Preparó</td>
-                <td style="width: 5%"></td>
+                <td>Preparación</td>
             </tr>
             <tr>
-                <td></td>
-                <td class="text-center">Nombre/sello y forma</td>
-                <td></td>
-                <td class="text-center">Nombre/sello y firma</td>
-                <td></td>
-                <td class="text-center">Nombre/sello y firma</td>
-                <td></td>
+                <td>Liberación:</td>
             </tr>
         </table>
 

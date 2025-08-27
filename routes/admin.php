@@ -10,6 +10,8 @@ use App\Http\Controllers\Admin\UserController;
 use App\Models\Solicitud;
 use Illuminate\Support\Facades\Route; //Importamos para generar nuestras rutas.
 use App\Exports\SolicitudesExport;
+use App\Http\Controllers\Admin\Oncologicos\DiluentController;
+use App\Http\Controllers\Admin\Oncologicos\DiluentPresentationController;
 use App\Http\Controllers\Admin\Oncologicos\MedicineCatalogController;
 use App\Http\Controllers\Admin\Oncologicos\MedicineController as OncologicosMedicineController;
 use App\Http\Controllers\Admin\Oncologicos\MezclaController;
@@ -151,6 +153,67 @@ Route::get('oncologicos/mezclas/remision/{solicitud}', [OncologicosSolicitudCont
     ->middleware(['can:oncologicos_mezclas_index']);
 
 
+//DILUENTS
+// Listado
+Route::get('oncologicos/diluents', [DiluentController::class, 'index'])
+    ->name('oncologicos.diluents.index')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+// Crear
+Route::get('oncologicos/diluents/crear', [DiluentController::class, 'create'])
+    ->name('oncologicos.diluents.create')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+Route::post('oncologicos/diluents', [DiluentController::class, 'store'])
+    ->name('oncologicos.diluents.store')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+// Editar
+Route::get('oncologicos/diluents/{diluent}/editar', [DiluentController::class, 'edit'])
+    ->name('oncologicos.diluents.edit')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+Route::put('oncologicos/diluents/{diluent}', [DiluentController::class, 'update'])
+    ->name('oncologicos.diluents.update')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+// Eliminar
+Route::delete('oncologicos/diluents/{diluent}', [DiluentController::class, 'destroy'])
+    ->name('oncologicos.diluents.destroy')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+//END DILUENTS
+
+//SUBCRUD DE DILUYENTES
+// LISTAR presentaciones de un diluyente
+Route::get('oncologicos/diluents/{diluent}/presentaciones', [DiluentPresentationController::class, 'index'])
+    ->name('oncologicos.diluent_presentations.index')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+// CREAR
+Route::get('oncologicos/diluents/{diluent}/presentaciones/crear', [DiluentPresentationController::class, 'create'])
+    ->name('oncologicos.diluent_presentations.create')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+Route::post('oncologicos/diluents/{diluent}/presentaciones', [DiluentPresentationController::class, 'store'])
+    ->name('oncologicos.diluent_presentations.store')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+// EDITAR
+Route::get('oncologicos/diluents/{diluent}/presentaciones/{presentation}/editar', [DiluentPresentationController::class, 'edit'])
+    ->name('oncologicos.diluent_presentations.edit')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+Route::put('oncologicos/diluents/{diluent}/presentaciones/{presentation}', [DiluentPresentationController::class, 'update'])
+    ->name('oncologicos.diluent_presentations.update')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+// ELIMINAR
+Route::delete('oncologicos/diluents/{diluent}/presentaciones/{presentation}', [DiluentPresentationController::class, 'destroy'])
+    ->name('oncologicos.diluent_presentations.destroy')
+    ->middleware(['can:oncologicos_mezclas_index']);
+
+//END SUBCRUDDILUYENTES
 
 Route::resource('oncologicos/medicines/catalog', MedicineCatalogController::class)
     ->middleware(['can:medicamentos_oncologicos'])

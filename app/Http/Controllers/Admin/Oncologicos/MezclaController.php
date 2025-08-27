@@ -98,7 +98,7 @@ class MezclaController extends Controller
             $diluyentes = DB::table('diluent_medicine_catalog')
                 ->join('diluents', 'diluent_medicine_catalog.diluent_id', '=', 'diluents.id')
                 ->where('diluent_medicine_catalog.medicine_catalog_id', $med->catalog_id)
-                ->select('diluents.id', 'diluents.name')
+                ->select('diluents.id', 'diluents.denominacion_generica')
                 ->get();
 
             $vias = DB::table('administration_route_medicine_catalog')
@@ -162,7 +162,7 @@ class MezclaController extends Controller
             $diluyentes = DB::table('diluent_medicine_catalog')
                 ->join('diluents', 'diluent_medicine_catalog.diluent_id', '=', 'diluents.id')
                 ->where('diluent_medicine_catalog.medicine_catalog_id', $med->catalog_id)
-                ->select('diluents.id', 'diluents.name')
+                ->select('diluents.id', 'diluents.denominacion_generica')
                 ->get();
 
             $vias = DB::table('administration_route_medicine_catalog')
@@ -436,13 +436,14 @@ class MezclaController extends Controller
             ->select(
                 'mc.lote',                                 // <- desde catálogo
                 'mc.caducidad',                            // <- desde catálogo
-                'mc.denominacion as denominacion_comercial',
+                'mc.denominacion',
+                'mc.denominacion_comercial',
                 'mc.presentacion',
                 'mm.dosis',
                 'mm.dosis_ml',
                 'mm.precio_unitario',
                 'mm.nombre_medicamento',
-                'd.name as diluyente',
+                'd.denominacion_generica as diluyente',
                 'ar.name as via'
             )
             ->get();
