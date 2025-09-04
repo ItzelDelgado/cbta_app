@@ -25,8 +25,13 @@ class MedicineCatalogController extends Controller
      */
     public function create()
     {
-        $diluents = Diluent::all();
-        $routes = AdministrationRoute::all();
+        // DILUYENTES: con presentaciones ACTIVAS ordenadas por volumen
+        $diluents = Diluent::with([
+            'presentations' => fn($q) => $q->where('is_active', true)->orderBy('volume_ml')
+        ])->orderBy('denominacion_generica')->get(['id', 'denominacion_generica']);
+
+        // VÍAS DE ADMINISTRACIÓN
+        $routes = AdministrationRoute::orderBy('name')->get(['id', 'name']);
 
         return view('admin.oncologicos.catalog.create', compact('diluents', 'routes'));
     }
@@ -38,7 +43,7 @@ class MedicineCatalogController extends Controller
     {
         $request->validate([
             'denominacion'          => 'required|string|max:255',
-            'denominacion_comercial'=> 'required|string|max:255',
+            'denominacion_comercial' => 'required|string|max:255',
             'presentacion'          => 'required|string|max:255',
             'cantidad_medicamento'  => 'nullable|numeric|min:0',
             'volumen_diluyente'     => 'nullable|numeric|min:0',
@@ -90,12 +95,18 @@ class MedicineCatalogController extends Controller
     public function edit(string $id)
     {
         $medicamento = MedicinesCatalog::with(['diluents', 'administrationRoutes'])->findOrFail($id);
-        $diluents = Diluent::all();
-        $routes = AdministrationRoute::all();
 
-        // IDs relacionados
+        // DILUYENTES + presentaciones activas
+        $diluents = Diluent::with([
+            'presentations' => fn($q) => $q->where('is_active', true)->orderBy('volume_ml')
+        ])->orderBy('denominacion_generica')->get(['id', 'denominacion_generica']);
+
+        // VÍAS
+        $routes = AdministrationRoute::orderBy('name')->get(['id', 'name']);
+
+        // IDs relacionados (para marcar seleccionados en el form)
         $selectedDiluents = $medicamento->diluents->pluck('id')->toArray();
-        $selectedRoutes = $medicamento->administrationRoutes->pluck('id')->toArray();
+        $selectedRoutes   = $medicamento->administrationRoutes->pluck('id')->toArray();
 
         return view('admin.oncologicos.catalog.edit', compact(
             'medicamento',

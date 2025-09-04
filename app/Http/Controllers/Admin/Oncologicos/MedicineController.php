@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin\Oncologicos;
 
 use App\Http\Controllers\Controller;
-use App\Models\Oncologicos\Diluent;
 use App\Models\Oncologicos\MedicineList;
 use App\Models\Oncologicos\MedicineOnco;
 use App\Models\Oncologicos\MedicinesCatalog;
@@ -28,20 +27,10 @@ class MedicineController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        // Catálogo base (activos)
-        $catalogo = MedicinesCatalog::where('state', true)
-            ->get(['id', 'denominacion', 'presentacion']);
-
-        // Diluyentes con sus presentaciones activas (por si los ocupas en la vista/JS)
-        $diluentes = Diluent::with(['presentations' => function ($q) {
-            $q->where('is_active', true)->orderBy('volume_ml');
-        }])
-            ->orderBy('denominacion_generica')
-            ->get(['id', 'denominacion_generica']);
-
-        return view('admin.oncologicos.medicines.create', compact('catalogo', 'diluentes'));
+    public function create() { 
+        // Catálogo base (activos) 
+        $catalogo = MedicinesCatalog::where('state', true) ->get(['id', 'denominacion', 'presentacion']); 
+        return view('admin.oncologicos.medicines.create', compact('catalogo')); 
     }
 
     /**

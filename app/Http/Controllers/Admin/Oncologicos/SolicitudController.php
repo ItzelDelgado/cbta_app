@@ -31,7 +31,6 @@ class SolicitudController extends Controller
 
         // Construimos la consulta base
         $query = DB::table('medicine_oncos as mo')
-            // LEFT JOIN a la lista para que, si no hay lista o no hay precio en lista, no se caiga el join
             ->leftJoin('medicine_medicine_lists as mml', function ($join) use ($listaId) {
                 $join->on('mml.medicine_id', '=', 'mo.id');
                 if ($listaId) {
@@ -41,16 +40,15 @@ class SolicitudController extends Controller
             ->join('medicines_catalog as mc', 'mo.catalog_id', '=', 'mc.id')
             ->select(
                 'mo.id as id',
-                DB::raw('COALESCE(mml.precio, mo.precio) as precio'), // 👈 precio lista > precio base
-                'mc.lote',         // 👈 ahora desde catalog
-                'mc.caducidad',    // 👈 ahora desde catalog
+                DB::raw('COALESCE(mml.precio, mo.precio) as precio'),
+                'mc.lote',
+                'mc.caducidad',
                 'mc.denominacion',
                 'mc.presentacion',
                 'mc.id as catalog_id'
             );
 
-        // Si tienes lista asignada, filtra a los que están en esa lista.
-        // Si NO tienes lista, muestra todos los medicine_oncos (sin filtrar por mml).
+        // Si hay lista, limita a los que están en la lista
         if ($listaId) {
             $query->where('mml.medicine_list_id', $listaId);
         }
@@ -64,7 +62,10 @@ class SolicitudController extends Controller
             $diluyentes = DB::table('diluent_medicine_catalog')
                 ->join('diluents', 'diluent_medicine_catalog.diluent_id', '=', 'diluents.id')
                 ->where('diluent_medicine_catalog.medicine_catalog_id', $med->catalog_id)
-                ->select('diluents.id', 'diluents.name')
+                ->select(
+                    'diluents.id',
+                    DB::raw('diluents.denominacion_generica as name') // 👈 CAMBIO: antes diluents.name
+                )
                 ->get();
 
             $vias = DB::table('administration_route_medicine_catalog')
@@ -80,10 +81,11 @@ class SolicitudController extends Controller
         }
 
         return view('admin.oncologicos.solicitudes.create', [
-            'medicamentos'   => $medicamentos,
-            'infoAdicional'  => $infoAdicional, // ✅ Esto sí funciona con @json()
+            'medicamentos'  => $medicamentos,
+            'infoAdicional' => $infoAdicional, // ✅ Esto sí funciona con @json()
         ]);
     }
+
 
     public function store(Request $request)
     {

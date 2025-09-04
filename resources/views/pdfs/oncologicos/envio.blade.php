@@ -1,28 +1,29 @@
 @php
-    use Carbon\Carbon;
+use Carbon\Carbon;
 
-    // ---- Datos base de solicitud_oncos ----
-    $pacienteNombre = $solicitud->nombre_paciente ?? '—';
-    $fechaNac = $solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') : '—';
-    $edad = $solicitud->edad ?? ($solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento)->age : '—');
+// ---- Datos base de solicitud_oncos ----
+$pacienteNombre = $solicitud->nombre_paciente ?? '—';
+$fechaNac = $solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') : '—';
+$edad = $solicitud->edad ?? ($solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento)->age : '—');
 
-    // Sexo en solicitud_oncos es enum('M','F')
-    $sexo = match ($solicitud->sexo) {
-        'M' => 'Masculino',
-        'F' => 'Femenino',
-        default => '—',
-    };
+// Sexo en solicitud_oncos es enum('M','F')
+$sexo = match ($solicitud->sexo) {
+'M' => 'Masculino',
+'F' => 'Femenino',
+default => '—',
+};
 
-    $diagnostico = $solicitud->diagnostico ?? '—';
-    $servicio = $solicitud->servicio ?? '—';
-    $expediente = $solicitud->registro_paciente ?? '—';
-    $medico = $solicitud->nombre_medico ?? '—';
+$diagnostico = $solicitud->diagnostico ?? '—';
+$servicio = $solicitud->servicio ?? '—';
+$expediente = $solicitud->registro_paciente ?? '—';
+$medico = $solicitud->nombre_medico ?? '—';
+$observaciones = $solicitud->observaciones ?? '—';
 
-    // Domicilio cliente receptor (hospital del usuario)
-    $domicilioHospital = optional(optional($solicitud->user)->hospital)->adress ?? '—';
+// Domicilio cliente receptor (hospital del usuario)
+$domicilioHospital = optional(optional($solicitud->user)->hospital)->adress ?? '—';
 
-    // Contador filas de medicamentos
-    $contador = 1;
+// Contador filas de medicamentos
+$contador = 1;
 @endphp
 
 
@@ -305,11 +306,19 @@
                 <td class="border-1 border-r-0 px-1 text-center">{{ $medico }}</td>
             </tr>
         </table>
+        <table>
+            <tr>
+                <td class="border-b-1 px-1 bg-cbta text-center font-bold">Comentarios:</td>
+            </tr>
+            <tr>
+                <td class="border-b-1 border-t-0 px-1">{{ $observaciones }}</td>
+            </tr>
+        </table>
 
         <!-- Datos de las mezclas -->
         <table>
             <tr>
-                <td class="text-center">DATOS DE LAS MEZCLAS</td>
+                <td class=" px-1 bg-cbta text-center font-bold">DATOS DE LAS MEZCLAS</td>
             </tr>
         </table>
 
@@ -326,64 +335,64 @@
             </tr>
 
             @php
-                $contador = $contador ?? 1;
+            $contador = $contador ?? 1;
             @endphp
 
             @foreach ($mezclas as $mezcla)
-                @php
-                    // Fecha/hora de preparación (puedes ajustar si tienes un campo dedicado)
-                    $prep = $mezcla->created_at ? Carbon::parse($mezcla->created_at) : null;
-                    $limite = $prep ? $prep->copy()->addHours(48) : null;
+            @php
+            // Fecha/hora de preparación (puedes ajustar si tienes un campo dedicado)
+            $prep = $mezcla->created_at ? Carbon::parse($mezcla->created_at) : null;
+            $limite = $prep ? $prep->copy()->addHours(48) : null;
 
-                    $prepFmt = $prep ? $prep->format('d/m/Y - H:i') : '—';
-                    $limiteFmt = $limite ? $limite->format('d/m/Y - H:i') : '—';
+            $prepFmt = $prep ? $prep->format('d/m/Y - H:i') : '—';
+            $limiteFmt = $limite ? $limite->format('d/m/Y - H:i') : '—';
 
-                    $loteMezcla = $mezcla->lote ?? '—';
+            $loteMezcla = $mezcla->lote ?? '—';
 
-                    // Volumen correcto: volumen_dilucion de la mezcla
-                    $volumenDilucion = $mezcla->volumen_dilucion ?? null;
-                    $volumenFmt = is_numeric($volumenDilucion)
-                        ? rtrim(rtrim(number_format($volumenDilucion, 2, '.', ''), '0'), '.') . ' mL'
-                        : ($volumenDilucion ?:
-                        '—');
-                @endphp
+            // Volumen correcto: volumen_dilucion de la mezcla
+            $volumenDilucion = $mezcla->volumen_dilucion ?? null;
+            $volumenFmt = is_numeric($volumenDilucion)
+            ? rtrim(rtrim(number_format($volumenDilucion, 2, '.', ''), '0'), '.') . ' mL'
+            : ($volumenDilucion ?:
+            '—');
+            @endphp
 
-                @forelse($mezcla->medicamentos as $med)
-                    @php
-                        // Denominación desde el catálogo o nombre capturado
-                        $denom =
-                            optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
-                            ($med->nombre_medicamento ?? '—');
+            @forelse($mezcla->medicamentos as $med)
+            @php
+            // Denominación desde el catálogo o nombre capturado
+            $denom =
+            optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
+            ($med->nombre_medicamento ?? '—');
 
-                        // Dosis
-                        $dosis = isset($med->dosis)
-                            ? (is_numeric($med->dosis)
-                                ? rtrim(rtrim(number_format($med->dosis, 2, '.', ''), '0'), '.')
-                                : $med->dosis)
-                            : '—';
+            // Dosis
+            $dosis = isset($med->dosis)
+            ? (is_numeric($med->dosis)
+            ? rtrim(rtrim(number_format($med->dosis, 2, '.', ''), '0'), '.')
+            : $med->dosis)
+            : '—';
 
-                        // Diluyente
-                        $diluyente = optional($med->diluyente)->name ?? '—';
-                    @endphp
+            // Diluyente
+            $diluyente = optional($med->diluyente)->name ?? '—';
+            @endphp
 
-                    <tr>
-                        <td class="border-1 border-l-0 px-1 text-center">{{ $contador++ }}</td>
-                        <td class="border-1 px-1 text-center">{{ $denom }}</td>
-                        <td class="border-1 px-1 text-center">{{ $dosis }}</td>
-                        <td class="border-1 px-1 text-center">{{ $diluyente }}</td>
-                        {{-- Volumen de la mezcla --}}
-                        <td class="border-1 px-1 text-center">{{ $volumenFmt }}</td>
-                        <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
-                        <td class="border-1 px-1 text-center">{{ $prepFmt }}</td>
-                        <td class="border-1 border-r-0 px-1 text-center">{{ $limiteFmt }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td class="border-1 border-l-0 px-1 text-center" colspan="8">
-                            Sin medicamentos en esta mezcla.
-                        </td>
-                    </tr>
-                @endforelse
+            <tr>
+                <td class="border-1 border-l-0 px-1 text-center">{{ $contador++ }}</td>
+                <td class="border-1 px-1 text-center">{{ $denom }}</td>
+                <td class="border-1 px-1 text-center">{{ $dosis }}</td>
+                <td class="border-1 px-1 text-center">{{ $diluyente }}</td>
+                {{-- Volumen de la mezcla --}}
+                <td class="border-1 px-1 text-center">{{ $volumenFmt }}</td>
+                <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
+                <td class="border-1 px-1 text-center">{{ $prepFmt }}</td>
+                <td class="border-1 border-r-0 px-1 text-center">{{ $limiteFmt }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td class="border-1 border-l-0 px-1 text-center" colspan="8">
+                    Sin medicamentos en esta mezcla.
+                </td>
+            </tr>
+            @endforelse
             @endforeach
         </table>
 
@@ -394,6 +403,7 @@
                 </td>
             </tr>
         </table>
+
 
         <table class="mt-4">
             <tr>
