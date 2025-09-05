@@ -27,7 +27,7 @@
                                     <option value="Frasco">Frasco</option>
                                     <option value="Bolsa">Bolsa</option>
                                     <option value="Jeringa">Jeringa</option>
-                                    <option value="Otro">Otro</option>
+                                    <option value="Otro">Infusor</option>
                                 </select>
                             </div>
 

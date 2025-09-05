@@ -423,10 +423,10 @@ class MezclaController extends Controller
 
     public function ordenPreparacion(Mezcla $mezcla)
     {
-        // Mezcla y solicitud asociada
-        $mezcla = Mezcla::with('solicitud')->findOrFail($mezcla->id);
+        // Mezcla + solicitud + hospital
+        $mezcla = Mezcla::with(['solicitud.user.hospital'])->findOrFail($mezcla->id);
 
-        // Medicamentos de la mezcla con info del catálogo (lote/caducidad vienen del catálogo)
+        // Medicamentos (ordenados por nombre genérico)
         $medicamentos = DB::table('mezcla_medicamentos as mm')
             ->join('medicine_oncos as mo', 'mm.medicamento_id', '=', 'mo.id')
             ->join('medicines_catalog as mc', 'mo.catalog_id', '=', 'mc.id')
@@ -434,49 +434,54 @@ class MezclaController extends Controller
             ->leftJoin('administration_routes as ar', 'mm.via_administracion_id', '=', 'ar.id')
             ->where('mm.mezcla_id', $mezcla->id)
             ->select(
-                'mc.lote',                                 // <- desde catálogo
-                'mc.caducidad',                            // <- desde catálogo
-                'mc.denominacion',
+                'mc.lote',
+                'mc.caducidad',
+                'mc.denominacion',              // genérica
                 'mc.denominacion_comercial',
                 'mc.presentacion',
                 'mm.dosis',
-                'mm.dosis_ml',
+                'mm.dosis_ml',                  // volumen del medicamento en mL
                 'mm.precio_unitario',
                 'mm.nombre_medicamento',
                 'd.denominacion_generica as diluyente',
                 'ar.name as via'
             )
-            ->get();
+            ->orderBy('mc.denominacion')        // ⬅️ ordenar alfabéticamente
+            ->get()
+            // Adjuntar el volumen total de la mezcla a cada item para el blade
+            ->map(function ($m) use ($mezcla) {
+                $m->volumen_total = $mezcla->volumen_dilucion; // mL totales de la mezcla
+                return $m;
+            });
 
-        // Fecha de preparación/limite (si no usas solicitud_aprobadas en onco, hacemos fallback)
+        // Fechas preparación/límite
         $aprobada = DB::table('solicitud_aprobadas')
             ->where('solicitud_id', $mezcla->solicitud_id)
             ->first();
 
         $fechaPreparacion = optional($aprobada)->fecha_hora_preparacion
             ? Carbon::parse($aprobada->fecha_hora_preparacion)
-            : Carbon::parse($mezcla->created_at);            // fallback
+            : Carbon::parse($mezcla->created_at);
 
         $fechaLimiteUso = optional($aprobada)->fecha_hora_limite_uso
             ? Carbon::parse($aprobada->fecha_hora_limite_uso)
-            : $fechaPreparacion->copy()->addHours(48);        // regla general
+            : $fechaPreparacion->copy()->addHours(48);
+
+        // Hospital (del usuario dueño de la solicitud)
+        $hospital = optional($mezcla->solicitud->user->hospital)->name ?? 'No asignado';
 
         $pdf = Pdf::loadView('pdfs.oncologicos.orden-de-preparacion', [
-            'mezcla'             => $mezcla,
-            'medicamentos'       => $medicamentos,
-            'fecha_preparacion'  => $fechaPreparacion,
-            'fecha_limite_uso'   => $fechaLimiteUso,
+            'mezcla'            => $mezcla,
+            'medicamentos'      => $medicamentos,
+            'fecha_preparacion' => $fechaPreparacion,
+            'fecha_limite_uso'  => $fechaLimiteUso,
+            'hospital'          => $hospital,
         ])->setPaper('letter', 'portrait');
-
-        // return ([
-        //     'mezcla' => $mezcla,
-        //     'medicamentos' => $medicamentos,
-        //     'fecha_preparacion' => $fechaPreparacion,
-        //     'fecha_limite_uso' => $fechaLimiteUso
-        // ]);
 
         return $pdf->stream("orden-preparacion-{$mezcla->id}.pdf");
     }
+
+
 
     public function inspeccion(Mezcla $mezcla)
     {

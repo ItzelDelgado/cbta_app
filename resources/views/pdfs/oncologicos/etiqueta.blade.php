@@ -172,14 +172,36 @@
                 </tr>
                 <tr>
                     <td class="px-1">Paciente: {{ $solicitud->nombre_paciente }}</td>
-                    <td class="px-1">F. Nac:
+                    <td class="px-1">
+                        F. Nac:
                         {{ $solicitud->fecha_nacimiento ? \Carbon\Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') : '—' }}
                     </td>
                 </tr>
                 <tr>
-                    <td class="px-1">Edad: {{ $solicitud->edad ?? '—' }}</td>
+                    <td class="px-1">
+                        Edad:
+                        @if($solicitud->fecha_nacimiento)
+                        @php
+                        $fnac = \Carbon\Carbon::parse($solicitud->fecha_nacimiento);
+                        $hoy = \Carbon\Carbon::now();
+                        $diff = $fnac->diff($hoy);
+                        if ($diff->y > 0) {
+                        $edad = $diff->y . ' años';
+                        } elseif ($diff->m > 0) {
+                        $edad = $diff->m . ' meses';
+                        } else {
+                        $edad = $diff->d . ' días';
+                        }
+                        @endphp
+                        {{ $edad }}
+                        @else
+                        —
+                        @endif
+                    </td>
                     <td class="px-1">Género: {{ $solicitud->sexo ?? '—' }}</td>
                 </tr>
+
+
                 <tr>
                     <td class="px-1">Médico: {{ $solicitud->nombre_medico }}</td>
                     <td class="px-1">No. Registro: {{ $solicitud->registro_paciente ?? '—' }}</td>
@@ -191,10 +213,10 @@
                     </td>
                 </tr>
                 @foreach ($medicamentos as $med)
-                    <tr>
-                        <td class="px-1 text-left">{{ $med->nombre }}</td>
-                        <td class="px-1 text-left">{{ $med->dosis }} mg</td>
-                    </tr>
+                <tr>
+                    <td class="px-1 text-left">{{ $med->nombre }}</td>
+                    <td class="px-1 text-left">{{ $med->dosis }} mg</td>
+                </tr>
                 @endforeach
 
                 <tr>
@@ -216,7 +238,11 @@
                     <td class="px-1">Usese antes de:
                         {{ $aprobada && $aprobada->fecha_hora_limite_uso ? \Carbon\Carbon::parse($aprobada->fecha_hora_limite_uso)->format('d/m/Y') : '—' }}
                     </td>
-                    <td class="px-1">Vel. de infusión: {{ $solicitud->velocidad_infusion ?? '—' }}</td>
+                    <td class="px-1">
+                        Vel. de infusión:
+                        {{ $mezcla->tiempo_infusion > 0 ? number_format($mezcla->volumen_dilucion / $mezcla->tiempo_infusion, 3, '.', '') : '—' }}
+                    </td>
+
                 </tr>
                 <tr>
                     <td class="px-1">a las:
@@ -228,7 +254,8 @@
             <table>
                 <tr>
                     <td style="border-top: 2px dotted black;" class="px-1">Leyenda de proyección:
-                        {{ $mezcla->leyenda ?? '—' }}</td>
+                        {{ $mezcla->leyenda ?? '—' }}
+                    </td>
                 </tr>
                 <tr>
                     <td class="px-1">Preparada por:</td>

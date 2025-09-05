@@ -27,6 +27,11 @@
             color: white;
         }
 
+        .bg-black{
+            background-color: black;
+            color: white;
+        }
+
         .title {
             text-align: center;
             font-weight: bold;
@@ -91,7 +96,7 @@
             margin-right: 0.5rem;
         }
 
-        .mx-2{
+        .mx-2 {
             margin-left: 0.5rem;
             margin-right: 1rem;
         }
@@ -126,7 +131,7 @@
             padding-bottom: 0.25rem;
         }
 
-        .pt-2{
+        .pt-2 {
             padding-top: 0.5rem;
         }
 
@@ -293,7 +298,7 @@
             <table>
                 <tr>
                     <td style="width: 15%">Hospital que solicita:</td>
-                    <td class="border-b-1"></td>
+                    <td class="border-b-1">{{ $hospital }}</td>
                     <td style="width: 10%">Dosis/Volumen:</td>
                     <td class="border-b-1">{{ $mezcla->volumen_dilucion }} ML</td>
                 </tr>
@@ -305,13 +310,14 @@
             <table>
                 <tr>
                     <td colspan="1"><strong>Hora de preparación:</strong>
-                        {{ $fecha_preparacion ? \Carbon\Carbon::parse($fecha_preparacion)->format('H:i') : '—' }}</td>
+                        {{ $fecha_preparacion ? \Carbon\Carbon::parse($fecha_preparacion)->format('H:i') : '—' }}
+                    </td>
                     <td colspan="2" class="border-b-1">
                 </tr>
             </table>
             <table>
                 <tr>
-                    <td class="text-center border-x-1 border-t-1"><strong>Medicamentos</strong></td>
+                    <td class="text-center border-x-1 border-t-1 bg-cbta "><strong>Medicamentos</strong></td>
                 </tr>
             </table>
             <table>
@@ -327,17 +333,18 @@
                 </tr>
 
                 @foreach ($medicamentos as $i => $med)
-                    <tr>
-                        <td class="border-1 border-t-0 text-center"><strong>{{ $i + 1 }}</strong></td>
-                        <td class="border-1 border-t-0 text-center">{{ $med->lote ?? '—' }}</td>
-                        <td class="border-1 border-t-0 text-center">
-                            {{ $med->caducidad ? \Carbon\Carbon::parse($med->caducidad)->format('d/m/Y') : '—' }}</td>
-                        <td class="border-1 border-t-0 text-center">{{ $med->denominacion_comercial ?? '—' }}</td>
-                        <td class="border-1 border-t-0 text-center">{{ $med->denominacion ?? '—' }}</td>
-                        <td class="border-1 border-t-0 text-center">{{ $med->presentacion ?? '—' }}</td>
-                        <td class="border-1 border-t-0 text-center">{{ $med->dosis ?? '—' }}</td>
-                        <td class="border-1 border-t-0 text-center">{{ $med->dosis_ml ?? '—' }} mL</td>
-                    </tr>
+                <tr>
+                    <td class="border-1 border-t-0 text-center"><strong>{{ $i + 1 }}</strong></td>
+                    <td class="border-1 border-t-0 text-center">{{ $med->lote ?? '—' }}</td>
+                    <td class="border-1 border-t-0 text-center">
+                        {{ $med->caducidad ? \Carbon\Carbon::parse($med->caducidad)->format('d/m/Y') : '—' }}
+                    </td>
+                    <td class="border-1 border-t-0 text-center">{{ $med->denominacion_comercial ?? '—' }}</td>
+                    <td class="border-1 border-t-0 text-center">{{ $med->denominacion ?? '—' }}</td>
+                    <td class="border-1 border-t-0 text-center">{{ $med->presentacion ?? '—' }}</td>
+                    <td class="border-1 border-t-0 text-center">{{ $med->dosis ?? '—' }}</td>
+                    <td class="border-1 border-t-0 text-center">{{ $med->dosis_ml ?? '—' }} mL</td>
+                </tr>
                 @endforeach
             </table>
             <table>
@@ -349,7 +356,7 @@
 
             <table class="mt-2">
                 <tr>
-                    <td class="border-1 text-center"><strong>Solución y volumen</strong></td>
+                    <td class="border-1 text-center bg-cbta "><strong>Solución y volumen</strong></td>
                 </tr>
                 <tr>
                     <td class="border-1 text-center"><em>Verificar que los lotes y caduciodades coincidan con los
@@ -358,21 +365,44 @@
                 </tr>
             </table>
             <table>
-                <tr>
-                    <td class="border-x-1 border-b-1 text-center"><strong>1</strong></td>
-                    <td class="border-x-1 border-b-1 text-center"><strong>No. de lote</strong></td>
-                    <td class="border-x-1 border-b-1 text-center"><strong>Caducidad</strong></td>
-                    <td class="border-x-1 border-b-1 text-center"><strong>Denominación comercial</strong></td>
-                    <td class="border-x-1 border-b-1 text-center"><strong>Deniminación genética</strong></td>
-                    <td class="border-x-1 border-b-1 text-center"><strong>Presentación</strong></td>
-                    <td class="border-x-1 border-b-1 text-center"><strong>Volumen total</strong></td>
-                    <td class="border-x-1 border-b-1 text-center"><strong>Volumen</strong></td>
-                </tr>
+                <thead>
+                    <tr>
+                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>#</strong></td>
+                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>No. de lote</strong></td>
+                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>Caducidad</strong></td>
+                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>Denominación comercial</strong></td>
+                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>Denominación genérica</strong></td>
+                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>Presentación</strong></td>
+                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>Volumen total</strong></td>
+                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>Volumen</strong></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($medicamentos as $m)
+                    <tr>
+                        <td class="text-center border-b-1 border-l-1">{{ $loop->iteration }}</td>
+                        <td class="text-center border-b-1 border-r-1">{{ $m->lote ?? '—' }}</td>
+                        <td class="text-center border-b-1 border-r-1">
+                            {{ $m->caducidad ? \Carbon\Carbon::parse($m->caducidad)->format('d/m/Y') : '—' }}
+                        </td>
+                        <td class="text-center border-b-1 border-r-1">{{ $m->denominacion_comercial ?? '—' }}</td>
+                        <td class="text-center border-b-1 border-r-1">{{ $m->denominacion ?? '—' }}</td>
+                        <td class="text-center border-b-1 border-r-1">{{ $m->presentacion ?? '—' }}</td>
+                        <td class="text-center border-b-1 border-r-1">
+                            {{ is_numeric($m->volumen_total) ? rtrim(rtrim(number_format($m->volumen_total,2,'.',''), '0'), '.') . ' mL' : '—' }}
+                        </td>
+                        <td class="text-center border-b-1 border-r-1">
+                            {{ is_numeric($m->dosis_ml) ? rtrim(rtrim(number_format($m->dosis_ml,2,'.',''), '0'), '.') . ' mL' : '—' }}
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
             </table>
+
 
             <table class="mt-2">
                 <tr>
-                    <td class="border-x-1 border-t-1" colspan="8" style="text-align: center"><strong>Equipo de infusión/Infusor</strong></td>
+                    <td class="border-x-1 border-t-1 bg-cbta " colspan="8" style="text-align: center"><strong>Equipo de infusión/Infusor</strong></td>
                 </tr>
                 <tr>
                     <td rowspan="2" class="border-1 text-center"><strong>1</strong></td>

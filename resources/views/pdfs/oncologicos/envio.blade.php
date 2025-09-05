@@ -3,9 +3,25 @@ use Carbon\Carbon;
 
 // ---- Datos base de solicitud_oncos ----
 $pacienteNombre = $solicitud->nombre_paciente ?? '—';
-$fechaNac = $solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') : '—';
-$edad = $solicitud->edad ?? ($solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento)->age : '—');
+$fechaNac = $solicitud->fecha_nacimiento
+? \Carbon\Carbon::parse($solicitud->fecha_nacimiento)
+: null;
 
+$edad = '—';
+if ($fechaNac) {
+$ahora = \Carbon\Carbon::now();
+$años = $fechaNac->diffInYears($ahora);
+$meses = $fechaNac->diffInMonths($ahora);
+$dias = $fechaNac->diffInDays($ahora);
+
+if ($años > 0) {
+$edad = $años . ' años';
+} elseif ($meses > 0) {
+$edad = $meses . ' meses';
+} else {
+$edad = $dias . ' días';
+}
+}
 // Sexo en solicitud_oncos es enum('M','F')
 $sexo = match ($solicitud->sexo) {
 'M' => 'Masculino',

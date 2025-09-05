@@ -306,7 +306,7 @@
                     <td style="width: 10%" class="text-center"><strong>Jeringa</strong></td>
                     <td style="width: 5%" class="border-1 text-center">{{ $mark($tipoCont === 'Jeringa') }}</td>
                     <td style="width: 10%" class="text-center"><strong>Otro</strong></td>
-                    <td style="width: 5%" class="border-1 text-center">{{ $mark($tipoCont === 'Otro') }}</td>
+                    <td style="width: 5%" class="border-1 text-center">{{ $mark($tipoCont === 'Infusor') }}</td>
                     <td style="width: 5%"></td>
                     <td style="width: 10%" class="border-b-1"></td>
                 </tr>
