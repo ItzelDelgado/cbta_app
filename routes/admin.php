@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route; //Importamos para generar nuestras rutas.
 use App\Exports\SolicitudesExport;
 use App\Http\Controllers\Admin\Oncologicos\DiluentController;
 use App\Http\Controllers\Admin\Oncologicos\DiluentPresentationController;
+use App\Http\Controllers\Admin\Oncologicos\InfusorController;
 use App\Http\Controllers\Admin\Oncologicos\MedicineCatalogController;
 use App\Http\Controllers\Admin\Oncologicos\MedicineController as OncologicosMedicineController;
 use App\Http\Controllers\Admin\Oncologicos\MezclaController;
@@ -223,3 +224,10 @@ Route::resource('oncologicos/medicines/catalog', MedicineCatalogController::clas
 Route::resource('oncologicos/medicines', OncologicosMedicineController::class)
     ->middleware(['can:medicamentos_oncologicos'])
     ->names('oncologicos.medicines');
+
+// RUTAS PARA ONCOLÓGICOS / INFUSORES
+Route::prefix('oncologicos')->name('oncologicos.')->group(function () {
+    Route::resource('infusores', InfusorController::class)
+        ->parameters(['infusores' => 'infusor']) // <-- fuerza {infusor}
+        ->names('infusores'); // genera index, create, store, show, edit, update, destroy
+});

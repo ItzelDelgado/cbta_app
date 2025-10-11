@@ -1135,6 +1135,12 @@ class SolicitudController extends Controller
             ->first();
 
 
+        // return [
+        //     'solicitud_detalles' => $solicitud_detalles,
+        //     'inputs_solicitud' => $inputs_solicitud,
+        //     'bolsa_eva' => $bolsa_eva,
+        //     'set_infusion' => $set_infusion
+        // ];
 
         //return $solicitud_detalles;
         $pdf = Pdf::loadView('pdfs.nutricionales.orden-de-preparacion', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion'));
@@ -1174,38 +1180,65 @@ class SolicitudController extends Controller
         $servicio_preparacion = Medicine::where('id', 38)->first();
         $pdf = Pdf::loadView('pdfs.nutricionales.remision', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion', 'servicio_preparacion'));
 
+        // return [
+        //     'solicitud_detalles' => $solicitud_detalles,
+        //     'inputs_solicitud' => $inputs_solicitud,
+        //     'bolsa_eva' => $bolsa_eva,
+        //     'set_infusion' => $set_infusion,
+        //     'servicio_preparacion' => $servicio_preparacion
+        // ];
+
         return $pdf->stream();
     }
 
     public function envio(Solicitud $solicitud)
     {
+        // Ítems de medicamento (excluye bolsa EVA category_id=6 y set de infusión id=40)
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
             ->whereNotIn('input_id', function ($query) {
                 $query->select('id')
                     ->from('inputs')
-                    ->where('category_id', '=', 6); // Ajusta el nombre de la columna si es diferente
+                    ->where('category_id', '=', 6);
             })
-            ->whereNotIn('input_id', [40]) // Excluir input_id 40
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->whereNotIn('input_id', [40])
+            ->with('input.medicine')
             ->get();
-        //print_r($inputs_solicitud);
-        //return $inputs_solicitud;
+
         $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
             ->find($solicitud->id);
 
+        // Bolsa EVA (category_id = 6)
         $bolsa_eva = SolicitudInput::where('solicitud_id', $solicitud['id'])
             ->whereIn('input_id', function ($query) {
                 $query->select('id')
                     ->from('inputs')
-                    ->where('category_id', '=', 6); // Solo incluir input_id asociados con category_id igual a 6
+                    ->where('category_id', '=', 6);
             })
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->with('input.medicine')
             ->first();
 
-        $pdf = Pdf::loadView('pdfs.nutricionales.envio', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva'));
+        // Set de infusión (id = 40) — opcional
+        $set_infusion = SolicitudInput::where('solicitud_id', $solicitud['id'])
+            ->where('input_id', 40)
+            ->with('input.medicine')
+            ->first();
 
+        // Servicio de preparación (Medicine id = 38)
+        $servicio_preparacion = Medicine::where('id', 38)->first();
+
+        // Enviar TODO al Blade de envío
+        $pdf = Pdf::loadView(
+            'pdfs.nutricionales.envio',
+            compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion', 'servicio_preparacion')
+        );
+
+        // ⚠️ Evita hacer un return antes del stream si quieres generar el PDF:
         return $pdf->stream();
+
+        // Si estás depurando y quieres ver los datos en JSON, comenta la línea anterior y usa:
+        // return compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion', 'servicio_preparacion');
     }
+
 
     public function etiqueta(Solicitud $solicitud)
     {
@@ -1221,10 +1254,10 @@ class SolicitudController extends Controller
             ->get();
 
         //return $inputs_solicitud;
-        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'input.medicine','user.hospital')
+        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'input.medicine', 'user.hospital')
             ->find($solicitud->id);
 
-    //  return $solicitud_detalles;
+        //  return $solicitud_detalles;
         $customPaper = [0, 0, 368.50, 255.12]; // 9cm x 13cm en puntos
         $pdf = Pdf::loadView('pdfs.nutricionales.etiqueta', \compact('solicitud_detalles', 'inputs_solicitud'))
             ->setPaper($customPaper, 'landscape');
@@ -1238,5 +1271,4 @@ class SolicitudController extends Controller
     {
         return Excel::download(new SolicitudesExport, 'solicitudes.xlsx');
     }
-
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Oncologicos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Oncologicos\InspeccionMezcla;
 use App\Models\Oncologicos\MedicineOnco;
 use App\Models\Oncologicos\Mezcla;
 use App\Models\Oncologicos\MezclaMedicamento;
@@ -130,7 +131,7 @@ class MezclaController extends Controller
         $user      = Auth::user();
         $listaId   = $user->medicine_list_id; // puede ser null
 
-        // Base: medicine_oncos (mo) + catalog (mc) y LEFT JOIN a la lista (mml)
+        // Base: mo + mc y LEFT JOIN a la lista (mml)
         $query = DB::table('medicine_oncos as mo')
             ->join('medicines_catalog as mc', 'mo.catalog_id', '=', 'mc.id')
             ->leftJoin('medicine_medicine_lists as mml', function ($join) use ($listaId) {
@@ -142,19 +143,24 @@ class MezclaController extends Controller
             ->select(
                 'mo.id as id',
                 DB::raw('COALESCE(mml.precio, mo.precio) as precio'), // precio de lista > precio base
-                'mc.lote',        // <- AHORA desde catalog
-                'mc.caducidad',   // <- AHORA desde catalog
+                'mc.lote',
+                'mc.caducidad',
                 'mc.denominacion',
                 'mc.presentacion',
-                'mc.id as catalog_id'
+                'mc.id as catalog_id',
+                // NUEVO: bandera para habilitar infusor en el front
+                'mc.requires_infusor as requires_infusor'
             );
 
-        // Si hay lista asignada, limita a los meds de la lista
         if ($listaId) {
             $query->where('mml.medicine_list_id', $listaId);
         }
 
-        $medicamentos = $query->get();
+        // Normalizamos requires_infusor a int
+        $medicamentos = $query->get()->map(function ($m) {
+            $m->requires_infusor = (int) ($m->requires_infusor ?? 0);
+            return $m;
+        });
 
         // Cargar diluyentes y vías por catálogo
         $infoAdicional = [];
@@ -162,7 +168,10 @@ class MezclaController extends Controller
             $diluyentes = DB::table('diluent_medicine_catalog')
                 ->join('diluents', 'diluent_medicine_catalog.diluent_id', '=', 'diluents.id')
                 ->where('diluent_medicine_catalog.medicine_catalog_id', $med->catalog_id)
-                ->select('diluents.id', 'diluents.denominacion_generica')
+                ->select(
+                    'diluents.id',
+                    DB::raw('diluents.denominacion_generica as name') // homologa a "name"
+                )
                 ->get();
 
             $vias = DB::table('administration_route_medicine_catalog')
@@ -172,23 +181,40 @@ class MezclaController extends Controller
                 ->get();
 
             $infoAdicional[$med->id] = [
-                'denominacion' => $med->denominacion,
-                'presentacion' => $med->presentacion,
-                'lote'         => $med->lote,
-                'caducidad'    => $med->caducidad,
-                'precio'       => $med->precio,
-                'diluyentes'   => $diluyentes,
-                'vias'         => $vias,
+                'denominacion'     => $med->denominacion,
+                'presentacion'     => $med->presentacion,
+                'lote'             => $med->lote,
+                'caducidad'        => $med->caducidad,
+                'precio'           => $med->precio,
+                'diluyentes'       => $diluyentes,
+                'vias'             => $vias,
+                // NUEVO: útil si el JS prefiere consultarlo aquí
+                'requires_infusor' => (int) $med->requires_infusor,
             ];
         }
 
-        return view('admin.oncologicos.mezclas.edit', compact('mezcla', 'solicitud', 'medicamentos', 'infoAdicional'));
+        // NUEVO: lista de infusores activos para el <select>
+        $infusors = DB::table('infusors')
+            ->select('id', 'nombre_generico', 'nombre_comercial')
+            ->where('is_active', true)
+            ->orderBy('nombre_generico')
+            ->orderBy('nombre_comercial')
+            ->get();
+
+        return view('admin.oncologicos.mezclas.edit', [
+            'mezcla'        => $mezcla,
+            'solicitud'     => $solicitud,
+            'medicamentos'  => $medicamentos,
+            'infoAdicional' => $infoAdicional,
+            'infusors'      => $infusors, // <-- para el script (set/infusor)
+        ]);
     }
+
 
 
     public function update(Request $request, $id)
     {
-        // Helpers internos
+        // ---------- Helpers internos ----------
         $generarLotePorMezcla = function (Mezcla $mezcla) {
             if ($mezcla->lote) return; // no sobreescribir si ya existe
 
@@ -197,7 +223,7 @@ class MezclaController extends Controller
             // Consecutivo diario para LOTES: cuenta mezclas del día con lote ya asignado
             $conteoHoy = Mezcla::whereDate('created_at', $hoy)
                 ->whereNotNull('lote')
-                ->lockForUpdate() // usar dentro de transacción
+                ->lockForUpdate()
                 ->count();
 
             $consecutivo = str_pad($conteoHoy + 1, 3, '0', STR_PAD_LEFT);
@@ -239,11 +265,18 @@ class MezclaController extends Controller
             return $solicitud->remision;
         };
 
-        // Acciones rápidas
+        // ---------- Acciones rápidas ----------
         if ($request->accion === 'preparada') {
             $mezcla = Mezcla::with('solicitud')->findOrFail($id);
+            $user   = auth()->user();
 
-            DB::transaction(function () use ($mezcla, $generarLotePorMezcla, $asegurarRemisionPorSolicitud) {
+            // Obtén un nombre legible del usuario autenticado
+            $preparoNombre = $user?->name
+                ?? ($user?->nombre ?? null)
+                ?? $user?->email
+                ?? 'Usuario';
+
+            DB::transaction(function () use ($mezcla, $generarLotePorMezcla, $asegurarRemisionPorSolicitud, $preparoNombre) {
                 $mezcla->estado = 'preparada';
 
                 // 1) LOTE por mezcla
@@ -254,7 +287,7 @@ class MezclaController extends Controller
                     $remision = $asegurarRemisionPorSolicitud($mezcla->solicitud);
                     $mezcla->remision = $remision;
 
-                    // Poner solicitud en "enproceso" si corresponde
+                    // Poner solicitud en "enproceso" si al menos una mezcla ya fue preparada
                     if ($mezcla->solicitud->estado === 'pendiente') {
                         if ($mezcla->solicitud->mezclas()->where('estado', 'preparada')->exists()) {
                             $mezcla->solicitud->estado = 'enproceso';
@@ -268,19 +301,45 @@ class MezclaController extends Controller
 
             return redirect()
                 ->route('admin.oncologicos.mezclas.index', $mezcla->solicitud->id)
-                ->with('success', 'Mezcla marcada como preparada con lote (por mezcla) y remisión (por solicitud).');
+                ->with('success', 'Mezcla marcada como preparada. Se registró el responsable en la inspección.');
         }
 
         if ($request->accion === 'entregada') {
             $mezcla = Mezcla::with('solicitud')->findOrFail($id);
 
-            DB::transaction(function () use ($mezcla) {
+            // Nombre del usuario activo que libera
+            $user = auth()->user();
+            $liberoNombre = $user?->name
+                ?? ($user?->nombre ?? null)
+                ?? $user?->email
+                ?? 'Usuario';
+
+            DB::transaction(function () use ($mezcla, $liberoNombre) {
                 $mezcla->estado = 'entregada';
                 $mezcla->save();
 
-                // Si todas las mezclas están entregadas, finaliza
+                // Asegurar que exista 1 sola inspección por mezcla y actualizar libero_nombre
+                $inspeccion = InspeccionMezcla::firstOrCreate(
+                    ['mezcla_id' => $mezcla->id],
+                    [
+                        // mínimos para cumplir NOT NULL si nunca se creó antes
+                        'fecha_inspeccion' => now()->toDateString(),
+                        'hora_inspeccion'  => now()->format('H:i:s'),
+                        'reviso_nombre'    => '',
+                        'aprobo_nombre'    => '',
+                    ]
+                );
+
+                // Guardar quién liberó
+                $inspeccion->libero_nombre = $liberoNombre;
+                $inspeccion->save();
+
+                // Si todas las mezclas están entregadas, finaliza la solicitud
                 if ($mezcla->solicitud) {
-                    $todasEntregadas = $mezcla->solicitud->mezclas()->where('estado', '!=', 'entregada')->doesntExist();
+                    $todasEntregadas = $mezcla->solicitud->mezclas()
+                        ->where('estado', '!=', 'entregada')
+                        ->doesntExist();
+
                     if ($todasEntregadas) {
                         $mezcla->solicitud->estado = 'finalizada';
                         $mezcla->solicitud->save();
@@ -290,10 +349,10 @@ class MezclaController extends Controller
 
             return redirect()
                 ->route('admin.oncologicos.mezclas.index', $mezcla->solicitud->id)
-                ->with('success', 'Mezcla marcada como entregada.');
+                ->with('success', 'Mezcla marcada como entregada y liberador registrado.');
         }
 
-        // ----- Edición normal (sin tocar lote/remisión) -----
+        // ---------- Edición normal (sin tocar lote/remisión) ----------
         $request->validate([
             'mezcla_json'      => 'required|json',
             'paciente_nombre'  => 'required|string',
@@ -322,15 +381,51 @@ class MezclaController extends Controller
 
         DB::beginTransaction();
         try {
-            // 1) Mezcla
+            // ----- 1) Datos de la mezcla -----
             $volumenDilucion = (float) ($mezclaData['volumen_dilucion'] ?? 0);
             $tiempoInfusion  = $mezclaData['tiempo_infusion'] ?? null;
 
+            // Leer set/infusor desde el JSON
+            $setInfusion = !empty($mezclaData['set_infusion']);
+            $infusorId   = !empty($mezclaData['infusor_id']) ? (int)$mezclaData['infusor_id'] : null;
+
+            // Exclusión (si marcas set, no puede haber infusor)
+            if ($setInfusion) {
+                $infusorId = null;
+            }
+
+            // Validar infusor si aplica
+            if ($infusorId) {
+                $infusor = DB::table('infusors')->where('id', $infusorId)->where('is_active', true)->first();
+                if (!$infusor) {
+                    throw new \Exception("El infusor seleccionado no existe o no está activo.");
+                }
+
+                $hayMedQueAdmiteInfusor = false;
+                foreach (($mezclaData['medicamentos'] ?? []) as $m) {
+                    $mo = DB::table('medicine_oncos as mo')
+                        ->join('medicines_catalog as mc', 'mo.catalog_id', '=', 'mc.id')
+                        ->where('mo.id', (int)$m['medicamento_id'])
+                        ->select('mc.requires_infusor')
+                        ->first();
+                    if ($mo && (int)$mo->requires_infusor === 1) {
+                        $hayMedQueAdmiteInfusor = true;
+                        break;
+                    }
+                }
+                if (!$hayMedQueAdmiteInfusor) {
+                    throw new \Exception("Para seleccionar un infusor, la mezcla debe contener al menos un medicamento que lo admita.");
+                }
+            }
+
+            // Guardar mezcla
             $mezcla->volumen_dilucion = $volumenDilucion;
             $mezcla->tiempo_infusion  = $tiempoInfusion;
+            $mezcla->set_infusion     = $setInfusion;
+            $mezcla->infusor_id       = $infusorId;
             $mezcla->save();
 
-            // 2) Solicitud
+            // ----- 2) Datos de la solicitud -----
             if ($mezcla->solicitud) {
                 $mezcla->solicitud->nombre_paciente   = $request->paciente_nombre;
                 $mezcla->solicitud->servicio          = $request->servicio;
@@ -348,7 +443,7 @@ class MezclaController extends Controller
                 $mezcla->solicitud->save();
             }
 
-            // 3) Medicamentos
+            // ----- 3) Medicamentos (reconstrucción) -----
             $mezcla->medicamentos()->delete();
 
             foreach ($mezclaData['medicamentos'] as $med) {
@@ -361,13 +456,13 @@ class MezclaController extends Controller
 
                 $medicine = MedicineOnco::with('catalog')->find($medicamentoId);
                 if (!$medicine || !$medicine->catalog) {
-                    throw new Exception("No se encontró información del catálogo para el medicamento ID {$medicamentoId}.");
+                    throw new \Exception("No se encontró información del catálogo para el medicamento ID {$medicamentoId}.");
                 }
                 $catalog = $medicine->catalog;
 
                 $concentracion = $volumenDilucion > 0 ? $dosis / $volumenDilucion : 0;
                 if ($concentracion < (float)$catalog->conc_min || $concentracion > (float)$catalog->conc_max) {
-                    throw new Exception("La concentración de '{$catalog->denominacion}' está fuera del rango permitido ({$catalog->conc_min} - {$catalog->conc_max}). Dosis: {$dosis}, Volumen: {$volumenDilucion}.");
+                    throw new \Exception("La concentración de '{$catalog->denominacion}' está fuera del rango permitido ({$catalog->conc_min} - {$catalog->conc_max}). Dosis: {$dosis}, Volumen: {$volumenDilucion}.");
                 }
 
                 $dosisML = null;
@@ -387,25 +482,51 @@ class MezclaController extends Controller
                 ]);
             }
 
-            // Si la acción es "aprobar" no tocamos lote/remisión
+            // ----- 4) Aprobar (si se solicitó en edición normal) -----
             if ($request->accion === 'aprobar') {
                 $mezcla->estado = 'aprobada';
                 $mezcla->save();
+
+                // Nombre del usuario activo
+                $user = auth()->user();
+                $preparoNombre = $user?->name
+                    ?? ($user?->nombre ?? null)
+                    ?? $user?->email
+                    ?? 'Usuario';
+
+                // ✅ Crear inspección vacía si no existe y/o actualizar preparo_nombre
+                // Requisitos NO NULL de tu migración: fecha_inspeccion, hora_inspeccion, reviso_nombre, aprobo_nombre
+                // (el resto tiene default/nullable)
+                $inspeccion = InspeccionMezcla::firstOrCreate(
+                    ['mezcla_id' => $mezcla->id],
+                    [
+                        'fecha_inspeccion' => Carbon::today()->toDateString(),
+                        'hora_inspeccion'  => Carbon::now()->format('H:i:s'),
+                        // placeholders para cumplir NOT NULL; luego el modal los actualizará
+                        'reviso_nombre'    => '',
+                        'aprobo_nombre'    => '',
+                    ]
+                );
+
+                // Actualiza siempre el preparador con el usuario que aprobó
+                $inspeccion->preparo_nombre = $preparoNombre;
+                $inspeccion->save();
             }
+
 
             DB::commit();
 
             return redirect()
                 ->route('admin.oncologicos.mezclas.index', $mezcla->solicitud->id)
-                ->with('success', 'Mezcla y solicitud actualizadas correctamente.');
-        } catch (Exception $e) {
+                ->with('success', $request->accion === 'aprobar'
+                    ? 'Mezcla aprobada con lote (por mezcla) y remisión (por solicitud).'
+                    : 'Mezcla y solicitud actualizadas correctamente.');
+        } catch (\Exception $e) {
             DB::rollBack();
-
-            return redirect()
-                ->back()
-                ->withErrors(['error' => 'Error al actualizar la mezcla: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Error al actualizar la mezcla: ' . $e->getMessage()]);
         }
     }
+
 
 
     /**
@@ -423,8 +544,9 @@ class MezclaController extends Controller
 
     public function ordenPreparacion(Mezcla $mezcla)
     {
-        // Mezcla + solicitud + hospital
-        $mezcla = Mezcla::with(['solicitud.user.hospital'])->findOrFail($mezcla->id);
+        // Mezcla + solicitud + hospital + inspección
+        $mezcla = Mezcla::with(['solicitud.user.hospital', 'inspeccion'])
+            ->findOrFail($mezcla->id);
 
         // Medicamentos (ordenados por nombre genérico)
         $medicamentos = DB::table('mezcla_medicamentos as mm')
@@ -446,11 +568,10 @@ class MezclaController extends Controller
                 'd.denominacion_generica as diluyente',
                 'ar.name as via'
             )
-            ->orderBy('mc.denominacion')        // ⬅️ ordenar alfabéticamente
+            ->orderBy('mc.denominacion')
             ->get()
-            // Adjuntar el volumen total de la mezcla a cada item para el blade
             ->map(function ($m) use ($mezcla) {
-                $m->volumen_total = $mezcla->volumen_dilucion; // mL totales de la mezcla
+                $m->volumen_total = $mezcla->volumen_dilucion;
                 return $m;
             });
 
@@ -470,12 +591,22 @@ class MezclaController extends Controller
         // Hospital (del usuario dueño de la solicitud)
         $hospital = optional($mezcla->solicitud->user->hospital)->name ?? 'No asignado';
 
+        // Nombres desde inspección (si existen)
+        $aproboNombre  = optional($mezcla->inspeccion)->aprobo_nombre;
+        $revisoNombre  = optional($mezcla->inspeccion)->reviso_nombre;
+        $preparoNombre = optional($mezcla->inspeccion)->preparo_nombre;
+        $liberoNombre  = optional($mezcla->inspeccion)->libero_nombre;
+
         $pdf = Pdf::loadView('pdfs.oncologicos.orden-de-preparacion', [
             'mezcla'            => $mezcla,
             'medicamentos'      => $medicamentos,
             'fecha_preparacion' => $fechaPreparacion,
             'fecha_limite_uso'  => $fechaLimiteUso,
             'hospital'          => $hospital,
+            'aprobo_nombre'     => $aproboNombre,
+            'reviso_nombre'     => $revisoNombre,
+            'preparo_nombre'    => $preparoNombre,   // ⬅️ agregado
+            'libero_nombre'     => $liberoNombre,    // ⬅️ agregado
         ])->setPaper('letter', 'portrait');
 
         return $pdf->stream("orden-preparacion-{$mezcla->id}.pdf");
@@ -485,29 +616,18 @@ class MezclaController extends Controller
 
     public function inspeccion(Mezcla $mezcla)
     {
-        // Mezcla y solicitud relacionada
-        $mezcla = Mezcla::with('solicitud')->findOrFail($mezcla->id);
+        // Carga mezcla + solicitud + inspección (inspección llega con booleans reales por los casts)
+        $mezcla = Mezcla::with(['solicitud', 'inspeccion'])->findOrFail($mezcla->id);
 
-        // Buscar inspección asociada
-        $inspeccion = DB::table('inspeccion_mezclas')
-            ->where('mezcla_id', $mezcla->id)
-            ->first();
-
-        // Preparar PDF
         $pdf = Pdf::loadView('pdfs.oncologicos.inspeccion', [
-            'mezcla' => $mezcla,
-            'solicitud' => $mezcla->solicitud,
-            'inspeccion' => $inspeccion,
-        ]);
-
-        // return ([
-        //     'mezcla' => $mezcla,
-        //     'solicitud' => $mezcla->solicitud,
-        //     'inspeccion' => $inspeccion
-        // ]);
+            'mezcla'      => $mezcla,
+            'solicitud'   => $mezcla->solicitud,
+            'inspeccion'  => $mezcla->inspeccion, // <- ya es el modelo, no Query Builder
+        ])->setPaper('letter', 'portrait');
 
         return $pdf->stream("inspeccion-mezcla-{$mezcla->id}.pdf");
     }
+
 
     public function etiqueta(Mezcla $mezcla)
     {

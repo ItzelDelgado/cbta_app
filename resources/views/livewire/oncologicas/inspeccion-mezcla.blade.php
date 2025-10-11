@@ -91,23 +91,26 @@
                             <div>
                                 <label for="observaciones"
                                     class="block text-sm font-medium text-gray-700">Observaciones</label>
-                                <textarea wire:model.defer="observaciones" id="observaciones" rows="3"
+                                <textarea wire:model.defer="observaciones" id="observaciones" rows="3" placeholder="N.A."
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200"></textarea>
-                            </div>
 
+                            </div>
                             <div>
-                                <label for="reviso_nombre" class="block text-sm font-medium text-gray-700">Nombre de
-                                    quien revisó</label>
+                                <label for="reviso_nombre"
+                                    class="block text-sm font-medium text-gray-700">Inspeccionó</label>
                                 <input type="text" wire:model.defer="reviso_nombre" id="reviso_nombre"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200" />
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200 bg-gray-100"
+                                    readonly />
                             </div>
 
                             <div>
-                                <label for="aprobo_nombre" class="block text-sm font-medium text-gray-700">Nombre de
-                                    quien aprobó</label>
+                                <label for="aprobo_nombre"
+                                    class="block text-sm font-medium text-gray-700">Aprobó</label>
                                 <input type="text" wire:model.defer="aprobo_nombre" id="aprobo_nombre"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200" />
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200 bg-gray-100"
+                                    readonly />
                             </div>
+
                         </div>
                     </div>
                 </div>

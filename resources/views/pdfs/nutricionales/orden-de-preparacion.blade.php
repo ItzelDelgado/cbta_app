@@ -144,9 +144,8 @@
 
     <div class="contenedor">
         <!-- Contenedor principal con borde negro -->
-        <div class="introduccion"
-            style="border: 1px solid black; border-bottom: none; ">
-            <table style="">
+        <div class="introduccion" style="border: 1px solid black; border-bottom: none; ">
+            <table>
                 <tr>
                     <td style="width: 20%">
                         <img style="width: 10rem" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
@@ -178,63 +177,8 @@
                         <span>{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_aprobada['created_at'])) }}</span>
                     </td>
                 </tr>
-                <tr>
-                    {{-- <td style="border: none; margin:0; padding: 0 8px;"><strong>LIBERACIÓN DE ÁREA</strong></td> --}}
-                </tr>
             </table>
-            {{--<table class="liberacion-area" style="margin-bottom: 0.3rem;">
-                <tr>
-                    <td style="border: none;"></td>
-                    <td style="border-button: none">Si</td>
-                    <td style="border-button: none; border-right: none">No</td>
-                </tr>
-                <tr>
-                    <td style="border: none">El personal encargado de la preparación porta el uniforme correspondiente a
-                        la
-                        actividad a realizar?</td>
-                    <td></td>
-                    <td style="border-right: none"></td>
-                </tr>
-                <tr>
-                    <td style="border: none;">El área de preparación y campana de seguridad biólogica se encuentran
-                        limpios?
-                    </td>
-                    <td></td>
-                    <td style="border-right: none"></td>
-                </tr>
-                <tr>
-                    <td style="border: none">¿La zona de paso de material y de trabajo de la CSB se encuentra libre de
-                        material?</td>
-                    <td></td>
-                    <td style="border-right: none"></td>
-                </tr>
-                <tr>
-                    <td style="border: none">¿El área de preparación se encuentra libre de material y documentos ajenos
-                        a la
-                        mezcla en turno a preparar?</td>
-                    <td></td>
-                    <td style="border-right: none"></td>
-                </tr>
-                <tr>
-                    <td style="border: none"><strong>¿Se considera liberada el área para la preparación de la
-                            mezcla?</strong></td>
-                    <td></td>
-                    <td style="border-right: none"></td>
-                </tr>
-            </table>
-            <table style="width: 500px; margin: 0; padding: 0">
-                <tr style="">
-                    <td style="border-bottom: none; border-left: none; padding: 2px 4px;">Sanitizante:</td>
-                    <td style="width: 20px; border-bottom: none; padding: 2px 4px;"></td>
-                    <td style="border-bottom: none; padding: 2px 4px;">Alcohol Isopropilico</td>
-                    <td style="width: 20px; border-bottom: none; padding: 2px 4px;"></td>
-                    <td style="border-bottom:none; padding: 2px 4px;">Critical 0.2%</td>
-                    <td style="width: 20px; border-bottom: none; padding: 2px 4px;"></td>
-                    <td style="border-bottom:none; padding: 2px 4px;">Glutaraldehído</td>
-                    <td style="width: 20px; border-bottom: none; padding: 2px 4px;"></td>
-                </tr>
-            </table>
-        </div> --}}
+
             <div style=" border: 1px solid black; margin-bottom: 0rem;">
                 <table style="padding: 0; margin: 0">
                     <tr style="margin: 0; padding: 0">
@@ -259,29 +203,30 @@
                             </strong><span>{{ $solicitud_detalles->solicitud_detail->nombre_medico }}</span></td>
                     </tr>
                     <tr style="padding: 0">
-                        <td style="border: none; padding: 0 auto;"><strong>Registro:</strong> <span
-                                style="">{{ $solicitud_detalles->solicitud_patient['registro'] }}</span></td>
-                        <td style="border: none; padding: 0 auto;"><strong>Diagnostico:</strong> <span style="">
+                        <td style="border: none; padding: 0 auto;"><strong>Registro:</strong>
+                            <span>{{ $solicitud_detalles->solicitud_patient['registro'] }}</span>
+                        </td>
+                        <td style="border: none; padding: 0 auto;"><strong>Diagnostico:</strong> <span>
                                 {{ $solicitud_detalles->solicitud_patient['diagnostico'] }}</span></td>
                     </tr>
                 </table>
                 <table style="width: 100%; border-collapse: collapse; padding-bottom: 2px">
                     <tr>
-                        <td style="border: none; padding: 0 auto;"><strong>Fecha de nacimiento:</strong> <span
-                                style="">{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</span>
+                        <td style="border: none; padding: 0 auto;"><strong>Fecha de nacimiento:</strong>
+                            <span>{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</span>
                         </td>
                         <td style="border: none; padding: 0 auto;"><strong>Genero:</strong>
-                            {{ $solicitud_detalles->solicitud_patient['sexo'] }}<span style=""></span>
+                            {{ $solicitud_detalles->solicitud_patient['sexo'] }}<span></span>
                         </td>
-                        <td style="border: none; padding: 0 auto;"><strong>Talla:</strong> <span style="">S/D</span>
+                        <td style="border: none; padding: 0 auto;"><strong>Talla:</strong> <span>S/D</span>
                         </td>
-                        <td style="border: none; padding: 0 auto;"><strong>Peso:</strong> <span style="">
+                        <td style="border: none; padding: 0 auto;"><strong>Peso:</strong> <span>
                                 {{ $solicitud_detalles->solicitud_patient['peso'] }}</span></td>
-                        <td style="border: none; padding: 0 auto;"><strong>SC:</strong> <span style="">S/D</span></td>
+                        <td style="border: none; padding: 0 auto;"><strong>SC:</strong> <span>S/D</span></td>
                     </tr>
                     <tr>
                         <td style="border: none; padding: 0 auto;" colspan="5"><strong>Sitio de procedencia:</strong>
-                            <span style="">{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</span>
+                            <span>{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</span>
                         </td>
 
                     </tr>
@@ -303,69 +248,80 @@
                         <th style="background: #D9E2F3;">Caducidad</th>
                     </tr>
                 </thead>
+                @php
+                    // Definimos el orden deseado
+                    $orden = [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,
+                            26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47];
+
+                    // Creamos un mapa para localizar rápido el índice de cada input_id
+                    $ordenMap = array_flip($orden);
+
+                    // Reordenamos la colección según ese mapa
+                    $inputs_ordenados = $inputs_solicitud->sortBy(function($item) use ($ordenMap) {
+                        return $ordenMap[$item->input_id] ?? PHP_INT_MAX; // si no está en la lista, lo manda al final
+                    });
+                @endphp
                 <tbody>
-                    @foreach ($inputs_solicitud->sortBy(fn($item) =>
-                    optional(optional($item->input)->medicine)->denominacion_generica ?? ''
-                    ) as $input_completo)
-                    @if ($input_completo->input_id != 40)
-                    <tr>
-                        <td style="text-align: center">{{ $loop->iteration }}</td>
-                        @php
-                        // Inicializamos la variable total
-                        $valor_final = 0;
+                    @foreach ($inputs_ordenados as $input_completo)
+                        @if ($input_completo->input_id != 40)
+                            <tr>
+                                <td style="text-align: center">{{ $loop->iteration }}</td>
+                                @php
+                                    // Inicializamos la variable total
+                                    $valor_final = 0;
 
-                        if (
-                        $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == null ||
-                        $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == 0
-                        ) {
-                        $valor_final = number_format($input_completo['valor_ml'], 3, '.', '');
-                        } else {
-                        $valor_final = number_format($input_completo['valor_sobrellenado'], 3, '.', '');
-                        }
-                        @endphp
+                                    if (
+                                        $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == null ||
+                                        $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == 0
+                                    ) {
+                                        $valor_final = number_format($input_completo['valor_ml'], 3, '.', '');
+                                    } else {
+                                        $valor_final = number_format($input_completo['valor_sobrellenado'], 3, '.', '');
+                                    }
+                                @endphp
 
-                        <td style="font-size: 9px">{{ $valor_final }} mL</td>
+                                <td style="font-size: 9px">{{ $valor_final }} mL</td>
 
-                        @php
-                        // Lógica para formatear el valor sin ceros innecesarios
-                        $valor_formateado =
-                        strpos($input_completo['valor'], '.') !== false
-                        ? number_format($input_completo['valor'], 3, '.', '')
-                        : number_format($input_completo['valor'], 0);
-                        @endphp
+                                @php
+                                    // Lógica para formatear el valor sin ceros innecesarios
+                                    $valor_formateado =
+                                        strpos($input_completo['valor'], '.') !== false
+                                            ? number_format($input_completo['valor'], 3, '.', '')
+                                            : number_format($input_completo['valor'], 0);
+                                @endphp
 
-                        <td style="font-size: 8px">
-                            {{ $valor_formateado }}
-                            {{ explode('/', $input_completo->input->unidad)[0] }}
-                        </td>
+                                <td style="font-size: 8px">
+                                    {{ $valor_formateado }}
+                                    {{ explode('/', $input_completo->input->unidad)[0] }}
+                                </td>
 
-                        <td style="font-size: 8px">
-                            @isset($input_completo->input->medicine)
-                            {{ $input_completo->input->medicine->denominacion_generica }}
-                            @else
-                            Medicamento no disponible
-                            @endisset
-                        </td>
-                        <td style="font-size: 8px">
-                            @isset($input_completo->input->medicine)
-                            {{ $input_completo->input->medicine->denominacion_comercial }}
-                            @else
-                            Medicamento no disponible
-                            @endisset
-                        </td>
-                        <td style="text-align: center">
-                            @isset($input_completo->input->medicine)
-                            {{ $input_completo->input->medicine->presentacion_ml }} ML
-                            @else
-                            Medicamento no disponible
-                            @endisset
-                        </td>
-                        <td style="font-size: 9px">{{ $input_completo['lote'] ?? '' }}</td>
-                        <td style="font-size: 9px">
-                            {{ $input_completo['caducidad'] ? date('d-m-Y', strtotime($input_completo['caducidad'])) : '' }}
-                        </td>
-                    </tr>
-                    @endif
+                                <td style="font-size: 8px">
+                                    @isset($input_completo->input->medicine)
+                                        {{ $input_completo->input->medicine->denominacion_generica }}
+                                    @else
+                                        Medicamento no disponible
+                                    @endisset
+                                </td>
+                                <td style="font-size: 8px">
+                                    @isset($input_completo->input->medicine)
+                                        {{ $input_completo->input->medicine->denominacion_comercial }}
+                                    @else
+                                        Medicamento no disponible
+                                    @endisset
+                                </td>
+                                <td style="text-align: center">
+                                    @isset($input_completo->input->medicine)
+                                        {{ $input_completo->input->medicine->presentacion_ml }} ML
+                                    @else
+                                        Medicamento no disponible
+                                    @endisset
+                                </td>
+                                <td style="font-size: 9px">{{ $input_completo['lote'] ?? '' }}</td>
+                                <td style="font-size: 9px">
+                                    {{ $input_completo['caducidad'] ? date('d-m-Y', strtotime($input_completo['caducidad'])) : '' }}
+                                </td>
+                            </tr>
+                        @endif
                     @endforeach
                 </tbody>
 
@@ -376,7 +332,8 @@
                             style="font-weight: bold;">{{ number_format($solicitud_detalles->solicitud_detail['volumen_total_final'], 2) }}
                             ml</span></td>
                     <td style="border-top: none; padding: 2px 8px; margin: 0">Contenedor <span
-                            style="font-weight: bold;">{{ $bolsa_eva->input->medicine->presentacion_ml }} mL</span></td>
+                            style="font-weight: bold;">{{ $bolsa_eva->input->medicine->presentacion_ml }} mL</span>
+                    </td>
                 </tr>
             </table>
             <p
@@ -395,8 +352,10 @@
                     <td style="padding: 2px 8px; margin: 0">1</td>
                     <td style="padding: 2px 8px; margin: 0">{{ $bolsa_eva->lote }}</td>
                     <td style="padding: 2px 8px; margin: 0">{{ date('d-m-Y', strtotime($bolsa_eva->caducidad)) }}</td>
-                    <td style="padding: 2px 8px; margin: 0">{{ $bolsa_eva->input->medicine->denominacion_comercial }}</td>
-                    <td style="padding: 2px 8px; margin: 0">{{ $bolsa_eva->input->medicine->denominacion_generica }}</td>
+                    <td style="padding: 2px 8px; margin: 0">{{ $bolsa_eva->input->medicine->denominacion_comercial }}
+                    </td>
+                    <td style="padding: 2px 8px; margin: 0">{{ $bolsa_eva->input->medicine->denominacion_generica }}
+                    </td>
                 </tr>
             </table>
             <p
@@ -415,30 +374,30 @@
                     <td style="padding: 2px 8px; margin: 0">1</td>
                     <td style="padding: 2px 8px; margin: 0">
                         @isset($set_infusion)
-                        {{ $set_infusion->lote }}
+                            {{ $set_infusion->lote }}
                         @else
-                        N/A
+                            N/A
                         @endisset
                     </td>
                     <td style="padding: 2px 8px; margin: 0">
                         @isset($set_infusion)
-                        {{ date('d-m-Y', strtotime($set_infusion->caducidad)) }}
+                            {{ date('d-m-Y', strtotime($set_infusion->caducidad)) }}
                         @else
-                        N/A
+                            N/A
                         @endisset
                     </td>
                     <td style="padding: 2px 8px; margin: 0">
                         @isset($set_infusion)
-                        {{ $set_infusion->input->medicine->denominacion_comercial }}
+                            {{ $set_infusion->input->medicine->denominacion_comercial }}
                         @else
-                        N/A
+                            N/A
                         @endisset
                     </td>
                     <td style="padding: 2px 8px; margin: 0">
                         @isset($set_infusion)
-                        {{ $set_infusion->input->medicine->denominacion_generica }}
+                            {{ $set_infusion->input->medicine->denominacion_generica }}
                         @else
-                        N/A
+                            N/A
                         @endisset
                     </td>
                 </tr>
@@ -456,12 +415,11 @@
                     </tr>
                 </table>
             </div>
-
         </div>
         {{-- separar hojas --}}
         <div class="salto-pagina contenedor border-1">
             <div class="introduccion">
-                <table style="">
+                <table>
                     <tr>
                         <td style="width: 20%">
                             <img style="width: 10rem" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
@@ -486,33 +444,11 @@
                 </tr>
             </table>
             <div>
-                {{-- <p style="margin: 0.5rem">VERIFICACIÓN DE ÁREAS</p>
-            <div class="border-1" style="padding: 0.5rem; margin: 0.5rem">
-                <table class="border-0">
-                    <tr>
-                        <td class="border-b-0 border-t-0 border-r-0 border-l-0"></td>
-                        <td class="border-b-0 text-center">SI</td>
-                        <td class="border-b-0 text-center">NO</td>
-                    </tr>
-                    <tr>
-                        <td class="border-b-0 border-t-0 border-r-0 border-l-0 text-right">¿El área se encuentra limpia
-                            y disponible?</td>
-                        <td class=""></td>
-                        <td class=""></td>
-                    </tr>
-                    <tr>
-                        <td class="border-b-0 border-t-0 border-r-0 border-l-0 text-right">¿El área se encuentra libre
-                            de material y documentos ajenos a la mezcla en turno a
-                            inspeccionar?
-                        </td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                </table>
-            </div> --}}
                 <table>
                     <tr>
-                        <td class="border-0" style="width: 50%">Fecha: <span>{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_aprobada['created_at'])) }}</span></td>
+                        <td class="border-0" style="width: 50%">Fecha:
+                            <span>{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_aprobada['created_at'])) }}</span>
+                        </td>
                         <td class="border-0 text-right" style="width: 50%">Hora de inspección: _____________ </td>
                     </tr>
                 </table>
@@ -562,7 +498,8 @@
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td colspan="3" class="text-center"><strong>Inspección física del set de infusión</strong></td>
+                                    <td colspan="3" class="text-center"><strong>Inspección física del set de
+                                            infusión</strong></td>
                                 </tr>
                                 <tr>
                                     <td>¿Set conectado?</td>
@@ -590,7 +527,8 @@
                         <td class="border-0">
                             <table style="width: 100%; border-collapse: collapse;">
                                 <tr>
-                                    <td colspan="3" class="text-center"><strong>Inspección del contenido</strong></td>
+                                    <td colspan="3" class="text-center"><strong>Inspección del contenido</strong>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td style="width: 60%"></td>
@@ -660,10 +598,13 @@
                                     <td class="border-0 border-t-1" style="margin: 0; padding: 0;"></td>
                                 </tr>
                                 <tr>
-                                    <td class="text-center border-0" style="margin: 0; padding: 0"><strong>Inspeccionó</strong></td>
+                                    <td class="text-center border-0" style="margin: 0; padding: 0">
+                                        <strong>Inspeccionó</strong>
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td class="text-center border-0" style="margin: 0; padding: 0">Sello o nombre y rúbrica</td>
+                                    <td class="text-center border-0" style="margin: 0; padding: 0">Sello o nombre y
+                                        rúbrica</td>
                                 </tr>
                                 <tr>
                                     <td class="border-0" style="margin: 0; padding: 0">.</td>
@@ -677,13 +618,17 @@
                                     <td class="border-0 border-t-1" style="margin: 0; padding: 0"></td>
                                 </tr>
                                 <tr>
-                                    <td class="text-center border-0" style="margin: 0; padding: 0"><strong>Aprobó</strong></td>
+                                    <td class="text-center border-0" style="margin: 0; padding: 0">
+                                        <strong>Aprobó</strong>
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td class="text-center border-0" style="margin: 0; padding: 0">Unidad de Calidad</td>
+                                    <td class="text-center border-0" style="margin: 0; padding: 0">Unidad de Calidad
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td class="text-center border-0" style="margin: 0; padding: 0">Nombre o sello y firma</td>
+                                    <td class="text-center border-0" style="margin: 0; padding: 0">Nombre o sello y
+                                        firma</td>
                                 </tr>
                             </table>
                         </td>

@@ -74,7 +74,7 @@ class SolicitudesExport implements FromQuery, WithMapping, WithHeadings, WithChu
             $getMl(10), $getMl(11), $getMl(12), $getMl(13), $getMl(14),
             $getMl(15), $getMl(16), $getMl(17), $getMl(18), $getMl(19),
             $getMl(20), $getMl(21), $getMl(22), $getMl(23), $getMl(24),
-            $getMl(25), $getMl(27), $getMl(44), $getMl(29), $getMl(47),
+            $getMl(25), $getMl(26), $getMl(27), $getMl(44), $getMl(29), $getMl(47),
             $getMl(30), $getMl(31), $getMl(32), $getMl(33), $getMl(34),
             $getMl(35),
         ];
@@ -95,7 +95,7 @@ class SolicitudesExport implements FromQuery, WithMapping, WithHeadings, WithChu
             'Gluconato de Calcio (0.465 mEq/mL)', 'Ácidos Grasos Omega 3 10%',
             'Albúmina 25% (0.25 g/mL)', 'Albúmina 20% (0.20 g/mL)', 'Glutamina 20%',
             'Cromo (4 mcg/mL)', 'Heparina (1000 UI/mL)',
-            'L-Carnitina / Insulina', 'Manganeso (100 mcg/mL)', 'MVI pediátrico',
+            'L-Carnitina','Insulina', 'Manganeso (100 mcg/mL)', 'MVI pediátrico',
             'Oligoelementos Nulanza', 'Oligoelementos Tracefusin',
             'Ácido Folínico (12.5 mg/mL)', 'Selenio (40 mcg/mL)',
             'Vitamina C (100 mg/mL)', 'Vitamina K (10 mg/mL)', 'Zinc (1 mg/mL)',

@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('medicines_catalog', function (Blueprint $table) {
@@ -16,7 +13,11 @@ return new class extends Migration
             $table->string('denominacion');
             $table->string('denominacion_comercial');
             $table->string('presentacion');
-            $table->boolean('state')->default(true); // true = activo, false = deshabilitado
+
+            // 👇 NUEVO: va en la migración base
+            $table->boolean('requires_infusor')->default(false);
+
+            $table->boolean('state')->default(true);
             $table->decimal('cantidad_medicamento', 10, 2)->nullable(); // mg
             $table->decimal('volumen_diluyente', 10, 2)->nullable();
             $table->decimal('conc_min', 8, 2)->nullable();
@@ -28,9 +29,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('medicines_catalog');

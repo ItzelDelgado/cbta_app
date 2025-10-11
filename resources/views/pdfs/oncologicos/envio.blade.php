@@ -346,6 +346,7 @@ $contador = 1;
                 <td class="border-1 px-1 text-center">Diluyente</td>
                 <td class="border-1 px-1 text-center">Volumen</td>
                 <td class="border-1 px-1 text-center">Lote de la mezcla</td>
+                <td class="border-1 px-1 text-center">No. Remisión</td>
                 <td class="border-1 px-1 text-center">Fecha/Hora de <br> preparación</td>
                 <td class="border-1 border-r-0 px-1 text-center">Fecha/Hora de <br> límite de uso</td>
             </tr>
@@ -364,6 +365,7 @@ $contador = 1;
             $limiteFmt = $limite ? $limite->format('d/m/Y - H:i') : '—';
 
             $loteMezcla = $mezcla->lote ?? '—';
+            $remision = $mezcla->remision ?? '—';
 
             // Volumen correcto: volumen_dilucion de la mezcla
             $volumenDilucion = $mezcla->volumen_dilucion ?? null;
@@ -399,6 +401,7 @@ $contador = 1;
                 {{-- Volumen de la mezcla --}}
                 <td class="border-1 px-1 text-center">{{ $volumenFmt }}</td>
                 <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
+                <td class="border-1 px-1 text-center">{{ $remision }}</td>
                 <td class="border-1 px-1 text-center">{{ $prepFmt }}</td>
                 <td class="border-1 border-r-0 px-1 text-center">{{ $limiteFmt }}</td>
             </tr>

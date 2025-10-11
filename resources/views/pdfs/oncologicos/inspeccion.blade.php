@@ -301,14 +301,14 @@
                 <tr>
                     <td style="width: 20%" class="text-left"><strong>Tipo de contenedor</strong></td>
                     <td style="width: 10%" class="text-left"><strong>Frasco/bolsa</strong></td>
-                    <td style="width: 5%"></td>
+                    <td style="width: 5%" class="text-center">Frasco</td>
                     <td style="width: 5%" class="border-1 text-center">{{ $mark($tipoCont === 'Frasco') }}</td>
-                    <td style="width: 10%" class="text-center"><strong>Jeringa</strong></td>
+                    <td style="width: 5%" class="text-center">Bolsa</td>
+                    <td style="width: 5%" class="border-1 text-center">{{ $mark($tipoCont === 'Bolsa') }}</td>
+                    <td style="width: 5%" class="text-center">Jeringa</td>
                     <td style="width: 5%" class="border-1 text-center">{{ $mark($tipoCont === 'Jeringa') }}</td>
-                    <td style="width: 10%" class="text-center"><strong>Otro</strong></td>
+                    <td style="width: 5%" class="text-center">Infusor</td>
                     <td style="width: 5%" class="border-1 text-center">{{ $mark($tipoCont === 'Infusor') }}</td>
-                    <td style="width: 5%"></td>
-                    <td style="width: 10%" class="border-b-1"></td>
                 </tr>
             </table>
 

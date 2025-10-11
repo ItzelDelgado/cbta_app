@@ -33,7 +33,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Envio</title>
+    <title>Remisión</title>
 
     <style>
         @page {
@@ -325,6 +325,7 @@
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Diluyente</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Volumen</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Lote de la mezcla</td>
+                <td class="border-1 px-1 text-center bg-cbta font-bold">No. Remisión</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Unidad de medida</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Cantidad</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Precio unitario</td>
@@ -334,6 +335,7 @@
             @foreach ($mezclas as $mezcla)
                 @php
                     $loteMezcla = $mezcla->lote ?? '—';
+                    $remision = $mezcla->remision ?? '—';
                     // volumen_dilucion está en la mezcla (ml)
                     $volumenMezcla = isset($mezcla->volumen_dilucion) ? $mezcla->volumen_dilucion . ' ml' : '—';
                 @endphp
@@ -382,6 +384,7 @@
                         <td class="border-1 px-1 text-center">{{ $diluyente }}</td>
                         <td class="border-1 px-1 text-center">{{ $volumenMezcla }}</td>
                         <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
+                        <td class="border-1 px-1 text-center">{{ $remision }}</td>
                         <td class="border-1 px-1 text-center">{{ ucfirst($unidad) }}</td>
                         <td class="border-1 px-1 text-center">{{ $piezas }}</td>
                         <td class="border-1 px-1 text-center">{{ money_fmt($precioUnit) }}</td>

@@ -15,6 +15,7 @@ class MedicinesCatalog extends Model
         'denominacion',
         'denominacion_comercial',
         'presentacion',
+        'requires_infusor',          // 👈 nuevo
         'state',
         'cantidad_medicamento',
         'volumen_diluyente',
@@ -25,7 +26,12 @@ class MedicinesCatalog extends Model
         'caducidad',
     ];
 
-    // Una medicina del catálogo puede estar en muchas configuraciones con precio personalizado
+    protected $casts = [
+        'requires_infusor' => 'boolean', // 👈 importante
+        'state'            => 'boolean',
+        'caducidad'        => 'date',
+    ];
+
     public function medicineOncos()
     {
         return $this->hasMany(MedicineOnco::class, 'catalog_id');

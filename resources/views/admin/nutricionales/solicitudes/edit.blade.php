@@ -2,14 +2,13 @@
     // Incluye manualmente el archivo helpers.php
     require_once app_path('Helpers/helpers.php');
 
-    $aguaCalculada = 0; // Inicializa la variable
+    $aguaCalculada = 0.0; // Inicializa la variable
 
     foreach ($inputs as $input) {
         if ($input->category_id == 7) {
+            // Ya regresa float
             $valor = renderInputMLSection($input->input_id, $inputs_solicitud);
-            // Limpia el valor para que sea numérico
-            $valor = str_replace(',', '', $valor); // Elimina comas (u otros separadores)
-            $aguaCalculada = floatval($valor); // Convierte el valor a número flotante
+            $aguaCalculada = (float) $valor;
         }
     }
 
@@ -32,7 +31,6 @@
 
 
 <x-admin-layout>
-
 
     <div class="flex flex-col items-center">
         <div class="mt-2 mb-4">
@@ -387,7 +385,7 @@
                                         </x-label>
                                         <p
                                             class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                            {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                            {{ fmt3(renderInputMLSection($input->input_id, $inputs_solicitud)) }}
                                         </p>
                                     </div>
                                     <div class="flex w-[20%] justify-center items-stretch">
@@ -396,7 +394,7 @@
                                         </x-label>
                                         <p
                                             class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                            {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                                            {{ fmt3(renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud)) }}
                                         </p>
                                     </div>
                                     <div class="flex w-[15%]">
@@ -446,9 +444,6 @@
                                                     name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
                                                     step="0.0001" placeholder="" />
                                                 <span>{{ $input->unidad }}</span>
-                                                {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
-                                                <div class="text-red-500">{{ $message }}</div>
-                                            @enderror --}}
                                             </div>
                                         </div>
                                         <div class="flex w-[10%] justify-center items-stretch">
@@ -457,7 +452,7 @@
                                             </x-label>
                                             <p
                                                 class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                                {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                                {{ fmt3(renderInputMLSection($input->input_id, $inputs_solicitud)) }}
                                             </p>
                                         </div>
                                         <div class="flex w-[20%] justify-center items-stretch">
@@ -466,7 +461,7 @@
                                             </x-label>
                                             <p
                                                 class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                                {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                                                {{ fmt3(renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud)) }}
                                             </p>
                                         </div>
                                         <div class="flex w-[20%]">
@@ -486,9 +481,6 @@
                                                 Caducidad:
                                             </x-label>
                                             <div class="flex w-full">
-                                                {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
-                                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
-                                                    class="" placeholder="" /> --}}
                                                 <x-input-solicitud type="date"
                                                     value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
@@ -527,9 +519,6 @@
                                                     step="0.0001" placeholder="" />
                                                 <span data-original-unidad="{{ $input->unidad }}"
                                                     class="unidad-span">{{ $input->unidad }}</span>
-                                                {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
-                                                <div class="text-red-500">{{ $message }}</div>
-                                            @enderror --}}
                                             </div>
                                         </div>
                                         <div class="flex w-[10%] justify-center items-stretch">
@@ -538,7 +527,7 @@
                                             </x-label>
                                             <p
                                                 class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                                {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                                {{ fmt3(renderInputMLSection($input->input_id, $inputs_solicitud)) }}
                                             </p>
                                         </div>
                                         <div class="flex w-[20%] justify-center items-stretch">
@@ -547,7 +536,7 @@
                                             </x-label>
                                             <p
                                                 class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                                {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                                                {{ fmt3(renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud)) }}
                                             </p>
                                         </div>
                                         <div class="flex w-[20%]">
@@ -559,6 +548,7 @@
                                                     value="{{ old('l_' . $input->input_id, renderLoteSection($input->input_id, $inputs_solicitud)) }}"
                                                     name="l_{{ $input->input_id }}" id="l_{{ $input->input_id }}"
                                                     step="0.0001" placeholder=""
+                                                    value="{{ $input->medicine->lote ?? '' }}"
                                                    />
                                             </div>
                                         </div>
@@ -567,14 +557,12 @@
                                                 Caducidad:
                                             </x-label>
                                             <div class="flex w-full">
-                                                {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
-                                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
-                                                    class="" placeholder="" /> --}}
                                                 <x-input-solicitud type="date"
                                                     value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
                                                     id="c_{{ $input->input_id }}" name="c_{{ $input->input_id }}"
                                                     class="" placeholder=""
+                                                    value="{{ $input->medicine->caducidad ?? '' }}"
                                                     />
                                             </div>
                                         </div>
@@ -608,9 +596,6 @@
                                                         placeholder="" />
                                                     <span data-original-unidad="{{ $input->unidad }}"
                                                         class="unidad-span">{{ $input->unidad }}</span>
-                                                    {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
-                                                    <div class="text-red-500">{{ $message }}</div>
-                                                @enderror --}}
                                                 </div>
                                             </div>
                                             <div class="flex w-[10%] justify-center items-stretch">
@@ -619,7 +604,7 @@
                                                 </x-label>
                                                 <p
                                                     class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                                    {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                                    {{ fmt3(renderInputMLSection($input->input_id, $inputs_solicitud)) }}
                                                 </p>
                                             </div>
                                             <div class="flex w-[20%] justify-center items-stretch">
@@ -628,7 +613,7 @@
                                                 </x-label>
                                                 <p
                                                     class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                                    {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                                                    {{ fmt3(renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud)) }}
                                                 </p>
                                             </div>
                                             <div class="flex w-[20%]">
@@ -648,9 +633,6 @@
                                                     Caducidad:
                                                 </x-label>
                                                 <div class="flex w-full">
-                                                    {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
-                                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
-                                                        class="" placeholder="" /> --}}
                                                     <x-input-solicitud type="date"
                                                         value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                         min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
@@ -695,9 +677,6 @@
                                                     step="0.0001" placeholder="" />
                                                 <span data-original-unidad="{{ $input->unidad }}"
                                                     class="unidad-span-electrolitos">{{ $input->unidad }}</span>
-                                                {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
-                                                <div class="text-red-500">{{ $message }}</div>
-                                            @enderror --}}
                                             </div>
                                         </div>
                                         <div class="flex w-[10%] justify-center items-stretch">
@@ -706,7 +685,7 @@
                                             </x-label>
                                             <p
                                                 class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                                {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                                {{ fmt3(renderInputMLSection($input->input_id, $inputs_solicitud)) }}
                                             </p>
                                         </div>
                                         <div class="flex w-[20%] justify-center items-stretch">
@@ -715,7 +694,7 @@
                                             </x-label>
                                             <p
                                                 class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                                {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                                                {{ fmt3(renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud)) }}
                                             </p>
                                         </div>
                                         <div class="flex w-[20%]">
@@ -735,9 +714,6 @@
                                                 Caducidad:
                                             </x-label>
                                             <div class="flex w-full">
-                                                {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
-                                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
-                                                    class="" placeholder="" /> --}}
                                                 <x-input-solicitud type="date"
                                                     value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
@@ -781,10 +757,6 @@
                                                     name="i_{{ $input->input_id }}" id="i_{{ $input->input_id }}"
                                                     step="0.0001"
                                                     placeholder="" /><span>{{ $input->unidad }}</span>
-
-                                                {{-- @error('i_' . $input->input_id . '_' . $input->unidad)
-                                                <div class="text-red-500">{{ $message }}</div>
-                                            @enderror --}}
                                             </div>
                                         </div>
                                         <div class="flex w-[10%] justify-center items-stretch">
@@ -793,7 +765,7 @@
                                             </x-label>
                                             <p
                                                 class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                                {{ renderInputMLSection($input->input_id, $inputs_solicitud) }}
+                                                {{ fmt3(renderInputMLSection($input->input_id, $inputs_solicitud)) }}
                                             </p>
                                         </div>
                                         <div class="flex w-[20%] justify-center items-stretch">
@@ -802,7 +774,7 @@
                                             </x-label>
                                             <p
                                                 class="flex border-t-0 border-r-0 border-l-0 border-b-2 border-dotted h-5 w-full pl-2 border-[#6b7280]">
-                                                {{ renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud) }}
+                                                {{ fmt3(renderInputMLSobrellenadoSection($input->input_id, $inputs_solicitud)) }}
                                             </p>
                                         </div>
                                         <div class="flex w-[20%]">
@@ -822,9 +794,6 @@
                                                 Caducidad:
                                             </x-label>
                                             <div class="flex w-full">
-                                                {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
-                                                    min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
-                                                    class="" placeholder="" /> --}}
                                                 <x-input-solicitud type="date"
                                                     value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                                     min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
@@ -872,9 +841,6 @@
                                         Caducidad:
                                     </x-label>
                                     <div class="flex w-full">
-                                        {{-- <x-input-solicitud type="date" value="{{ old('fecha_hora_entrega', $solicitud->solicitud_detail->fecha_hora_entrega->format('Y-m-d')) }}"
-                                            min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" name="fecha_hora_entrega"
-                                            class="" placeholder="" /> --}}
                                         <x-input-solicitud type="date"
                                             value="{{ old('c_' . $input->input_id, renderCaducidadSection($input->input_id, $inputs_solicitud)) }}"
                                             min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"

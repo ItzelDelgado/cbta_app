@@ -6,26 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Regristro de Envio</title>
-
+    <title>Registro de Envío</title>
 
     <style>
         @page {
             margin: 1rem;
         }
 
-        /* Estilos básicos */
         body {
             margin: 0;
             padding: 20px;
-            /* Espacio alrededor del contenedor para que el borde no toque los bordes de la ventana del navegador */
             background-color: white;
-            /* Fondo blanco para el body */
         }
 
         .introduccion table {
             width: 100%;
-            /* Ajusta esto según necesites */
             border-collapse: collapse;
             border: none;
         }
@@ -34,16 +29,12 @@
             border: none;
         }
 
-        /* Contenedor principal con borde negro */
         .contenedor {
             border: 2px solid black;
             padding: 0 2px;
             font-family: "Arial", sans-serif;
         }
 
-
-
-        /* Estilos para la tabla */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -54,7 +45,8 @@
             border: 1px solid black;
             text-align: left;
             padding: 2px 3px;
-            font-size: 9px
+            font-size: ninepx;
+            font-size: 9px;
         }
 
         th {
@@ -76,25 +68,17 @@
 
         .tabla-format td {
             word-wrap: break-word;
-            /* Asegura que el texto se divida */
-            /* max-width: 120px; */
-            /* O el ancho específico que prefieras */
             overflow: auto;
-            /* Hace desplazable el contenido que exceda el tamaño del td */
         }
 
         .text-center {
             text-align: center
         }
     </style>
-
 </head>
 
-
 <body>
-
     <div class="contenedor">
-        <!-- Contenedor principal con borde negro -->
         <div>
             <table class="introduccion">
                 <tr>
@@ -104,34 +88,36 @@
                     <td style="width: 50%; margin: 0 auto; text-align: center; font-weight: bold; font-size: 15px">
                         <strong>{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</strong>
                     </td>
-                    <td style="width: 25%">
-                    </td>
+                    <td style="width: 25%"></td>
                 </tr>
             </table>
+
             <table>
                 <tr>
-                    <td style="border: none; border-top: 1px solid black; font-weight: bold">Fecha de envío:
+                    <td style="border: none; border-top: 1px solid black; font-weight: bold">
+                        Fecha de envío:
                         <span>{{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_detail['fecha_hora_entrega'])) }}</span>
                     </td>
-                    <td style="text-align: right; border: none; border-top: 1px solid black; ">DOMICILIO CLIENTE
+                    <td style="text-align: right; border: none; border-top: 1px solid black;">DOMICILIO CLIENTE
                         RECEPTOR:</td>
                 </tr>
                 <tr>
-                    <td style="border: none; font-weight: bold">No.
-                        {{ str_pad($solicitud_detalles->solicitud_aprobada['id'], 6, '0', STR_PAD_LEFT) }}</td>
-                    <td style="text-align: right; border: none">{{ $solicitud_detalles->user->hospital->adress }}
+                    <td style="border: none; font-weight: bold">
+                        No. {{ str_pad($solicitud_detalles->solicitud_aprobada['id'], 6, '0', STR_PAD_LEFT) }}
                     </td>
+                    <td style="text-align: right; border: none">{{ $solicitud_detalles->user->hospital->adress }}</td>
                 </tr>
             </table>
+
             <table style="tabla-format">
                 <tr>
                     <td
                         style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0">
-                        <strong>DATOS DEL
-                            PACIENTE</strong>
+                        <strong>DATOS DEL PACIENTE</strong>
                     </td>
                 </tr>
             </table>
+
             <table style="tabla-format">
                 <tr>
                     <th style="background: #D9E2F3; width: 40%; padding: 8px 0; text-align: center">NOMBRE COMPLETO</th>
@@ -140,7 +126,6 @@
                     <th style="background: #D9E2F3; width: 10%; text-align: center">GENERO</th>
                     <th style="background: #D9E2F3; width: 20%; text-align: center">SUPERFICIE CORPORAL (m2)</th>
                 </tr>
-
                 <tr>
                     <td>{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
                         {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
@@ -151,12 +136,13 @@
                     <td style="text-align: center">S/D</td>
                 </tr>
             </table>
+
             <table style="tabla-format">
                 <tr>
                     <th style="background: #D9E2F3; border-top: none; width: 40%; padding: 8px 0; text-align: center">
                         DIAGNOSTICO</th>
                     <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center">SERVICIOS</th>
-                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center">No. De EXPREDIENTE
+                    <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center">No. De EXPEDIENTE
                     </th>
                     <th style="background: #D9E2F3; border-top: none; width: 20%; text-align: center">MÉDICO TRATANTE
                     </th>
@@ -168,114 +154,216 @@
                     <td style="text-align: center">{{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}</td>
                 </tr>
             </table>
+
+            {{-- Tira de encabezado doble como en Remisión --}}
             <table style="tabla-format">
                 <tr>
                     <td
-                        style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0">
+                        style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0; width: 50%">
                         <strong>DATOS DE LAS MEZCLAS</strong>
+                    </td>
+                    <td
+                        style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0; width: 50%">
+                        <strong>COSTO MEDICAMENTO</strong>
                     </td>
                 </tr>
             </table>
+
             <table class="tg">
                 <thead>
                     <tr>
-                        <th style="text-align: center;">No</th>
-                        <th style="text-align: center;">Medicamentos</th>
-                        <th style="text-align: center;">Dosis</th>
-                        <th style="text-align: center;">Volumen</th>
-                        <th style="text-align: center;">Volumen con Overfill</th>
-                        <th style="text-align: center;">Lote</th>
+                        <th class="text-center">No</th>
+                        <th class="text-center">Medicamentos</th>
+                        <th class="text-center">Dosis</th>
+                        <th class="text-center">Lote</th>
+                        <th class="text-center">Volumen</th>
+                        <th class="text-center">Volumen con Overfill</th>
+                        <th class="text-center">PRECIO (ml)</th>
+                        <th class="text-center">SUBTOTAL</th>
                     </tr>
                 </thead>
                 <tbody>
                     @php
-                        // Inicializamos la variable total
-                        $vol_total = 0;
-
+                        // Volumen total mostrado al pie (tal como ya lo tenías)
                         if (
-                            $solicitud_detalles->solicitud_detail['volumen_total'] == null ||
+                            empty($solicitud_detalles->solicitud_detail['volumen_total']) ||
                             $solicitud_detalles->solicitud_detail['volumen_total'] == 0
                         ) {
-                            $vol_total = floatval($solicitud_detalles->solicitud_detail['suma_volumen']);
+                            $vol_total = (float) ($solicitud_detalles->solicitud_detail['suma_volumen'] ?? 0);
                         } else {
-                            $vol_total = floatval($solicitud_detalles->solicitud_detail['volumen_total']);
+                            $vol_total = (float) ($solicitud_detalles->solicitud_detail['volumen_total'] ?? 0);
                         }
-                        $lote = $solicitud_detalles->solicitud_aprobada['lote'];
+                        $lote = $solicitud_detalles->solicitud_aprobada['lote'] ?? '';
+
+                        // Acumulador de totales de costo
+                        $total = 0.0;
                     @endphp
 
                     @foreach ($inputs_solicitud as $input_completo)
+                        @php
+                            // Dosis formateada (0 o 3 decimales según traiga punto)
+                            $valor_formateado =
+                                strpos((string) ($input_completo['valor'] ?? ''), '.') !== false
+                                    ? number_format((float) $input_completo['valor'], 3, '.', '')
+                                    : number_format((float) ($input_completo['valor'] ?? 0), 0);
+
+                            // Cantidades de volumen
+                            $vol_ml = (float) number_format((float) ($input_completo->valor_ml ?? 0), 3, '.', '');
+                            $vol_over = (float) number_format(
+                                (float) ($input_completo->valor_sobrellenado ?? 0),
+                                3,
+                                '.',
+                                '',
+                            );
+
+                            // Cantidad final a cobrar (usa sobrellenado si existe, igual que en Remisión)
+                            $cantidadFinalMl = $vol_over > 0 ? $vol_over : $vol_ml;
+
+                            // Precio por ml desde el catálogo (si existe)
+                            $precioMl = 0.0;
+                            if (isset($input_completo->input->medicine)) {
+                                $precioMl = (float) ($input_completo->input->medicine->precio_ml ?? 0);
+                            }
+
+                            // Subtotal: respeta $input_completo->precio_ml si ya viene precalculado, si no lo calcula
+                            if (isset($input_completo->precio_ml)) {
+                                $subtotal = (float) $input_completo->precio_ml;
+                            } else {
+                                $subtotal = $cantidadFinalMl * $precioMl;
+                            }
+
+                            $total += $subtotal;
+                        @endphp
+
                         <tr>
-                            <td class="tg-0lax">{{ $loop->iteration }}</td>
-                            <td class="tg-0pky">
+                            <td class="text-center">{{ $loop->iteration }}</td>
+
+                            <td>
                                 @isset($input_completo->input->medicine)
                                     {{ $input_completo->input->medicine->denominacion_generica }}
                                 @else
                                     Medicamento no disponible
                                 @endisset
                             </td>
-                            @php
-                                // Lógica para formatear el valor sin ceros innecesarios
-                                $valor_formateado =
-                                    strpos($input_completo['valor'], '.') !== false
-                                        ? number_format($input_completo['valor'], 3, '.', '')
-                                        : number_format($input_completo['valor'], 0);
-                            @endphp
 
-                            <td class="tg-0pky">
+                            <td class="text-center">
                                 {{ $valor_formateado }}
-                                {{ explode('/', $input_completo->input->unidad)[0] }}
+                                {{ isset($input_completo->input->unidad) ? explode('/', $input_completo->input->unidad)[0] : '' }}
                             </td>
+                            {{-- Lote en una sola celda con rowspan --}}
+                            @if ($loop->first)
+                                <td class="text-center" rowspan="{{ count($inputs_solicitud) }}">{{ $lote }}
+                                </td>
+                            @endif
+
                             <td>
-                                {{ rtrim(rtrim(number_format($input_completo->valor_ml, 3, '.', ''), '0'), '.') }} mL
+                                {{ rtrim(rtrim(number_format($vol_ml, 3, '.', ''), '0'), '.') }} mL
                             </td>
+
                             <td>
-                                @if ($input_completo->valor_sobrellenado == 0)
-                                    {{ rtrim(rtrim(number_format($input_completo->valor_ml, 3, '.', ''), '0'), '.') }} mL
+                                @if ($vol_over == 0)
+                                    {{ rtrim(rtrim(number_format($vol_ml, 3, '.', ''), '0'), '.') }} mL
                                 @else
-                                    {{ rtrim(rtrim(number_format($input_completo->valor_sobrellenado, 3, '.', ''), '0'), '.') }} mL
+                                    {{ rtrim(rtrim(number_format($vol_over, 3, '.', ''), '0'), '.') }} mL
                                 @endif
                             </td>
 
+                            <td class="text-center">
+                                @isset($input_completo->input->medicine)
+                                    ${{ number_format($precioMl, 3, '.', '') }}
+                                @else
+                                    N/D
+                                @endisset
+                            </td>
 
-                            @if ($loop->first)
+                            <td class="text-center">
+                                ${{ number_format($subtotal, 3, '.', '') }}
+                            </td>
 
-                                <td class="tg-yz93" style="text-align: center;"
-                                    rowspan="{{ count($inputs_solicitud) }}">{{ $lote }}</td>
-                            @endif
 
                         </tr>
                     @endforeach
+                    @php
+                        // Número consecutivo después de los medicamentos
+                        $contador = count($inputs_solicitud) + 1;
+                    @endphp
+
+                    @isset($servicio_preparacion)
+                        <tr>
+                            <td class="text-center">{{ $contador }}</td>
+                            <td>
+                                <strong>{{ $servicio_preparacion->denominacion_generica }}</strong>
+                            </td>
+                            {{-- Dosis --}}
+                            <td class="text-center"></td>
+                            {{-- Volumen --}}
+                            <td></td>
+                            {{-- Volumen con Overfill --}}
+                            <td></td>
+
+                            <td></td>
+
+                            {{-- PRECIO (ml) --}}
+                            <td class="text-center">
+                                ${{ number_format((float) ($servicio_preparacion->precio_ml ?? 0), 3, '.', '') }}
+                            </td>
+
+                            {{-- SUBTOTAL (para este servicio es el mismo precio unitario) --}}
+                            <td class="text-center">
+                                @php
+                                    $subtotal_servicio = (float) ($servicio_preparacion->precio_ml ?? 0);
+                                    $total += $subtotal_servicio; // Se suma al total general
+                                @endphp
+                                ${{ number_format($subtotal_servicio, 3, '.', '') }}
+                            </td>
+
+                            {{-- Lote (vacío, porque el lote ya se mostró en el rowspan de las mezclas) --}}
+
+                        </tr>
+                    @endisset
+
+                    {{-- Fila de volúmenes totales (se mantiene) --}}
                     <tr>
                         <td></td>
                         <td>VOLUMEN TOTAL</td>
                         <td></td>
-                        <td>
-                            {{ number_format($vol_total, 2) }} mL
-                        </td>
-                        <td>
-                            {{$solicitud_detalles->solicitud_detail->volumen_total_final}}
-                            {{-- {{ number_format($solicitud_detalles->solicitud_detail['volumen_total'], 2) }} mL --}}
-                        </td>
                         <td></td>
+                        <td>{{ number_format($vol_total, 2) }} mL</td>
+                        <td>{{ $solicitud_detalles->solicitud_detail->volumen_total_final }} mL</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+
+                    {{-- Fila de TOTAL en dinero --}}
+                    <tr>
+                        <td colspan="8" style="text-align: right; background: #F2F2F2">
+                            <strong>Total ${{ number_format($total, 3, '.', '') }}</strong>
+                        </td>
                     </tr>
                 </tbody>
             </table>
 
             <table>
                 <tr>
-                    <td style="padding-left: 5px"><strong>FECHA\HORA DE PREPARACIÓN:
-                            {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h</strong>
+                    <td style="padding-left: 5px">
+                        <strong>FECHA\HORA DE PREPARACIÓN:
+                            {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h
+                        </strong>
                     </td>
-                    <td style="padding-left: 5px"><strong>FECHA\HORA DE LIMITE DE USO:
-                            {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_limite_uso'])) }}h</strong>
+                    <td style="padding-left: 5px">
+                        <strong>FECHA\HORA DE LIMITE DE USO:
+                            {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_limite_uso'])) }}h
+                        </strong>
                     </td>
                 </tr>
                 <tr>
                     <td style="border-top: none; border-right: none"></td>
-                    <td style="text-align: right; border-top: none; border-left: none"><strong>Cantidad total de mezclas
-                            1</strong></td>
+                    <td style="text-align: right; border-top: none; border-left: none">
+                        <strong>Cantidad total de mezclas 1</strong>
+                    </td>
                 </tr>
             </table>
+
             <table>
                 <tr>
                     <td style="border: none"><strong>Observaciones:</strong></td>
@@ -285,15 +373,14 @@
                 </tr>
             </table>
             <br>
+
             <table style="margin: 0 9rem; margin-bottom: 1rem;">
                 <tr>
                     <td style="border: none; font-size: 11px"><strong>Recepción Cliente</strong></td>
                 </tr>
                 <tr>
                     <td style="border: none; font-size: 11px">
-                        Fecha:_____________________________________________________________ <span
-                            style="border-bottom: 1px solid black; text-align: center"></span>
-                    </td>
+                        Fecha:_____________________________________________________________</td>
                 </tr>
                 <tr>
                     <td style="border: none; font-size: 11px">Hora de
@@ -308,8 +395,9 @@
                         sello:__________________________________________</td>
                 </tr>
             </table>
+
             <table style="width: 80%; margin: 0 auto;">
-                <tr class="">
+                <tr>
                     <td style="text-align: left; border: none; padding-top: 2rem; font-size: 8px;">
                         <strong>NOTA IMPORTANTE:</strong>
                         El cliente reconoce que la mezcla estéril entregada debe ser mantenida bajo condiciones
@@ -320,8 +408,8 @@
                     </td>
                 </tr>
             </table>
-
         </div>
+    </div>
 </body>
 
 </html>

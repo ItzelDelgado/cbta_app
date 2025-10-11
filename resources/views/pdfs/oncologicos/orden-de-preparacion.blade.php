@@ -441,13 +441,13 @@
         </div>
         <table class="mx-2">
             <tr>
-                <td>Recepción y validación:</td>
+                <td>Recepción y validación: {{ $aprobo_nombre ?? '—' }}</td>
             </tr>
             <tr>
-                <td>Preparación</td>
+                <td>Preparación: {{ $preparo_nombre ?? '—' }}</td>
             </tr>
             <tr>
-                <td>Liberación:</td>
+                <td>Liberación: {{ $libero_nombre ?? '—' }}</td>
             </tr>
         </table>
 

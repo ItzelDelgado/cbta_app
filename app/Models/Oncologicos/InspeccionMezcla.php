@@ -39,7 +39,37 @@ class InspeccionMezcla extends Model {
         'observaciones',
         'reviso_nombre',
         'aprobo_nombre',
+        'preparo_nombre',
+        'libero_nombre',
     ];
+
+    // 🔑 Castea tinyint(1) a boolean
+    protected $casts = [
+        'es_limpia'             => 'boolean',
+        'es_libre'              => 'boolean',
+        'esta_rotulado'         => 'boolean',
+        'numero_lote'           => 'boolean',
+        'medicamento'           => 'boolean',
+        'dosis_volumen_total'   => 'boolean',
+        'volumen_medicamento'   => 'boolean',
+        'rubrica_preparador'    => 'boolean',
+        'sello_seguridad'       => 'boolean',
+        'presenta_grietas'      => 'boolean',
+        'presenta_fugas'        => 'boolean',
+        'esta_roto'             => 'boolean',
+        'coloracion_apropiada'  => 'boolean',
+        'contenido_homogeneo'   => 'boolean',
+        'presenta_particulas'   => 'boolean',
+        'presenta_turbidez'     => 'boolean',
+        'volumen_correcto'      => 'boolean',
+        'aprueba_contenido'     => 'boolean',
+        'aprueba_contenedor'    => 'boolean',
+        'mezcla_aprobada'       => 'boolean',
+        // si quieres formatear fechas/horas
+        // 'fecha_inspeccion'   => 'date:Y-m-d',
+        // 'hora_inspeccion'    => 'datetime:H:i:s',
+    ];
+
     public function mezcla() {
         return $this->belongsTo(Mezcla::class, 'mezcla_id');
     }

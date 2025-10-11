@@ -64,6 +64,10 @@
         p {
             font-size: 10px
         }
+
+        .salto-pagina {
+            page-break-before: always;
+        }
     </style>
 
 </head>
@@ -71,236 +75,276 @@
 
 <body>
 
-    <div class="contenedor">
-        <!-- Contenedor principal con borde negro -->
-        <div>
-            <table class="introduccion" style="margin-top: 1rem; margin-bottom: 1rem">
-                <tr>
-                    <td style="width: 25%">
-                        <img style="width: 10rem" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
-                    </td>
-                    <td style="width: 50%; margin: 0 auto; text-align: center; font-weight: bold; font-size: 15px">
-                        <strong>{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</strong>
-                    </td>
-                    <td style="width: 25%">
-
-                    </td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td style="border: none; border-top: 1px solid black; font-weight: bold">Fecha de envío:
-                        {{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_detail['fecha_hora_entrega'])) }}</td>
-                    <td style="text-align: right; border: none; border-top: 1px solid black; ">DOMICILIO CLIENTE
-                        RECEPTOR:</td>
-                </tr>
-                <tr>
-                    <td style="border: none; font-weight: bold">No.
-                        {{ str_pad($solicitud_detalles->solicitud_aprobada['id'], 6, '0', STR_PAD_LEFT) }}</td>
-                    <td style="text-align: right; border: none">{{ $solicitud_detalles->user->hospital->adress }}
-                    </td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td
-                        style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold;">
-                        <strong>DATOS DEL
-                            PACIENTE</strong>
-                    </td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <th style="background: #D9E2F3; width: 40%; text-align: center">NOMBRE COMPLETO</th>
-                    <th style="background: #D9E2F3; width: 20%; text-align: center">FECHA DE NACIMIENTO</th>
-                    <th style="background: #D9E2F3; width: 10%; text-align: center">EDAD(a)</th>
-                    <th style="background: #D9E2F3; width: 10%; text-align: center">GENERO</th>
-                    <th style="background: #D9E2F3; width: 20%; text-align: center">SUPERFICIE CORPORAL (m2)</th>
-                </tr>
-                <tr>
-                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
-                        {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
-                    <td style="text-align: center">
-                        {{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}</td>
-                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['edad'] }}</td>
-                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['sexo'] }}</td>
-                    <td style="text-align: center">S/D</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <th style="border-top: none; background: #D9E2F3; width: 40%; text-align: center">DIAGNOSTICO</th>
-                    <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">SERVICIOS</th>
-                    <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">No. De EXPREDIENTE
-                    </th>
-                    <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">MÉDICO TRATANTE
-                    </th>
-                </tr>
-                <tr>
-                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['diagnostico'] }}</td>
-                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['servicio'] }}</td>
-                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['registro'] }}</td>
-                    <td style="text-align: center">{{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td
-                        style="border-top: none; width: 50%; text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0">
-                        <strong>DATOS DE LAS MEZCLAS</strong>
-                    </td>
-                    <td
-                        style="border-top: none; width: 50%; text-align: center; text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0">
-                        <strong>COSTO MEDICAMENTO</strong>
-                    </td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <th style="border-top: none; background: #D9E2F3; width: 5%; text-align: center;">
-                        <strong>No</strong>
-                    </th>
-                    <th style="border-top: none; background: #D9E2F3; width: 30%; text-align: center">
-                        <strong>MEDICAMENTO</strong>
-                    </th>
-                    <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center">
-                        <strong>DOSIS</strong>
-                    </th>
-                    <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center"><strong>LOTE DE LA
-                            MEZCLA</strong></th>
-                    <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
-                        <strong>PRESENTACIÓN</strong>
-                    </th>
-                    <th style="border-top: none; background: #D9E2F3; width: 8.5%; text-align: center">
-                        <strong>CANTIDAD</strong>
-                    </th>
-                    <th style="border-top: none; background: #D9E2F3; width: 7.5%; text-align: center"><strong>PRECIO
-                            (ml)</strong></th>
-                    <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
-                        <strong>SUBTOTAL</strong>
-                    </th>
-                </tr>
-                @php
-                    $total = 0; // Inicializamos la variable total
-                    $contador = 0;
-                @endphp
-                @foreach ($inputs_solicitud as $input_completo)
+    <div>
+        <div class="contenedor">
+            <!-- Contenedor principal con borde negro -->
+            <div>
+                <table class="introduccion" style="margin-top: 1rem; margin-bottom: 1rem">
                     <tr>
-                        <td style="text-align: center">{{ $loop->iteration }}
-                            @php
-                                $contador = $loop->iteration; // Sumamos el precio_ml al total
-                            @endphp
+                        <td style="width: 25%">
+                            <img style="width: 10rem" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
                         </td>
-                        <td><strong>
+                        <td style="width: 50%; margin: 0 auto; text-align: center; font-weight: bold; font-size: 15px">
+                            <strong>{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</strong>
+                        </td>
+                        <td style="width: 25%">
+
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <td style="border: none; border-top: 1px solid black; font-weight: bold">Fecha de envío:
+                            {{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_detail['fecha_hora_entrega'])) }}
+                        </td>
+                        <td style="text-align: right; border: none; border-top: 1px solid black; ">DOMICILIO CLIENTE
+                            RECEPTOR:</td>
+                    </tr>
+                    <tr>
+                        <td style="border: none; font-weight: bold">No.
+                            {{ str_pad($solicitud_detalles->solicitud_aprobada['id'], 6, '0', STR_PAD_LEFT) }}</td>
+                        <td style="text-align: right; border: none">{{ $solicitud_detalles->user->hospital->adress }}
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <td
+                            style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold;">
+                            <strong>DATOS DEL
+                                PACIENTE</strong>
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <th style="background: #D9E2F3; width: 40%; text-align: center">NOMBRE COMPLETO</th>
+                        <th style="background: #D9E2F3; width: 20%; text-align: center">FECHA DE NACIMIENTO</th>
+                        <th style="background: #D9E2F3; width: 10%; text-align: center">EDAD(a)</th>
+                        <th style="background: #D9E2F3; width: 10%; text-align: center">GENERO</th>
+                        <th style="background: #D9E2F3; width: 20%; text-align: center">SUPERFICIE CORPORAL (m2)</th>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
+                            {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
+                        <td style="text-align: center">
+                            {{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}
+                        </td>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['edad'] }}</td>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['sexo'] }}</td>
+                        <td style="text-align: center">S/D</td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <th style="border-top: none; background: #D9E2F3; width: 40%; text-align: center">DIAGNOSTICO
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">SERVICIOS</th>
+                        <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">No. De
+                            EXPREDIENTE
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">MÉDICO
+                            TRATANTE
+                        </th>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['diagnostico'] }}</td>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['servicio'] }}</td>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['registro'] }}</td>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <td
+                            style="border-top: none; width: 50%; text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0">
+                            <strong>DATOS DE LAS MEZCLAS</strong>
+                        </td>
+                        <td
+                            style="border-top: none; width: 50%; text-align: center; text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0">
+                            <strong>COSTO MEDICAMENTO</strong>
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <th style="border-top: none; background: #D9E2F3; width: 5%; text-align: center;">
+                            <strong>No</strong>
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 30%; text-align: center">
+                            <strong>MEDICAMENTO</strong>
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center">
+                            <strong>DOSIS</strong>
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center"><strong>LOTE
+                                DE LA
+                                MEZCLA</strong></th>
+                        <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
+                            <strong>PRESENTACIÓN</strong>
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 8.5%; text-align: center">
+                            <strong>CANTIDAD</strong>
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 7.5%; text-align: center">
+                            <strong>PRECIO
+                                (ml)</strong>
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
+                            <strong>SUBTOTAL</strong>
+                        </th>
+                    </tr>
+                    @php
+                        $total = 0; // Inicializamos la variable total
+                        $contador = 0;
+                    @endphp
+                    @foreach ($inputs_solicitud as $input_completo)
+                        <tr>
+                            <td style="text-align: center">{{ $loop->iteration }}
+                                @php
+                                    $contador = $loop->iteration; // Sumamos el precio_ml al total
+                                @endphp
+                            </td>
+                            <td><strong>
+                                    @isset($input_completo->input->medicine)
+                                        {{ $input_completo->input->medicine->denominacion_generica }}
+                                    @else
+                                        Medicamento no disponible
+                                    @endisset
+                                </strong></td>
+                            @php
+                                // Lógica para formatear el valor sin ceros innecesarios
+                                $valor_formateado =
+                                    strpos($input_completo['valor'], '.') !== false
+                                        ? number_format($input_completo['valor'], 3, '.', '')
+                                        : number_format($input_completo['valor'], 0);
+                            @endphp
+
+                            <td style="text-align: center">
+                                {{ $valor_formateado }}
+                                {{ explode('/', $input_completo->input->unidad)[0] }}
+                            </td>
+
+
+                            @if ($loop->first)
+                                <td style="text-align: center; border:none" rowspan="{{ count($inputs_solicitud) }}">
+                                    {{ $solicitud_detalles->solicitud_aprobada['lote'] }}</td>
+                            @endif
+
+                            <td style="text-align: center">
                                 @isset($input_completo->input->medicine)
-                                    {{ $input_completo->input->medicine->denominacion_generica }}
+                                    {{ $input_completo->input->medicine->presentacion }}
                                 @else
                                     Medicamento no disponible
                                 @endisset
-                            </strong></td>
-                        @php
-                            // Lógica para formatear el valor sin ceros innecesarios
-                            $valor_formateado =
-                                strpos($input_completo['valor'], '.') !== false
-                                    ? number_format($input_completo['valor'], 3, '.', '')
-                                    : number_format($input_completo['valor'], 0);
-                        @endphp
+                            </td>
 
-                        <td style="text-align: center">
-                            {{ $valor_formateado }}
-                            {{ explode('/', $input_completo->input->unidad)[0] }}
-                        </td>
-
-
-                        @if ($loop->first)
-                            <td style="text-align: center; border:none" rowspan="{{ count($inputs_solicitud) }}">{{ $solicitud_detalles->solicitud_aprobada['lote'] }}</td>
-                        @endif
-
-                        <td style="text-align: center">
-                            @isset($input_completo->input->medicine)
-                                {{ $input_completo->input->medicine->presentacion }}
-                            @else
-                                Medicamento no disponible
-                            @endisset
-                        </td>
-
-                        @php
-                            // Inicializamos la variable total
-                            $valor_final = 0;
-
-                            if (
-                                $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == null ||
-                                $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == 0
-                            ) {
-                                $valor_final = number_format($input_completo['valor_ml'], 3, '.', '');
-                            } else {
-                                $valor_final = number_format($input_completo['valor_sobrellenado'], 3, '.', '');
-                            }
-                        @endphp
-
-                        <td>{{ $valor_final }} mL</td>
-                        <td> @isset($input_completo->input->medicine)
-                                ${{ $input_completo->input->medicine->precio_ml }}
-                            @else
-                                Medicamento no disponible
-                            @endisset
-                        </td>
-                        <td style="text-align: center"> @isset($input_completo->precio_ml)
-                                @php
-                                    $total += $input_completo->precio_ml; // Sumamos el precio_ml al total
-                                @endphp
-                                ${{ number_format($input_completo->precio_ml, 3, '.', '') }}
-                            @else
-                                Medicamento no disponible
-                            @endisset
-                        </td>
-                    </tr>
-                @endforeach
-                <tr>
-                    @php
-                        $contador = $contador + 1; // Sumamos el precio_ml al total
-                    @endphp
-                    <td style="text-align: center">{{ $contador }}</td>
-                    <td><strong>
-                            @isset($bolsa_eva)
-                                {{ $bolsa_eva->input->medicine->denominacion_generica }}
-                            @else
-                                Medicamento no disponible
-                            @endisset
-                        </strong></td>
-                    <td style="text-align: center;"></td>
-                    <td style="text-align: center; border-top: none !important;"></td>
-                    <td style="text-align: center">
-
-                    </td>
-
-                    <td>1 pza</td>
-                    <td> @isset($bolsa_eva)
-                            ${{ $bolsa_eva->input->medicine->precio_ml }}
-                        @else
-                            Medicamento no disponible
-                        @endisset
-                    </td>
-                    <td style="text-align: center"> @isset($bolsa_eva)
                             @php
-                                $total += $bolsa_eva->input->medicine->precio_ml; // Sumamos el precio_ml al total
-                            @endphp
-                            ${{ number_format($bolsa_eva->input->medicine->precio_ml, 3, '.', '') }}
-                        @else
-                            Medicamento no disponible
-                        @endisset
-                    </td>
-                </tr>
+                                // Inicializamos la variable total
+                                $valor_final = 0;
 
-                @isset($set_infusion)
+                                if (
+                                    $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == null ||
+                                    $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == 0
+                                ) {
+                                    $valor_final = number_format($input_completo['valor_ml'], 3, '.', '');
+                                } else {
+                                    $valor_final = number_format($input_completo['valor_sobrellenado'], 3, '.', '');
+                                }
+                            @endphp
+
+                            <td>{{ $valor_final }} mL</td>
+                            <td> @isset($input_completo->input->medicine)
+                                    ${{ $input_completo->input->medicine->precio_ml }}
+                                @else
+                                    Medicamento no disponible
+                                @endisset
+                            </td>
+                            <td style="text-align: center"> @isset($input_completo->precio_ml)
+                                    @php
+                                        $total += $input_completo->precio_ml; // Sumamos el precio_ml al total
+                                    @endphp
+                                    ${{ number_format($input_completo->precio_ml, 3, '.', '') }}
+                                @else
+                                    Medicamento no disponible
+                                @endisset
+                            </td>
+                        </tr>
+                    @endforeach
                     <tr>
                         @php
                             $contador = $contador + 1; // Sumamos el precio_ml al total
                         @endphp
                         <td style="text-align: center">{{ $contador }}</td>
                         <td><strong>
-                                {{ $set_infusion->input->medicine->denominacion_generica }}
+                                @isset($bolsa_eva)
+                                    {{ $bolsa_eva->input->medicine->denominacion_generica }}
+                                @else
+                                    Medicamento no disponible
+                                @endisset
+                            </strong></td>
+                        <td style="text-align: center;"></td>
+                        <td style="text-align: center; border-top: none !important;"></td>
+                        <td style="text-align: center">
+
+                        </td>
+
+                        <td>1 pza</td>
+                        <td> @isset($bolsa_eva)
+                                ${{ $bolsa_eva->input->medicine->precio_ml }}
+                            @else
+                                Medicamento no disponible
+                            @endisset
+                        </td>
+                        <td style="text-align: center"> @isset($bolsa_eva)
+                                @php
+                                    $total += $bolsa_eva->input->medicine->precio_ml; // Sumamos el precio_ml al total
+                                @endphp
+                                ${{ number_format($bolsa_eva->input->medicine->precio_ml, 3, '.', '') }}
+                            @else
+                                Medicamento no disponible
+                            @endisset
+                        </td>
+                    </tr>
+
+                    @isset($set_infusion)
+                        <tr>
+                            @php
+                                $contador = $contador + 1; // Sumamos el precio_ml al total
+                            @endphp
+                            <td style="text-align: center">{{ $contador }}</td>
+                            <td><strong>
+                                    {{ $set_infusion->input->medicine->denominacion_generica }}
+                                </strong></td>
+                            <td style="text-align: center"></td>
+                            <td style="text-align: center"></td>
+                            <td style="text-align: center">
+
+                            </td>
+
+                            <td>1 pza</td>
+                            <td>
+                                ${{ $set_infusion->input->medicine->precio_ml }}
+                            </td>
+                            <td style="text-align: center">
+                                @php
+                                    $total += $set_infusion->input->medicine->precio_ml; // Sumamos el precio_ml al total
+                                @endphp
+                                ${{ number_format($set_infusion->input->medicine->precio_ml, 3, '.', '') }}
+
+                            </td>
+                        </tr>
+                    @else
+                    @endisset
+
+                    <tr>
+                        @php
+                            $contador = $contador + 1; // Sumamos el precio_ml al total
+                        @endphp
+                        <td style="text-align: center">{{ $contador }}</td>
+                        <td><strong>
+                                {{ $servicio_preparacion->denominacion_generica }}
                             </strong></td>
                         <td style="text-align: center"></td>
                         <td style="text-align: center"></td>
@@ -308,80 +352,384 @@
 
                         </td>
 
-                        <td>1 pza</td>
+                        <td>1 serv</td>
                         <td>
-                            ${{ $set_infusion->input->medicine->precio_ml }}
+                            ${{ $servicio_preparacion->precio_ml }}
                         </td>
                         <td style="text-align: center">
                             @php
-                                $total += $set_infusion->input->medicine->precio_ml; // Sumamos el precio_ml al total
+                                $total += $servicio_preparacion->precio_ml; // Sumamos el precio_ml al total
                             @endphp
-                            ${{ number_format($set_infusion->input->medicine->precio_ml, 3, '.', '') }}
+                            ${{ number_format($servicio_preparacion->precio_ml, 3, '.', '') }}
 
                         </td>
                     </tr>
-                @else
-                @endisset
 
-                <tr>
-                    @php
-                        $contador = $contador + 1; // Sumamos el precio_ml al total
-                    @endphp
-                    <td style="text-align: center">{{ $contador }}</td>
-                    <td><strong>
-                            {{ $servicio_preparacion->denominacion_generica }}
-                        </strong></td>
-                    <td style="text-align: center"></td>
-                    <td style="text-align: center"></td>
-                    <td style="text-align: center">
 
+                </table>
+                <table>
+                    <tr>
+                        <td style="text-align: right; border-top: none"><strong>Total
+                                ${{ number_format($total, 3, '.', '') }}</strong></td>
+                    </tr>
+                </table>
+                <br>
+                <table style="padding-top: 5rem">
+                    <tr>
+                        <td style="border: none;">
+                            <hr style="width: 170px;  background-color: black; margin: 0; padding: 0; margin: 0 auto">
+                        </td>
+                    </tr>
+                    <tr style="margin: 0; padding: 0">
+                        <td style="border: none; text-align: center; border-top: none; margin: 0; padding: 0">Nombre
+                            completo/firma <br> Fecha de recibido</td>
+                    </tr>
+                </table>
+            </div>
+            <table style="width: 80%; margin: 0 auto;">
+                <tr class="">
+                    <td style="text-align: left; border: none; padding-top: 2rem; font-size: 8px;">
+                        <strong>NOTA IMPORTANTE:</strong>
+                        El cliente reconoce que la mezcla estéril entregada debe ser mantenida bajo condiciones
+                        adecuadas de
+                        almacenamiento, asegurando la conservación de la red fría en todo momento.
+                        <br>
+                        El centro de mezcla no asume ninguna responsabilidad por el deterioro o pérdida de eficacia del
+                        producto debido a un manejo inadecuado posterior a la entrega.
                     </td>
-
-                    <td>1 serv</td>
-                    <td>
-                        ${{ $servicio_preparacion->precio_ml }}
-                    </td>
-                    <td style="text-align: center">
-                        @php
-                            $total += $servicio_preparacion->precio_ml; // Sumamos el precio_ml al total
-                        @endphp
-                        ${{ number_format($servicio_preparacion->precio_ml, 3, '.', '') }}
-
-                    </td>
-                </tr>
-
-
-            </table>
-            <table>
-                <tr>
-                    <td style="text-align: right; border-top: none"><strong>Total
-                            ${{ number_format($total, 3, '.', '') }}</strong></td>
-                </tr>
-            </table>
-            <br>
-            <table style="padding-top: 5rem">
-                <tr>
-                    <td style="border: none;">
-                        <hr style="width: 170px;  background-color: black; margin: 0; padding: 0; margin: 0 auto">
-                    </td>
-                </tr>
-                <tr style="margin: 0; padding: 0">
-                    <td style="border: none; text-align: center; border-top: none; margin: 0; padding: 0">Nombre
-                        completo/firma <br> Fecha de recibido</td>
                 </tr>
             </table>
         </div>
-        <table style="width: 80%; margin: 0 auto;">
-            <tr class="">
-                <td style="text-align: left; border: none; padding-top: 2rem; font-size: 8px;">
-                    <strong>NOTA IMPORTANTE:</strong>
-                El cliente reconoce que la mezcla estéril entregada debe ser mantenida bajo condiciones  adecuadas de almacenamiento, asegurando la conservación de la red fría en todo momento.
-                <br>
-                El centro de mezcla no asume ninguna responsabilidad por el deterioro o pérdida de eficacia del producto debido a un manejo inadecuado posterior a la entrega.
-                </td>
-            </tr>
-        </table>
+    </div>
 
+    <div class="salto-pagina">
+        <div class="contenedor">
+            <!-- Contenedor principal con borde negro -->
+            <div>
+                <table class="introduccion" style="margin-top: 0.5rem; margin-bottom: 0.5rem">
+                    <tr>
+                        <td style="width: 25%">
+                            <img style="width: 10rem" src="{{ asset('img/mitani-pharma.jpeg') }}" alt="">
+                        </td>
+                        <td style="width: 50%; margin: 0 auto; text-align: center; font-weight: bold; font-size: 15px">
+                            <strong>{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}</strong>
+                        </td>
+                        <td style="width: 25%">
+
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <td style="border: none; border-top: 1px solid black; font-weight: bold">Fecha de envío:
+                            {{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_detail['fecha_hora_entrega'])) }}
+                        </td>
+                        <td style="text-align: right; border: none; border-top: 1px solid black; ">DOMICILIO CLIENTE
+                            RECEPTOR:</td>
+                    </tr>
+                    <tr>
+                        <td style="border: none; font-weight: bold">No.
+                            {{ str_pad($solicitud_detalles->solicitud_aprobada['id'], 6, '0', STR_PAD_LEFT) }}</td>
+                        <td style="text-align: right; border: none">{{ $solicitud_detalles->user->hospital->adress }}
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <td
+                            style="text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold;">
+                            <strong>DATOS DEL
+                                PACIENTE</strong>
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <th style="background: #D9E2F3; width: 40%; text-align: center">NOMBRE COMPLETO</th>
+                        <th style="background: #D9E2F3; width: 20%; text-align: center">FECHA DE NACIMIENTO</th>
+                        <th style="background: #D9E2F3; width: 10%; text-align: center">EDAD(a)</th>
+                        <th style="background: #D9E2F3; width: 10%; text-align: center">GENERO</th>
+                        <th style="background: #D9E2F3; width: 20%; text-align: center">SUPERFICIE CORPORAL (m2)</th>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['nombre_paciente'] }}
+                            {{ $solicitud_detalles->solicitud_patient['apellidos_paciente'] }}</td>
+                        <td style="text-align: center">
+                            {{ date('d-m-Y', strtotime($solicitud_detalles->solicitud_patient['fecha_nacimiento'])) }}
+                        </td>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['edad'] }}</td>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['sexo'] }}</td>
+                        <td style="text-align: center">S/D</td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <th style="border-top: none; background: #D9E2F3; width: 40%; text-align: center">DIAGNOSTICO
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">SERVICIOS
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">No. De
+                            EXPREDIENTE
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 20%; text-align: center">MÉDICO
+                            TRATANTE
+                        </th>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['diagnostico'] }}
+                        </td>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['servicio'] }}</td>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_patient['registro'] }}</td>
+                        <td style="text-align: center">{{ $solicitud_detalles->solicitud_detail['nombre_medico'] }}
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <td
+                            style="border-top: none; width: 50%; text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0">
+                            <strong>DATOS DE LAS MEZCLAS</strong>
+                        </td>
+                        <td
+                            style="border-top: none; width: 50%; text-align: center; text-align: center; border-top: 1px solid black; border-bottom: none; background-color: #1F4E78; color: white; font-weight: bold; padding: 8px 0">
+                            <strong>COSTO MEDICAMENTO</strong>
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <th style="border-top: none; background: #D9E2F3; width: 5%; text-align: center;">
+                            <strong>No</strong>
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 30%; text-align: center">
+                            <strong>MEDICAMENTO</strong>
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center">
+                            <strong>DOSIS</strong>
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 10%; text-align: center"><strong>LOTE
+                                DE LA
+                                MEZCLA</strong></th>
+                        <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
+                            <strong>PRESENTACIÓN</strong>
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 8.5%; text-align: center">
+                            <strong>CANTIDAD</strong>
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 7.5%; text-align: center">
+                            <strong>PRECIO
+                                (ml)</strong>
+                        </th>
+                        <th style="border-top: none; background: #D9E2F3; width: 12.5%; text-align: center">
+                            <strong>SUBTOTAL</strong>
+                        </th>
+                    </tr>
+                    @php
+                        $total = 0; // Inicializamos la variable total
+                        $contador = 0;
+                    @endphp
+                    @foreach ($inputs_solicitud as $input_completo)
+                        <tr>
+                            <td style="text-align: center">{{ $loop->iteration }}
+                                @php
+                                    $contador = $loop->iteration; // Sumamos el precio_ml al total
+                                @endphp
+                            </td>
+                            <td><strong>
+                                    @isset($input_completo->input->medicine)
+                                        {{ $input_completo->input->medicine->denominacion_generica }}
+                                    @else
+                                        Medicamento no disponible
+                                    @endisset
+                                </strong></td>
+                            @php
+                                // Lógica para formatear el valor sin ceros innecesarios
+                                $valor_formateado =
+                                    strpos($input_completo['valor'], '.') !== false
+                                        ? number_format($input_completo['valor'], 3, '.', '')
+                                        : number_format($input_completo['valor'], 0);
+                            @endphp
+
+                            <td style="text-align: center">
+                                {{ $valor_formateado }}
+                                {{ explode('/', $input_completo->input->unidad)[0] }}
+                            </td>
+
+
+                            @if ($loop->first)
+                                <td style="text-align: center; border:none" rowspan="{{ count($inputs_solicitud) }}">
+                                    {{ $solicitud_detalles->solicitud_aprobada['lote'] }}</td>
+                            @endif
+
+                            <td style="text-align: center">
+                                @isset($input_completo->input->medicine)
+                                    {{ $input_completo->input->medicine->presentacion }}
+                                @else
+                                    Medicamento no disponible
+                                @endisset
+                            </td>
+
+                            @php
+                                // Inicializamos la variable total
+                                $valor_final = 0;
+
+                                if (
+                                    $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == null ||
+                                    $solicitud_detalles->solicitud_detail['sobrellenado_ml'] == 0
+                                ) {
+                                    $valor_final = number_format($input_completo['valor_ml'], 3, '.', '');
+                                } else {
+                                    $valor_final = number_format($input_completo['valor_sobrellenado'], 3, '.', '');
+                                }
+                            @endphp
+
+                            <td>{{ $valor_final }} mL</td>
+                            <td> @isset($input_completo->input->medicine)
+                                    ${{ $input_completo->input->medicine->precio_ml }}
+                                @else
+                                    Medicamento no disponible
+                                @endisset
+                            </td>
+                            <td style="text-align: center"> @isset($input_completo->precio_ml)
+                                    @php
+                                        $total += $input_completo->precio_ml; // Sumamos el precio_ml al total
+                                    @endphp
+                                    ${{ number_format($input_completo->precio_ml, 3, '.', '') }}
+                                @else
+                                    Medicamento no disponible
+                                @endisset
+                            </td>
+                        </tr>
+                    @endforeach
+                    <tr>
+                        @php
+                            $contador = $contador + 1; // Sumamos el precio_ml al total
+                        @endphp
+                        <td style="text-align: center">{{ $contador }}</td>
+                        <td><strong>
+                                @isset($bolsa_eva)
+                                    {{ $bolsa_eva->input->medicine->denominacion_generica }}
+                                @else
+                                    Medicamento no disponible
+                                @endisset
+                            </strong></td>
+                        <td style="text-align: center;"></td>
+                        <td style="text-align: center; border-top: none !important;"></td>
+                        <td style="text-align: center">
+
+                        </td>
+
+                        <td>1 pza</td>
+                        <td> @isset($bolsa_eva)
+                                ${{ $bolsa_eva->input->medicine->precio_ml }}
+                            @else
+                                Medicamento no disponible
+                            @endisset
+                        </td>
+                        <td style="text-align: center"> @isset($bolsa_eva)
+                                @php
+                                    $total += $bolsa_eva->input->medicine->precio_ml; // Sumamos el precio_ml al total
+                                @endphp
+                                ${{ number_format($bolsa_eva->input->medicine->precio_ml, 3, '.', '') }}
+                            @else
+                                Medicamento no disponible
+                            @endisset
+                        </td>
+                    </tr>
+
+                    @isset($set_infusion)
+                        <tr>
+                            @php
+                                $contador = $contador + 1; // Sumamos el precio_ml al total
+                            @endphp
+                            <td style="text-align: center">{{ $contador }}</td>
+                            <td><strong>
+                                    {{ $set_infusion->input->medicine->denominacion_generica }}
+                                </strong></td>
+                            <td style="text-align: center"></td>
+                            <td style="text-align: center"></td>
+                            <td style="text-align: center">
+
+                            </td>
+
+                            <td>1 pza</td>
+                            <td>
+                                ${{ $set_infusion->input->medicine->precio_ml }}
+                            </td>
+                            <td style="text-align: center">
+                                @php
+                                    $total += $set_infusion->input->medicine->precio_ml; // Sumamos el precio_ml al total
+                                @endphp
+                                ${{ number_format($set_infusion->input->medicine->precio_ml, 3, '.', '') }}
+
+                            </td>
+                        </tr>
+                    @else
+                    @endisset
+
+                    <tr>
+                        @php
+                            $contador = $contador + 1; // Sumamos el precio_ml al total
+                        @endphp
+                        <td style="text-align: center">{{ $contador }}</td>
+                        <td><strong>
+                                {{ $servicio_preparacion->denominacion_generica }}
+                            </strong></td>
+                        <td style="text-align: center"></td>
+                        <td style="text-align: center"></td>
+                        <td style="text-align: center">
+
+                        </td>
+
+                        <td>1 serv</td>
+                        <td>
+                            ${{ $servicio_preparacion->precio_ml }}
+                        </td>
+                        <td style="text-align: center">
+                            @php
+                                $total += $servicio_preparacion->precio_ml; // Sumamos el precio_ml al total
+                            @endphp
+                            ${{ number_format($servicio_preparacion->precio_ml, 3, '.', '') }}
+
+                        </td>
+                    </tr>
+
+
+                </table>
+                <table>
+                    <tr>
+                        <td style="text-align: right; border-top: none"><strong>Total
+                                ${{ number_format($total, 3, '.', '') }}</strong></td>
+                    </tr>
+                </table>
+                <br>
+                <table style="padding-top: 5rem">
+                    <tr>
+                        <td style="border: none;">
+                            <hr style="width: 170px;  background-color: black; margin: 0; padding: 0; margin: 0 auto">
+                        </td>
+                    </tr>
+                    <tr style="margin: 0; padding: 0">
+                        <td style="border: none; text-align: center; border-top: none; margin: 0; padding: 0">Nombre
+                            completo/firma <br> Fecha de recibido</td>
+                    </tr>
+                </table>
+            </div>
+            <table style="width: 80%; margin: 0 auto;">
+                <tr class="">
+                    <td style="text-align: left; border: none; padding-top: 2rem; font-size: 8px;">
+                        <strong>NOTA IMPORTANTE:</strong>
+                        El cliente reconoce que la mezcla estéril entregada debe ser mantenida bajo condiciones
+                        adecuadas de
+                        almacenamiento, asegurando la conservación de la red fría en todo momento.
+                        <br>
+                        El centro de mezcla no asume ninguna responsabilidad por el deterioro o pérdida de eficacia del
+                        producto debido a un manejo inadecuado posterior a la entrega.
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
 
 
 </body>

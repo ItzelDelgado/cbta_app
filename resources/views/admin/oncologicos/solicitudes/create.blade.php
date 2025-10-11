@@ -142,6 +142,7 @@
         const medicamentos = @json($medicamentos);
         const infoAdicional = @json($infoAdicional);
         const mezclasOld = @json(old('mezclas') ? json_decode(old('mezclas'), true) : []);
+        const infusors = @json($infusors ?? []);
 
         let idInternoMezcla = 0;
         let contadorFilasGlobal = 0;
@@ -159,6 +160,7 @@
                 <i class="fas fa-trash"></i> Eliminar Mezcla
             </button>
         </div>
+
         <table class="table-auto w-full border text-center">
             <thead class="bg-gray-100">
                 <tr>
@@ -169,14 +171,15 @@
                     <th class="border px-4 py-2 text-xs">ACCIÓN</th>
                 </tr>
             </thead>
-            <tbody id="medicamentos_mezcla_${idInternoMezcla}">
-            </tbody>
+            <tbody id="medicamentos_mezcla_${idInternoMezcla}"></tbody>
         </table>
+
         <div class="my-2">
             <button type="button" onclick="agregarFilaMedicamento(${idInternoMezcla})" class="bg-green-500 text-white px-4 py-2 rounded text-sm">
                 <i class="fas fa-plus"></i> Agregar Medicamento
             </button>
         </div>
+
         <div class="grid grid-cols-2 gap-4 mt-4">
             <div>
                 <label>Volumen total de dilución (ml)*</label>
@@ -187,11 +190,33 @@
                 <input type="number" data-name="tiempo_infusion" class="w-full border rounded px-2 py-1 text-sm">
             </div>
         </div>
+
+        <div class="grid grid-cols-2 gap-4 mt-4">
+            <div class="flex items-center gap-2">
+                <input type="checkbox" data-name="set_infusion" class="w-4 h-4"
+                       onchange="toggleSetInfusion(this, ${idInternoMezcla})">
+                <label class="select-none">Set de infusión</label>
+            </div>
+
+            <!-- WRAPPER DE INFUSOR: INICIA OCULTO -->
+            <div data-name="infusor_wrapper" style="display:none">
+                <label>Infusor</label>
+                <select data-name="infusor_id" class="w-full border rounded px-2 py-1 text-sm"
+                        onchange="toggleInfusorSelect(this, ${idInternoMezcla})" disabled>
+                    <option value="">Selecciona infusor</option>
+                    ${infusors.map(i => `<option value="${i.id}">${i.nombre_generico ?? i.nombre_comercial ?? ('Infusor #'+i.id)}</option>`).join('')}
+                </select>
+                <p class="text-xs text-gray-500" data-name="infusor_help">
+                    Aparece solo si la mezcla contiene medicamento(s) que admiten infusor.
+                </p>
+            </div>
+        </div>
         `;
 
             document.getElementById('contenedorMezclas').appendChild(mezclaDiv);
             agregarFilaMedicamento(idInternoMezcla);
             actualizarNumeracionMezclas();
+            updateInfusorDisponibilidad(idInternoMezcla);
         }
 
         function agregarMezclaDesdeOld(mezclaData) {
@@ -207,6 +232,7 @@
                 <i class="fas fa-trash"></i> Eliminar Mezcla
             </button>
         </div>
+
         <table class="table-auto w-full border text-center">
             <thead class="bg-gray-100">
                 <tr>
@@ -219,11 +245,13 @@
             </thead>
             <tbody id="medicamentos_mezcla_${idInternoMezcla}"></tbody>
         </table>
+
         <div class="my-2">
             <button type="button" onclick="agregarFilaMedicamento(${idInternoMezcla})" class="bg-green-500 text-white px-4 py-2 rounded text-sm">
                 <i class="fas fa-plus"></i> Agregar Medicamento
             </button>
         </div>
+
         <div class="grid grid-cols-2 gap-4 mt-4">
             <div>
                 <label>Volumen total de dilución (ml)*</label>
@@ -234,11 +262,43 @@
                 <input type="number" data-name="tiempo_infusion" value="${mezclaData.tiempo_infusion ?? ''}" class="w-full border rounded px-2 py-1 text-sm">
             </div>
         </div>
+
+        <div class="grid grid-cols-2 gap-4 mt-4">
+            <div class="flex items-center gap-2">
+                <input type="checkbox" data-name="set_infusion" class="w-4 h-4"
+                       ${mezclaData.set_infusion ? 'checked' : ''}
+                       onchange="toggleSetInfusion(this, ${idInternoMezcla})">
+                <label class="select-none">Set de infusión</label>
+            </div>
+
+            <!-- WRAPPER DE INFUSOR: INICIA OCULTO, SE MOSTRARÁ SOLO SI ADMITE -->
+            <div data-name="infusor_wrapper" style="display:none">
+                <label>Infusor</label>
+                <select data-name="infusor_id" class="w-full border rounded px-2 py-1 text-sm"
+                        onchange="toggleInfusorSelect(this, ${idInternoMezcla})">
+                    <option value="">Selecciona infusor</option>
+                    ${infusors.map(i => `<option value="${i.id}" ${Number(mezclaData.infusor_id||'')===Number(i.id)?'selected':''}>${i.nombre_generico ?? i.nombre_comercial ?? ('Infusor #'+i.id)}</option>`).join('')}
+                </select>
+                <p class="text-xs text-gray-500" data-name="infusor_help">
+                    Aparece solo si la mezcla contiene medicamento(s) que admiten infusor.
+                </p>
+            </div>
+        </div>
         `;
 
             document.getElementById('contenedorMezclas').appendChild(mezclaDiv);
-            mezclaData.medicamentos.forEach(m => agregarFilaMedicamentoDesdeOld(idInternoMezcla, m));
+            (mezclaData.medicamentos || []).forEach(m => agregarFilaMedicamentoDesdeOld(idInternoMezcla, m));
+
+            // Exclusión inicial
+            const setCb = mezclaDiv.querySelector('[data-name="set_infusion"]');
+            const selInf = mezclaDiv.querySelector('[data-name="infusor_id"]');
+            if (selInf.value) {
+                setCb.checked = false;
+                setCb.disabled = true;
+            }
+
             actualizarNumeracionMezclas();
+            updateInfusorDisponibilidad(idInternoMezcla);
         }
 
         function agregarFilaMedicamentoDesdeOld(idMezcla, med) {
@@ -252,7 +312,7 @@
             <select data-name="medicamento" class="w-full border rounded px-2 py-1 text-sm"
                 onchange="actualizarDiluentesYVias(this, ${idMezcla}, ${contadorFilasGlobal}); actualizarOpcionesMedicamentos(${idMezcla})">
                 <option value="">Seleccione el medicamento</option>
-                ${medicamentos.map(m => `<option value="${m.id}" ${m.id == med.medicamento_id ? 'selected' : ''}>${m.denominacion} (${m.presentacion})</option>`).join('')}
+                ${medicamentos.map(m => `<option value="${m.id}" ${m.id == (med.medicamento_id ?? '') ? 'selected' : ''}>${m.denominacion} (${m.presentacion})</option>`).join('')}
             </select>
         </td>
         <td class="border">
@@ -283,11 +343,57 @@
             actualizarOpcionesMedicamentos(idMezcla);
         }
 
+        function agregarFilaMedicamento(idMezcla) {
+            agregarFilaMedicamentoDesdeOld(idMezcla, {});
+        }
+
+        function eliminarMezcla(btn) {
+            const mezcla = btn.closest(".border");
+            const idMezcla = mezcla.dataset.idInterno;
+            mezcla.remove();
+            actualizarNumeracionMezclas();
+            actualizarOpcionesMedicamentos(idMezcla);
+            updateInfusorDisponibilidad(idMezcla);
+        }
+
+        function eliminarFila(idFila) {
+            const fila = document.getElementById(idFila);
+            const idMezcla = fila.closest("tbody").id.split("_").pop();
+            fila.remove();
+            actualizarOpcionesMedicamentos(idMezcla);
+            updateInfusorDisponibilidad(idMezcla);
+        }
+
+        function actualizarNumeracionMezclas() {
+            document.querySelectorAll('#contenedorMezclas > .border').forEach((mezcla, index) => {
+                mezcla.querySelector('.mezcla-titulo').textContent = `Mezcla #${index + 1}`;
+            });
+        }
+
+        function actualizarDiluentesYVias(selectElem, idMezcla, idFila) {
+            const medicamentoId = selectElem.value;
+            const fila = document.getElementById(`fila_m${idMezcla}_f${idFila}`);
+            const data = infoAdicional[medicamentoId] || {
+                diluyentes: [],
+                vias: []
+            };
+
+            const selectDiluyente = fila.querySelector('[data-name="diluyente"]');
+            selectDiluyente.innerHTML = `<option value="">Diluyentes</option>` +
+                data.diluyentes.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+
+            const selectVia = fila.querySelector('[data-name="via_administracion"]');
+            selectVia.innerHTML = `<option value="">Vía de admin</option>` +
+                data.vias.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
+
+            // Recalcular si la mezcla admite infusor (mostrar/ocultar wrapper)
+            updateInfusorDisponibilidad(idMezcla);
+        }
+
         function actualizarOpcionesMedicamentos(idMezcla) {
             const selects = document.querySelectorAll(`#medicamentos_mezcla_${idMezcla} select[data-name="medicamento"]`);
             const seleccionados = Array.from(selects).map(s => s.value).filter(v => v);
 
-            // Construir conjuntos de diluyentes y vías a partir de los medicamentos seleccionados
             const diluyentesSet = new Set();
             const viasSet = new Set();
 
@@ -308,19 +414,15 @@
                     const info = infoAdicional[m.id];
                     if (!info) return;
 
-                    // Ya seleccionado en otra fila distinta
                     const yaSeleccionado = seleccionados.includes(mId) && mId !== valorActual;
-
-                    // Si es el primer medicamento, permitir todos
                     const esPrimero = seleccionados.length === 0 || (seleccionados.length === 1 &&
                         valorActual === mId);
 
-                    // Compatibilidad con al menos un diluyente y una vía
                     const compatibleDiluyente = info.diluyentes.some(d => diluyentesSet.has(d.id));
                     const compatibleVia = info.vias.some(v => viasSet.has(v.id));
                     const esCompatible = compatibleDiluyente && compatibleVia;
 
-                    if (yaSeleccionado) return; // ❌ evitar repetidos
+                    if (yaSeleccionado) return;
 
                     if (esPrimero || esCompatible || mId === valorActual) {
                         const option = document.createElement('option');
@@ -333,48 +435,92 @@
             });
         }
 
-        function agregarFilaMedicamento(idMezcla) {
-            agregarFilaMedicamentoDesdeOld(idMezcla, {});
+        // ====== Lógica Infusor vs Set (mostrar/ocultar select) ======
+
+        function requiereInfusorParaMed(medId) {
+            if (!medId) return false;
+            const med = medicamentos.find(m => String(m.id) === String(medId));
+            if (med && typeof med.requires_infusor !== 'undefined') {
+                return Number(med.requires_infusor) === 1;
+            }
+            const info = infoAdicional[medId];
+            if (info && typeof info.requires_infusor !== 'undefined') {
+                return Number(info.requires_infusor) === 1;
+            }
+            return false;
         }
 
-        function eliminarMezcla(btn) {
-            const mezcla = btn.closest(".border");
-            const idMezcla = mezcla.dataset.idInterno;
-            mezcla.remove();
-            actualizarNumeracionMezclas();
-            actualizarOpcionesMedicamentos(idMezcla);
+        function mezclaAdmiteInfusor(idMezcla) {
+            const filas = document.querySelectorAll(`#medicamentos_mezcla_${idMezcla} tr`);
+            for (const fila of filas) {
+                const medSel = fila.querySelector('[data-name="medicamento"]');
+                if (medSel && medSel.value && requiereInfusorParaMed(medSel.value)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
-        function eliminarFila(idFila) {
-            const fila = document.getElementById(idFila);
-            const idMezcla = fila.closest("tbody").id.split("_").pop();
-            fila.remove();
-            actualizarOpcionesMedicamentos(idMezcla);
+        function updateInfusorDisponibilidad(idMezcla) {
+            const mezclaDiv = document.querySelector(`#contenedorMezclas > .border[data-id-interno="${idMezcla}"]`) ||
+                document.querySelector(`#contenedorMezclas > .border[data-idinterno="${idMezcla}"]`);
+            if (!mezclaDiv) return;
+
+            const setCb = mezclaDiv.querySelector('[data-name="set_infusion"]');
+            const selInf = mezclaDiv.querySelector('[data-name="infusor_id"]');
+            const wrapper = mezclaDiv.querySelector('[data-name="infusor_wrapper"]');
+
+            const admite = mezclaAdmiteInfusor(idMezcla);
+
+            // Mostrar/ocultar el bloque completo según admita
+            if (admite) {
+                wrapper.style.display = '';
+            } else {
+                wrapper.style.display = 'none';
+                // Al ocultar: limpiar y deshabilitar
+                selInf.value = '';
+                selInf.disabled = true;
+            }
+
+            // Si set está marcado → siempre deshabilitar select (aunque se vea el wrapper)
+            if (setCb && setCb.checked) {
+                selInf.value = '';
+                selInf.disabled = true;
+                return;
+            }
+
+            // Si admite y no hay set → habilitar select
+            if (admite) {
+                selInf.disabled = false;
+            }
         }
 
-        function actualizarNumeracionMezclas() {
-            document.querySelectorAll('#contenedorMezclas > .border').forEach((mezcla, index) => {
-                mezcla.querySelector('.mezcla-titulo').textContent = `Mezcla #${index + 1}`;
-            });
+        function toggleSetInfusion(checkbox, idMezcla) {
+            const mezclaDiv = checkbox.closest('.border');
+            const selInf = mezclaDiv.querySelector('[data-name="infusor_id"]');
+
+            if (checkbox.checked) {
+                selInf.value = '';
+                selInf.disabled = true;
+            } else {
+                // Solo habilitar si la mezcla admite infusor
+                selInf.disabled = !mezclaAdmiteInfusor(idMezcla);
+            }
         }
 
-        function actualizarDiluentesYVias(selectElem, idMezcla, idFila) {
-            const medicamentoId = selectElem.value;
-            const fila = document.getElementById(`fila_m${idMezcla}_f${idFila}`);
-            const data = infoAdicional[medicamentoId] || {
-                diluyentes: [],
-                vias: []
-            };
+        function toggleInfusorSelect(select, idMezcla) {
+            const mezclaDiv = select.closest('.border');
+            const setCb = mezclaDiv.querySelector('[data-name="set_infusion"]');
 
-            const selectDiluyente = fila.querySelector('[data-name="diluyente"]');
-            selectDiluyente.innerHTML = `<option value="">Diluyentes</option>` + data.diluyentes.map(d =>
-                `<option value="${d.id}">${d.name}</option>`).join('');
-
-            const selectVia = fila.querySelector('[data-name="via_administracion"]');
-            selectVia.innerHTML = `<option value="">Vía de admin</option>` + data.vias.map(v =>
-                `<option value="${v.id}">${v.name}</option>`).join('');
+            if (select.value) {
+                setCb.checked = false;
+                setCb.disabled = true;
+            } else {
+                setCb.disabled = false;
+            }
         }
 
+        // ====== Submit ======
         document.getElementById("formularioSolicitud").addEventListener("submit", function(e) {
             e.preventDefault();
             const mezclas = [];
@@ -385,12 +531,17 @@
                 const volumen = mezclaDiv.querySelector('[data-name="volumen_dilucion"]')?.value;
                 const tiempo = mezclaDiv.querySelector('[data-name="tiempo_infusion"]')?.value;
 
-                const medicamentos = [];
+                const setInfusionCb = mezclaDiv.querySelector('[data-name="set_infusion"]');
+                const selInfusor = mezclaDiv.querySelector('[data-name="infusor_id"]');
+                const set_infusion = !!(setInfusionCb && setInfusionCb.checked);
+                const infusor_id = selInfusor && selInfusor.value ? selInfusor.value : null;
+
+                const medicamentosArr = [];
                 let diluyenteRef = null;
                 let viaRef = null;
 
                 mezclaDiv.querySelectorAll(`#medicamentos_mezcla_${idInterno} tr`).forEach((fila,
-                    index) => {
+                index) => {
                     const medicamentoSelect = fila.querySelector('[data-name="medicamento"]');
                     const dosisInput = fila.querySelector('[data-name="dosis"]');
                     const diluyenteSelect = fila.querySelector('[data-name="diluyente"]');
@@ -404,13 +555,11 @@
                     if (index === 0) {
                         diluyenteRef = diluyente;
                         viaRef = via;
-                    } else {
-                        if (diluyente !== diluyenteRef || via !== viaRef) {
-                            errorMezclaInvalida = true;
-                        }
+                    } else if (diluyente !== diluyenteRef || via !== viaRef) {
+                        errorMezclaInvalida = true;
                     }
 
-                    medicamentos.push({
+                    medicamentosArr.push({
                         medicamento_id: medicamentoSelect.value,
                         nombre: medicamentoSelect.options[medicamentoSelect.selectedIndex]
                             .text,
@@ -420,11 +569,15 @@
                     });
                 });
 
-                if (medicamentos.length > 0) {
+                if (medicamentosArr.length > 0) {
+                    if (set_infusion && infusor_id) errorMezclaInvalida = true;
+
                     mezclas.push({
                         volumen_dilucion: volumen,
                         tiempo_infusion: tiempo,
-                        medicamentos: medicamentos
+                        set_infusion: set_infusion,
+                        infusor_id: infusor_id,
+                        medicamentos: medicamentosArr
                     });
                 }
             });
@@ -433,7 +586,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Error en mezcla',
-                    text: 'Todos los medicamentos de una mezcla deben tener el mismo diluyente y la misma vía de administración.',
+                    text: 'Todos los medicamentos de una mezcla deben tener el mismo diluyente y la misma vía; además, elige set de infusión o un infusor, no ambos.',
                     customClass: {
                         confirmButton: 'swal-button-confirm',
                         cancelButton: 'swal-button-cancel'
@@ -455,14 +608,12 @@
                     confirmButton: 'swal-button-confirm',
                     cancelButton: 'swal-button-cancel'
                 }
-
             }).then((result) => {
                 if (result.isConfirmed) {
                     e.target.submit();
                 }
             });
         });
-
 
         document.addEventListener("DOMContentLoaded", () => {
             if (mezclasOld.length > 0) {
@@ -472,6 +623,7 @@
             }
         });
     </script>
+
 
 
     @if (session('success'))
