@@ -1,45 +1,43 @@
 @php
-use Carbon\Carbon;
+    use Carbon\Carbon;
 
-// ---- Datos base de solicitud_oncos ----
-$pacienteNombre = $solicitud->nombre_paciente ?? '—';
-$fechaNac = $solicitud->fecha_nacimiento
-? \Carbon\Carbon::parse($solicitud->fecha_nacimiento)
-: null;
+    // ---- Datos base de solicitud_oncos ----
+    $pacienteNombre = $solicitud->nombre_paciente ?? '—';
+    $fechaNac = $solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento) : null;
 
-$edad = '—';
-if ($fechaNac) {
-$ahora = \Carbon\Carbon::now();
-$años = $fechaNac->diffInYears($ahora);
-$meses = $fechaNac->diffInMonths($ahora);
-$dias = $fechaNac->diffInDays($ahora);
+    $edad = '—';
+    if ($fechaNac) {
+        $ahora = Carbon::now();
+        $años = $fechaNac->diffInYears($ahora);
+        $meses = $fechaNac->diffInMonths($ahora);
+        $dias = $fechaNac->diffInDays($ahora);
 
-if ($años > 0) {
-$edad = $años . ' años';
-} elseif ($meses > 0) {
-$edad = $meses . ' meses';
-} else {
-$edad = $dias . ' días';
-}
-}
-// Sexo en solicitud_oncos es enum('M','F')
-$sexo = match ($solicitud->sexo) {
-'M' => 'Masculino',
-'F' => 'Femenino',
-default => '—',
-};
+        if ($años > 0) {
+            $edad = $años . ' años';
+        } elseif ($meses > 0) {
+            $edad = $meses . ' meses';
+        } else {
+            $edad = $dias . ' días';
+        }
+    }
+    // Sexo en solicitud_oncos es enum('M','F')
+    $sexo = match ($solicitud->sexo) {
+        'M' => 'Masculino',
+        'F' => 'Femenino',
+        default => '—',
+    };
 
-$diagnostico = $solicitud->diagnostico ?? '—';
-$servicio = $solicitud->servicio ?? '—';
-$expediente = $solicitud->registro_paciente ?? '—';
-$medico = $solicitud->nombre_medico ?? '—';
-$observaciones = $solicitud->observaciones ?? '—';
+    $diagnostico = $solicitud->diagnostico ?? '—';
+    $servicio = $solicitud->servicio ?? '—';
+    $expediente = $solicitud->registro_paciente ?? '—';
+    $medico = $solicitud->nombre_medico ?? '—';
+    $observaciones = $solicitud->observaciones ?? '—';
 
-// Domicilio cliente receptor (hospital del usuario)
-$domicilioHospital = optional(optional($solicitud->user)->hospital)->adress ?? '—';
+    // Domicilio cliente receptor (hospital del usuario)
+    $domicilioHospital = optional(optional($solicitud->user)->hospital)->adress ?? '—';
 
-// Contador filas de medicamentos
-$contador = 1;
+    // Contador filas de medicamentos
+    $contador = 1;
 @endphp
 
 
@@ -261,7 +259,7 @@ $contador = 1;
                         <img style="width: 10rem;" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
                     </td>
                     <td style="width: 60%; margin: 0 auto; text-align: center; font-size: 13px">
-                        <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM <br> NUTRICIONES PARENTERALES</strong>
+                        <strong>ORDEN DE ENVÍO<br> MEZCLAS ESTÉRILES ONCOLÓGICAS</strong>
                     </td>
                     <td style="width: 20%"></td>
                 </tr>
@@ -269,11 +267,6 @@ $contador = 1;
         </div>
 
         <table>
-            <tr>
-                <td style="text-align: right; color: blue; padding: 2px 8px;">
-                    FTO-NPT-023-005
-                </td>
-            </tr>
             <tr style="background-color: #1F4E78; color: white; font-weight: bold;">
                 <td style="text-align: center;">ENTREGA DE LAS MEZCLAS ONCOLÓGICAS PREPARADAS EN CMP</td>
             </tr>
@@ -281,8 +274,12 @@ $contador = 1;
 
         <table>
             <tr>
-                <td class="px-1">Fecha de envío: <strong>{{ $fechaEnvio ?? now()->format('d/m/Y H:i') }}</strong></td>
-                <td class="px-1 text-right">DOMICILIO CLIENTE RECEPTOR: <strong>{{ $domicilioHospital }}</strong></td>
+                <td class="px-1">Fecha de envío:
+                    <strong>{{ $fechaEnvio ? Carbon::parse($fechaEnvio)->format('d/m/Y H:i') : now()->format('d/m/Y H:i') }}</strong>
+                </td>
+                <td class="px-1 text-right">DOMICILIO CLIENTE RECEPTOR:
+                    <strong>{{ $domicilioHospital }}</strong>
+                </td>
             </tr>
         </table>
 
@@ -302,7 +299,7 @@ $contador = 1;
             </tr>
             <tr>
                 <td class="border-x-1 border-l-0 px-1 text-center">{{ $pacienteNombre }}</td>
-                <td class="border-x-1 px-1 text-center">{{ $fechaNac }}</td>
+                <td class="border-x-1 px-1 text-center">{{ $fechaNac ? $fechaNac->format('d/m/Y') : '—' }}</td>
                 <td class="border-x-1 px-1 text-center">{{ $edad }}</td>
                 <td class="border-x-1 border-r-0 px-1 text-center">{{ $sexo }}</td>
             </tr>
@@ -318,10 +315,11 @@ $contador = 1;
             <tr>
                 <td class="border-1 border-l-0 px-1 text-center">{{ $diagnostico }}</td>
                 <td class="border-1 px-1 text-center">{{ $servicio }}</td>
-                <td class="border-1 px-1 text-center">{{ $solicitud->registro_paciente ?? '—'  }}</td>
+                <td class="border-1 px-1 text-center">{{ $expediente }}</td>
                 <td class="border-1 border-r-0 px-1 text-center">{{ $medico }}</td>
             </tr>
         </table>
+
         <table>
             <tr>
                 <td class="border-b-1 px-1 bg-cbta text-center font-bold">Comentarios:</td>
@@ -334,7 +332,7 @@ $contador = 1;
         <!-- Datos de las mezclas -->
         <table>
             <tr>
-                <td class=" px-1 bg-cbta text-center font-bold">DATOS DE LAS MEZCLAS</td>
+                <td class="px-1 bg-cbta text-center font-bold">DATOS DE LAS MEZCLAS</td>
             </tr>
         </table>
 
@@ -351,67 +349,57 @@ $contador = 1;
                 <td class="border-1 border-r-0 px-1 text-center">Fecha/Hora de <br> límite de uso</td>
             </tr>
 
-            @php
-            $contador = $contador ?? 1;
-            @endphp
+            @php $contador = $contador ?? 1; @endphp
 
             @foreach ($mezclas as $mezcla)
-            @php
-            // Fecha/hora de preparación (puedes ajustar si tienes un campo dedicado)
-            $prep = $mezcla->created_at ? Carbon::parse($mezcla->created_at) : null;
-            $limite = $prep ? $prep->copy()->addHours(48) : null;
+                @php
+                    $prep = $mezcla->created_at ? Carbon::parse($mezcla->created_at) : null;
+                    $limite = $prep ? $prep->copy()->addHours(48) : null;
 
-            $prepFmt = $prep ? $prep->format('d/m/Y - H:i') : '—';
-            $limiteFmt = $limite ? $limite->format('d/m/Y - H:i') : '—';
+                    $prepFmt = $prep ? $prep->format('d/m/Y H:i') : '—';
+                    $limiteFmt = $limite ? $limite->format('d/m/Y H:i') : '—';
 
-            $loteMezcla = $mezcla->lote ?? '—';
-            $remision = $mezcla->remision ?? '—';
+                    $loteMezcla = $mezcla->lote ?? '—';
+                    $remision = $mezcla->remision ?? '—';
 
-            // Volumen correcto: volumen_dilucion de la mezcla
-            $volumenDilucion = $mezcla->volumen_dilucion ?? null;
-            $volumenFmt = is_numeric($volumenDilucion)
-            ? rtrim(rtrim(number_format($volumenDilucion, 2, '.', ''), '0'), '.') . ' mL'
-            : ($volumenDilucion ?:
-            '—');
-            @endphp
+                    $volumenDilucion = $mezcla->volumen_dilucion ?? null;
+                    $volumenFmt = is_numeric($volumenDilucion)
+                        ? rtrim(rtrim(number_format($volumenDilucion, 2, '.', ''), '0'), '.') . ' mL'
+                        : ($volumenDilucion ?:
+                        '—');
+                @endphp
 
-            @forelse($mezcla->medicamentos as $med)
-            @php
-            // Denominación desde el catálogo o nombre capturado
-            $denom =
-            optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
-            ($med->nombre_medicamento ?? '—');
+                @forelse($mezcla->medicamentos as $med)
+                    @php
+                        $denom =
+                            optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
+                            ($med->nombre_medicamento ?? '—');
+                        $dosis = isset($med->dosis)
+                            ? (is_numeric($med->dosis)
+                                ? rtrim(rtrim(number_format($med->dosis, 2, '.', ''), '0'), '.')
+                                : $med->dosis)
+                            : '—';
+                        $diluyente = optional($med->diluyente)->name ?? '—';
+                    @endphp
 
-            // Dosis
-            $dosis = isset($med->dosis)
-            ? (is_numeric($med->dosis)
-            ? rtrim(rtrim(number_format($med->dosis, 2, '.', ''), '0'), '.')
-            : $med->dosis)
-            : '—';
-
-            // Diluyente
-            $diluyente = optional($med->diluyente)->name ?? '—';
-            @endphp
-
-            <tr>
-                <td class="border-1 border-l-0 px-1 text-center">{{ $contador++ }}</td>
-                <td class="border-1 px-1 text-center">{{ $denom }}</td>
-                <td class="border-1 px-1 text-center">{{ $dosis }}</td>
-                <td class="border-1 px-1 text-center">{{ $diluyente }}</td>
-                {{-- Volumen de la mezcla --}}
-                <td class="border-1 px-1 text-center">{{ $volumenFmt }}</td>
-                <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
-                <td class="border-1 px-1 text-center">{{ $remision }}</td>
-                <td class="border-1 px-1 text-center">{{ $prepFmt }}</td>
-                <td class="border-1 border-r-0 px-1 text-center">{{ $limiteFmt }}</td>
-            </tr>
-            @empty
-            <tr>
-                <td class="border-1 border-l-0 px-1 text-center" colspan="8">
-                    Sin medicamentos en esta mezcla.
-                </td>
-            </tr>
-            @endforelse
+                    <tr>
+                        <td class="border-1 border-l-0 px-1 text-center">{{ $contador++ }}</td>
+                        <td class="border-1 px-1 text-center">{{ $denom }}</td>
+                        <td class="border-1 px-1 text-center">{{ $dosis }}</td>
+                        <td class="border-1 px-1 text-center">{{ $diluyente }}</td>
+                        <td class="border-1 px-1 text-center">{{ $volumenFmt }}</td>
+                        <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
+                        <td class="border-1 px-1 text-center">{{ $remision }}</td>
+                        <td class="border-1 px-1 text-center">{{ $prepFmt }}</td>
+                        <td class="border-1 border-r-0 px-1 text-center">{{ $limiteFmt }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td class="border-1 border-l-0 px-1 text-center" colspan="9">
+                            Sin medicamentos en esta mezcla.
+                        </td>
+                    </tr>
+                @endforelse
             @endforeach
         </table>
 
@@ -423,14 +411,13 @@ $contador = 1;
             </tr>
         </table>
 
-
         <table class="mt-4">
             <tr>
                 <td class="text-center">Recepción Cliente</td>
             </tr>
         </table>
 
-        <table>
+        <table class="mb-4">
             <tr>
                 <td style="width: 30%"></td>
                 <td style="width: 20%" class="text-right">Fecha:</td>
@@ -451,17 +438,7 @@ $contador = 1;
             </tr>
         </table>
 
-        <table class="mt-4 mb-4">
-            <tr>
-                <td style="width: 30%"></td>
-                <td style="width: 20%" class="text-center">Nombre completo<br>/firma y sello:</td>
-                <td style="width: 20%" class="border-1"></td>
-                <td style="width: 30%"></td>
-            </tr>
-        </table>
-
     </div>
-
 </body>
 
 </html>

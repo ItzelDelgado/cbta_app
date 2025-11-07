@@ -8,12 +8,25 @@
     $mark = function ($cond) {
         return $cond === true ? 'X' : '';
     };
+    // Hora 24h
     $fmtTime = function ($v) {
         if (!$v) {
             return '—';
         }
         try {
             return Carbon::parse($v)->format('H:i');
+        } catch (\Exception $e) {
+            return '—';
+        }
+    };
+    // Fecha: si trae hora distinta de 00:00, usa d/m/Y H:i; si no, d/m/Y
+    $fmtDateSmart = function ($v) {
+        if (!$v) {
+            return '—';
+        }
+        try {
+            $c = Carbon::parse($v);
+            return $c->format('H:i') !== '00:00' ? $c->format('d/m/Y H:i') : $c->format('d/m/Y');
         } catch (\Exception $e) {
             return '—';
         }
@@ -227,17 +240,15 @@
 
 
 <body>
-
     <div class="contenedor border-1 px-1">
         <!-- Encabezado -->
         <div class="introduccion">
             <table>
                 <tr>
-                    <td style="width: 20%">
-                        <img style="width: 10rem" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
-                    </td>
+                    <td style="width: 20%"><img style="width: 10rem" src="{{ asset('img/logo-cbta.jpg') }}"
+                            alt=""></td>
                     <td style="width: 60%; margin: 0 auto; text-align: center; font-size: 13px">
-                        <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM <br> NUTRICIONES PARENTERALES</strong>
+                        <strong>INSPECCIÓN <br> MEZCLAS ESTÉRILES ONCOLÓGICAS</strong>
                     </td>
                     <td style="width: 20%"></td>
                 </tr>
@@ -245,35 +256,10 @@
         </div>
 
         <table>
-            <tr>
-                <td style="text-align: right; color: blue; padding: 2px 8px;">FTO-NPT-023-005</td>
-            </tr>
             <tr style="background-color: #1F4E78; color: white; font-weight: bold;">
                 <td style="text-align: center;">INSPECCIÓN DE MEZCLAS ÉSTERILES ONCOLÓGICAS</td>
             </tr>
         </table>
-
-        <p>VERIFICACIÓN DE ÁREAS</p>
-        <div class="border-1 py-1 px-1">
-            <table>
-                <tr>
-                    <td style="width: 90%"></td>
-                    <td class="border-1 text-center" style="width: 5%"><strong>SI</strong></td>
-                    <td class="border-1 text-center" style="width: 5%"><strong>NO</strong></td>
-                </tr>
-                <tr>
-                    <td class="text-right px-1">¿El área se encuentra limpia y disponible?</td>
-                    <td class="border-1 text-center">{{ $mark($val($ins, 'es_limpia')) }}</td>
-                    <td class="border-1 text-center">{{ $mark($val($ins, 'es_limpia') === false) }}</td>
-                </tr>
-                <tr>
-                    <td class="text-right px-1">¿El área se encuentra libre de material y documentos ajenos a la mezcla
-                        en turno a inspeccionar?</td>
-                    <td class="border-1 text-center">{{ $mark($val($ins, 'es_libre')) }}</td>
-                    <td class="border-1 text-center">{{ $mark($val($ins, 'es_libre') === false) }}</td>
-                </tr>
-            </table>
-        </div>
 
         <div class="mx-1">
             <table>
@@ -281,16 +267,12 @@
                     <td style="width: 70%" class="text-right">No. de lote:</td>
                     <td style="width: 30%" class="border-b-1">{{ $safe($val($mezcla ?? null, 'lote')) }}</td>
                 </tr>
-                <tr>
-                    <td style="width: 70%" class="text-right">No. de orden de preparación:</td>
-                    <td style="width: 30%" class="border-b-1">{{ $safe($val($mezcla ?? null, 'id')) }}</td>
-                </tr>
             </table>
 
             <table>
                 <tr>
                     <td style="width: 5%">Fecha:</td>
-                    <td style="width: 15%" class="border-b-1">{{ $safe($val($ins, 'fecha')) }}</td>
+                    <td style="width: 15%" class="border-b-1">{{ $fmtDateSmart($val($ins, 'fecha')) }}</td>
                     <td style="width: 35%"></td>
                     <td style="width: 20%" class="text-right">Hora de inspección:</td>
                     <td style="width: 30%" class="border-b-1">{{ $fmtTime($val($ins, 'hora_inspeccion')) }}</td>
@@ -391,8 +373,7 @@
                         <table class="mt-2">
                             <tr>
                                 <td style="width: 50%" class="text-right">Dosis en volumen (mL):</td>
-                                <td style="width: 50%" class="border-b-1">{{ $safe($val($ins, 'dosis_volumen')) }}
-                                </td>
+                                <td style="width: 50%" class="border-b-1">{{ $safe($val($ins, 'dosis_volumen')) }}</td>
                             </tr>
                             <tr>
                                 <td style="width: 50%" class="text-right">Peso de la mezcla (g):</td>
@@ -447,13 +428,6 @@
                 </tr>
                 <tr>
                     <td style="width: 10%"></td>
-                    <td style="width: 35%" class="text-center">Nombre/sello y firma</td>
-                    <td style="width: 10%"></td>
-                    <td style="width: 35%" class="text-center">Nombre/sello y firma</td>
-                    <td style="width: 10%"></td>
-                </tr>
-                <tr>
-                    <td style="width: 10%"></td>
                     <td style="width: 35%" class="text-center">Unidad de Calidad</td>
                     <td style="width: 10%"></td>
                     <td style="width: 35%" class="text-center">Unidad de Calidad</td>
@@ -462,7 +436,6 @@
             </table>
         </div>
     </div>
-
 </body>
 
 </html>

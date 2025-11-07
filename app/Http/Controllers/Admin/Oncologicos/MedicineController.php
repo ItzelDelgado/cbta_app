@@ -27,10 +27,13 @@ class MedicineController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create() { 
-        // Catálogo base (activos) 
-        $catalogo = MedicinesCatalog::where('state', true) ->get(['id', 'denominacion', 'presentacion']); 
-        return view('admin.oncologicos.medicines.create', compact('catalogo')); 
+    public function create()
+    {
+        // Catálogo base (activos)
+        $catalogo = MedicinesCatalog::where('state', true)
+            ->get(['id', 'denominacion', 'presentacion']);
+
+        return view('admin.oncologicos.medicines.create', compact('catalogo'));
     }
 
     /**
@@ -42,6 +45,7 @@ class MedicineController extends Controller
             'name'                      => 'required|string|max:255|unique:medicine_lists,name',
             'description'               => 'nullable|string',
             'active_brands'             => 'nullable|boolean',
+            'charge_by'                 => 'required|in:mg,frasco',   // ⬅️ NUEVO
             'medicamentos'              => 'required|array|min:1',
             'medicamentos.*.id'         => 'required|exists:medicines_catalog,id',
             'medicamentos.*.precio'     => 'required|numeric|min:0',
@@ -61,11 +65,12 @@ class MedicineController extends Controller
         try {
             DB::beginTransaction();
 
-            // Crear lista con flag active_brands
+            // Crear lista con active_brands + charge_by
             $lista = MedicineList::create([
                 'name'          => $request->name,
                 'description'   => $request->description,
                 'active_brands' => $request->boolean('active_brands', false),
+                'charge_by'     => $request->input('charge_by', 'mg'), // ⬅️ NUEVO
             ]);
 
             // Construir datos para el pivot: [medicine_onco_id => ['precio' => X]]
@@ -74,7 +79,6 @@ class MedicineController extends Controller
             foreach ($medicamentos as $med) {
                 $catalogItem = MedicinesCatalog::find($med['id']);
                 if (!$catalogItem) {
-                    // por si acaso se borró entre validación y aquí
                     continue;
                 }
 
@@ -87,12 +91,13 @@ class MedicineController extends Controller
                 $pivotData[$medicineOnco->id] = ['precio' => $med['precio']];
             }
 
-            // Asociar (con precios) en la tabla pivot medicine_medicine_lists
+            // Asociar (con precios) en la tabla pivot
             $lista->medicines()->sync($pivotData);
 
             DB::commit();
 
-            return redirect()->route('admin.oncologicos.medicines.index')
+            return redirect()
+                ->route('admin.oncologicos.medicines.index')
                 ->with('success', 'Lista de medicamentos creada correctamente.');
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -101,6 +106,7 @@ class MedicineController extends Controller
             ]);
         }
     }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -128,6 +134,7 @@ class MedicineController extends Controller
             'name'                      => 'required|string|max:255|unique:medicine_lists,name,' . $id,
             'description'               => 'nullable|string',
             'active_brands'             => 'nullable|boolean',
+            'charge_by'                 => 'required|in:mg,frasco',  // ⬅️ NUEVO
             'medicamentos'              => 'required|array|min:1',
             'medicamentos.*.id'         => 'required|exists:medicines_catalog,id',
             'medicamentos.*.precio'     => 'required|numeric|min:0',
@@ -152,6 +159,7 @@ class MedicineController extends Controller
                 'name'          => $request->name,
                 'description'   => $request->description,
                 'active_brands' => $request->boolean('active_brands', false),
+                'charge_by'     => $request->input('charge_by', 'mg'), // ⬅️ NUEVO
             ]);
 
             $pivotData = [];

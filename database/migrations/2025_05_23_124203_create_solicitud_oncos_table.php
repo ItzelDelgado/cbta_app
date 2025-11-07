@@ -21,6 +21,7 @@ return new class extends Migration
             $table->decimal('peso', 5, 2)->nullable();
             $table->string('cama')->nullable();
             $table->string('piso')->nullable();
+            $table->text('alergias');
             $table->string('registro_paciente')->nullable();
             $table->date('fecha_nacimiento')->nullable();
             $table->text('diagnostico');

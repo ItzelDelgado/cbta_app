@@ -102,8 +102,13 @@
                         Peso:*
                     </x-label>
                     <div class="flex flex-col w-full">
-                        <x-input-solicitud type="number" value="{{ old('peso') }}" step="0.001" name="peso"
-                            class="w-full" placeholder="" />
+                        <div class="flex">
+                            <x-input-solicitud type="number" value="{{ old('peso') }}" step="0.001" name="peso"
+                            class="w-full" placeholder="" /> 
+                            <div>
+                                Kg
+                            </div>
+                        </div>
                         <!-- Mensaje de error -->
                         @error('peso')
                             <div class="text-red-500 text-sm">{{ $message }}</div>

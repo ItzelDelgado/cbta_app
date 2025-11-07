@@ -1,9 +1,31 @@
 @php
     use Carbon\Carbon;
 
+    // ===== Helpers de formato =====
+    $fmtDate = function ($v) {
+        if (!$v) {
+            return '—';
+        }
+        try {
+            return Carbon::parse($v)->format('d/m/Y');
+        } catch (\Exception $e) {
+            return '—';
+        }
+    };
+    $fmtDateTime = function ($v) {
+        if (!$v) {
+            return '—';
+        }
+        try {
+            return Carbon::parse($v)->format('d/m/Y H:i');
+        } catch (\Exception $e) {
+            return '—';
+        }
+    };
+
     // ===== Datos del paciente / solicitud =====
     $pacienteNombre = $solicitud->nombre_paciente ?? '—';
-    $fechaNac = $solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') : '—';
+    $fechaNac = $solicitud->fecha_nacimiento ? $fmtDate($solicitud->fecha_nacimiento) : '—';
     $observaciones = $solicitud->observaciones;
     $edad = $solicitud->edad ?? ($solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento)->age : '—');
     $sexo = $solicitud->sexo === 'M' ? 'Masculino' : ($solicitud->sexo === 'F' ? 'Femenino' : '—');
@@ -237,7 +259,6 @@
 
 
 <body>
-
     <div class="contenedor border-1">
         <!-- Encabezado -->
         <div class="introduccion">
@@ -247,7 +268,7 @@
                         <img style="width: 10rem;" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
                     </td>
                     <td style="width: 60%; margin: 0 auto; text-align: center; font-size: 13px">
-                        <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM <br> NUTRICIONES PARENTERALES</strong>
+                        <strong>REMISIÓN <br> MEZCLAS ESTÉRILES ONCOLÓGICAS</strong>
                     </td>
                     <td style="width: 20%"></td>
                 </tr>
@@ -255,11 +276,6 @@
         </div>
 
         <table>
-            <tr>
-                <td style="text-align: right; color: blue; padding: 2px 8px;">
-                    FTO-NPT-023-005
-                </td>
-            </tr>
             <tr style="background-color: #1F4E78; color: white; font-weight: bold;">
                 <td style="text-align: center;">ENTREGA DE LAS MEZCLAS ONCOLÓGICAS PREPARADAS EN CMP</td>
             </tr>
@@ -267,7 +283,9 @@
 
         <table>
             <tr>
-                <td class="px-1">Fecha de envío: <strong>{{ $fechaEmision ?? now()->format('d/m/Y H:i') }}</strong>
+                <td class="px-1">
+                    Fecha de envío:
+                    <strong>{{ $fechaEmision ? $fmtDateTime($fechaEmision) : $fmtDateTime(now()) }}</strong>
                 </td>
                 <td class="px-1 text-right">DOMICILIO CLIENTE RECEPTOR:</td>
             </tr>
@@ -336,39 +354,28 @@
                 @php
                     $loteMezcla = $mezcla->lote ?? '—';
                     $remision = $mezcla->remision ?? '—';
-                    // volumen_dilucion está en la mezcla (ml)
                     $volumenMezcla = isset($mezcla->volumen_dilucion) ? $mezcla->volumen_dilucion . ' ml' : '—';
                 @endphp
 
                 @forelse($mezcla->medicamentos as $med)
                     @php
-                        // Denominación desde el catálogo (si existe) o el nombre capturado
                         $denom =
                             optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
                             ($med->nombre_medicamento ?? '—');
-
-                        // Dosis en mg (ajusta si usas otra unidad)
                         $dosis = $med->dosis ?? 0;
 
-                        // Cantidad por presentación (mg por vial, por ejemplo) para calcular piezas
                         $cantPorPieza =
                             optional(optional($med->medicamentoOnco)->catalog)->cantidad_medicamento ?: null;
                         $piezas = $cantPorPieza && $dosis ? (int) ceil($dosis / (float) $cantPorPieza) : 1;
 
-                        // Diluyente
                         $diluyente = optional($med->diluyente)->name ?? '—';
 
-                        // ===== Precio unitario con prioridad =====
-                        // 1) precio_unitario capturado en mezcla_medicamentos
-                        // 2) precio de la lista asignada del usuario (pivot)
-                        // 3) precio base del onco
                         $itemLista = $listaAsig->firstWhere('id', $med->medicamento_id);
                         $precioLista = optional($itemLista)->pivot->precio ?? null;
 
                         $precioUnit =
                             $med->precio_unitario ?? ($precioLista ?? (optional($med->medicamentoOnco)->precio ?? 0));
 
-                        // Subtotal y acumulado
                         $subtotal = $piezas * (float) $precioUnit;
                         $total += $subtotal;
 
@@ -404,10 +411,11 @@
                 <td class="text-right">Total {{ money_fmt($total) }}</td>
             </tr>
         </table>
+
         <table>
             <tr>
                 <td class="border-1 px-1" style="width: 10%">Observaciones:</td>
-                <td class="border-1 px-1">{{$observaciones}}</td>
+                <td class="border-1 px-1">{{ $observaciones }}</td>
             </tr>
         </table>
 
@@ -425,9 +433,7 @@
                 <td style="width: 35%"></td>
             </tr>
         </table>
-
     </div>
-
 </body>
 
 </html>

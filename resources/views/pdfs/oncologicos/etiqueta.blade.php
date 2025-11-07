@@ -162,9 +162,12 @@
         <div>
             <table>
                 <tr class="text-center">
-                    <td style="font-size: 11px"><strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM</strong></td>
+                    <td style="font-size: 11px">
+                        <strong>ETIQUETA <br> MEZCLAS ESTÉRILES ONCOLÓGICAS</strong>
+                    </td>
                 </tr>
             </table>
+
             <table>
                 <tr>
                     <td class="px-1">Cliente:</td>
@@ -180,43 +183,44 @@
                 <tr>
                     <td class="px-1">
                         Edad:
-                        @if($solicitud->fecha_nacimiento)
-                        @php
-                        $fnac = \Carbon\Carbon::parse($solicitud->fecha_nacimiento);
-                        $hoy = \Carbon\Carbon::now();
-                        $diff = $fnac->diff($hoy);
-                        if ($diff->y > 0) {
-                        $edad = $diff->y . ' años';
-                        } elseif ($diff->m > 0) {
-                        $edad = $diff->m . ' meses';
-                        } else {
-                        $edad = $diff->d . ' días';
-                        }
-                        @endphp
-                        {{ $edad }}
+                        @if ($solicitud->fecha_nacimiento)
+                            @php
+                                $fnac = \Carbon\Carbon::parse($solicitud->fecha_nacimiento);
+                                $hoy = \Carbon\Carbon::now();
+                                $diff = $fnac->diff($hoy);
+                                if ($diff->y > 0) {
+                                    $edad = $diff->y . ' años';
+                                } elseif ($diff->m > 0) {
+                                    $edad = $diff->m . ' meses';
+                                } else {
+                                    $edad = $diff->d . ' días';
+                                }
+                            @endphp
+                            {{ $edad }}
                         @else
-                        —
+                            —
                         @endif
                     </td>
                     <td class="px-1">Género: {{ $solicitud->sexo ?? '—' }}</td>
                 </tr>
 
-
                 <tr>
                     <td class="px-1">Médico: {{ $solicitud->nombre_medico }}</td>
                     <td class="px-1">No. Registro: {{ $solicitud->registro_paciente ?? '—' }}</td>
                 </tr>
+
                 <tr>
                     <td colspan="2" class="px-1"
                         style="border-top: 2px dotted black; border-bottom: 2px dotted black;">
                         <strong>Medicamentos:</strong>
                     </td>
                 </tr>
+
                 @foreach ($medicamentos as $med)
-                <tr>
-                    <td class="px-1 text-left">{{ $med->nombre }}</td>
-                    <td class="px-1 text-left">{{ $med->dosis }} mg</td>
-                </tr>
+                    <tr>
+                        <td class="px-1 text-left">{{ $med->nombre }}</td>
+                        <td class="px-1 text-left">{{ $med->dosis }} mg</td>
+                    </tr>
                 @endforeach
 
                 <tr>
@@ -224,6 +228,8 @@
                     <td class="px-1">ml</td>
                 </tr>
             </table>
+
+            <!-- Fecha y hora de preparación -->
             <table>
                 <tr>
                     <td style="border-top: 2px dotted black; border-bottom: 2px dotted black; border-left: none; border-right: none;"
@@ -233,28 +239,37 @@
                     </td>
                 </tr>
             </table>
+
+            <!-- Fecha y hora límite de uso -->
             <table>
                 <tr>
-                    <td class="px-1">Usese antes de:
-                        {{ $aprobada && $aprobada->fecha_hora_limite_uso ? \Carbon\Carbon::parse($aprobada->fecha_hora_limite_uso)->format('d/m/Y') : '—' }}
+                    <td class="px-1">
+                        Úsese antes de:
+                        {{ $aprobada && $aprobada->fecha_hora_limite_uso ? \Carbon\Carbon::parse($aprobada->fecha_hora_limite_uso)->format('d/m/Y H:i') : '—' }}
                     </td>
                     <td class="px-1">
                         Vel. de infusión:
-                        {{ $mezcla->tiempo_infusion > 0 ? number_format($mezcla->volumen_dilucion / $mezcla->tiempo_infusion, 3, '.', '') : '—' }}
+                        {{ $mezcla->tiempo_infusion > 0
+                            ? number_format($mezcla->volumen_dilucion / $mezcla->tiempo_infusion, 3, '.', '')
+                            : '—' }}
                     </td>
-
                 </tr>
                 <tr>
-                    <td class="px-1">a las:
-                        {{ $aprobada && $aprobada->fecha_hora_limite_uso ? \Carbon\Carbon::parse($aprobada->fecha_hora_limite_uso)->format('H:i') : '—' }}
+                    <td class="px-1">
+                        A las:
+                        {{ $aprobada && $aprobada->fecha_hora_limite_uso
+                            ? \Carbon\Carbon::parse($aprobada->fecha_hora_limite_uso)->format('H:i')
+                            : '—' }}
                     </td>
                     <td class="px-1">Administrar en: {{ $mezcla->tiempo_infusion }} min IV</td>
                 </tr>
             </table>
+
+            <!-- Leyenda -->
             <table>
                 <tr>
-                    <td style="border-top: 2px dotted black;" class="px-1">Leyenda de proyección:
-                        {{ $mezcla->leyenda ?? '—' }}
+                    <td style="border-top: 2px dotted black;" class="px-1">
+                        Leyenda de proyección: {{ $mezcla->leyenda ?? '—' }}
                     </td>
                 </tr>
                 <tr>
@@ -263,8 +278,7 @@
             </table>
         </div>
     </div>
-
-
 </body>
+
 
 </html>

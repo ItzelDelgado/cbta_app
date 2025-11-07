@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->string('denominacion');
             $table->string('denominacion_comercial');
-            $table->string('presentacion');
 
             // 👇 NUEVO: va en la migración base
             $table->boolean('requires_infusor')->default(false);
@@ -23,8 +22,6 @@ return new class extends Migration
             $table->decimal('conc_min', 8, 2)->nullable();
             $table->decimal('conc_max', 8, 2)->nullable();
             $table->text('legend')->nullable();
-            $table->string('lote', 100)->nullable();
-            $table->date('caducidad')->nullable();
             $table->timestamps();
         });
     }

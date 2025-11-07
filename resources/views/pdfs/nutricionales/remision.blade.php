@@ -14,18 +14,14 @@
             margin: 1rem;
         }
 
-        /* Estilos básicos */
         body {
             margin: 0;
             padding: 20px;
-            /* Espacio alrededor del contenedor para que el borde no toque los bordes de la ventana del navegador */
             background-color: white;
-            /* Fondo blanco para el body */
         }
 
         .introduccion table {
             width: 100%;
-            /* Ajusta esto según necesites */
             border-collapse: collapse;
             border: none;
         }
@@ -34,16 +30,12 @@
             border: none;
         }
 
-        /* Contenedor principal con borde negro */
         .contenedor {
             border: 2px solid black;
             padding: 0 2px;
             font-family: "Arial", sans-serif;
         }
 
-
-
-        /* Estilos para la tabla */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -53,16 +45,35 @@
         td {
             border: 1px solid black;
             text-align: left;
-            padding: 4px 4px;
-            font-size: 10px
+            padding: 2px 3px;
+            font-size: ninepx;
+            font-size: 9px;
         }
 
         th {
-            background-color: #f2f2f2;
+            background-color: #DEEAF6;
         }
 
         p {
             font-size: 10px
+        }
+
+        .tabla-format table {
+            table-layout: fixed;
+            border: 1px solid black;
+        }
+
+        .tabla-format td {
+            border: 1px solid black;
+        }
+
+        .tabla-format td {
+            word-wrap: break-word;
+            overflow: auto;
+        }
+
+        .text-center {
+            text-align: center
         }
 
         .salto-pagina {
@@ -199,6 +210,19 @@
                         $total = 0; // Inicializamos la variable total
                         $contador = 0;
                     @endphp
+
+                    {{-- NUEVO: cálculo de Volumen Total (base) --}}
+                    @php
+                        if (
+                            empty($solicitud_detalles->solicitud_detail['volumen_total']) ||
+                            $solicitud_detalles->solicitud_detail['volumen_total'] == 0
+                        ) {
+                            $vol_total = (float) ($solicitud_detalles->solicitud_detail['suma_volumen'] ?? 0);
+                        } else {
+                            $vol_total = (float) ($solicitud_detalles->solicitud_detail['volumen_total'] ?? 0);
+                        }
+                    @endphp
+
                     @foreach ($inputs_solicitud as $input_completo)
                         <tr>
                             <td style="text-align: center">{{ $loop->iteration }}
@@ -206,13 +230,13 @@
                                     $contador = $loop->iteration; // Sumamos el precio_ml al total
                                 @endphp
                             </td>
-                            <td><strong>
-                                    @isset($input_completo->input->medicine)
-                                        {{ $input_completo->input->medicine->denominacion_generica }}
-                                    @else
-                                        Medicamento no disponible
-                                    @endisset
-                                </strong></td>
+                            <td>
+                                @isset($input_completo->input->medicine)
+                                    {{ $input_completo->input->medicine->denominacion_generica }}
+                                @else
+                                    Medicamento no disponible
+                                @endisset
+                            </td>
                             @php
                                 // Lógica para formatear el valor sin ceros innecesarios
                                 $valor_formateado =
@@ -277,13 +301,13 @@
                             $contador = $contador + 1; // Sumamos el precio_ml al total
                         @endphp
                         <td style="text-align: center">{{ $contador }}</td>
-                        <td><strong>
-                                @isset($bolsa_eva)
-                                    {{ $bolsa_eva->input->medicine->denominacion_generica }}
-                                @else
-                                    Medicamento no disponible
-                                @endisset
-                            </strong></td>
+                        <td>
+                            @isset($bolsa_eva)
+                                {{ $bolsa_eva->input->medicine->denominacion_generica }}
+                            @else
+                                Medicamento no disponible
+                            @endisset
+                        </td>
                         <td style="text-align: center;"></td>
                         <td style="text-align: center; border-top: none !important;"></td>
                         <td style="text-align: center">
@@ -314,9 +338,9 @@
                                 $contador = $contador + 1; // Sumamos el precio_ml al total
                             @endphp
                             <td style="text-align: center">{{ $contador }}</td>
-                            <td><strong>
-                                    {{ $set_infusion->input->medicine->denominacion_generica }}
-                                </strong></td>
+                            <td>
+                                {{ $set_infusion->input->medicine->denominacion_generica }}
+                            </td>
                             <td style="text-align: center"></td>
                             <td style="text-align: center"></td>
                             <td style="text-align: center">
@@ -343,9 +367,9 @@
                             $contador = $contador + 1; // Sumamos el precio_ml al total
                         @endphp
                         <td style="text-align: center">{{ $contador }}</td>
-                        <td><strong>
-                                {{ $servicio_preparacion->denominacion_generica }}
-                            </strong></td>
+                        <td>
+                            {{ $servicio_preparacion->denominacion_generica }}
+                        </td>
                         <td style="text-align: center"></td>
                         <td style="text-align: center"></td>
                         <td style="text-align: center">
@@ -365,24 +389,56 @@
                         </td>
                     </tr>
 
+                    {{-- NUEVO: Filas de Volúmenes Totales (base y con overfill) --}}
+                    <tr>
+                        <td></td>
+                        <td style="text-align: left;"><strong>VOLUMEN TOTAL</strong></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>{{ number_format($solicitud_detalles->solicitud_detail->volumen_total_final, 2) }} mL</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
 
                 </table>
                 <table>
                     <tr>
-                        <td style="text-align: right; border-top: none"><strong>Total
-                                ${{ number_format($total, 3, '.', '') }}</strong></td>
+                        <td style="text-align: right; border-top: none">Total
+                            ${{ number_format($total, 3, '.', '') }}</td>
+                    </tr>
+                </table>
+
+                {{-- NUEVO: Observaciones --}}
+                <table>
+                    <tr>
+                        <td style="border: none"><strong>Observaciones:</strong></td>
+                    </tr>
+                    <tr>
+                        <td>{{ $solicitud_detalles->solicitud_detail->observaciones }}</td>
                     </tr>
                 </table>
                 <br>
-                <table style="padding-top: 5rem">
+
+                <table style="margin: 0 9rem; margin-bottom: 1rem;">
                     <tr>
-                        <td style="border: none;">
-                            <hr style="width: 170px;  background-color: black; margin: 0; padding: 0; margin: 0 auto">
-                        </td>
+                        <td style="border: none; font-size: 11px"><strong>Recepción Cliente</strong></td>
                     </tr>
-                    <tr style="margin: 0; padding: 0">
-                        <td style="border: none; text-align: center; border-top: none; margin: 0; padding: 0">Nombre
-                            completo/firma <br> Fecha de recibido</td>
+                    <tr>
+                        <td style="border: none; font-size: 11px">
+                            Fecha:_____________________________________________________________</td>
+                    </tr>
+                    <tr>
+                        <td style="border: none; font-size: 11px">Hora de
+                            recibido:_____________________________________________________</td>
+                    </tr>
+                    <tr>
+                        <td style="border: none; font-size: 11px">
+                            Temperatura:________________________________________________________</td>
+                    </tr>
+                    <tr>
+                        <td style="border: none; font-size: 11px">Nombre completo/firma y
+                            sello:__________________________________________</td>
                     </tr>
                 </table>
             </div>
@@ -528,6 +584,19 @@
                         $total = 0; // Inicializamos la variable total
                         $contador = 0;
                     @endphp
+
+                    {{-- NUEVO: cálculo de Volumen Total (base) --}}
+                    @php
+                        if (
+                            empty($solicitud_detalles->solicitud_detail['volumen_total']) ||
+                            $solicitud_detalles->solicitud_detail['volumen_total'] == 0
+                        ) {
+                            $vol_total = (float) ($solicitud_detalles->solicitud_detail['suma_volumen'] ?? 0);
+                        } else {
+                            $vol_total = (float) ($solicitud_detalles->solicitud_detail['volumen_total'] ?? 0);
+                        }
+                    @endphp
+
                     @foreach ($inputs_solicitud as $input_completo)
                         <tr>
                             <td style="text-align: center">{{ $loop->iteration }}
@@ -694,6 +763,17 @@
                         </td>
                     </tr>
 
+                    {{-- NUEVO: Filas de Volúmenes Totales (base y con overfill) --}}
+                    <tr>
+                        <td></td>
+                        <td style="text-align: left;"><strong>VOLUMEN TOTAL</strong></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>{{ number_format($solicitud_detalles->solicitud_detail->volumen_total_final, 2) }} mL</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
 
                 </table>
                 <table>
@@ -702,16 +782,37 @@
                                 ${{ number_format($total, 3, '.', '') }}</strong></td>
                     </tr>
                 </table>
-                <br>
-                <table style="padding-top: 5rem">
+
+                {{-- NUEVO: Observaciones --}}
+                <table>
                     <tr>
-                        <td style="border: none;">
-                            <hr style="width: 170px;  background-color: black; margin: 0; padding: 0; margin: 0 auto">
-                        </td>
+                        <td style="border: none"><strong>Observaciones:</strong></td>
                     </tr>
-                    <tr style="margin: 0; padding: 0">
-                        <td style="border: none; text-align: center; border-top: none; margin: 0; padding: 0">Nombre
-                            completo/firma <br> Fecha de recibido</td>
+                    <tr>
+                        <td>{{ $solicitud_detalles->solicitud_detail->observaciones }}</td>
+                    </tr>
+                </table>
+                <br>
+
+                <table style="margin: 0 9rem; margin-bottom: 1rem;">
+                    <tr>
+                        <td style="border: none; font-size: 11px"><strong>Recepción Cliente</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="border: none; font-size: 11px">
+                            Fecha:_____________________________________________________________</td>
+                    </tr>
+                    <tr>
+                        <td style="border: none; font-size: 11px">Hora de
+                            recibido:_____________________________________________________</td>
+                    </tr>
+                    <tr>
+                        <td style="border: none; font-size: 11px">
+                            Temperatura:________________________________________________________</td>
+                    </tr>
+                    <tr>
+                        <td style="border: none; font-size: 11px">Nombre completo/firma y
+                            sello:__________________________________________</td>
                     </tr>
                 </table>
             </div>

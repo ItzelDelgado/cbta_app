@@ -31,16 +31,40 @@
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-200 focus:outline-none">{{ old('description') }}</textarea>
             </div>
             <!-- Activa Marcas -->
-            <div class="flex items-center">
-                <input type="hidden" name="active_brands" value="0"> {{-- valor por defecto --}}
-                <label class="inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="active_brands" value="1" class="sr-only peer"
-                        {{ old('active_brands') ? 'checked' : '' }}>
-                    <div
-                        class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
-                    </div>
-                    <span class="ml-3 text-sm font-medium text-gray-700">Activar marcas</span>
-                </label>
+            <div class="flex items-center gap-8">
+                {{-- Switch: Activar marcas --}}
+                <div class="flex items-center">
+                    <input type="hidden" name="active_brands" value="0"> {{-- valor por defecto --}}
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="active_brands" value="1" class="sr-only peer"
+                            {{ old('active_brands') ? 'checked' : '' }}>
+                        <div
+                            class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 relative
+                       after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                       after:bg-white after:border-gray-300 after:border after:rounded-full
+                       after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
+                        </div>
+                        <span class="ml-3 text-sm font-medium text-gray-700">Activar marcas</span>
+                    </label>
+                </div>
+
+                {{-- Switch: Cobro por mg / frasco --}}
+                <div class="flex items-center">
+                    {{-- default a "mg" si no hay old() --}}
+                    <input type="hidden" name="charge_by" value="{{ old('charge_by', 'mg') }}">
+
+                    <label class="inline-flex items-center cursor-pointer">
+                        {{-- Toggle visual (no cambia por sí solo el hidden); usamos data-attr para saber estado inicial --}}
+                        <button type="button" id="toggle-charge-by" class="w-16 h-6 bg-gray-200 rounded-full relative"
+                            data-state="{{ old('charge_by', 'mg') }}">
+                            <span id="knob-charge-by"
+                                class="absolute top-[2px] left-[2px] h-5 w-7 bg-white border border-gray-300 rounded-full transition-all flex items-center justify-center text-[10px] font-semibold">
+                                {{ strtoupper(old('charge_by', 'mg')) }}
+                            </span>
+                        </button>
+                        <span class="ml-3 text-sm font-medium text-gray-700">Cobrar por mg / frasco</span>
+                    </label>
+                </div>
             </div>
             <!-- Tabla -->
             <div>
@@ -181,6 +205,38 @@
                     actualizarOpciones();
                 }
             });
+
+            (function() {
+                const btn = document.getElementById('toggle-charge-by');
+                const knob = document.getElementById('knob-charge-by');
+
+                if (!btn || !knob) return;
+
+                const hidden = document.querySelector('input[type=hidden][name=charge_by]');
+                const applyUI = (state) => {
+                    if (state === 'mg') {
+                        knob.style.transform = 'translateX(0)';
+                        knob.textContent = 'MG';
+                        btn.classList.remove('bg-blue-600');
+                        btn.classList.add('bg-gray-200');
+                    } else {
+                        knob.style.transform = 'translateX(36px)'; // ~ w-16 (64) - knob (28) - margins
+                        knob.textContent = 'FR';
+                        btn.classList.remove('bg-gray-200');
+                        btn.classList.add('bg-blue-600');
+                    }
+                };
+
+                let state = btn.dataset.state === 'frasco' ? 'frasco' : 'mg';
+                applyUI(state);
+
+                btn.addEventListener('click', function() {
+                    state = (state === 'mg') ? 'frasco' : 'mg';
+                    if (hidden) hidden.value = state;
+                    applyUI(state);
+                });
+            })();
+
 
             window.addEventListener('DOMContentLoaded', actualizarOpciones);
         </script>

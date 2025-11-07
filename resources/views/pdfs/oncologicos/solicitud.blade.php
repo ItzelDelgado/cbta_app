@@ -192,6 +192,34 @@
 </head>
 
 <body>
+    @php
+        use Carbon\Carbon;
+
+        // Helpers de formato seguros
+        $fmtDate = function ($v) {
+            if (!$v) {
+                return '—';
+            }
+            try {
+                return Carbon::parse($v)->format('d/m/Y');
+            } catch (\Exception $e) {
+                return '—';
+            }
+        };
+        $fmtDateTime = function ($v) {
+            if (!$v) {
+                return '—';
+            }
+            try {
+                return Carbon::parse($v)->format('d/m/Y H:i');
+            } catch (\Exception $e) {
+                return '—';
+            }
+        };
+        $safe = function ($v, $fallback = '—') {
+            return isset($v) && $v !== '' ? $v : $fallback;
+        };
+    @endphp
 
     <div class="contenedor border-1">
         <!-- Contenedor principal con borde negro -->
@@ -202,108 +230,109 @@
                         <img style="width: 10rem;" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
                     </td>
                     <td style="width: 60%; margin: 0 auto; text-align: center; font-size: 13px">
-                        <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM <br> NUTRICIONES PARENTERALES</strong>
+                        <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM</strong>
                     </td>
                     <td style="width: 20%"></td>
                 </tr>
             </table>
         </div>
+
         <table>
-            <tr>
-                <td style="text-align: right; color: blue; padding: 2px 8px;">
-                    FTO-NPT-023-005
-                </td>
-            </tr>
             <tr style="background-color: #1F4E78; color: white; font-weight: bold;">
-                <td style="text-align: center;">ORDEN DE PREPARACIÓN DE NUTRICIÓN PARENTERAL TOTAL</td>
+                <td style="text-align: center;">SOLICITUD <br> MEZCLAS ESTÉRILES ONCOLÓGICAS</td>
             </tr>
         </table>
+
         <table>
             <tr>
-                <td class="border-r-1 px-1">Paciente Nombre(s): {{ $solicitud->nombre_paciente }}</td>
-                <td class="border-x-1 px-1">Servicio: {{ $solicitud->servicio }}</td>
-                <td class="border-l-1 px-1">Registro: {{ $solicitud->registro_paciente }}</td>
+                <td class="border-r-1 px-1">Paciente Nombre(s): {{ $safe($solicitud->nombre_paciente) }}</td>
+                <td class="border-x-1 px-1">Servicio: {{ $safe($solicitud->servicio) }}</td>
+                <td class="border-l-1 px-1">Registro: {{ $safe($solicitud->registro_paciente) }}</td>
             </tr>
         </table>
+
         <table>
             <tr>
-                <td class="border-1 border-l-0 px-1">Sexo: {{ $solicitud->sexo }}</td>
-                <td class="border-1 px-1">Fecha de Nacimiento:
-                    {{ \Carbon\Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') }}
+                <td class="border-1 border-l-0 px-1">Sexo: {{ $safe($solicitud->sexo) }}</td>
+                <td class="border-1 px-1">
+                    Fecha de Nacimiento: {{ $fmtDate($solicitud->fecha_nacimiento ?? null) }}
                 </td>
-                <td class="border-1 px-1">Peso: {{ $solicitud->peso }}</td>
-                <td class="border-1 px-1">Piso: {{ $solicitud->piso }}</td>
-                <td class="border-1 border-r-0 px-1">Cama: {{ $solicitud->cama }}</td>
+                <td class="border-1 px-1">Peso: {{ $safe($solicitud->peso) }}</td>
+                <td class="border-1 px-1">Piso: {{ $safe($solicitud->piso) }}</td>
+                <td class="border-1 border-r-0 px-1">Cama: {{ $safe($solicitud->cama) }}</td>
             </tr>
         </table>
+
         <table>
             <tr>
-                <td class="border-x-1 border-l-0 px-1">Diagnóstico: {{ $solicitud->diagnostico }}</td>
-                <td class="border-x-1 border-r-0 px-1">Nombre del Médico: {{ $solicitud->nombre_medico }}</td>
+                <td class="border-x-1 border-l-0 px-1">Diagnóstico: {{ $safe($solicitud->diagnostico) }}</td>
+                <td class="border-x-1 border-r-0 px-1">Nombre del Médico: {{ $safe($solicitud->nombre_medico) }}</td>
             </tr>
             <tr>
-                <td class="border-1 border-l-0 px-1">Cédula del Médico: {{ $solicitud->cedula_medico }}</td>
-                <td class="border-1 border-r-0 px-1">Fecha de entrega*:
-                    {{ \Carbon\Carbon::parse($solicitud->fecha_entrega)->format('d/m/Y') }}
+                <td class="border-1 border-l-0 px-1">Cédula del Médico: {{ $safe($solicitud->cedula_medico) }}</td>
+                <td class="border-1 border-r-0 px-1">
+                    Fecha de entrega*: {{ $fmtDate($solicitud->fecha_entrega ?? null) }}
                 </td>
             </tr>
         </table>
+
         <table>
             <tr>
-                <td class="border-b-1 px-1">Observaciones: {{ $solicitud->observaciones }}</td>
+                <td class="border-b-1 px-1">Observaciones: {{ $safe($solicitud->observaciones, '&nbsp;') }}</td>
             </tr>
         </table>
 
         {{-- Mezclas --}}
         @foreach ($solicitud->mezclas as $index => $mezcla)
-        <div class="mt-2">
-            <table>
-                <tr>
-                    <td class="border-t-1 border-b-1 px-1 text-center"
-                        style="background: black; color: white; font-weight: bold; font-size: 14px">
-                        Mezcla #{{ $index + 1 }}
-                    </td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td class="border-l-0 px-1 font-bold">Medicamento</td>
-                    <td class="border-x-1 px-1 font-bold">Dosis</td>
-                    <td class="border-r-1 px-1 font-bold">Diluyente</td>
-                    <td class="px-1 font-bold">Vía de administración</td>
-                </tr>
-                @foreach ($mezcla->medicamentos as $med)
-                <tr>
-                    <td class="border-t-1 border-r-1 px-1">
-                        {{ $med->medicamentoOnco->catalog->denominacion ?? '—' }}
-                    </td>
-                    <td class="border-t-1 border-r-1 px-1">
-                        {{ number_format($med->dosis, 2) }}
-                    </td>
-                    <td class="border-t-1 border-r-1 px-1">
-                        {{ $med->diluyente->denominacion_generica ?? '—' }}
-                    </td>
+            <div class="mt-2">
+                <table>
+                    <tr>
+                        <td class="border-t-1 border-b-1 px-1 text-center"
+                            style="background: black; color: white; font-weight: bold; font-size: 14px">
+                            Mezcla #{{ $index + 1 }}
+                        </td>
+                    </tr>
+                </table>
 
-                    <td class="border-t-1 px-1">
-                        {{ $med->viaAdministracion->name ?? '—' }}
-                    </td>
-                </tr>
-                @endforeach
-            </table>
-            <table>
-                <tr>
-                    <td class="border-r-1 border-t-1 px-1">Volumen total de dilución (ml)*:
-                        {{ $mezcla->volumen_dilucion }}
-                    </td>
-                    <td class="border-t-1 px-1">Tiempo de infusión (min)*:
-                        {{ $mezcla->tiempo_infusion }}
-                    </td>
-                </tr>
-            </table>
-        </div>
+                <table>
+                    <tr>
+                        <td class="border-l-0 px-1 font-bold">Medicamento</td>
+                        <td class="border-x-1 px-1 font-bold">Dosis</td>
+                        <td class="border-r-1 px-1 font-bold">Diluyente</td>
+                        <td class="px-1 font-bold">Vía de administración</td>
+                    </tr>
+
+                    @foreach ($mezcla->medicamentos as $med)
+                        <tr>
+                            <td class="border-t-1 border-r-1 px-1">
+                                {{ $med->medicamentoOnco->catalog->denominacion ?? '—' }}
+                            </td>
+                            <td class="border-t-1 border-r-1 px-1">
+                                {{ isset($med->dosis) ? rtrim(rtrim(number_format($med->dosis, 2, '.', ''), '0'), '.') : '—' }}
+                            </td>
+                            <td class="border-t-1 border-r-1 px-1">
+                                {{ $med->diluyente->denominacion_generica ?? '—' }}
+                            </td>
+                            <td class="border-t-1 px-1">
+                                {{ $med->viaAdministracion->name ?? '—' }}
+                            </td>
+                        </tr>
+                    @endforeach
+                </table>
+
+                <table>
+                    <tr>
+                        <td class="border-r-1 border-t-1 px-1">
+                            Volumen total de dilución (mL)*: {{ $safe($mezcla->volumen_dilucion) }}
+                        </td>
+                        <td class="border-t-1 px-1">
+                            Tiempo de infusión (min)*: {{ $safe($mezcla->tiempo_infusion) }}
+                        </td>
+                    </tr>
+                </table>
+            </div>
         @endforeach
     </div>
-
 </body>
 
 

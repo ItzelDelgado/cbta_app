@@ -27,7 +27,7 @@
             color: white;
         }
 
-        .bg-black{
+        .bg-black {
             background-color: black;
             color: white;
         }
@@ -222,6 +222,32 @@
 
 
 <body>
+    @php
+        use Carbon\Carbon;
+
+        // Helpers de formato
+        $fmtDate = function ($v) {
+            if (!$v) {
+                return '—';
+            }
+            try {
+                return Carbon::parse($v)->format('d/m/Y');
+            } catch (\Exception $e) {
+                return '—';
+            }
+        };
+        $fmtTime = function ($v) {
+            if (!$v) {
+                return '—';
+            }
+            try {
+                return Carbon::parse($v)->format('H:i');
+            } catch (\Exception $e) {
+                return '—';
+            }
+        };
+    @endphp
+
     <div class="contenedor border-1">
         <!-- Contenedor principal con borde negro -->
         <div class="introduccion">
@@ -231,95 +257,98 @@
                         <img style="width: 10rem" src="{{ asset('img/logo-cbta.jpg') }}" alt="">
                     </td>
                     <td style="width: 60%; margin: 0 auto; text-align: center; font-size: 13px">
-                        <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM <br> NUTRICIONES PARENTERALES</strong>
+                        <strong>CENTRAL DE MEZCLAS ESTÉRILES PRODIFEM</strong>
                     </td>
-                    <td style="width: 20%">
-
-                    </td>
+                    <td style="width: 20%"></td>
                 </tr>
             </table>
         </div>
+
         <table>
-            <tr>
-                <td style="text-align: right; color: blue; padding: 2px 8px;">
-                    FTO-NPT-023-005
-                </td>
-            </tr>
             <tr style="background-color: #1F4E78; color: white; font-weight: bold;">
-                <td style="text-align: center;">ORDEN DE PREPARACIÓN DE NUTRICIÓN PARENTERAL TOTAL</td>
+                <td style="text-align: center;">ORDEN DE PREPARACIÓN <br> MEZCLAS ESTÉRILES ONCOLÓGICAS</td>
             </tr>
         </table>
+
         <table class="mx-1">
             <tr>
                 <td></td>
-                <td class="text-right px-1"><strong>Fecha de elaboración:</strong></td>
+                <td class="text-right px-1">
+                    <strong>Fecha de elaboración: {{ $fmtDate($fecha_preparacion ?? null) }}</strong>
+                </td>
             </tr>
-
         </table>
 
         <table class="mx-1">
             <tr>
                 <td><strong>No. de Lote de la mezcla:</strong></td>
-                <td><strong>No. de orden de preparación:</strong></td>
             </tr>
         </table>
+
         <table class="mx-1 mt-2">
             <tr>
                 <td><strong>DATOS DEL PACIENTE</strong></td>
             </tr>
         </table>
+
         <div class="border-1 mx-1 px-1 py-1">
             <table>
                 <tr>
                     <td style="width: 5%">Nombre: </td>
-                    <td style="width: 40%" class="border-b-1">{{ $mezcla->solicitud['nombre_paciente'] }}</td>
+                    <td style="width: 40%" class="border-b-1">{{ $mezcla->solicitud['nombre_paciente'] ?? '—' }}</td>
                     <td style="width: 11.5%">Médico tratante:</td>
-                    <td style="width: 43%" class="border-b-1">{{ $mezcla->solicitud['nombre_medico'] }}</td>
+                    <td style="width: 43%" class="border-b-1">{{ $mezcla->solicitud['nombre_medico'] ?? '—' }}</td>
                 </tr>
             </table>
             <table>
                 <tr>
                     <td style="width: 5%">Registro:</td>
-                    <td style="width: 30%" class="border-b-1">{{ $mezcla->solicitud['registro_paciente'] }}</td>
-                    <td style="width: 5%">Diagnostico:</td>
-                    <td style="" class="border-b-1">{{ $mezcla->solicitud['diagnostico'] }}</td>
+                    <td style="width: 30%" class="border-b-1">{{ $mezcla->solicitud['registro_paciente'] ?? '—' }}</td>
+                    <td style="width: 5%">Diagnóstico:</td>
+                    <td class="border-b-1">{{ $mezcla->solicitud['diagnostico'] ?? '—' }}</td>
                 </tr>
             </table>
             <table>
                 <tr>
                     <td style="width: 15.4%">Fecha de nacimiento:</td>
-                    <td class="border-b-1">{{ $mezcla->solicitud['fecha_nacimiento'] }}</td>
-                    <td style="width: 5%">Genero:</td>
-                    <td class="border-b-1">{{ $mezcla->solicitud['sexo'] }}</td>
+                    <td class="border-b-1">{{ $fmtDate($mezcla->solicitud['fecha_nacimiento'] ?? null) }}</td>
+                    <td style="width: 5%">Género:</td>
+                    <td class="border-b-1">{{ $mezcla->solicitud['sexo'] ?? '—' }}</td>
                     <td style="width: 4%">Peso:</td>
-                    <td class="border-b-1">{{ $mezcla->solicitud['peso'] }} Kg</td>
+                    <td class="border-b-1">
+                        {{ isset($mezcla->solicitud['peso']) ? $mezcla->solicitud['peso'] . ' Kg' : '—' }}</td>
                 </tr>
             </table>
             <table>
                 <tr>
                     <td style="width: 15%">Hospital que solicita:</td>
-                    <td class="border-b-1">{{ $hospital }}</td>
+                    <td class="border-b-1">{{ $hospital ?? '—' }}</td>
                     <td style="width: 10%">Dosis/Volumen:</td>
-                    <td class="border-b-1">{{ $mezcla->volumen_dilucion }} ML</td>
+                    <td class="border-b-1">
+                        {{ isset($mezcla->volumen_dilucion) ? $mezcla->volumen_dilucion . ' ML' : '—' }}</td>
                 </tr>
             </table>
         </div>
-        <p class="mx-1"><strong>MEZCLA ESTERIL ONCOLÓGICA </strong></p>
+
+        <p class="mx-1"><strong>MEZCLA ESTÉRIL ONCOLÓGICA</strong></p>
 
         <div class="border-1 mx-1 px-1 py-1">
             <table>
                 <tr>
-                    <td colspan="1"><strong>Hora de preparación:</strong>
-                        {{ $fecha_preparacion ? \Carbon\Carbon::parse($fecha_preparacion)->format('H:i') : '—' }}
+                    <td colspan="1">
+                        <strong>Hora de preparación:</strong>
+                        {{ $fmtTime($fecha_preparacion ?? null) }}
                     </td>
-                    <td colspan="2" class="border-b-1">
+                    <td colspan="2" class="border-b-1"></td>
                 </tr>
             </table>
+
             <table>
                 <tr>
-                    <td class="text-center border-x-1 border-t-1 bg-cbta "><strong>Medicamentos</strong></td>
+                    <td class="text-center border-x-1 border-t-1 bg-cbta"><strong>Medicamentos</strong></td>
                 </tr>
             </table>
+
             <table>
                 <tr>
                     <td class="border-1 text-center" style="width: 1%"><strong></strong></td>
@@ -333,76 +362,78 @@
                 </tr>
 
                 @foreach ($medicamentos as $i => $med)
-                <tr>
-                    <td class="border-1 border-t-0 text-center"><strong>{{ $i + 1 }}</strong></td>
-                    <td class="border-1 border-t-0 text-center">{{ $med->lote ?? '—' }}</td>
-                    <td class="border-1 border-t-0 text-center">
-                        {{ $med->caducidad ? \Carbon\Carbon::parse($med->caducidad)->format('d/m/Y') : '—' }}
-                    </td>
-                    <td class="border-1 border-t-0 text-center">{{ $med->denominacion_comercial ?? '—' }}</td>
-                    <td class="border-1 border-t-0 text-center">{{ $med->denominacion ?? '—' }}</td>
-                    <td class="border-1 border-t-0 text-center">{{ $med->presentacion ?? '—' }}</td>
-                    <td class="border-1 border-t-0 text-center">{{ $med->dosis ?? '—' }}</td>
-                    <td class="border-1 border-t-0 text-center">{{ $med->dosis_ml ?? '—' }} mL</td>
-                </tr>
+                    <tr>
+                        <td class="border-1 border-t-0 text-center"><strong>{{ $i + 1 }}</strong></td>
+                        <td class="border-1 border-t-0 text-center">{{ $med->lote ?? '—' }}</td>
+                        <td class="border-1 border-t-0 text-center">{{ $fmtDate($med->caducidad ?? null) }}</td>
+                        <td class="border-1 border-t-0 text-center">{{ $med->denominacion_comercial ?? '—' }}</td>
+                        <td class="border-1 border-t-0 text-center">{{ $med->denominacion ?? '—' }}</td>
+                        <td class="border-1 border-t-0 text-center">{{ $med->presentacion ?? '—' }}</td>
+                        <td class="border-1 border-t-0 text-center">{{ $med->dosis ?? '—' }}</td>
+                        <td class="border-1 border-t-0 text-center">
+                            {{ isset($med->dosis_ml) ? $med->dosis_ml . ' mL' : '—' }}</td>
+                    </tr>
                 @endforeach
             </table>
+
             <table>
                 <tr>
-                    <td class="text-right border-x-1 border-b-1"><strong>Contenedor y volumen final: {{ $mezcla->volumen_dilucion }}
-                            ML</strong></td>
+                    <td class="text-right border-x-1 border-b-1">
+                        <strong>Contenedor y volumen final: {{ $mezcla->volumen_dilucion ?? '—' }} ML</strong>
+                    </td>
                 </tr>
             </table>
 
             <table class="mt-2">
                 <tr>
-                    <td class="border-1 text-center bg-cbta "><strong>Solución y volumen</strong></td>
+                    <td class="border-1 text-center bg-cbta"><strong>Solución y volumen</strong></td>
                 </tr>
                 <tr>
-                    <td class="border-1 text-center"><em>Verificar que los lotes y caduciodades coincidan con los
-                            medicamentos
-                            entregados</em></td>
+                    <td class="border-1 text-center">
+                        <em>Verificar que los lotes y caducidades coincidan con los medicamentos entregados</em>
+                    </td>
                 </tr>
             </table>
+
             <table>
                 <thead>
                     <tr>
-                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>#</strong></td>
-                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>No. de lote</strong></td>
-                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>Caducidad</strong></td>
-                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>Denominación comercial</strong></td>
-                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>Denominación genérica</strong></td>
-                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>Presentación</strong></td>
-                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>Volumen total</strong></td>
-                        <td class="border-x-1 border-b-1 text-center bg-black "><strong>Volumen</strong></td>
+                        <td class="border-x-1 border-b-1 text-center bg-black"><strong>#</strong></td>
+                        <td class="border-x-1 border-b-1 text-center bg-black"><strong>No. de lote</strong></td>
+                        <td class="border-x-1 border-b-1 text-center bg-black"><strong>Caducidad</strong></td>
+                        <td class="border-x-1 border-b-1 text-center bg-black"><strong>Denominación comercial</strong>
+                        </td>
+                        <td class="border-x-1 border-b-1 text-center bg-black"><strong>Denominación genérica</strong>
+                        </td>
+                        <td class="border-x-1 border-b-1 text-center bg-black"><strong>Presentación</strong></td>
+                        <td class="border-x-1 border-b-1 text-center bg-black"><strong>Volumen total</strong></td>
+                        <td class="border-x-1 border-b-1 text-center bg-black"><strong>Volumen</strong></td>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($medicamentos as $m)
-                    <tr>
-                        <td class="text-center border-b-1 border-l-1">{{ $loop->iteration }}</td>
-                        <td class="text-center border-b-1 border-r-1">{{ $m->lote ?? '—' }}</td>
-                        <td class="text-center border-b-1 border-r-1">
-                            {{ $m->caducidad ? \Carbon\Carbon::parse($m->caducidad)->format('d/m/Y') : '—' }}
-                        </td>
-                        <td class="text-center border-b-1 border-r-1">{{ $m->denominacion_comercial ?? '—' }}</td>
-                        <td class="text-center border-b-1 border-r-1">{{ $m->denominacion ?? '—' }}</td>
-                        <td class="text-center border-b-1 border-r-1">{{ $m->presentacion ?? '—' }}</td>
-                        <td class="text-center border-b-1 border-r-1">
-                            {{ is_numeric($m->volumen_total) ? rtrim(rtrim(number_format($m->volumen_total,2,'.',''), '0'), '.') . ' mL' : '—' }}
-                        </td>
-                        <td class="text-center border-b-1 border-r-1">
-                            {{ is_numeric($m->dosis_ml) ? rtrim(rtrim(number_format($m->dosis_ml,2,'.',''), '0'), '.') . ' mL' : '—' }}
-                        </td>
-                    </tr>
+                        <tr>
+                            <td class="text-center border-b-1 border-l-1">{{ $loop->iteration }}</td>
+                            <td class="text-center border-b-1 border-r-1">{{ $m->lote ?? '—' }}</td>
+                            <td class="text-center border-b-1 border-r-1">{{ $fmtDate($m->caducidad ?? null) }}</td>
+                            <td class="text-center border-b-1 border-r-1">{{ $m->denominacion_comercial ?? '—' }}</td>
+                            <td class="text-center border-b-1 border-r-1">{{ $m->denominacion ?? '—' }}</td>
+                            <td class="text-center border-b-1 border-r-1">{{ $m->presentacion ?? '—' }}</td>
+                            <td class="text-center border-b-1 border-r-1">
+                                {{ is_numeric($m->volumen_total) ? rtrim(rtrim(number_format($m->volumen_total, 2, '.', ''), '0'), '.') . ' mL' : '—' }}
+                            </td>
+                            <td class="text-center border-b-1 border-r-1">
+                                {{ is_numeric($m->dosis_ml) ? rtrim(rtrim(number_format($m->dosis_ml, 2, '.', ''), '0'), '.') . ' mL' : '—' }}
+                            </td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>
 
-
             <table class="mt-2">
                 <tr>
-                    <td class="border-x-1 border-t-1 bg-cbta " colspan="8" style="text-align: center"><strong>Equipo de infusión/Infusor</strong></td>
+                    <td class="border-x-1 border-t-1 bg-cbta" colspan="8" style="text-align: center"><strong>Equipo
+                            de infusión/Infusor</strong></td>
                 </tr>
                 <tr>
                     <td rowspan="2" class="border-1 text-center"><strong>1</strong></td>
@@ -419,7 +450,6 @@
                 </tr>
             </table>
 
-
             <table>
                 <tr>
                     <td>Cálculos y forma de preparación:</td>
@@ -427,7 +457,7 @@
             </table>
             <table>
                 <tr>
-                    <td style="">Extraer:</td>
+                    <td>Extraer:</td>
                 </tr>
             </table>
             <table>
@@ -439,6 +469,7 @@
                 </tr>
             </table>
         </div>
+
         <table class="mx-2">
             <tr>
                 <td>Recepción y validación: {{ $aprobo_nombre ?? '—' }}</td>
@@ -447,15 +478,10 @@
                 <td>Preparación: {{ $preparo_nombre ?? '—' }}</td>
             </tr>
             <tr>
-                <td>Liberación: {{ $libero_nombre ?? '—' }}</td>
+                <td>Inspeccionó y aprobó: {{ $libero_nombre ?? '—' }}</td>
             </tr>
         </table>
-
     </div>
-
-
-
-
 </body>
 
 </html>

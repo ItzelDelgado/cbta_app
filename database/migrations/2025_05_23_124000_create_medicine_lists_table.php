@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->boolean('active_brands');
+            $table->enum('charge_by', ['mg', 'frasco'])->default('mg');
             $table->timestamps();
         });
     }

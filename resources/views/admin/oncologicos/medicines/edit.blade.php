@@ -31,19 +31,47 @@
                 <textarea name="description" rows="3"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-200 focus:outline-none">{{ old('description', $lista->description) }}</textarea>
             </div>
-            <div class="flex items-center">
-                <input type="hidden" name="active_brands" value="0">
-                <label class="inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="active_brands" value="1" class="sr-only peer"
-                        {{ old('active_brands', $lista->active_brands ?? false) ? 'checked' : '' }}>
-                    <div
-                        class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative
-                    after:content-[''] after:absolute after:top-[2px] after:left-[2px]
-                    after:bg-white after:border-gray-300 after:border after:rounded-full
-                    after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
-                    </div>
-                    <span class="ml-3 text-sm font-medium text-gray-700">Activar marcas</span>
-                </label>
+            <div class="flex items-center gap-6">
+                {{-- Switch: Activar marcas (tu existente) --}}
+                <div class="flex items-center">
+                    <input type="hidden" name="active_brands" value="0">
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="active_brands" value="1" class="sr-only peer"
+                            {{ old('active_brands', $lista->active_brands ?? false) ? 'checked' : '' }}>
+                        <div
+                            class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative
+                after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                after:bg-white after:border-gray-300 after:border after:rounded-full
+                after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
+                        </div>
+                        <span class="ml-3 text-sm font-medium text-gray-700">Activar marcas</span>
+                    </label>
+                </div>
+
+                {{-- Switch: Tipo de cobro (mg <-> frasco) --}}
+                <div class="flex items-center">
+                    {{-- Campo real que se envía al servidor --}}
+                    <input type="hidden" name="charge_by" id="charge_by"
+                        value="{{ old('charge_by', $lista->charge_by ?? 'mg') }}">
+
+                    <label class="inline-flex items-center cursor-pointer">
+                        {{-- Switch visual: checked = frasco, unchecked = mg --}}
+                        <input type="checkbox" id="charge_by_switch" class="sr-only peer"
+                            {{ old('charge_by', $lista->charge_by ?? 'mg') === 'frasco' ? 'checked' : '' }}
+                            onchange="document.getElementById('charge_by').value = this.checked ? 'frasco' : 'mg'">
+                        <div
+                            class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative
+                after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                after:bg-white after:border-gray-300 after:border after:rounded-full
+                after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
+                        </div>
+                        <span class="ml-3 text-sm font-medium text-gray-700">
+                            Cobrar por <span id="charge_by_label">
+                                {{ old('charge_by', $lista->charge_by ?? 'mg') === 'frasco' ? 'frasco' : 'mg' }}
+                            </span>
+                        </span>
+                    </label>
+                </div>
             </div>
             <!-- Tabla de medicamentos -->
             <div>
@@ -210,6 +238,16 @@
                     }
                 });
             });
+
+            (function() {
+                const sw = document.getElementById('charge_by_switch');
+                const label = document.getElementById('charge_by_label');
+                if (sw && label) {
+                    sw.addEventListener('change', function() {
+                        label.textContent = this.checked ? 'frasco' : 'mg';
+                    });
+                }
+            })();
         </script>
     @endpush
 </x-admin-layout>
