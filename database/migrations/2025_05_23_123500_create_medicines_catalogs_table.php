@@ -12,13 +12,9 @@ return new class extends Migration
             $table->id();
             $table->string('denominacion');
             $table->string('denominacion_comercial');
-
             // 👇 NUEVO: va en la migración base
             $table->boolean('requires_infusor')->default(false);
-
             $table->boolean('state')->default(true);
-            $table->decimal('cantidad_medicamento', 10, 2)->nullable(); // mg
-            $table->decimal('volumen_diluyente', 10, 2)->nullable();
             $table->decimal('conc_min', 8, 2)->nullable();
             $table->decimal('conc_max', 8, 2)->nullable();
             $table->text('legend')->nullable();

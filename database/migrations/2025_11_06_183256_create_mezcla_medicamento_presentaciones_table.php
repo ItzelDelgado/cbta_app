@@ -30,6 +30,8 @@ return new class extends Migration
             // SNAPSHOT inmutable para documentos: lo que se usó en ese momento
             $table->string('lote_usado', 100);
             $table->date('caducidad_usada');
+            $table->decimal('precio_frasco_snapshot', 12, 4)->nullable();
+            $table->decimal('subtotal', 12, 4)->nullable();
 
             $table->timestamps();
 

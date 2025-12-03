@@ -17,8 +17,6 @@ class MedicinesCatalog extends Model
         'presentacion',
         'requires_infusor',          // 👈 nuevo
         'state',
-        'cantidad_medicamento',
-        'volumen_diluyente',
         'conc_min',
         'conc_max',
         'legend',
@@ -45,5 +43,11 @@ class MedicinesCatalog extends Model
     public function administrationRoutes()
     {
         return $this->belongsToMany(AdministrationRoute::class, 'administration_route_medicine_catalog', 'medicine_catalog_id', 'administration_route_id');
+    }
+
+    public function presentations()
+    {
+        // FK: catalog_id en medicine_presentations
+        return $this->hasMany(MedicinePresentation::class, 'catalog_id');
     }
 }

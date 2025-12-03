@@ -26,6 +26,7 @@ class SolicitudOnco extends Model {
         'registro_paciente',
         'fecha_nacimiento',
         'diagnostico',
+        'alergias',
         'fecha_entrega',
         'observaciones',
         'nombre_medico',

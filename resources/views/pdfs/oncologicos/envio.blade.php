@@ -275,7 +275,11 @@
         <table>
             <tr>
                 <td class="px-1">Fecha de envío:
-                    <strong>{{ $fechaEnvio ? Carbon::parse($fechaEnvio)->format('d/m/Y H:i') : now()->format('d/m/Y H:i') }}</strong>
+                    <strong>
+                        {{ $fechaEnvio
+                            ? Carbon::createFromFormat('d/m/Y H:i', $fechaEnvio)->format('d/m/Y H:i')
+                            : now()->format('d/m/Y H:i') }}
+                    </strong>
                 </td>
                 <td class="px-1 text-right">DOMICILIO CLIENTE RECEPTOR:
                     <strong>{{ $domicilioHospital }}</strong>
@@ -374,12 +378,15 @@
                         $denom =
                             optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
                             ($med->nombre_medicamento ?? '—');
+
                         $dosis = isset($med->dosis)
                             ? (is_numeric($med->dosis)
                                 ? rtrim(rtrim(number_format($med->dosis, 2, '.', ''), '0'), '.')
                                 : $med->dosis)
                             : '—';
-                        $diluyente = optional($med->diluyente)->name ?? '—';
+
+                        // usar el campo correcto del modelo Diluyente
+                        $diluyente = optional($med->diluyente)->denominacion_generica ?? '—';
                     @endphp
 
                     <tr>

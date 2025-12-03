@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\Oncologicos\DiluentPresentationController;
 use App\Http\Controllers\Admin\Oncologicos\InfusorController;
 use App\Http\Controllers\Admin\Oncologicos\MedicineCatalogController;
 use App\Http\Controllers\Admin\Oncologicos\MedicineController as OncologicosMedicineController;
+use App\Http\Controllers\Admin\Oncologicos\MedicinePresentationController;
 use App\Http\Controllers\Admin\Oncologicos\MezclaController;
 use App\Http\Controllers\Admin\Oncologicos\SolicitudController as OncologicosSolicitudController;
 use Maatwebsite\Excel\Facades\Excel;
@@ -231,3 +232,9 @@ Route::prefix('oncologicos')->name('oncologicos.')->group(function () {
         ->parameters(['infusores' => 'infusor']) // <-- fuerza {infusor}
         ->names('infusores'); // genera index, create, store, show, edit, update, destroy
 });
+
+//RUTAS PARA PRESENTACIONES 
+
+Route::resource('oncologicos/medicines/catalog.presentations', MedicinePresentationController::class)
+    ->middleware(['can:medicamentos_oncologicos'])
+    ->names('oncologicos.medicines.catalog.presentations');

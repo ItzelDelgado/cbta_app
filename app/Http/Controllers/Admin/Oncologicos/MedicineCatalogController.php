@@ -20,64 +20,53 @@ class MedicineCatalogController extends Controller
         return view('admin.oncologicos.catalog.index', compact('medicamentos'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        // DILUYENTES: con presentaciones ACTIVAS ordenadas por volumen
+        // Diluyentes con sus presentaciones activas (solo para mostrar info en el form)
         $diluents = Diluent::with([
             'presentations' => fn($q) => $q->where('is_active', true)->orderBy('volume_ml')
-        ])->orderBy('denominacion_generica')->get(['id', 'denominacion_generica']);
+        ])->orderBy('denominacion_generica')
+            ->get(['id', 'denominacion_generica']);
 
-        // VÍAS DE ADMINISTRACIÓN
+        // Vías de administración
         $routes = AdministrationRoute::orderBy('name')->get(['id', 'name']);
 
         return view('admin.oncologicos.catalog.create', compact('diluents', 'routes'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
-            'denominacion'             => 'required|string|max:255',
-            'denominacion_comercial'   => 'required|string|max:255',
-            'presentacion'             => 'required|string|max:255',
-            'cantidad_medicamento'     => 'nullable|numeric|min:0',
-            'volumen_diluyente'        => 'nullable|numeric|min:0',
-            'conc_min'                 => 'nullable|numeric|min:0',
-            'conc_max'                 => 'nullable|numeric|min:0',
-            'legend'                   => 'nullable|string|max:1000',
-            'lote'                     => 'nullable|string|max:100',
-            'caducidad'                => 'nullable|date',
-            'requires_infusor'         => 'nullable|boolean',   // 👈 nuevo
-            'diluents'                 => 'nullable|array',
-            'routes'                   => 'nullable|array',
+            'denominacion'           => 'required|string|max:255',
+            'denominacion_comercial' => 'required|string|max:255',
+            'conc_min'               => 'nullable|numeric|min:0',
+            'conc_max'               => 'nullable|numeric|min:0',
+            'legend'                 => 'nullable|string|max:1000',
+            'requires_infusor'       => 'nullable|boolean',
+            'diluents'               => 'nullable|array',
+            'diluents.*'             => 'integer|exists:diluents,id',
+            'routes'                 => 'nullable|array',
+            'routes.*'               => 'integer|exists:administration_routes,id',
         ]);
 
-        $med = MedicinesCatalog::create([
-            'denominacion'             => $request->denominacion,
-            'denominacion_comercial'   => $request->denominacion_comercial,
-            'presentacion'             => $request->presentacion,
-            'cantidad_medicamento'     => $request->cantidad_medicamento,
-            'volumen_diluyente'        => $request->volumen_diluyente,
-            'conc_min'                 => $request->conc_min,
-            'conc_max'                 => $request->conc_max,
-            'legend'                   => $request->legend,
-            'lote'                     => $request->lote,
-            'caducidad'                => $request->caducidad ? Carbon::parse($request->caducidad)->format('Y-m-d') : null,
-            'requires_infusor'         => $request->boolean('requires_infusor'), // 👈 nuevo
+        // Importante: la lógica de dosis/volumen ya NO vive en catálogo,
+        // ahora se calculará por presentación (medicine_presentations).
+        $catalog = MedicinesCatalog::create([
+            'denominacion'           => $request->denominacion,
+            'denominacion_comercial' => $request->denominacion_comercial,
+            'conc_min'               => $request->conc_min,
+            'conc_max'               => $request->conc_max,
+            'legend'                 => $request->legend,
+            'requires_infusor'       => $request->boolean('requires_infusor', false),
+            // si dejaste cantidad_medicamento/volumen_diluyente en la tabla, puedes
+            // inicializarlos como null y usarlos solo de referencia, no para cálculos
+            // 'cantidad_medicamento'   => null,
+            // 'volumen_diluyente'      => null,
         ]);
 
-        if ($request->filled('diluents')) {
-            $med->diluents()->sync($request->diluents);
-        }
-
-        if ($request->filled('routes')) {
-            $med->administrationRoutes()->sync($request->routes);
-        }
+        // Relaciones many-to-many
+        $catalog->diluents()->sync($request->input('diluents', []));
+        $catalog->administrationRoutes()->sync($request->input('routes', []));
 
         return redirect()
             ->route('admin.oncologicos.medicines.catalog.index')
@@ -92,22 +81,21 @@ class MedicineCatalogController extends Controller
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
         $medicamento = MedicinesCatalog::with(['diluents', 'administrationRoutes'])->findOrFail($id);
 
-        // DILUYENTES + presentaciones activas
+        // DILUYENTES con presentaciones activas
         $diluents = Diluent::with([
             'presentations' => fn($q) => $q->where('is_active', true)->orderBy('volume_ml')
-        ])->orderBy('denominacion_generica')->get(['id', 'denominacion_generica']);
+        ])
+            ->orderBy('denominacion_generica')
+            ->get(['id', 'denominacion_generica']);
 
         // VÍAS
         $routes = AdministrationRoute::orderBy('name')->get(['id', 'name']);
 
-        // IDs relacionados (para marcar seleccionados en el form)
+        // IDs seleccionados
         $selectedDiluents = $medicamento->diluents->pluck('id')->toArray();
         $selectedRoutes   = $medicamento->administrationRoutes->pluck('id')->toArray();
 
@@ -119,46 +107,34 @@ class MedicineCatalogController extends Controller
             'selectedRoutes'
         ));
     }
-
-    /**
-     * Update the specified resource in storage.
-     */
-
+    
     public function update(Request $request, $id)
     {
         $request->validate([
-            'denominacion'             => 'required|string|max:255',
-            'denominacion_comercial'   => 'required|string|max:255',
-            'presentacion'             => 'required|string|max:255',
-            'cantidad_medicamento'     => 'nullable|numeric|min:0',
-            'volumen_diluyente'        => 'nullable|numeric|min:0',
-            'conc_min'                 => 'nullable|numeric|min:0',
-            'conc_max'                 => 'nullable|numeric|min:0',
-            'legend'                   => 'nullable|string|max:1000',
-            'lote'                     => 'nullable|string|max:100',
-            'caducidad'                => 'nullable|date',
-            'requires_infusor'         => 'nullable|boolean',   // 👈 nuevo
-            'diluents'                 => 'nullable|array',
-            'routes'                   => 'nullable|array',
+            'denominacion'           => 'required|string|max:255',
+            'denominacion_comercial' => 'required|string|max:255',
+            'conc_min'               => 'nullable|numeric|min:0',
+            'conc_max'               => 'nullable|numeric|min:0',
+            'legend'                 => 'nullable|string|max:1000',
+            'requires_infusor'       => 'nullable|boolean',
+            'diluents'               => 'nullable|array',
+            'diluents.*'             => 'integer|exists:diluents,id',
+            'routes'                 => 'nullable|array',
+            'routes.*'               => 'integer|exists:administration_routes,id',
         ]);
 
         $medicamento = MedicinesCatalog::findOrFail($id);
 
         $medicamento->update([
-            'denominacion'             => $request->denominacion,
-            'denominacion_comercial'   => $request->denominacion_comercial,
-            'presentacion'             => $request->presentacion,
-            'cantidad_medicamento'     => $request->cantidad_medicamento,
-            'volumen_diluyente'        => $request->volumen_diluyente,
-            'conc_min'                 => $request->conc_min,
-            'conc_max'                 => $request->conc_max,
-            'legend'                   => $request->legend,
-            'lote'                     => $request->lote,
-            'caducidad'                => $request->caducidad ? Carbon::parse($request->caducidad)->format('Y-m-d') : null,
-            'requires_infusor'         => $request->boolean('requires_infusor'), // 👈 nuevo
+            'denominacion'           => $request->denominacion,
+            'denominacion_comercial' => $request->denominacion_comercial,
+            'conc_min'               => $request->conc_min,
+            'conc_max'               => $request->conc_max,
+            'legend'                 => $request->legend,
+            'requires_infusor'       => $request->boolean('requires_infusor', false),
         ]);
 
-        // Relaciones Many-to-Many
+        // Relaciones many-to-many
         $medicamento->diluents()->sync($request->input('diluents', []));
         $medicamento->administrationRoutes()->sync($request->input('routes', []));
 

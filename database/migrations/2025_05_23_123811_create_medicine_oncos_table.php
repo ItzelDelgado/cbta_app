@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('catalog_id')->constrained('medicines_catalog');
             $table->decimal('precio', 10, 2);
+            $table->decimal('precio_mg', 12, 4)->nullable(); // ajusta posición según tu tabla
             $table->timestamps();
         });
     }

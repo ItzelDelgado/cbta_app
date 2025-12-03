@@ -29,6 +29,10 @@
                         <td class="px-6 py-4">{{ $med->presentacion }}</td>
                         <td class="px-6 py-4">
                             <div class="flex space-x-2">
+                                <a href="{{ route('admin.oncologicos.medicines.catalog.presentations.index', ['catalog' => $med->id]) }}"
+                                    class="inline-block bg-blue-400 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded shadow">
+                                    <i class="fas fa-edit mr-1"></i> Presentaciones
+                                </a>
                                 <a href="{{ route('admin.oncologicos.medicines.catalog.edit', $med->id) }}"
                                     class="inline-block bg-yellow-400 hover:bg-yellow-500 text-white text-xs font-semibold px-3 py-1 rounded shadow">
                                     <i class="fas fa-edit mr-1"></i> Editar

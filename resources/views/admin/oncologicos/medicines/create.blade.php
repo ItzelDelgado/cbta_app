@@ -2,9 +2,8 @@
     <div class="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-md">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">Crear Nueva Lista de Medicamentos</h1>
 
-        <!-- Mostrar errores -->
         @if ($errors->any())
-            <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+            <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                 <strong class="font-bold">¡Oops! Algo salió mal:</strong>
                 <ul class="mt-2 list-disc list-inside text-sm">
                     @foreach ($errors->all() as $error)
@@ -17,228 +16,182 @@
         <form action="{{ route('admin.oncologicos.medicines.store') }}" method="POST" class="space-y-6">
             @csrf
 
-            <!-- Nombre -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la lista:</label>
                 <input type="text" name="name" value="{{ old('name') }}" required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-200 focus:outline-none">
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200">
             </div>
 
-            <!-- Descripción -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Descripción:</label>
                 <textarea name="description" rows="3"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-200 focus:outline-none">{{ old('description') }}</textarea>
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200">{{ old('description') }}</textarea>
             </div>
-            <!-- Activa Marcas -->
-            <div class="flex items-center gap-8">
-                {{-- Switch: Activar marcas --}}
+
+            {{-- 🔹 Activar marcas (igual que en edit) --}}
+            <div class="flex items-center gap-6">
                 <div class="flex items-center">
-                    <input type="hidden" name="active_brands" value="0"> {{-- valor por defecto --}}
+                    <input type="hidden" name="active_brands" value="0">
                     <label class="inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="active_brands" value="1" class="sr-only peer"
-                            {{ old('active_brands') ? 'checked' : '' }}>
+                        <input type="checkbox"
+                               name="active_brands"
+                               value="1"
+                               class="sr-only peer"
+                               {{ old('active_brands', false) ? 'checked' : '' }}>
                         <div
-                            class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-600 relative
-                       after:content-[''] after:absolute after:top-[2px] after:left-[2px]
-                       after:bg-white after:border-gray-300 after:border after:rounded-full
-                       after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
+                            class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative
+                            after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                            after:bg-white after:border-gray-300 after:border after:rounded-full
+                            after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
                         </div>
                         <span class="ml-3 text-sm font-medium text-gray-700">Activar marcas</span>
                     </label>
                 </div>
-
-                {{-- Switch: Cobro por mg / frasco --}}
-                <div class="flex items-center">
-                    {{-- default a "mg" si no hay old() --}}
-                    <input type="hidden" name="charge_by" value="{{ old('charge_by', 'mg') }}">
-
-                    <label class="inline-flex items-center cursor-pointer">
-                        {{-- Toggle visual (no cambia por sí solo el hidden); usamos data-attr para saber estado inicial --}}
-                        <button type="button" id="toggle-charge-by" class="w-16 h-6 bg-gray-200 rounded-full relative"
-                            data-state="{{ old('charge_by', 'mg') }}">
-                            <span id="knob-charge-by"
-                                class="absolute top-[2px] left-[2px] h-5 w-7 bg-white border border-gray-300 rounded-full transition-all flex items-center justify-center text-[10px] font-semibold">
-                                {{ strtoupper(old('charge_by', 'mg')) }}
-                            </span>
-                        </button>
-                        <span class="ml-3 text-sm font-medium text-gray-700">Cobrar por mg / frasco</span>
-                    </label>
-                </div>
             </div>
-            <!-- Tabla -->
+
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Medicamentos:</label>
-                <table id="medicamentosTable"
-                    class="w-full table-auto border border-gray-200 rounded-lg overflow-hidden text-sm">
-                    <thead class="bg-gray-100 text-left text-gray-600 uppercase">
+
+                {{-- charge_by global --}}
+                <input type="hidden" name="charge_by" id="charge_by" value="{{ old('charge_by', 'mg') }}">
+
+                <table id="tbl" class="w-full text-sm border border-gray-200 rounded">
+                    <thead class="bg-gray-100">
                         <tr>
-                            <th class="px-4 py-2">Medicamento</th>
-                            <th class="px-4 py-2">Precio personalizado</th>
-                            <th class="px-4 py-2 text-center">Acción</th>
+                            <th class="p-2 text-left">Medicamento (tipo)</th>
+                            <th class="p-2">Cobro</th>
+                            <th class="p-2">Precio (mg o frasco)</th>
+                            <th class="p-2 text-center">Acción</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        {{-- Reinsertar valores viejos --}}
-                        @if (old('medicamentos'))
-                            @foreach (old('medicamentos') as $med)
-                                <tr>
-                                    <td class="px-4 py-2">
-                                        <select name="medicamentos[][id]" required
-                                            class="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200">
-                                            <option value="">Selecciona</option>
-                                            @foreach ($catalogo as $item)
-                                                <option value="{{ $item->id }}"
-                                                    {{ $item->id == $med['id'] ? 'selected' : '' }}>
-                                                    {{ $item->denominacion }} ({{ $item->presentacion }})
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                    <td class="px-4 py-2">
-                                        <input type="number" name="medicamentos[][precio]" step="0.01" required
-                                            value="{{ $med['precio'] }}"
-                                            class="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200">
-                                    </td>
-                                    <td class="px-4 py-2 text-center">
-                                        <button type="button" onclick="this.closest('tr').remove()"
-                                            class="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-200">
-                                            Eliminar
-                                        </button>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        @endif
-                    </tbody>
+                    <tbody></tbody>
                 </table>
 
-                <button type="button" id="addRowBtn" data-index="0"
-                    class="mt-4 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-200">
-                    + Agregar Medicamento
+                <button type="button" id="addRow" class="mt-4 px-4 py-2 bg-green-600 text-white rounded">
+                    + Agregar
                 </button>
             </div>
 
-
-            <!-- Botón de Guardar -->
             <div class="flex justify-end">
-                <button type="submit"
-                    class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200">
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded">
                     Guardar Lista
                 </button>
             </div>
         </form>
     </div>
 
-    @push('js')
-        <script>
-            const catalogo = @json($catalogo);
-            const addRowBtn = document.getElementById('addRowBtn');
-            const tbody = document.querySelector('#medicamentosTable tbody');
-
-            let index = parseInt(addRowBtn.getAttribute('data-index')) || 0;
-
-            function getSelectedIds() {
-                return [...document.querySelectorAll('select[name^="medicamentos"]')]
-                    .map(select => select.value)
-                    .filter(val => val !== "");
-            }
-
-            function getOpcionesHTML(selectedId = null) {
-                const usados = getSelectedIds().filter(id => id !== selectedId);
-                const disponibles = catalogo.filter(m => !usados.includes(String(m.id)));
-
-                return disponibles.map(m => {
-                    return `<option value="${m.id}" ${m.id == selectedId ? 'selected' : ''}>
-                        ${m.denominacion} (${m.presentacion})
-                    </option>`;
-                }).join('');
-            }
-
-            function crearFila() {
-                const row = document.createElement('tr');
-
-                row.innerHTML = `
-            <td class="px-4 py-2">
-                <select name="medicamentos[${index}][id]" required
-                    class="medicamento-select w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200">
-                    <option value="">Selecciona</option>
-                    ${getOpcionesHTML()}
+    <template id="row-tpl">
+        <tr class="border-t">
+            <td class="p-2 w-1/2">
+                <select name="medicamentos[__i__][id]" class="w-full border rounded p-2" required>
+                    <option value="">Seleccione…</option>
+                    @foreach ($catalogo as $item)
+                        <option value="{{ $item->id }}">
+                            {{ $item->denominacion }} ({{ $item->denominacion_comercial }})
+                        </option>
+                    @endforeach
                 </select>
             </td>
-            <td class="px-4 py-2">
-                <input type="number" name="medicamentos[${index}][precio]" step="0.01" required
-                    class="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200">
+            <!-- Cobro (solo visual, no se envía) -->
+            <td class="p-2 w-28">
+                <select class="charge w-full border rounded p-2">
+                    <option value="mg">mg</option>
+                    <option value="frasco">frasco</option>
+                </select>
             </td>
-            <td class="px-4 py-2 text-center">
-                <button type="button"
-                    class="eliminar-fila px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-200">
-                    Eliminar
-                </button>
-            </td>
-        `;
 
-                tbody.appendChild(row);
-                index++;
-                addRowBtn.setAttribute('data-index', index);
-                actualizarOpciones();
+            <!-- Precio que REALMENTE se envía al backend -->
+            <td class="p-2">
+                <input class="price w-full border rounded p-2" type="number" step="0.01" min="0"
+                    name="medicamentos[__i__][precio]" required
+                    placeholder="Si mg → precio mg; si frasco → precio frasco">
+            </td>
+
+            <td class="p-2 text-center">
+                <button type="button" class="rm px-3 py-1 bg-red-500 text-white rounded">Eliminar</button>
+            </td>
+        </tr>
+    </template>
+
+    <script>
+        const tbl = document.querySelector('#tbl tbody');
+        const tpl = document.querySelector('#row-tpl').innerHTML;
+        const add = document.querySelector('#addRow');
+        const chargeByInput = document.getElementById('charge_by');
+        let rowCounter = 0;
+
+        // IDs de medicamentos ya usados
+        function getUsedIds() {
+            return Array.from(tbl.querySelectorAll('select[name^="medicamentos"]'))
+                .map(sel => sel.value)
+                .filter(v => v !== '');
+        }
+
+        // Deshabilita en cada <select> las opciones que ya estén usadas en otra fila
+        function updateOptions() {
+            const used = getUsedIds();
+
+            tbl.querySelectorAll('select[name^="medicamentos"]').forEach(select => {
+                const current = select.value;
+
+                select.querySelectorAll('option').forEach(opt => {
+                    if (!opt.value) return; // opción "Seleccione…"
+                    // Deshabilita si ya está usada en otra fila distinta
+                    opt.disabled = used.includes(opt.value) && opt.value !== current;
+                });
+            });
+        }
+
+        // Sincroniza TODOS los selects .charge y el hidden charge_by
+        function syncChargeBy(value) {
+            tbl.querySelectorAll('select.charge').forEach(sel => {
+                sel.value = value;
+            });
+            if (chargeByInput) {
+                chargeByInput.value = value;
+            }
+        }
+
+        // Agregar una fila nueva
+        function addRow() {
+            tbl.insertAdjacentHTML('beforeend', tpl.replaceAll('__i__', rowCounter++));
+
+            // aplicar el charge_by actual a la fila recién agregada
+            const lastRow = tbl.lastElementChild;
+            const chargeSelect = lastRow.querySelector('select.charge');
+            if (chargeSelect && chargeByInput) {
+                chargeSelect.value = chargeByInput.value || 'mg';
             }
 
-            function actualizarOpciones() {
-                document.querySelectorAll('.medicamento-select').forEach(select => {
-                    const valorActual = select.value;
-                    select.innerHTML = `<option value="">Selecciona</option>` + getOpcionesHTML(valorActual);
-                    select.value = valorActual;
-                });
+            updateOptions();
+        }
+
+        // Evento: botón "Agregar"
+        add.addEventListener('click', addRow);
+
+        // Evento: eliminar fila
+        tbl.addEventListener('click', e => {
+            if (e.target.classList.contains('rm')) {
+                e.target.closest('tr').remove();
+                updateOptions();
+            }
+        });
+
+        // Evento: cambios en selects de medicamento o tipo de cobro
+        tbl.addEventListener('change', e => {
+            // Cambio de medicamento → recalcular opciones disponibles
+            if (e.target.matches('select[name^="medicamentos"]')) {
+                updateOptions();
             }
 
-            addRowBtn.addEventListener('click', crearFila);
+            // Cambio en select de cobro → aplicar a todos y actualizar hidden
+            if (e.target.classList.contains('charge')) {
+                syncChargeBy(e.target.value);
+            }
+        });
 
-            tbody.addEventListener('click', function(e) {
-                if (e.target.classList.contains('eliminar-fila')) {
-                    e.target.closest('tr').remove();
-                    actualizarOpciones();
-                }
-            });
-
-            tbody.addEventListener('change', function(e) {
-                if (e.target.classList.contains('medicamento-select')) {
-                    actualizarOpciones();
-                }
-            });
-
-            (function() {
-                const btn = document.getElementById('toggle-charge-by');
-                const knob = document.getElementById('knob-charge-by');
-
-                if (!btn || !knob) return;
-
-                const hidden = document.querySelector('input[type=hidden][name=charge_by]');
-                const applyUI = (state) => {
-                    if (state === 'mg') {
-                        knob.style.transform = 'translateX(0)';
-                        knob.textContent = 'MG';
-                        btn.classList.remove('bg-blue-600');
-                        btn.classList.add('bg-gray-200');
-                    } else {
-                        knob.style.transform = 'translateX(36px)'; // ~ w-16 (64) - knob (28) - margins
-                        knob.textContent = 'FR';
-                        btn.classList.remove('bg-gray-200');
-                        btn.classList.add('bg-blue-600');
-                    }
-                };
-
-                let state = btn.dataset.state === 'frasco' ? 'frasco' : 'mg';
-                applyUI(state);
-
-                btn.addEventListener('click', function() {
-                    state = (state === 'mg') ? 'frasco' : 'mg';
-                    if (hidden) hidden.value = state;
-                    applyUI(state);
-                });
-            })();
-
-
-            window.addEventListener('DOMContentLoaded', actualizarOpciones);
-        </script>
-    @endpush
+        // Fila inicial y estado inicial de cobro
+        addRow();
+        syncChargeBy(chargeByInput.value || 'mg');
+    </script>
 </x-admin-layout>

@@ -84,25 +84,32 @@
             </div>
 
             <div class="flex justify-between mb-4 gap-4">
-                <div class="w-1/4">
+                <div class="w-1/5">
                     <label for="diagnostico">Diagnóstico</label>
                     <input type="text" name="diagnostico" id="diagnostico" value="{{ old('diagnostico') }}"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                         placeholder="Diagnóstico">
                 </div>
-                <div class="w-1/4">
+                <div class="w-1/5">
+                    <label for="alergias">Alergias</label>
+                    <input type="text" name="alergias" id="alergias" value="{{ old('alergias') }}"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                        placeholder="Alergias del paciente (si aplica)">
+                </div>
+                <div class="w-1/5">
                     <label for="medico_nombre">Nombre del Médico*</label>
                     <input type="text" name="medico_nombre" id="medico_nombre" value="{{ old('medico_nombre') }}"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                         placeholder="Nombre del Médico">
                 </div>
-                <div class="w-1/4">
+                <div class="w-1/5">
                     <label for="medico_cedula">Cédula del Médico*</label>
-                    <input type="text" name="medico_cedula" id="medico_cedula" value="{{ old('medico_cedula') }}"
+                    <input type="text" name="medico_cedula" id="medico_cedula"
+                        value="{{ old('medico_cedula') }}"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                         placeholder="Cédula del Médico">
                 </div>
-                <div class="w-1/4">
+                <div class="w-1/5">
                     <label for="fecha_entrega">Fecha de entrega*</label>
                     <input type="datetime-local" name="fecha_entrega" id="fecha_entrega"
                         value="{{ old('fecha_entrega') }}"
@@ -139,6 +146,8 @@
     </div>
 
     <script>
+        // 👇 Aquí deben venir SOLO medicamentos genéricos (medicines_catalog)
+        // con campos: id, denominacion, denominacion_comercial, requires_infusor, etc.
         const medicamentos = @json($medicamentos);
         const infoAdicional = @json($infoAdicional);
         const mezclasOld = @json(old('mezclas') ? json_decode(old('mezclas'), true) : []);
@@ -312,7 +321,9 @@
             <select data-name="medicamento" class="w-full border rounded px-2 py-1 text-sm"
                 onchange="actualizarDiluentesYVias(this, ${idMezcla}, ${contadorFilasGlobal}); actualizarOpcionesMedicamentos(${idMezcla})">
                 <option value="">Seleccione el medicamento</option>
-                ${medicamentos.map(m => `<option value="${m.id}" ${m.id == (med.medicamento_id ?? '') ? 'selected' : ''}>${m.denominacion} (${m.presentacion})</option>`).join('')}
+                ${medicamentos.map(m => `<option value="${m.id}" ${m.id == (med.medicamento_id ?? '') ? 'selected' : ''}>
+                        ${m.denominacion} (${m.denominacion_comercial ?? ''})
+                    </option>`).join('')}
             </select>
         </td>
         <td class="border">
@@ -427,7 +438,7 @@
                     if (esPrimero || esCompatible || mId === valorActual) {
                         const option = document.createElement('option');
                         option.value = m.id;
-                        option.text = `${m.denominacion} (${m.presentacion})`;
+                        option.text = `${m.denominacion} (${m.denominacion_comercial ?? ''})`;
                         if (mId === valorActual) option.selected = true;
                         select.appendChild(option);
                     }
@@ -560,7 +571,7 @@
                     }
 
                     medicamentosArr.push({
-                        medicamento_id: medicamentoSelect.value,
+                        medicamento_id: medicamentoSelect.value, // id de catálogo genérico
                         nombre: medicamentoSelect.options[medicamentoSelect.selectedIndex]
                             .text,
                         dosis: dosisInput.value,
@@ -623,8 +634,6 @@
             }
         });
     </script>
-
-
 
     @if (session('success'))
         <script>

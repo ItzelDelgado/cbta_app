@@ -2,9 +2,9 @@
     <div class="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-md">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">Editar Lista de Medicamentos</h1>
 
-        <!-- Mostrar errores -->
+        {{-- Errores --}}
         @if ($errors->any())
-            <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+            <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                 <strong class="font-bold">¡Oops! Algo salió mal:</strong>
                 <ul class="mt-2 list-disc list-inside text-sm">
                     @foreach ($errors->all() as $error)
@@ -13,109 +13,136 @@
                 </ul>
             </div>
         @endif
-        <form id="formActualizar" action="{{ route('admin.oncologicos.medicines.update', $lista->id) }}" method="POST"
-            class="space-y-6">
+
+        <form id="formActualizar"
+              action="{{ route('admin.oncologicos.medicines.update', $lista->id) }}"
+              method="POST"
+              class="space-y-6">
             @csrf
             @method('PUT')
 
-            <!-- Nombre -->
+            {{-- Nombre --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la lista:</label>
-                <input type="text" name="name" value="{{ old('name', $lista->name) }}" required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-200 focus:outline-none">
+                <input type="text"
+                       name="name"
+                       value="{{ old('name', $lista->name) }}"
+                       required
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200">
             </div>
 
-            <!-- Descripción -->
+            {{-- Descripción --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Descripción:</label>
-                <textarea name="description" rows="3"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring focus:ring-blue-200 focus:outline-none">{{ old('description', $lista->description) }}</textarea>
+                <textarea name="description"
+                          rows="3"
+                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200">{{ old('description', $lista->description) }}</textarea>
             </div>
+
+            {{-- Activar marcas --}}
             <div class="flex items-center gap-6">
-                {{-- Switch: Activar marcas (tu existente) --}}
                 <div class="flex items-center">
                     <input type="hidden" name="active_brands" value="0">
                     <label class="inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="active_brands" value="1" class="sr-only peer"
-                            {{ old('active_brands', $lista->active_brands ?? false) ? 'checked' : '' }}>
+                        <input type="checkbox"
+                               name="active_brands"
+                               value="1"
+                               class="sr-only peer"
+                               {{ old('active_brands', $lista->active_brands ?? false) ? 'checked' : '' }}>
                         <div
                             class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative
-                after:content-[''] after:absolute after:top-[2px] after:left-[2px]
-                after:bg-white after:border-gray-300 after:border after:rounded-full
-                after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
+                            after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                            after:bg-white after:border-gray-300 after:border after:rounded-full
+                            after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
                         </div>
                         <span class="ml-3 text-sm font-medium text-gray-700">Activar marcas</span>
                     </label>
                 </div>
-
-                {{-- Switch: Tipo de cobro (mg <-> frasco) --}}
-                <div class="flex items-center">
-                    {{-- Campo real que se envía al servidor --}}
-                    <input type="hidden" name="charge_by" id="charge_by"
-                        value="{{ old('charge_by', $lista->charge_by ?? 'mg') }}">
-
-                    <label class="inline-flex items-center cursor-pointer">
-                        {{-- Switch visual: checked = frasco, unchecked = mg --}}
-                        <input type="checkbox" id="charge_by_switch" class="sr-only peer"
-                            {{ old('charge_by', $lista->charge_by ?? 'mg') === 'frasco' ? 'checked' : '' }}
-                            onchange="document.getElementById('charge_by').value = this.checked ? 'frasco' : 'mg'">
-                        <div
-                            class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative
-                after:content-[''] after:absolute after:top-[2px] after:left-[2px]
-                after:bg-white after:border-gray-300 after:border after:rounded-full
-                after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
-                        </div>
-                        <span class="ml-3 text-sm font-medium text-gray-700">
-                            Cobrar por <span id="charge_by_label">
-                                {{ old('charge_by', $lista->charge_by ?? 'mg') === 'frasco' ? 'frasco' : 'mg' }}
-                            </span>
-                        </span>
-                    </label>
-                </div>
             </div>
-            <!-- Tabla de medicamentos -->
+
+            @php
+                // charge_by actual de la lista (o del old)
+                $chargeByLista = old('charge_by', $lista->charge_by ?? 'mg');
+
+                // Reconstruimos los medicamentos para poblar la tabla
+                $medsOld = old(
+                    'medicamentos',
+                    $lista->medicines
+                        ->map(function ($m) use ($chargeByLista) {
+                            $pivot = $m->pivot;
+
+                            // Si la lista cobra por mg, mostramos el override; si no, el precio por frasco
+                            $precio = $chargeByLista === 'mg'
+                                ? ($pivot->precio_mg_override ?? $pivot->precio)
+                                : ($pivot->precio ?? $pivot->precio_mg_override);
+
+                            return [
+                                'id'     => $m->catalog_id,
+                                'precio' => $precio,
+                            ];
+                        })
+                        ->toArray()
+                );
+            @endphp
+
+            {{-- charge_by global (hidden, misma lógica que create) --}}
+            <input type="hidden" name="charge_by" id="charge_by" value="{{ $chargeByLista }}">
+
+            {{-- Tabla de medicamentos (mismo formato que create) --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Medicamentos:</label>
-                <table id="medicamentosTable"
-                    class="w-full table-auto border border-gray-200 rounded-lg overflow-hidden text-sm">
-                    <thead class="bg-gray-100 text-left text-gray-600 uppercase">
+
+                <table id="tbl" class="w-full text-sm border border-gray-200 rounded">
+                    <thead class="bg-gray-100">
                         <tr>
-                            <th class="px-4 py-2">Medicamento</th>
-                            <th class="px-4 py-2">Precio personalizado</th>
-                            <th class="px-4 py-2 text-center">Acción</th>
+                            <th class="p-2 text-left">Medicamento (tipo)</th>
+                            <th class="p-2">Cobro</th>
+                            <th class="p-2">Precio (mg o frasco)</th>
+                            <th class="p-2 text-center">Acción</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        @foreach (old(
-        'medicamentos',
-        $lista->medicines->map(
-                fn($m) => [
-                    'id' => $m->catalog_id,
-                    'precio' => $m->pivot->precio,
-                ],
-            )->toArray(),
-    ) as $index => $med)
-                            <tr>
-                                <td class="px-4 py-2">
-                                    <select name="medicamentos[{{ $index }}][id]" required
-                                        class="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200">
-                                        <option value="">Selecciona</option>
+                    <tbody>
+                        @foreach ($medsOld as $index => $med)
+                            <tr class="border-t">
+                                {{-- Medicamento --}}
+                                <td class="p-2 w-1/2">
+                                    <select name="medicamentos[{{ $index }}][id]"
+                                            class="w-full border rounded p-2"
+                                            required>
+                                        <option value="">Seleccione…</option>
                                         @foreach ($catalogo as $item)
                                             <option value="{{ $item->id }}"
-                                                {{ $item->id == $med['id'] ? 'selected' : '' }}>
-                                                {{ $item->denominacion }} ({{ $item->presentacion }})
+                                                    {{ $item->id == $med['id'] ? 'selected' : '' }}>
+                                                {{ $item->denominacion }} ({{ $item->denominacion_comercial }})
                                             </option>
                                         @endforeach
                                     </select>
                                 </td>
-                                <td class="px-4 py-2">
-                                    <input type="number" name="medicamentos[{{ $index }}][precio]"
-                                        step="0.01" required value="{{ data_get($med, 'precio', '') }}"
-                                        class="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200">
+
+                                {{-- Cobro (solo visual, como en create) --}}
+                                <td class="p-2 w-28">
+                                    <select class="charge w-full border rounded p-2">
+                                        <option value="mg" {{ $chargeByLista === 'mg' ? 'selected' : '' }}>mg</option>
+                                        <option value="frasco" {{ $chargeByLista === 'frasco' ? 'selected' : '' }}>frasco</option>
+                                    </select>
                                 </td>
-                                <td class="px-4 py-2 text-center">
-                                    <button type="button" onclick="this.closest('tr').remove()"
-                                        class="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-200">
+
+                                {{-- Precio real que se envía --}}
+                                <td class="p-2">
+                                    <input class="price w-full border rounded p-2"
+                                           type="number"
+                                           step="0.01"
+                                           min="0"
+                                           name="medicamentos[{{ $index }}][precio]"
+                                           required
+                                           value="{{ data_get($med, 'precio', '') }}"
+                                           placeholder="Si mg → precio mg; si frasco → precio frasco">
+                                </td>
+
+                                {{-- Acción --}}
+                                <td class="p-2 text-center">
+                                    <button type="button"
+                                            class="rm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
                                         Eliminar
                                     </button>
                                 </td>
@@ -124,103 +151,158 @@
                     </tbody>
                 </table>
 
-                <button type="button" id="addRowBtn"
-                    class="mt-4 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-200"
-                    data-index="{{ count(old('medicamentos', $lista->medicines)) }}">
+                <button type="button"
+                        id="addRow"
+                        class="mt-4 px-4 py-2 bg-green-600 text-white rounded">
                     + Agregar Medicamento
                 </button>
             </div>
 
-            <!-- Botón de guardar -->
+            {{-- Botón actualizar con confirmación --}}
             <div class="flex justify-end">
-                <button type="button" id="confirmUpdateBtn"
-                    class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200">
+                <button type="button"
+                        id="confirmUpdateBtn"
+                        class="px-6 py-2 bg-blue-600 text-white font-semibold rounded">
                     Actualizar Lista
                 </button>
             </div>
         </form>
     </div>
 
-    @push('js')
-        <script>
-            const catalogo = @json($catalogo);
-            const addRowBtn = document.getElementById('addRowBtn');
-            const tbody = document.querySelector('#medicamentosTable tbody');
-
-            let index = parseInt(addRowBtn.getAttribute('data-index')) || 0;
-
-            function getSelectedIds() {
-                return [...document.querySelectorAll('select[name^="medicamentos"]')]
-                    .map(select => select.value)
-                    .filter(val => val !== "");
-            }
-
-            function getOpcionesHTML(selectedId = null) {
-                const usados = getSelectedIds().filter(id => id !== selectedId);
-                const disponibles = catalogo.filter(m => !usados.includes(String(m.id)));
-
-                return disponibles.map(m => {
-                    return `<option value="${m.id}" ${m.id == selectedId ? 'selected' : ''}>
-                        ${m.denominacion} (${m.presentacion})
-                    </option>`;
-                }).join('');
-            }
-
-            function crearFila() {
-                const row = document.createElement('tr');
-
-                row.innerHTML = `
-            <td class="px-4 py-2">
-                <select name="medicamentos[${index}][id]" required
-                    class="medicamento-select w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200">
-                    <option value="">Selecciona</option>
-                    ${getOpcionesHTML()}
+    {{-- Template de fila (igual que en create) --}}
+    <template id="row-tpl">
+        <tr class="border-t">
+            <td class="p-2 w-1/2">
+                <select name="medicamentos[__i__][id]" class="w-full border rounded p-2" required>
+                    <option value="">Seleccione…</option>
+                    @foreach ($catalogo as $item)
+                        <option value="{{ $item->id }}">
+                            {{ $item->denominacion }} ({{ $item->denominacion_comercial }})
+                        </option>
+                    @endforeach
                 </select>
             </td>
-            <td class="px-4 py-2">
-                <input type="number" name="medicamentos[${index}][precio]" step="0.01" required
-                    class="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200">
+
+            {{-- Cobro (solo visual, no se envía, igual que en create) --}}
+            <td class="p-2 w-28">
+                <select class="charge w-full border rounded p-2">
+                    <option value="mg">mg</option>
+                    <option value="frasco">frasco</option>
+                </select>
             </td>
-            <td class="px-4 py-2 text-center">
+
+            {{-- Precio real que se envía --}}
+            <td class="p-2">
+                <input class="price w-full border rounded p-2"
+                       type="number"
+                       step="0.01"
+                       min="0"
+                       name="medicamentos[__i__][precio]"
+                       required
+                       placeholder="Si mg → precio mg; si frasco → precio frasco">
+            </td>
+
+            <td class="p-2 text-center">
                 <button type="button"
-                    class="eliminar-fila px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-200">
+                        class="rm px-3 py-1 bg-red-500 text-white rounded">
                     Eliminar
                 </button>
             </td>
-        `;
+        </tr>
+    </template>
 
-                tbody.appendChild(row);
-                index++;
-                addRowBtn.setAttribute('data-index', index);
-                actualizarOpciones();
-            }
+    <script>
+        const tbl = document.querySelector('#tbl tbody');
+        const tpl = document.querySelector('#row-tpl').innerHTML;
+        const add = document.querySelector('#addRow');
+        const chargeByInput = document.getElementById('charge_by');
+        const confirmUpdateBtn = document.getElementById('confirmUpdateBtn');
 
-            function actualizarOpciones() {
-                document.querySelectorAll('.medicamento-select').forEach(select => {
-                    const valorActual = select.value;
-                    select.innerHTML = `<option value="">Selecciona</option>` + getOpcionesHTML(valorActual);
-                    select.value = valorActual;
+        // Empezamos desde la cantidad de filas que ya traía la lista
+        let rowCounter = {{ count($medsOld) }};
+
+        // Obtener IDs de medicamentos ya usados
+        function getUsedIds() {
+            return Array.from(tbl.querySelectorAll('select[name^="medicamentos"]'))
+                .map(sel => sel.value)
+                .filter(v => v !== '');
+        }
+
+        // Deshabilitar en cada select las opciones ya usadas en otras filas
+        function updateOptions() {
+            const used = getUsedIds();
+
+            tbl.querySelectorAll('select[name^="medicamentos"]').forEach(select => {
+                const current = select.value;
+
+                select.querySelectorAll('option').forEach(opt => {
+                    if (!opt.value) return; // "Seleccione…"
+                    opt.disabled = used.includes(opt.value) && opt.value !== current;
                 });
+            });
+        }
+
+        // Sincronizar TODOS los selects .charge y el hidden charge_by
+        function syncChargeBy(value) {
+            tbl.querySelectorAll('select.charge').forEach(sel => {
+                sel.value = value;
+            });
+            if (chargeByInput) {
+                chargeByInput.value = value;
+            }
+        }
+
+        // Agregar una fila nueva (igual que create)
+        function addRow() {
+            tbl.insertAdjacentHTML('beforeend', tpl.replaceAll('__i__', rowCounter++));
+
+            const lastRow = tbl.lastElementChild;
+            const chargeSelect = lastRow.querySelector('select.charge');
+            if (chargeSelect && chargeByInput) {
+                chargeSelect.value = chargeByInput.value || 'mg';
             }
 
-            addRowBtn.addEventListener('click', crearFila);
+            updateOptions();
+        }
 
-            tbody.addEventListener('click', function(e) {
-                if (e.target.classList.contains('eliminar-fila')) {
-                    e.target.closest('tr').remove();
-                    actualizarOpciones();
-                }
-            });
+        // Botón "Agregar"
+        if (add) {
+            add.addEventListener('click', addRow);
+        }
 
-            tbody.addEventListener('change', function(e) {
-                if (e.target.classList.contains('medicamento-select')) {
-                    actualizarOpciones();
-                }
-            });
+        // Eliminar fila
+        tbl.addEventListener('click', e => {
+            if (e.target.classList.contains('rm')) {
+                e.target.closest('tr').remove();
+                updateOptions();
+            }
+        });
 
-            window.addEventListener('DOMContentLoaded', actualizarOpciones);
+        // Cambios en selects de medicamento o tipo de cobro
+        tbl.addEventListener('change', e => {
+            // Cambio de medicamento → recalcular opciones disponibles
+            if (e.target.matches('select[name^="medicamentos"]')) {
+                updateOptions();
+            }
 
-            document.getElementById('confirmUpdateBtn').addEventListener('click', function() {
+            // Cambio en select de cobro → aplicar a todos y actualizar hidden
+            if (e.target.classList.contains('charge')) {
+                syncChargeBy(e.target.value);
+            }
+        });
+
+        // Estado inicial: si no hay filas, agregamos una
+        document.addEventListener('DOMContentLoaded', () => {
+            if (rowCounter === 0) {
+                addRow();
+            }
+            syncChargeBy(chargeByInput.value || 'mg');
+            updateOptions();
+        });
+
+        // Confirmación SweetAlert para actualizar
+        if (confirmUpdateBtn) {
+            confirmUpdateBtn.addEventListener('click', function () {
                 Swal.fire({
                     title: '¿Estás seguro?',
                     text: "Se actualizará esta lista de medicamentos.",
@@ -238,16 +320,6 @@
                     }
                 });
             });
-
-            (function() {
-                const sw = document.getElementById('charge_by_switch');
-                const label = document.getElementById('charge_by_label');
-                if (sw && label) {
-                    sw.addEventListener('change', function() {
-                        label.textContent = this.checked ? 'frasco' : 'mg';
-                    });
-                }
-            })();
-        </script>
-    @endpush
+        }
+    </script>
 </x-admin-layout>

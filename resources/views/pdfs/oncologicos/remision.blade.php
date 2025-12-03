@@ -12,6 +12,7 @@
             return '—';
         }
     };
+
     $fmtDateTime = function ($v) {
         if (!$v) {
             return '—';
@@ -22,6 +23,11 @@
             return '—';
         }
     };
+
+    function money_fmt($v)
+    {
+        return '$' . number_format((float) $v, 2, '.', ',');
+    }
 
     // ===== Datos del paciente / solicitud =====
     $pacienteNombre = $solicitud->nombre_paciente ?? '—';
@@ -35,16 +41,7 @@
     $medico = $solicitud->nombre_medico ?? '—';
 
     // ===== Auxiliares de cálculo =====
-    $total = 0;
     $contador = 1;
-
-    function money_fmt($v)
-    {
-        return '$' . number_format((float) $v, 2, '.', ',');
-    }
-
-    // Colección de medicamentos en la lista ASIGNADA del usuario (si existe)
-    $listaAsig = optional($solicitud->user->assignedMedicineList)->medicines ?? collect();
 @endphp
 
 <!DOCTYPE html>
@@ -53,7 +50,6 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Remisión</title>
 
@@ -62,13 +58,11 @@
             margin: 1rem;
         }
 
-        /* Estilos básicos */
         body {
             margin: 0;
             padding: 20px;
-            /* Espacio alrededor del contenedor para que el borde no toque los bordes de la ventana del navegador */
             background-color: white;
-            /* Fondo blanco para el body */
+            font-family: "Arial", sans-serif;
         }
 
         .bg-cbta {
@@ -76,31 +70,10 @@
             color: white;
         }
 
-        .title {
-            text-align: center;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .salto-pagina {
-            page-break-before: always;
-        }
-
-        /* Contenedor principal con borde negro */
         .contenedor {
             padding: 0;
-            font-family: "Arial", sans-serif;
         }
 
-        /* Estilos para el texto introductorio */
-        .introduccion table {
-            width: 100%;
-            /* Ajusta esto según necesites */
-            border-collapse: collapse;
-            border: none;
-        }
-
-        /* Estilos para la tabla */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -110,7 +83,7 @@
         td {
             border: 0px solid black;
             padding: 0px;
-            font-size: 12px
+            font-size: 12px;
         }
 
         .border-1 {
@@ -122,11 +95,6 @@
             border-right: 1px solid black;
         }
 
-        .border-y-1 {
-            border-top: 1px solid black;
-            border-bottom: 1px solid black;
-        }
-
         .border-l-0 {
             border-left: none;
         }
@@ -135,29 +103,12 @@
             border-right: none;
         }
 
-        .mx-1 {
-            margin-left: 0.25rem;
-            margin-right: 0.5rem;
+        .border-t-1 {
+            border-top: 1px solid black;
         }
 
-        .mt-8 {
-            margin-top: 2rem;
-        }
-
-        .mt-12 {
-            margin-top: 3rem;
-        }
-
-        .mt-2 {
-            margin-top: 0.5rem;
-        }
-
-        .mt-4 {
-            margin-top: 1rem;
-        }
-
-        .mb-4 {
-            margin-bottom: 1rem;
+        .border-b-1 {
+            border-bottom: 1px solid black;
         }
 
         .px-1 {
@@ -170,68 +121,16 @@
             padding-bottom: 0.25rem;
         }
 
-        th {
-            background-color: #f2f2f2;
+        .mt-2 {
+            margin-top: 0.5rem;
         }
 
-        p {
-            font-size: 11px
+        .mt-12 {
+            margin-top: 3rem;
         }
 
-        .liberacion-area td {
-            margin: 0;
-            padding: 0 8px;
-        }
-
-        .firmas td {
-
-            text-align: center;
-        }
-
-        .elementos td {
-            margin: 0;
-            padding: 0 8px;
-
-        }
-
-        .border-r-0 {
-            border-right: none;
-        }
-
-        .border-l-0 {
-            border-left: none;
-        }
-
-        .border-t-0 {
-            border-top: none;
-        }
-
-        .border-b-0 {
-            border-bottom: none;
-        }
-
-        .border-l-1 {
-            border-left: 1px solid black;
-        }
-
-        .border-r-1 {
-            border-right: 1px solid black;
-        }
-
-        .border-0 {
-            border: none;
-        }
-
-        .border-1 {
-            border: 1px solid black;
-        }
-
-        .border-t-1 {
-            border-top: 1px solid black;
-        }
-
-        .border-b-1 {
-            border-bottom: 1px solid black;
+        .mb-4 {
+            margin-bottom: 1rem;
         }
 
         .text-left {
@@ -250,13 +149,25 @@
             font-weight: bold;
         }
 
-        .text-center {
-            text-align: center
+        th {
+            background-color: #f2f2f2;
+        }
+
+        p {
+            font-size: 11px;
+        }
+
+        .fila-presentacion td {
+            font-size: 11px;
+            background-color: #E9F2FF;
+            /* azul muy claro */
+        }
+
+        .bg-presentacion {
+            background-color: #E9F2FF;
         }
     </style>
-
 </head>
-
 
 <body>
     <div class="contenedor border-1">
@@ -285,7 +196,7 @@
             <tr>
                 <td class="px-1">
                     Fecha de envío:
-                    <strong>{{ $fechaEmision ? $fmtDateTime($fechaEmision) : $fmtDateTime(now()) }}</strong>
+                    <strong>{{ $fmtDateTime($fechaEmision) }}</strong>
                 </td>
                 <td class="px-1 text-right">DOMICILIO CLIENTE RECEPTOR:</td>
             </tr>
@@ -327,7 +238,7 @@
             </tr>
         </table>
 
-        <!-- Encabezado de tabla de remisión -->
+        <!-- Encabezado tabla remisión -->
         <table>
             <tr>
                 <td class="text-center">DATOS DE LAS MEZCLAS</td>
@@ -339,12 +250,12 @@
             <tr>
                 <td class="border-1 border-l-0 px-1 text-center bg-cbta font-bold">No</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Medicamento</td>
-                <td class="border-1 px-1 text-center bg-cbta font-bold">Dosis</td>
+                <td class="border-1 px-1 text-center bg-cbta font-bold">Dosis (mg)</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Diluyente</td>
-                <td class="border-1 px-1 text-center bg-cbta font-bold">Volumen</td>
+                <td class="border-1 px-1 text-center bg-cbta font-bold">Volumen mezcla</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Lote de la mezcla</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">No. Remisión</td>
-                <td class="border-1 px-1 text-center bg-cbta font-bold">Unidad de medida</td>
+                <td class="border-1 px-1 text-center bg-cbta font-bold">Unidad de cobro</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Cantidad</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Precio unitario</td>
                 <td class="border-1 border-r-0 px-1 text-center bg-cbta font-bold">Subtotal</td>
@@ -353,53 +264,113 @@
             @foreach ($mezclas as $mezcla)
                 @php
                     $loteMezcla = $mezcla->lote ?? '—';
-                    $remision = $mezcla->remision ?? '—';
+                    $remisionMezcla = $mezcla->remision ?? '—';
                     $volumenMezcla = isset($mezcla->volumen_dilucion) ? $mezcla->volumen_dilucion . ' ml' : '—';
                 @endphp
 
-                @forelse($mezcla->medicamentos as $med)
+                @forelse ($mezcla->medicamentos as $med)
                     @php
+                        // Nombre del medicamento
                         $denom =
                             optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
                             ($med->nombre_medicamento ?? '—');
+
+                        // Dosis
                         $dosis = $med->dosis ?? 0;
+                        $dosisFmt = is_numeric($dosis)
+                            ? rtrim(rtrim(number_format($dosis, 2, '.', ''), '0'), '.')
+                            : $dosis;
 
-                        $cantPorPieza =
-                            optional(optional($med->medicamentoOnco)->catalog)->cantidad_medicamento ?: null;
-                        $piezas = $cantPorPieza && $dosis ? (int) ceil($dosis / (float) $cantPorPieza) : 1;
+                        // Diluyente
+                        $diluyente = optional($med->diluyente)->denominacion_generica ?? '—';
 
-                        $diluyente = optional($med->diluyente)->name ?? '—';
+                        // Datos YA CALCULADOS en el controlador
+                        $unidadCobro = $med->unidad_cobro ?? '—';
+                        $cantidad = $med->cantidad_cobro ?? 0;
+                        $precioUnit = $med->precio_unitario_calculado ?? 0;
+                        $subtotal = $med->subtotal_calculado ?? 0;
 
-                        $itemLista = $listaAsig->firstWhere('id', $med->medicamento_id);
-                        $precioLista = optional($itemLista)->pivot->precio ?? null;
+                        // Presentaciones usadas (solo formateo de texto)
+                        $presentaciones = $med->presentacionesUsadas ?? collect();
 
-                        $precioUnit =
-                            $med->precio_unitario ?? ($precioLista ?? (optional($med->medicamentoOnco)->precio ?? 0));
+                        $presentacionesTexto = $presentaciones
+                            ->map(function ($pres) {
+                                $batch = $pres->batch;
+                                $presBase = $pres->presentation;
 
-                        $subtotal = $piezas * (float) $precioUnit;
-                        $total += $subtotal;
+                                $nombrePres = trim($presBase->presentacion ?? '');
 
-                        $unidad = 'pieza';
+                                // Línea 1: "• 1 pza(s) - Frasco 500 mg"
+                                $linea1Partes = [];
+                                if ($pres->unidades_usadas) {
+                                    $linea1Partes[] = $pres->unidades_usadas . ' pza(s)';
+                                }
+                                if ($nombrePres) {
+                                    $linea1Partes[] = $nombrePres;
+                                }
+                                $linea1 = '• ' . implode(' - ', $linea1Partes);
+
+                                // Línea 2: "Lote XXX · Cad. 28/11/2025"
+                                $lote = $pres->lote_usado ?? $batch?->lote;
+                                $cad = $pres->caducidad_usada ?? $batch?->caducidad;
+
+                                $linea2Partes = [];
+                                if ($lote) {
+                                    $linea2Partes[] = 'Lote ' . $lote;
+                                }
+                                if ($cad) {
+                                    try {
+                                        $linea2Partes[] = 'Cad. ' . \Carbon\Carbon::parse($cad)->format('d/m/Y');
+                                    } catch (\Exception $e) {
+                                        $linea2Partes[] = 'Cad. ' . $cad;
+                                    }
+                                }
+                                $linea2 = count($linea2Partes) ? implode(' · ', $linea2Partes) : '';
+
+                                return $linea2 ? $linea1 . '<br>&nbsp;&nbsp;' . $linea2 : $linea1;
+                            })
+                            ->implode('<br>');
+
+                        if ($presentacionesTexto === '') {
+                            $presentacionesTexto = 'Sin detalle de presentación.';
+                        }
                     @endphp
 
+                    {{-- Fila principal del medicamento --}}
                     <tr>
                         <td class="border-1 border-l-0 px-1 text-center">{{ $contador++ }}</td>
                         <td class="border-1 px-1 text-center">{{ $denom }}</td>
                         <td class="border-1 px-1 text-center">
-                            {{ is_numeric($dosis) ? rtrim(rtrim(number_format($dosis, 2, '.', ''), '0'), '.') . ' mg' : $dosis }}
+                            {{ is_numeric($dosisFmt) ? $dosisFmt . ' mg' : $dosisFmt }}
                         </td>
                         <td class="border-1 px-1 text-center">{{ $diluyente }}</td>
                         <td class="border-1 px-1 text-center">{{ $volumenMezcla }}</td>
                         <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
-                        <td class="border-1 px-1 text-center">{{ $remision }}</td>
-                        <td class="border-1 px-1 text-center">{{ ucfirst($unidad) }}</td>
-                        <td class="border-1 px-1 text-center">{{ $piezas }}</td>
+                        <td class="border-1 px-1 text-center">{{ $remisionMezcla }}</td>
+                        <td class="border-1 px-1 text-center">{{ ucfirst($unidadCobro) }}</td>
+                        <td class="border-1 px-1 text-center">
+                            @if ($unidadCobro === 'mg')
+                                {{ rtrim(rtrim(number_format($cantidad, 2, '.', ''), '0'), '.') }}
+                            @else
+                                {{ $cantidad }}
+                            @endif
+                        </td>
                         <td class="border-1 px-1 text-center">{{ money_fmt($precioUnit) }}</td>
                         <td class="border-1 border-r-0 px-1 text-center">{{ money_fmt($subtotal) }}</td>
                     </tr>
+
+                    {{-- Fila de detalle de presentaciones --}}
+                    <tr class="fila-presentacion">
+                        <td class="border-1 border-l-0 px-1"></td>
+                        <td class="border-1 px-1 text-right font-bold">Presentaciones usadas:</td>
+                        <td class="border-1 border-r-0 px-1 text-left bg-presentacion" colspan="9">
+                            {!! $presentacionesTexto !!}
+                        </td>
+                    </tr>
                 @empty
                     <tr>
-                        <td class="border-1 border-l-0 px-1 text-center" colspan="10">Sin medicamentos en esta mezcla.
+                        <td class="border-1 border-l-0 px-1 text-center" colspan="11">
+                            Sin medicamentos en esta mezcla.
                         </td>
                     </tr>
                 @endforelse
@@ -408,7 +379,7 @@
 
         <table>
             <tr>
-                <td class="text-right">Total {{ money_fmt($total) }}</td>
+                <td class="text-right">Total {{ money_fmt($totalRemision) }}</td>
             </tr>
         </table>
 
