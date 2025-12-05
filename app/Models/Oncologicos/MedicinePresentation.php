@@ -48,5 +48,17 @@ class MedicinePresentation extends Model
             ->where('is_current', true);
     }
 
-    
+    public function lists()
+    {
+        return $this->belongsToMany(
+            MedicineList::class,
+            'medicine_list_presentation',
+            'medicine_presentation_id',
+            'medicine_list_id'
+        )->withPivot([
+            'charge_by',
+            'precio',
+            'precio_mg_override',
+        ])->withTimestamps();
+    }
 }

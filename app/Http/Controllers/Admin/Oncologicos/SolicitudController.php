@@ -712,10 +712,15 @@ class SolicitudController extends Controller
     {
         $solicitud_onco = SolicitudOnco::with([
             'user.hospital',
+            'user.medicineList', // 👈 importante: cargar la lista del user
             'mezclas.medicamentos.medicamentoOnco.catalog',
             'mezclas.medicamentos.diluyente',
             'mezclas.medicamentos.presentacionesUsadas.batch.presentation',
         ])->findOrFail($solicitud->id);
+
+        // Lista de precios asignada al usuario
+        $lista       = optional($solicitud_onco->user)->medicineList;
+        $listaCharge = $lista->charge_by ?? null;  // 'mg' | 'frasco' | null
 
         $totalRemision = 0.0;
 
@@ -723,54 +728,57 @@ class SolicitudController extends Controller
             foreach ($mezcla->medicamentos as $med) {
 
                 $presentaciones = $med->presentacionesUsadas ?? collect();
-                $chargeBy       = $med->charge_by ?? 'mg';
 
-                $cantidad   = 0.0;
-                $precioUnit = 0.0;
-                $subtotal   = 0.0;
+                // Prioridad: 1) charge_by del medicamento   2) charge_by de la lista   3) frasco por defecto
+                $chargeBy = $med->charge_by ?? $listaCharge ?? 'frasco';
+
+                $cantidad    = 0.0;
+                $precioUnit  = 0.0;
+                $subtotal    = 0.0;
                 $unidadCobro = $chargeBy === 'mg' ? 'mg' : 'frasco';
 
                 if ($chargeBy === 'mg') {
                     // ===== COBRO POR mg =====
                     $dosis = (float) ($med->dosis ?? 0);
 
-                    // 1) Intentar precio mg snapshot
-                    $precioMg = $med->precio_mg_snapshot;
+                    // 1) Intentar precio mg snapshot en el medicamento
+                    $precioMg = (float) ($med->precio_mg_snapshot ?? 0);
 
-                    // 2) Intentar precio mg en medicine_oncos
-                    if (!$precioMg || $precioMg <= 0) {
-                        $precioMg = optional($med->medicamentoOnco)->precio_mg;
+                    // 2) Intentar precio mg en medicine_oncos (si algún día lo usas)
+                    if ($precioMg <= 0) {
+                        $precioMg = (float) (optional($med->medicamentoOnco)->precio_mg ?? 0);
                     }
 
-                    // 3) Si sigue sin valor, derivar del frasco (precio_frasco / mg del frasco)
-                    if ((!$precioMg || $precioMg <= 0) && $presentaciones->isNotEmpty()) {
-                        $firstPres      = $presentaciones->first();
-                        $precioFrasco   = (float) ($firstPres->precio_frasco_snapshot ?? 0);
-                        $mgFrasco       = (float) (optional($firstPres->presentation)->cantidad_medicamento ?? 0);
+                    // 3) Si sigue sin valor, derivar del frasco (y aquí ya usamos el precio de la lista,
+                    //    porque el snapshot viene desde medicine_list_presentation)
+                    if ($precioMg <= 0 && $presentaciones->isNotEmpty()) {
+                        $firstPres    = $presentaciones->first();
+                        $precioFrasco = (float) ($firstPres->precio_frasco_snapshot ?? 0);
+                        $mgFrasco     = (float) (optional($firstPres->presentation)->cantidad_medicamento ?? 0);
 
                         if ($precioFrasco > 0 && $mgFrasco > 0) {
                             $precioMg = $precioFrasco / $mgFrasco;
                         }
                     }
 
-                    $precioUnit = $precioMg > 0 ? (float) $precioMg : 0.0;
+                    $precioUnit = $precioMg > 0 ? $precioMg : 0.0;
                     $cantidad   = $dosis;
                     $subtotal   = $cantidad * $precioUnit;
                 } else {
                     // ===== COBRO POR FRASCO =====
-                    $unidades = (float) ($presentaciones->sum('unidades_usadas') ?: 0);
-                    $subtotalFrascos = (float) $presentaciones->sum('subtotal');
+                    $unidades        = (float) ($presentaciones->sum('unidades_usadas') ?: 0);
+                    $subtotalFrascos = (float) $presentaciones->sum('subtotal'); // 👈 viene de la lista
 
                     if ($unidades <= 0) {
                         $unidades = 1; // fallback mínimo
                     }
 
                     if ($subtotalFrascos > 0) {
-                        // hay subtotales ya calculados en el detalle
+                        // Ya traemos el subtotal calculado desde la mezcla (precio de la lista * frascos)
                         $precioUnit = $subtotalFrascos / $unidades;
                         $subtotal   = $subtotalFrascos;
                     } else {
-                        // Fallback: usar precio_frasco_snapshot o precio_frasco del catálogo
+                        // Fallback: usar snapshot de frasco o el precio base (solo referencia)
                         $firstPres    = $presentaciones->first();
                         $precioFrasco = (float) (
                             $firstPres->precio_frasco_snapshot

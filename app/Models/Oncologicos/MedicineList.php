@@ -36,6 +36,26 @@ class MedicineList extends Model
     }
 
     // Helpers opcionales
-    public function chargeByMg(): bool { return $this->charge_by === 'mg'; }
-    public function chargeByFrasco(): bool { return $this->charge_by === 'frasco'; }
+    public function chargeByMg(): bool
+    {
+        return $this->charge_by === 'mg';
+    }
+    public function chargeByFrasco(): bool
+    {
+        return $this->charge_by === 'frasco';
+    }
+
+    public function presentations()
+    {
+        return $this->belongsToMany(
+            MedicinePresentation::class,
+            'medicine_list_presentation',          // tabla pivot
+            'medicine_list_id',                    // FK a esta tabla
+            'medicine_presentation_id'             // FK a presentations
+        )->withPivot([
+            'charge_by',
+            'precio',
+            'precio_mg_override',
+        ])->withTimestamps();
+    }
 }

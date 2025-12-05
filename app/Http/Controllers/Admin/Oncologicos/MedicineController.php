@@ -5,122 +5,108 @@ namespace App\Http\Controllers\Admin\Oncologicos;
 use App\Http\Controllers\Controller;
 use App\Models\Oncologicos\MedicineList;
 use App\Models\Oncologicos\MedicineOnco;
+use App\Models\Oncologicos\MedicinePresentation;
 use App\Models\Oncologicos\MedicinesCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class MedicineController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
-        $listas = MedicineList::with(['medicines' => function ($q) {
-            // Cargar el catálogo asociado a cada medicine_onco (sin 'presentacion')
-            $q->with('catalog:id,denominacion,denominacion_comercial');
-        }])->get();
+        $listas = MedicineList::with([
+            'presentations.catalog' // presentaciones ligadas a la lista + su genérico
+        ])->get();
 
         return view('admin.oncologicos.medicines.index', compact('listas'));
     }
 
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        $catalogo = MedicinesCatalog::where('state', true)
-            ->get(['id', 'denominacion', 'denominacion_comercial']);
+        $catalogos = MedicinesCatalog::with('presentations')
+            ->orderBy('denominacion')
+            ->get();
 
-        return view('admin.oncologicos.medicines.create', compact('catalogo'));
+        return view('admin.oncologicos.medicines.create', compact('catalogos'));
     }
+
+
 
     public function store(Request $request)
     {
         $request->validate([
-            'name'                      => 'required|string|max:255|unique:medicine_lists,name',
-            'description'               => 'nullable|string',
+            'name'        => 'required|string|max:255|unique:medicine_lists,name',
+            'description' => 'nullable|string',
 
-            'active_brands'             => 'nullable|boolean',
-            'charge_by'                 => 'required|in:mg,frasco',
+            'active_brands' => 'nullable|boolean',
 
-            'medicamentos'              => 'required|array|min:1',
-            'medicamentos.*.id'         => 'required|exists:medicines_catalog,id',
-            'medicamentos.*.precio'     => 'required|numeric|min:0',
+            'charge_by'   => 'required|in:mg,frasco',
+
+            'medicamentos'                      => 'required|array|min:1',
+            'medicamentos.*.presentation_id'    => 'required|exists:medicine_presentations,id',
+            'medicamentos.*.precio'             => 'required|numeric|min:0',
         ], [
-            'medicamentos.required'         => 'Debes agregar al menos un medicamento.',
-            'medicamentos.*.id.required'    => 'Selecciona un medicamento válido.',
-            'medicamentos.*.precio.required' => 'Indica el precio para cada medicamento.',
+            'medicamentos.required'                    => 'Debes agregar al menos un medicamento.',
+            'medicamentos.*.presentation_id.required'  => 'Selecciona una presentación válida.',
+            'medicamentos.*.precio.required'           => 'Indica el precio para cada presentación.',
         ]);
 
-        // Normalizar filas válidas
-        $medicamentos = collect($request->medicamentos)
-            ->filter(fn($m) => !empty($m['id']) && $m['precio'] !== null && $m['precio'] !== '')
-            ->unique('id')
+        // Normalizar filas válidas (evitar vacías y duplicadas por presentación)
+        $items = collect($request->input('medicamentos', []))
+            ->filter(
+                fn($m) =>
+                !empty($m['presentation_id']) &&
+                    $m['precio'] !== null &&
+                    $m['precio'] !== ''
+            )
+            ->unique('presentation_id')
             ->values();
 
-        if ($medicamentos->isEmpty()) {
+        if ($items->isEmpty()) {
             return back()->withInput()->withErrors([
-                'medicamentos' => 'Debes ingresar al menos un medicamento válido con precio.',
+                'medicamentos' => 'Debes ingresar al menos una presentación válida con precio.',
             ]);
         }
 
         try {
             DB::beginTransaction();
 
-            $chargeBy      = $request->input('charge_by', 'mg');
-            $activeBrands  = $request->boolean('active_brands', false);
+            $chargeBy = $request->input('charge_by', 'mg');
 
-            // 1) Crear lista
+        // 1) Crear la lista
+            /** @var \App\Models\Oncologicos\MedicineList $lista */
             $lista = MedicineList::create([
                 'name'          => $request->name,
                 'description'   => $request->description,
-                'active_brands' => $activeBrands,
+                'active_brands' => $request->boolean('active_brands', false),
                 'charge_by'     => $chargeBy,
             ]);
 
-            // 2) Pivot final
+            // 2) Construir datos de la pivot: [presentation_id => [..campos..]]
             $pivotData = [];
 
-            foreach ($medicamentos as $m) {
-                $catalog = MedicinesCatalog::find($m['id']);
-                if (!$catalog) {
-                    continue;
-                }
+            foreach ($items as $item) {
+                $presentationId = (int) $item['presentation_id'];
+                $precioCapturado = (float) $item['precio'];
 
-                // asegurar existencia en medicine_oncos
-                $medicineOnco = MedicineOnco::firstOrCreate(
-                    ['catalog_id' => $catalog->id],
-                    ['precio'     => 0]
-                );
-
-                // precio base por frasco
-                $precioBaseFrasco = $medicineOnco->precio ?? 0;
-
-                $precio           = null;
-                $precioMgOverride = null;
-
-                if ($chargeBy === 'mg') {
-                    // Lista cobra por mg:
-                    // - mantenemos precio por frasco en 'precio'
-                    // - override por mg en 'precio_mg_override'
-                    $precio           = $precioBaseFrasco;
-                    $precioMgOverride = $m['precio'];
-                } else { // 'frasco'
-                    // Lista cobra por frasco:
-                    $precio           = $m['precio'];
-                    $precioMgOverride = null;
-                }
-
-                $pivotData[$medicineOnco->id] = [
+                $pivotData[$presentationId] = [
                     'charge_by'          => $chargeBy,
-                    'precio'             => $precio,
-                    'precio_mg_override' => $precioMgOverride,
+                    'precio'             => $chargeBy === 'frasco' ? $precioCapturado : null,
+                    'precio_mg_override' => $chargeBy === 'mg'     ? $precioCapturado : null,
                 ];
             }
 
-            $lista->medicines()->sync($pivotData);
+            if (empty($pivotData)) {
+                DB::rollBack();
+                return back()->withInput()->withErrors([
+                    'medicamentos' => 'No se pudo construir ninguna relación de presentaciones con la lista.',
+                ]);
+            }
+
+            // 3) Sincronizar presentaciones en la nueva tabla pivot
+            $lista->presentations()->sync($pivotData);
 
             DB::commit();
 
@@ -128,7 +114,6 @@ class MedicineController extends Controller
                 ->route('admin.oncologicos.medicines.index')
                 ->with('success', 'Lista de medicamentos creada correctamente.');
         } catch (\Throwable $e) {
-
             DB::rollBack();
 
             return back()->withInput()->withErrors([
@@ -138,130 +123,124 @@ class MedicineController extends Controller
     }
 
 
-
     public function edit(string $id)
     {
         $lista = MedicineList::with([
-            'medicines' => function ($q) {
-                $q->with('catalog:id,denominacion,denominacion_comercial');
-            }
+            'presentations.catalog', // 👈 ahora traemos las presentaciones con su catálogo
         ])->findOrFail($id);
 
-        $catalogo = MedicinesCatalog::where('state', true)
-            ->get(['id', 'denominacion', 'denominacion_comercial']);
+        // Catálogos con sus presentaciones para los selects
+        $catalogos = MedicinesCatalog::with('presentations')
+            ->orderBy('denominacion')
+            ->get();
 
-        return view('admin.oncologicos.medicines.edit', compact('lista', 'catalogo'));
+        // Flatten de lo que ya tiene la lista para pasarlo a JS
+        $listaItems = $lista->presentations->map(function ($pres) {
+            return [
+                'catalog_id'      => $pres->catalog_id,
+                'presentation_id' => $pres->id,
+                'charge_by'       => $pres->pivot->charge_by ?? 'mg',
+                'precio'          => $pres->pivot->precio,
+            ];
+        })->values();
+
+        return view('admin.oncologicos.medicines.edit', [
+            'lista'      => $lista,
+            'catalogos'  => $catalogos,
+            'listaItems' => $listaItems,
+        ]);
     }
+
 
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'name'                      => 'required|string|max:255|unique:medicine_lists,name,' . $id,
-            'description'               => 'nullable|string',
-            'active_brands'             => 'nullable|boolean',
+            'name'        => 'required|string|max:255|unique:medicine_lists,name,' . $id,
+            'description' => 'nullable|string',
+            'active_brands' => 'nullable|boolean',
 
-            'charge_by'                 => 'required|in:mg,frasco',
+            'charge_by'   => 'required|in:mg,frasco',
 
-            'medicamentos'              => 'required|array|min:1',
-            'medicamentos.*.id'         => 'required|exists:medicines_catalog,id',
-            'medicamentos.*.precio'     => 'required|numeric|min:0',
+            'medicamentos'                        => 'required|array|min:1',
+            'medicamentos.*.catalog_id'           => 'required|exists:medicines_catalog,id',
+            'medicamentos.*.presentation_id'      => 'required|exists:medicine_presentations,id',
+            'medicamentos.*.precio'               => 'required|numeric|min:0',
+            'medicamentos.*.charge_by'            => 'nullable|in:mg,frasco',
         ], [
-            'medicamentos.required'         => 'Debes agregar al menos un medicamento.',
-            'medicamentos.*.id.required'    => 'Selecciona un medicamento válido.',
-            'medicamentos.*.precio.required' => 'Indica el precio para cada medicamento.',
+            'medicamentos.required'          => 'Debes agregar al menos una presentación.',
+            'medicamentos.*.catalog_id.*'    => 'Selecciona un medicamento válido.',
+            'medicamentos.*.presentation_id.*' => 'Selecciona una presentación válida.',
+            'medicamentos.*.precio.required'   => 'Indica el precio para cada presentación.',
         ]);
 
         // Normalizar filas válidas
-        $medicamentos = collect($request->input('medicamentos', []))
-            ->filter(fn($m) => !empty($m['id']) && $m['precio'] !== null && $m['precio'] !== '')
-            ->unique('id')
+        $rows = collect($request->input('medicamentos', []))
+            ->filter(
+                fn($m) =>
+                !empty($m['catalog_id']) &&
+                    !empty($m['presentation_id']) &&
+                    $m['precio'] !== null &&
+                    $m['precio'] !== ''
+            )
             ->values();
 
-        if ($medicamentos->isEmpty()) {
+        if ($rows->isEmpty()) {
             return back()->withInput()->withErrors([
-                'medicamentos' => 'Debes ingresar al menos un medicamento válido con precio.',
+                'medicamentos' => 'Debes ingresar al menos una presentación con precio.',
+            ]);
+        }
+
+        // Aseguramos que no vengan presentaciones duplicadas
+        if ($rows->pluck('presentation_id')->duplicates()->isNotEmpty()) {
+            return back()->withInput()->withErrors([
+                'medicamentos' => 'No puedes repetir la misma presentación más de una vez en la lista.',
             ]);
         }
 
         try {
             DB::beginTransaction();
 
-            // Cargamos la lista con sus pivots actuales
-            $lista = MedicineList::with('medicines')->findOrFail($id);
+            $lista = MedicineList::findOrFail($id);
 
-            // Mapa rápido: [medicine_onco_id => pivot]
-            $pivotsActuales = $lista->medicines
-                ->mapWithKeys(fn($m) => [$m->id => $m->pivot]);
-
-            $chargeBy = $request->input('charge_by', 'mg'); // global de la lista
+            $chargeByGlobal = $request->input('charge_by', 'mg');
 
             // 1) Actualizar datos de la lista
             $lista->update([
                 'name'          => $request->name,
                 'description'   => $request->description,
                 'active_brands' => $request->boolean('active_brands', false),
-                'charge_by'     => $chargeBy,
+                'charge_by'     => $chargeByGlobal,
             ]);
 
-            // 2) Construir datos pivot
+            // 2) Construir datos para el pivot medicine_list_presentation
             $pivotData = [];
 
-            foreach ($medicamentos as $m) {
-                $catalogItem = MedicinesCatalog::find($m['id']);
-                if (!$catalogItem) {
+            foreach ($rows as $row) {
+                $presentation = MedicinePresentation::find($row['presentation_id']);
+                if (!$presentation) {
                     continue;
                 }
 
-                // asegurar que exista en medicine_oncos
-                $medicineOnco = MedicineOnco::firstOrCreate(
-                    ['catalog_id' => $catalogItem->id],
-                    ['precio'     => 0]
-                );
+                // Cobro final: el de la fila o el global
+                $chargeBy = $row['charge_by'] ?? $chargeByGlobal;
+                $precio   = (float) $row['precio'];
 
-                // pivot actual (si la lista ya tenía ese medicamento)
-                $pivotActual = $pivotsActuales[$medicineOnco->id] ?? null;
-
-                // base frasco:
-                //  1) si ya había pivot, usamos ese precio
-                //  2) si no, usamos el precio del catálogo
-                //  3) si tampoco, 0
-                $precioBaseFrasco = $pivotActual->precio
-                    ?? $medicineOnco->precio
-                    ?? 0;
-
-                $precio           = null;
-                $precioMgOverride = null;
-
-                if ($chargeBy === 'mg') {
-                    // Lista cobra por mg:
-                    // - Mantenemos el precio por frasco que ya tenía la lista (si existía)
-                    // - Usamos el input como precio por mg
-                    $precio           = $precioBaseFrasco;
-                    $precioMgOverride = $m['precio'];
-                } else { // 'frasco'
-                    // Lista cobra por frasco:
-                    // - El input es el nuevo precio por frasco
-                    // - Borramos override por mg
-                    $precio           = $m['precio'];
-                    $precioMgOverride = null;
-                }
-
-                $pivotData[$medicineOnco->id] = [
-                    'precio'             => $precio,
-                    'precio_mg_override' => $precioMgOverride,
+                $pivotData[$presentation->id] = [
                     'charge_by'          => $chargeBy,
+                    'precio'             => $precio,
+                    'precio_mg_override' => $chargeBy === 'mg' ? $precio : null,
                 ];
             }
 
             if (empty($pivotData)) {
                 DB::rollBack();
                 return back()->withInput()->withErrors([
-                    'medicamentos' => 'No se pudo construir ninguna relación de medicamentos con la lista.',
+                    'medicamentos' => 'No se pudo construir ninguna relación de presentaciones con la lista.',
                 ]);
             }
 
-            // 3) Sincronizar pivot
-            $lista->medicines()->sync($pivotData);
+            // 3) Sincronizar presentaciones de la lista
+            $lista->presentations()->sync($pivotData);
 
             DB::commit();
 
@@ -276,6 +255,7 @@ class MedicineController extends Controller
             ]);
         }
     }
+
 
 
     /**

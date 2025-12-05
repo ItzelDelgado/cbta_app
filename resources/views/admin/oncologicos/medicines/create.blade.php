@@ -16,182 +16,404 @@
         <form action="{{ route('admin.oncologicos.medicines.store') }}" method="POST" class="space-y-6">
             @csrf
 
+            {{-- Nombre --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la lista:</label>
                 <input type="text" name="name" value="{{ old('name') }}" required
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200">
             </div>
 
+            {{-- Descripción --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Descripción:</label>
                 <textarea name="description" rows="3"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200">{{ old('description') }}</textarea>
             </div>
 
-            {{-- 🔹 Activar marcas (igual que en edit) --}}
-            <div class="flex items-center gap-6">
-                <div class="flex items-center">
-                    <input type="hidden" name="active_brands" value="0">
-                    <label class="inline-flex items-center cursor-pointer">
-                        <input type="checkbox"
-                               name="active_brands"
-                               value="1"
-                               class="sr-only peer"
-                               {{ old('active_brands', false) ? 'checked' : '' }}>
-                        <div
-                            class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative
-                            after:content-[''] after:absolute after:top-[2px] after:left-[2px]
-                            after:bg-white after:border-gray-300 after:border after:rounded-full
-                            after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
-                        </div>
-                        <span class="ml-3 text-sm font-medium text-gray-700">Activar marcas</span>
-                    </label>
-                </div>
+            {{-- Switch: Activar marcas --}}
+            <div class="flex items-center">
+                <input type="hidden" name="active_brands" value="0">
+                <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="active_brands" value="1" class="sr-only peer"
+                        {{ old('active_brands', false) ? 'checked' : '' }}>
+                    <div
+                        class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative
+                               after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                               after:bg-white after:border-gray-300 after:border after:rounded-full
+                               after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
+                    </div>
+                    <span class="ml-3 text-sm font-medium text-gray-700">Activar marcas</span>
+                </label>
             </div>
 
+            {{-- Switch: tipo de cobro global (mg / frasco) --}}
+            <div class="flex items-center">
+                <input type="hidden" name="charge_by" id="charge_by" value="{{ old('charge_by', 'mg') }}">
+
+                <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="charge_by_switch" class="sr-only peer"
+                        {{ old('charge_by', 'mg') === 'frasco' ? 'checked' : '' }}>
+                    <div
+                        class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative
+                               after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                               after:bg-white after:border-gray-300 after:border after:rounded-full
+                               after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
+                    </div>
+                    <span class="ml-3 text-sm font-medium text-gray-700">
+                        Cobrar por <span id="charge_by_label">
+                            {{ old('charge_by', 'mg') === 'frasco' ? 'frasco' : 'mg' }}
+                        </span>
+                    </span>
+                </label>
+            </div>
+
+            {{-- Tabla de medicamentos agrupados --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Medicamentos:</label>
 
-                {{-- charge_by global --}}
-                <input type="hidden" name="charge_by" id="charge_by" value="{{ old('charge_by', 'mg') }}">
-
-                <table id="tbl" class="w-full text-sm border border-gray-200 rounded">
-                    <thead class="bg-gray-100">
+                <table class="w-full text-sm text-left text-gray-600 border">
+                    <thead class="text-xs uppercase bg-gray-100">
                         <tr>
-                            <th class="p-2 text-left">Medicamento (tipo)</th>
-                            <th class="p-2">Cobro</th>
-                            <th class="p-2">Precio (mg o frasco)</th>
-                            <th class="p-2 text-center">Acción</th>
+                            <th class="px-4 py-2 w-1/12 text-center">#</th>
+                            <th class="px-4 py-2 w-3/12">Medicamento (genérico)</th>
+                            <th class="px-4 py-2 w-3/12">Presentación</th>
+                            <th class="px-4 py-2 w-1/12 text-center">Cobro</th>
+                            <th class="px-4 py-2 w-2/12 text-center">Precio (mg o frasco)</th>
+                            <th class="px-4 py-2 w-2/12 text-center">Acción</th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody id="tbody-medicamentos">
+                        {{-- JS agregará aquí los grupos y filas --}}
+                    </tbody>
                 </table>
 
-                <button type="button" id="addRow" class="mt-4 px-4 py-2 bg-green-600 text-white rounded">
-                    + Agregar
+                <button type="button" id="btn-add-grupo"
+                    class="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded">
+                    + Agregar medicamento
                 </button>
+
+                {{-- Plantillas ocultas --}}
+
+                {{-- Encabezado de grupo (genérico) --}}
+                <table class="hidden">
+                    <tbody>
+                        <tr id="tpl-grupo-header">
+                            <td class="px-4 py-2 text-center font-bold bg-gray-50 border-t" colspan="6">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xs uppercase text-gray-500 mr-2">Medicamento genérico:</span>
+                                    <select class="select-generico border-gray-300 rounded text-sm"
+                                        data-role="generico">
+                                        <option value="">Seleccione un medicamento...</option>
+                                        @foreach ($catalogos as $cat)
+                                            <option value="{{ $cat->id }}">
+                                                {{ $cat->denominacion }}
+                                                @if ($cat->denominacion_comercial)
+                                                    ({{ $cat->denominacion_comercial }})
+                                                @endif
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    <button type="button"
+                                        class="btn-add-presentacion ml-auto bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded"
+                                        data-role="add-presentacion">
+                                        + Agregar presentación
+                                    </button>
+
+                                    <button type="button"
+                                        class="btn-remove-grupo bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded"
+                                        data-role="remove-grupo">
+                                        Quitar medicamento
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                {{-- Fila de presentación --}}
+                <table class="hidden">
+                    <tbody>
+                        <tr id="tpl-presentacion-row" class="fila-presentacion border-t" data-group="">
+                            <td class="px-4 py-2 text-center align-top" data-role="row-index">1</td>
+
+                            {{-- Genérico solo como etiqueta --}}
+                            <td class="px-4 py-2 align-top text-gray-800 text-sm" data-role="generico-label"></td>
+
+                            <td class="px-4 py-2 align-top">
+                                <select class="w-full border-gray-300 rounded text-sm select-presentacion"
+                                    data-role="presentacion">
+                                    <option value="">Seleccione presentación...</option>
+                                </select>
+
+                                {{-- catalog_id e index reales para el backend --}}
+                                <input type="hidden" data-role="input-catalog-id">
+                                <input type="hidden" data-role="input-index">
+                            </td>
+
+                            <td class="px-4 py-2 text-center align-top">
+                                <select class="border-gray-300 rounded text-sm" data-role="charge-by">
+                                    <option value="mg">mg</option>
+                                    <option value="frasco">frasco</option>
+                                </select>
+                            </td>
+
+                            <td class="px-4 py-2 text-center align-top">
+                                <input type="number" step="0.0001" min="0"
+                                    class="w-full border-gray-300 rounded text-sm text-right" placeholder="Precio"
+                                    data-role="precio">
+                            </td>
+
+                            <td class="px-4 py-2 text-center align-top">
+                                <button type="button"
+                                    class="btn-remove-row bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded"
+                                    data-role="remove-row">
+                                    Eliminar
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                @php
+                    $presentacionesPorCatalogo = $catalogos->mapWithKeys(
+                        fn($c) => [
+                            $c->id => $c->presentations
+                                ->map(
+                                    fn($p) => [
+                                        'id' => $p->id,
+                                        'text' => $p->presentacion,
+                                    ],
+                                )
+                                ->values(),
+                        ],
+                    );
+                @endphp
+
+                <script>
+                    window.PRESENTACIONES_POR_CATALOGO = @json($presentacionesPorCatalogo);
+                </script>
+
             </div>
 
             <div class="flex justify-end">
-                <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded">
+                <button type="submit"
+                    class="px-6 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition">
                     Guardar Lista
                 </button>
             </div>
         </form>
     </div>
 
-    <template id="row-tpl">
-        <tr class="border-t">
-            <td class="p-2 w-1/2">
-                <select name="medicamentos[__i__][id]" class="w-full border rounded p-2" required>
-                    <option value="">Seleccione…</option>
-                    @foreach ($catalogo as $item)
-                        <option value="{{ $item->id }}">
-                            {{ $item->denominacion }} ({{ $item->denominacion_comercial }})
-                        </option>
-                    @endforeach
-                </select>
-            </td>
-            <!-- Cobro (solo visual, no se envía) -->
-            <td class="p-2 w-28">
-                <select class="charge w-full border rounded p-2">
-                    <option value="mg">mg</option>
-                    <option value="frasco">frasco</option>
-                </select>
-            </td>
+    @push('js')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const tbody = document.getElementById('tbody-medicamentos');
+                const tplGrupoHeader = document.getElementById('tpl-grupo-header');
+                const tplPresentacionRow = document.getElementById('tpl-presentacion-row');
 
-            <!-- Precio que REALMENTE se envía al backend -->
-            <td class="p-2">
-                <input class="price w-full border rounded p-2" type="number" step="0.01" min="0"
-                    name="medicamentos[__i__][precio]" required
-                    placeholder="Si mg → precio mg; si frasco → precio frasco">
-            </td>
+                const chargeByHidden = document.getElementById('charge_by');
+                const chargeSwitch = document.getElementById('charge_by_switch');
+                const chargeLabel = document.getElementById('charge_by_label');
 
-            <td class="p-2 text-center">
-                <button type="button" class="rm px-3 py-1 bg-red-500 text-white rounded">Eliminar</button>
-            </td>
-        </tr>
-    </template>
+                let globalIndex = 0; // índice plano para name="medicamentos[globalIndex][...]"
+                let groupCounter = 0; // id interno de grupo
 
-    <script>
-        const tbl = document.querySelector('#tbl tbody');
-        const tpl = document.querySelector('#row-tpl').innerHTML;
-        const add = document.querySelector('#addRow');
-        const chargeByInput = document.getElementById('charge_by');
-        let rowCounter = 0;
+                const PRESENT = window.PRESENTACIONES_POR_CATALOGO || {};
 
-        // IDs de medicamentos ya usados
-        function getUsedIds() {
-            return Array.from(tbl.querySelectorAll('select[name^="medicamentos"]'))
-                .map(sel => sel.value)
-                .filter(v => v !== '');
-        }
+                // === Cobro global mg/frasco ===
+                function syncChargeByLabel() {
+                    chargeByHidden.value = chargeSwitch.checked ? 'frasco' : 'mg';
+                    chargeLabel.textContent = chargeSwitch.checked ? 'frasco' : 'mg';
 
-        // Deshabilita en cada <select> las opciones que ya estén usadas en otra fila
-        function updateOptions() {
-            const used = getUsedIds();
+                    // actualizar selects de cobro de todas las filas
+                    tbody.querySelectorAll('[data-role="charge-by"]').forEach(sel => {
+                        sel.value = chargeByHidden.value;
+                    });
+                }
+                if (chargeSwitch && chargeByHidden && chargeLabel) {
+                    chargeSwitch.addEventListener('change', syncChargeByLabel);
+                    syncChargeByLabel();
+                }
 
-            tbl.querySelectorAll('select[name^="medicamentos"]').forEach(select => {
-                const current = select.value;
+                // === Helpers para presentaciones (evitar duplicados POR GRUPO) ===
 
-                select.querySelectorAll('option').forEach(opt => {
-                    if (!opt.value) return; // opción "Seleccione…"
-                    // Deshabilita si ya está usada en otra fila distinta
-                    opt.disabled = used.includes(opt.value) && opt.value !== current;
+                // IDs de presentaciones ya elegidas dentro de un grupo
+                function getUsedPresentationIds(groupId) {
+                    const ids = [];
+                    tbody.querySelectorAll(
+                        'tr.fila-presentacion[data-group="' + groupId + '"] [data-role="presentacion"]'
+                    ).forEach(sel => {
+                        if (sel.value) {
+                            ids.push(String(sel.value));
+                        }
+                    });
+                    return ids;
+                }
+
+                // Rellena un select de presentaciones respetando los ya usados en el grupo
+                function cargarPresentacionesEnSelect(selectEl, catalogId, groupId) {
+                    const lista = PRESENT[catalogId] || [];
+                    const currentValue = selectEl.value ? String(selectEl.value) : null;
+                    const used = getUsedPresentationIds(groupId)
+                        .filter(id => id !== currentValue); // quitamos el propio valor actual
+
+                    selectEl.innerHTML = '<option value="">Seleccione presentación...</option>';
+
+                    lista.forEach(p => {
+                        const idStr = String(p.id);
+                        const isCurrent = idStr === currentValue;
+                        const isDisabled = !isCurrent && used.includes(idStr);
+
+                        const opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = p.text;
+                        if (isDisabled) opt.disabled = true;
+                        if (isCurrent) opt.selected = true;
+
+                        selectEl.appendChild(opt);
+                    });
+
+                    selectEl.disabled = !catalogId;
+                }
+
+                function renumerarFilas() {
+                    let n = 1;
+                    tbody.querySelectorAll('tr.fila-presentacion').forEach(row => {
+                        const cellIndex = row.querySelector('[data-role="row-index"]');
+                        if (cellIndex) {
+                            cellIndex.textContent = n++;
+                        }
+                    });
+                }
+
+                function addPresentacionRow(groupId, selectGenerico) {
+                    const row = tplPresentacionRow.cloneNode(true);
+                    row.id = '';
+                    row.dataset.group = groupId;
+
+                    const labelGenerico = row.querySelector('[data-role="generico-label"]');
+                    const selectPresent = row.querySelector('[data-role="presentacion"]');
+                    const inputCatalog = row.querySelector('[data-role="input-catalog-id"]');
+                    const inputIndex = row.querySelector('[data-role="input-index"]');
+                    const selectChargeBy = row.querySelector('[data-role="charge-by"]');
+                    const inputPrecio = row.querySelector('[data-role="precio"]');
+                    const btnRemoveRow = row.querySelector('[data-role="remove-row"]');
+
+                    // insertar al final del grupo
+                    let insertAfter = tbody.querySelector('tr.fila-presentacion[data-group="' + groupId +
+                        '"]:last-of-type');
+                    if (!insertAfter) {
+                        insertAfter = tbody.querySelector('tr[data-group="' + groupId + '"]'); // header
+                    }
+                    if (insertAfter) {
+                        insertAfter.insertAdjacentElement('afterend', row);
+                    } else {
+                        tbody.appendChild(row);
+                    }
+
+                    const catalogId = selectGenerico.value;
+                    labelGenerico.textContent = selectGenerico.options[selectGenerico.selectedIndex].text;
+                    inputCatalog.name = `medicamentos[${globalIndex}][catalog_id]`;
+                    inputCatalog.value = catalogId;
+
+                    inputIndex.value = globalIndex;
+                    selectPresent.name = `medicamentos[${globalIndex}][presentation_id]`;
+                    selectChargeBy.name = `medicamentos[${globalIndex}][charge_by]`;
+                    inputPrecio.name = `medicamentos[${globalIndex}][precio]`;
+                    globalIndex++;
+
+                    // tipo de cobro global
+                    if (chargeByHidden) {
+                        selectChargeBy.value = chargeByHidden.value || 'mg';
+                    }
+
+                    // cargar opciones de presentación (con bloqueo de usados)
+                    cargarPresentacionesEnSelect(selectPresent, catalogId, groupId);
+
+                    // cada vez que cambie una presentación, recargamos TODAS las de ese grupo
+                    selectPresent.addEventListener('change', function() {
+                        const filasGrupo = tbody.querySelectorAll('tr.fila-presentacion[data-group="' +
+                            groupId + '"]');
+                        filasGrupo.forEach(r => {
+                            const sel = r.querySelector('[data-role="presentacion"]');
+                            cargarPresentacionesEnSelect(sel, catalogId, groupId);
+                        });
+                    });
+
+                    btnRemoveRow.addEventListener('click', function() {
+                        row.remove();
+                        renumerarFilas();
+
+                        // al borrar, refrescamos las opciones para liberar esa presentación
+                        const filasGrupo = tbody.querySelectorAll('tr.fila-presentacion[data-group="' +
+                            groupId + '"]');
+                        filasGrupo.forEach(r => {
+                            const sel = r.querySelector('[data-role="presentacion"]');
+                            cargarPresentacionesEnSelect(sel, catalogId, groupId);
+                        });
+                    });
+
+                    renumerarFilas();
+                }
+
+                function addGrupo() {
+                    const groupId = 'g' + (groupCounter++);
+
+                    const header = tplGrupoHeader.cloneNode(true);
+                    header.id = '';
+                    header.dataset.group = groupId;
+
+                    tbody.appendChild(header);
+
+                    const selectGenerico = header.querySelector('[data-role="generico"]');
+                    const btnAddPres = header.querySelector('[data-role="add-presentacion"]');
+                    const btnRemoveGrupo = header.querySelector('[data-role="remove-grupo"]');
+
+                    btnAddPres.addEventListener('click', function() {
+                        if (!selectGenerico.value) {
+                            alert('Selecciona primero el medicamento genérico.');
+                            return;
+                        }
+                        addPresentacionRow(groupId, selectGenerico);
+                    });
+
+                    btnRemoveGrupo.addEventListener('click', function() {
+                        const filas = tbody.querySelectorAll('[data-group="' + groupId + '"]');
+                        filas.forEach(f => f.remove());
+                        header.remove();
+                        renumerarFilas();
+                    });
+
+                    // Si cambia el genérico, reiniciamos las presentaciones del grupo
+                    selectGenerico.addEventListener('change', function() {
+                        const catalogId = this.value;
+                        const labelText = this.options[this.selectedIndex]?.text || '';
+
+                        const groupRows = tbody.querySelectorAll('tr.fila-presentacion[data-group="' + groupId +
+                            '"]');
+                        groupRows.forEach(row => {
+                            const selectPresent = row.querySelector('[data-role="presentacion"]');
+                            const label = row.querySelector('[data-role="generico-label"]');
+                            const inputCatalog = row.querySelector('[data-role="input-catalog-id"]');
+
+                            selectPresent.value = '';
+                            label.textContent = labelText;
+                            inputCatalog.value = catalogId;
+
+                            cargarPresentacionesEnSelect(selectPresent, catalogId, groupId);
+                        });
+                    });
+                }
+
+                document.getElementById('btn-add-grupo').addEventListener('click', function() {
+                    addGrupo();
                 });
+
+                // Grupo inicial vacío
+                addGrupo();
             });
-        }
+        </script>
+    @endpush
 
-        // Sincroniza TODOS los selects .charge y el hidden charge_by
-        function syncChargeBy(value) {
-            tbl.querySelectorAll('select.charge').forEach(sel => {
-                sel.value = value;
-            });
-            if (chargeByInput) {
-                chargeByInput.value = value;
-            }
-        }
-
-        // Agregar una fila nueva
-        function addRow() {
-            tbl.insertAdjacentHTML('beforeend', tpl.replaceAll('__i__', rowCounter++));
-
-            // aplicar el charge_by actual a la fila recién agregada
-            const lastRow = tbl.lastElementChild;
-            const chargeSelect = lastRow.querySelector('select.charge');
-            if (chargeSelect && chargeByInput) {
-                chargeSelect.value = chargeByInput.value || 'mg';
-            }
-
-            updateOptions();
-        }
-
-        // Evento: botón "Agregar"
-        add.addEventListener('click', addRow);
-
-        // Evento: eliminar fila
-        tbl.addEventListener('click', e => {
-            if (e.target.classList.contains('rm')) {
-                e.target.closest('tr').remove();
-                updateOptions();
-            }
-        });
-
-        // Evento: cambios en selects de medicamento o tipo de cobro
-        tbl.addEventListener('change', e => {
-            // Cambio de medicamento → recalcular opciones disponibles
-            if (e.target.matches('select[name^="medicamentos"]')) {
-                updateOptions();
-            }
-
-            // Cambio en select de cobro → aplicar a todos y actualizar hidden
-            if (e.target.classList.contains('charge')) {
-                syncChargeBy(e.target.value);
-            }
-        });
-
-        // Fila inicial y estado inicial de cobro
-        addRow();
-        syncChargeBy(chargeByInput.value || 'mg');
-    </script>
 </x-admin-layout>
