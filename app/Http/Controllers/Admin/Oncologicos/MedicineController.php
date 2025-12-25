@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin\Oncologicos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Oncologicos\Distributor;
 use App\Models\Oncologicos\MedicineList;
 use App\Models\Oncologicos\MedicineOnco;
 use App\Models\Oncologicos\MedicinePresentation;
 use App\Models\Oncologicos\MedicinesCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class MedicineController extends Controller
 {
@@ -29,8 +31,12 @@ class MedicineController extends Controller
             ->orderBy('denominacion')
             ->get();
 
-        return view('admin.oncologicos.medicines.create', compact('catalogos'));
+        // 👇 para que la vista pueda usar $distributor sin truene
+        $distributor = null;
+
+        return view('admin.oncologicos.medicines.create', compact('catalogos', 'distributor'));
     }
+
 
 
 
@@ -39,19 +45,22 @@ class MedicineController extends Controller
         $request->validate([
             'name'        => 'required|string|max:255|unique:medicine_lists,name',
             'description' => 'nullable|string',
-
             'active_brands' => 'nullable|boolean',
-
             'charge_by'   => 'required|in:mg,frasco',
 
-            'medicamentos'                      => 'required|array|min:1',
-            'medicamentos.*.presentation_id'    => 'required|exists:medicine_presentations,id',
-            'medicamentos.*.precio'             => 'required|numeric|min:0',
+            'medicamentos'                   => 'required|array|min:1',
+            'medicamentos.*.presentation_id' => 'required|exists:medicine_presentations,id',
+            'medicamentos.*.precio'          => 'required|numeric|min:0',
+
+            // ✅ Distributor (opcional, pero si lo empiezas a llenar, obliga nombre + dirección)
+            'distributor_name'    => 'nullable|string|max:255|required_with:distributor_address,distributor_logo',
+            'distributor_address' => 'nullable|string|max:500|required_with:distributor_name,distributor_logo',
+            'distributor_logo'    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ], [
-            'medicamentos.required'                    => 'Debes agregar al menos un medicamento.',
-            'medicamentos.*.presentation_id.required'  => 'Selecciona una presentación válida.',
-            'medicamentos.*.precio.required'           => 'Indica el precio para cada presentación.',
+            'distributor_name.required_with'    => 'Indica el nombre del distribuidor.',
+            'distributor_address.required_with' => 'Indica la dirección del distribuidor.',
         ]);
+
 
         // Normalizar filas válidas (evitar vacías y duplicadas por presentación)
         $items = collect($request->input('medicamentos', []))
@@ -83,6 +92,26 @@ class MedicineController extends Controller
                 'active_brands' => $request->boolean('active_brands', false),
                 'charge_by'     => $chargeBy,
             ]);
+
+            $hasDistributor =
+                $request->filled('distributor_name') ||
+                $request->filled('distributor_address') ||
+                $request->hasFile('distributor_logo');
+
+            if ($hasDistributor) {
+
+                $logoPath = null;
+                if ($request->hasFile('distributor_logo')) {
+                    $logoPath = $request->file('distributor_logo')->store('distributors', 'public');
+                }
+
+                Distributor::create([
+                    'medicine_list_id' => $lista->id,
+                    'nombre'           => $request->input('distributor_name'),     // ✅
+                    'direccion'        => $request->input('distributor_address'),  // ✅ (si existe en tu tabla)
+                    'logo_path'        => $logoPath,
+                ]);
+            }
 
             // 2) Construir datos de la pivot: [presentation_id => [..campos..]]
             $pivotData = [];
@@ -126,15 +155,14 @@ class MedicineController extends Controller
     public function edit(string $id)
     {
         $lista = MedicineList::with([
-            'presentations.catalog', // 👈 ahora traemos las presentaciones con su catálogo
+            'presentations.catalog',
+            'distributor', // ✅ NUEVO
         ])->findOrFail($id);
 
-        // Catálogos con sus presentaciones para los selects
         $catalogos = MedicinesCatalog::with('presentations')
             ->orderBy('denominacion')
             ->get();
 
-        // Flatten de lo que ya tiene la lista para pasarlo a JS
         $listaItems = $lista->presentations->map(function ($pres) {
             return [
                 'catalog_id'      => $pres->catalog_id,
@@ -145,21 +173,27 @@ class MedicineController extends Controller
         })->values();
 
         return view('admin.oncologicos.medicines.edit', [
-            'lista'      => $lista,
-            'catalogos'  => $catalogos,
-            'listaItems' => $listaItems,
+            'lista'        => $lista,
+            'catalogos'    => $catalogos,
+            'listaItems'   => $listaItems,
+            'distributor'  => $lista->distributor, // ✅ NUEVO (puede ser null)
         ]);
     }
+
 
 
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'name'        => 'required|string|max:255|unique:medicine_lists,name,' . $id,
-            'description' => 'nullable|string',
-            'active_brands' => 'nullable|boolean',
+            'name'           => 'required|string|max:255|unique:medicine_lists,name,' . $id,
+            'description'    => 'nullable|string',
+            'active_brands'  => 'nullable|boolean',
+            'charge_by'      => 'required|in:mg,frasco',
 
-            'charge_by'   => 'required|in:mg,frasco',
+            // ✅ Distributor (OJITO: tus columnas reales son nombre/direccion)
+            'distributor_nombre'    => 'nullable|string|max:255',
+            'distributor_direccion' => 'nullable|string|max:500',
+            'distributor_logo'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
 
             'medicamentos'                        => 'required|array|min:1',
             'medicamentos.*.catalog_id'           => 'required|exists:medicines_catalog,id',
@@ -167,10 +201,10 @@ class MedicineController extends Controller
             'medicamentos.*.precio'               => 'required|numeric|min:0',
             'medicamentos.*.charge_by'            => 'nullable|in:mg,frasco',
         ], [
-            'medicamentos.required'          => 'Debes agregar al menos una presentación.',
-            'medicamentos.*.catalog_id.*'    => 'Selecciona un medicamento válido.',
-            'medicamentos.*.presentation_id.*' => 'Selecciona una presentación válida.',
-            'medicamentos.*.precio.required'   => 'Indica el precio para cada presentación.',
+            'medicamentos.required'              => 'Debes agregar al menos una presentación.',
+            'medicamentos.*.catalog_id.*'        => 'Selecciona un medicamento válido.',
+            'medicamentos.*.presentation_id.*'   => 'Selecciona una presentación válida.',
+            'medicamentos.*.precio.required'     => 'Indica el precio para cada presentación.',
         ]);
 
         // Normalizar filas válidas
@@ -190,7 +224,6 @@ class MedicineController extends Controller
             ]);
         }
 
-        // Aseguramos que no vengan presentaciones duplicadas
         if ($rows->pluck('presentation_id')->duplicates()->isNotEmpty()) {
             return back()->withInput()->withErrors([
                 'medicamentos' => 'No puedes repetir la misma presentación más de una vez en la lista.',
@@ -200,11 +233,12 @@ class MedicineController extends Controller
         try {
             DB::beginTransaction();
 
-            $lista = MedicineList::findOrFail($id);
+            /** @var \App\Models\Oncologicos\MedicineList $lista */
+            $lista = MedicineList::with('distributor')->findOrFail($id);
 
             $chargeByGlobal = $request->input('charge_by', 'mg');
 
-            // 1) Actualizar datos de la lista
+            // 1) Actualizar lista
             $lista->update([
                 'name'          => $request->name,
                 'description'   => $request->description,
@@ -212,16 +246,40 @@ class MedicineController extends Controller
                 'charge_by'     => $chargeByGlobal,
             ]);
 
-            // 2) Construir datos para el pivot medicine_list_presentation
+            // ✅ 1.1) Distributor (crear/actualizar si mandan datos)
+            $distNombre    = trim((string) $request->input('distributor_nombre', ''));
+            $distDireccion = trim((string) $request->input('distributor_direccion', ''));
+
+            $hayDatosDistributor = ($distNombre !== '') || ($distDireccion !== '') || $request->hasFile('distributor_logo');
+
+            if ($hayDatosDistributor) {
+                $distributor = $lista->distributor ?: new Distributor();
+                $distributor->medicine_list_id = $lista->id;
+
+                // ✅ columnas reales en BD
+                $distributor->nombre    = $distNombre;
+                $distributor->direccion = $distDireccion;
+
+                if ($request->hasFile('distributor_logo')) {
+                    // borrar logo anterior si existía
+                    if (!empty($distributor->logo_path)) {
+                        Storage::disk('public')->delete($distributor->logo_path);
+                    }
+
+                    $path = $request->file('distributor_logo')->store('distributors/logos', 'public');
+                    $distributor->logo_path = $path;
+                }
+
+                $distributor->save();
+            }
+
+            // 2) Pivot
             $pivotData = [];
 
             foreach ($rows as $row) {
                 $presentation = MedicinePresentation::find($row['presentation_id']);
-                if (!$presentation) {
-                    continue;
-                }
+                if (!$presentation) continue;
 
-                // Cobro final: el de la fila o el global
                 $chargeBy = $row['charge_by'] ?? $chargeByGlobal;
                 $precio   = (float) $row['precio'];
 
@@ -239,7 +297,7 @@ class MedicineController extends Controller
                 ]);
             }
 
-            // 3) Sincronizar presentaciones de la lista
+            // 3) Sync
             $lista->presentations()->sync($pivotData);
 
             DB::commit();
@@ -255,6 +313,7 @@ class MedicineController extends Controller
             ]);
         }
     }
+
 
 
 

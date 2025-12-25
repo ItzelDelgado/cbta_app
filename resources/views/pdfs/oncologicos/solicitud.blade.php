@@ -254,6 +254,7 @@
         <table>
             <tr>
                 <td class="border-1 border-l-0 px-1">Sexo: {{ $safe($solicitud->sexo) }}</td>
+                <td class="border-1 border-l-0 px-1">Alergias: {{ $safe($solicitud->alergias) }}</td>
                 <td class="border-1 px-1">
                     Fecha de Nacimiento: {{ $fmtDate($solicitud->fecha_nacimiento ?? null) }}
                 </td>

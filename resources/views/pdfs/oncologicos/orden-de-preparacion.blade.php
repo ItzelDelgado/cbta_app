@@ -314,6 +314,8 @@
                     <td class="border-b-1">{{ $fmtDate($mezcla->solicitud['fecha_nacimiento'] ?? null) }}</td>
                     <td style="width: 5%">Género:</td>
                     <td class="border-b-1">{{ $mezcla->solicitud['sexo'] ?? '—' }}</td>
+                    <td style="width: 5%">Alergias:</td>
+                    <td class="border-b-1">{{ $mezcla->solicitud['alergias'] ?? '—' }}</td>
                     <td style="width: 4%">Peso:</td>
                     <td class="border-b-1">
                         {{ isset($mezcla->solicitud['peso']) ? $mezcla->solicitud['peso'] . ' Kg' : '—' }}</td>
@@ -432,9 +434,11 @@
 
             <table class="mt-2">
                 <tr>
-                    <td class="border-x-1 border-t-1 bg-cbta" colspan="8" style="text-align: center"><strong>Equipo
-                            de infusión/Infusor</strong></td>
+                    <td class="border-x-1 border-t-1 bg-cbta" colspan="8" style="text-align: center">
+                        <strong>Equipo de infusión/Infusor</strong>
+                    </td>
                 </tr>
+
                 <tr>
                     <td rowspan="2" class="border-1 text-center"><strong>1</strong></td>
                     <td colspan="1" class="border-1 text-center"><strong>No. de lote</strong></td>
@@ -442,14 +446,31 @@
                     <td colspan="2" class="border-1 text-center"><strong>Nombre comercial</strong></td>
                     <td colspan="3" class="border-1 text-center"><strong>Nombre genérico</strong></td>
                 </tr>
-                <tr>
-                    <td colspan="1" class="border-1 text-center"></td>
-                    <td colspan="1" class="border-1 text-center"></td>
-                    <td colspan="2" class="border-1 text-center"></td>
-                    <td colspan="3" class="border-1 text-center"></td>
-                </tr>
-            </table>
 
+                <tr>
+                    <td colspan="1" class="border-1 text-center">
+                        {{ $equipoInfusion->lote ?? '—' }}
+                    </td>
+                    <td colspan="1" class="border-1 text-center">
+                        {{ $fmtDate($equipoInfusion->caducidad ?? null) }}
+                    </td>
+                    <td colspan="2" class="border-1 text-center">
+                        {{ $equipoInfusion->nombre_comercial ?? '—' }}
+                    </td>
+                    <td colspan="3" class="border-1 text-center">
+                        {{ $equipoInfusion->nombre_generico ?? '—' }}
+                    </td>
+                </tr>
+
+                {{-- opcional: una nota cuando sea set --}}
+                @if (($equipoInfusion->tipo ?? null) === 'set')
+                    <tr>
+                        <td colspan="8" class="border-x-1 border-b-1 text-center" style="font-size: 10px;">
+                            <em>Nota: Para Set de infusión no se registra lote/caducidad en el sistema actualmente.</em>
+                        </td>
+                    </tr>
+                @endif
+            </table>
             <table>
                 <tr>
                     <td>Cálculos y forma de preparación:</td>

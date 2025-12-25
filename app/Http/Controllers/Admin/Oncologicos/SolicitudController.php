@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class SolicitudController extends Controller
 {
@@ -105,23 +106,35 @@ class SolicitudController extends Controller
 
     public function store(Request $request)
     {
-        // Validación general
+
         $request->validate([
             'paciente_nombre'  => 'required|string|max:255',
             'servicio'         => 'required|string|max:255',
             'registro'         => 'required|string|max:255',
             'sexo'             => 'required|in:M,F',
-            'fecha_nacimiento' => 'required|date',
-            'peso'             => 'required|numeric|min:1',
+
+            // 👇 VALIDACIÓN CORRECTA DE EDAD
+            'fecha_nacimiento' => [
+                'required',
+                'date',
+                'after:' . Carbon::now()->subYears(100)->format('Y-m-d'),
+                'before:' . Carbon::today()->format('Y-m-d'),
+            ],
+
+            'peso'             => 'required|numeric|min:1|max:500',
             'piso'             => 'required|string|max:50',
             'cama'             => 'required|string|max:50',
             'diagnostico'      => 'required|string|max:255',
-            'alergias' => 'nullable|string|max:255',
+            'alergias'         => 'nullable|string|max:255',
             'medico_nombre'    => 'required|string|max:255',
             'medico_cedula'    => 'required|string|max:255',
-            'fecha_entrega'    => 'required|date',
+            'fecha_entrega'    => 'required|date|after_or_equal:hoy',
             'observaciones'    => 'nullable|string|max:500',
             'mezclas'          => 'required|string',
+        ], [
+            // ✨ Mensajes claros para el usuario
+            'fecha_nacimiento.after'  => 'La fecha de nacimiento no puede ser mayor a 100 años.',
+            'fecha_nacimiento.before' => 'La fecha de nacimiento debe ser anterior a hoy.',
         ]);
 
         $mezclas = json_decode($request->mezclas, true);
@@ -436,21 +449,39 @@ class SolicitudController extends Controller
 
     public function update(Request $request, $id)
     {
+
         $request->validate([
             'paciente_nombre'  => 'required|string|max:255',
             'servicio'         => 'required|string|max:255',
             'registro'         => 'required|string|max:255',
             'sexo'             => 'required|in:M,F',
-            'fecha_nacimiento' => 'required|date',
-            'peso'             => 'required|numeric|min:1',
+
+            // 👇 MISMA VALIDACIÓN DE EDAD QUE EN STORE
+            'fecha_nacimiento' => [
+                'required',
+                'date',
+                'after:' . Carbon::now()->subYears(100)->format('Y-m-d'),
+                'before:' . Carbon::today()->format('Y-m-d'),
+            ],
+
+            'peso'             => 'required|numeric|min:1|max:200',
             'piso'             => 'required|string|max:50',
             'cama'             => 'required|string|max:50',
             'diagnostico'      => 'required|string|max:255',
+            'alergias'         => 'nullable|string|max:255',
             'medico_nombre'    => 'required|string|max:255',
             'medico_cedula'    => 'required|string|max:255',
-            'fecha_entrega'    => 'required|date',
+
+            // 👇 Entrega no puede ser antes de hoy
+            'fecha_entrega'    => 'required|date|after_or_equal:today',
+
             'observaciones'    => 'nullable|string|max:500',
-            'mezclas'          => 'required|string'
+            'mezclas'          => 'required|string',
+        ], [
+            // ✨ Mensajes de error amigables
+            'fecha_nacimiento.after'  => 'La fecha de nacimiento no puede ser mayor a 100 años.',
+            'fecha_nacimiento.before' => 'La fecha de nacimiento debe ser anterior a hoy.',
+            'fecha_entrega.after_or_equal' => 'La fecha de entrega no puede ser anterior a hoy.',
         ]);
 
         $mezclas = json_decode($request->mezclas, true);
@@ -712,15 +743,18 @@ class SolicitudController extends Controller
     {
         $solicitud_onco = SolicitudOnco::with([
             'user.hospital',
-            'user.medicineList', // 👈 importante: cargar la lista del user
+            'user.medicineList.distributor', // ✅ traer distributor en la misma carga
             'mezclas.medicamentos.medicamentoOnco.catalog',
             'mezclas.medicamentos.diluyente',
             'mezclas.medicamentos.presentacionesUsadas.batch.presentation',
         ])->findOrFail($solicitud->id);
 
+        // ✅ Distributor (puede venir null)
+        $distributor = optional(optional($solicitud_onco->user)->medicineList)->distributor;
+
         // Lista de precios asignada al usuario
         $lista       = optional($solicitud_onco->user)->medicineList;
-        $listaCharge = $lista->charge_by ?? null;  // 'mg' | 'frasco' | null
+        $listaCharge = $lista->charge_by ?? null;
 
         $totalRemision = 0.0;
 
@@ -729,7 +763,6 @@ class SolicitudController extends Controller
 
                 $presentaciones = $med->presentacionesUsadas ?? collect();
 
-                // Prioridad: 1) charge_by del medicamento   2) charge_by de la lista   3) frasco por defecto
                 $chargeBy = $med->charge_by ?? $listaCharge ?? 'frasco';
 
                 $cantidad    = 0.0;
@@ -738,19 +771,14 @@ class SolicitudController extends Controller
                 $unidadCobro = $chargeBy === 'mg' ? 'mg' : 'frasco';
 
                 if ($chargeBy === 'mg') {
-                    // ===== COBRO POR mg =====
                     $dosis = (float) ($med->dosis ?? 0);
 
-                    // 1) Intentar precio mg snapshot en el medicamento
                     $precioMg = (float) ($med->precio_mg_snapshot ?? 0);
 
-                    // 2) Intentar precio mg en medicine_oncos (si algún día lo usas)
                     if ($precioMg <= 0) {
                         $precioMg = (float) (optional($med->medicamentoOnco)->precio_mg ?? 0);
                     }
 
-                    // 3) Si sigue sin valor, derivar del frasco (y aquí ya usamos el precio de la lista,
-                    //    porque el snapshot viene desde medicine_list_presentation)
                     if ($precioMg <= 0 && $presentaciones->isNotEmpty()) {
                         $firstPres    = $presentaciones->first();
                         $precioFrasco = (float) ($firstPres->precio_frasco_snapshot ?? 0);
@@ -765,20 +793,17 @@ class SolicitudController extends Controller
                     $cantidad   = $dosis;
                     $subtotal   = $cantidad * $precioUnit;
                 } else {
-                    // ===== COBRO POR FRASCO =====
                     $unidades        = (float) ($presentaciones->sum('unidades_usadas') ?: 0);
-                    $subtotalFrascos = (float) $presentaciones->sum('subtotal'); // 👈 viene de la lista
+                    $subtotalFrascos = (float) $presentaciones->sum('subtotal');
 
                     if ($unidades <= 0) {
-                        $unidades = 1; // fallback mínimo
+                        $unidades = 1;
                     }
 
                     if ($subtotalFrascos > 0) {
-                        // Ya traemos el subtotal calculado desde la mezcla (precio de la lista * frascos)
                         $precioUnit = $subtotalFrascos / $unidades;
                         $subtotal   = $subtotalFrascos;
                     } else {
-                        // Fallback: usar snapshot de frasco o el precio base (solo referencia)
                         $firstPres    = $presentaciones->first();
                         $precioFrasco = (float) (
                             $firstPres->precio_frasco_snapshot
@@ -793,11 +818,9 @@ class SolicitudController extends Controller
                     $cantidad = $unidades;
                 }
 
-                // Redondeos de salida
                 $precioUnit = round($precioUnit, 4);
                 $subtotal   = round($subtotal, 2);
 
-                // Injectamos campos “calculados” para la vista (no se guarda en BD)
                 $med->setAttribute('unidad_cobro', $unidadCobro);
                 $med->setAttribute('cantidad_cobro', $cantidad);
                 $med->setAttribute('precio_unitario_calculado', $precioUnit);
@@ -812,6 +835,9 @@ class SolicitudController extends Controller
             'mezclas'       => $solicitud_onco->mezclas,
             'fechaEmision'  => now(),
             'totalRemision' => $totalRemision,
+
+            // ✅ nuevo
+            'distributor'   => $distributor,
         ])->setPaper('letter', 'portrait');
 
         return $pdf->stream();

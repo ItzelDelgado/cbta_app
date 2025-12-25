@@ -19,12 +19,18 @@
       </div>
     @endif
 
-    <div id="rows" class="space-y-4"></div>
+    <div class="flex items-center justify-between">
+      <div class="text-sm text-gray-600">
+        Agrega una o más presentaciones. Cada una puede tener lote/caducidad vigente.
+      </div>
 
-    <button type="button" id="addRow"
-            class="px-4 py-2 bg-green-600 text-white rounded">
-      + Agregar presentación
-    </button>
+      <button type="button" id="addRow"
+              class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded">
+        + Agregar presentación
+      </button>
+    </div>
+
+    <div id="rows" class="space-y-4"></div>
 
     <div class="text-right">
       <button type="submit"
@@ -35,110 +41,169 @@
   </form>
 
   <template id="row-tpl">
-    <div class="p-4 border rounded-lg grid grid-cols-12 gap-3">
+    <div class="p-4 border rounded-lg bg-white">
+      <div class="flex items-center justify-between mb-3">
+        <div class="font-semibold text-gray-700">
+          Presentación #__n__
+        </div>
 
-      <div class="col-span-3">
-        <label class="text-sm">Presentación</label>
-        <input class="w-full border rounded p-2"
-               name="presentations[__i__][presentacion]"
-               placeholder="Frasco 500 mg"
-               required>
-      </div>
-
-      <div class="col-span-2">
-        <label class="text-sm">Contenido (valor)</label>
-        <input class="w-full border rounded p-2"
-               type="number"
-               step="0.01"
-               min="0"
-               name="presentations[__i__][contenido_valor]"
-               required>
-      </div>
-
-      <div class="col-span-2">
-        <label class="text-sm">Unidad</label>
-        <select class="w-full border rounded p-2"
-                name="presentations[__i__][contenido_unidad]">
-          <option>mg</option>
-          <option>g</option>
-          <option>ml</option>
-          <option>UI</option>
-        </select>
-      </div>
-
-      <div class="col-span-2">
-        <label class="text-sm">Marca (opcional)</label>
-        <input class="w-full border rounded p-2"
-               name="presentations[__i__][marca]">
-      </div>
-
-      <div class="col-span-2">
-        <label class="text-sm">Precio frasco</label>
-        <input class="w-full border rounded p-2"
-               type="number"
-               step="0.01"
-               min="0"
-               name="presentations[__i__][precio_frasco]">
-      </div>
-
-      <!-- ⭐ NUEVO: Cantidad de medicamento (mg) -->
-      <div class="col-span-3">
-        <label class="text-sm">Cantidad de medicamento (mg)</label>
-        <input class="w-full border rounded p-2"
-               type="number"
-               step="0.01"
-               min="0"
-               name="presentations[__i__][cantidad_medicamento]"
-               placeholder="Ej. 500">
-      </div>
-
-      <!-- ⭐ NUEVO: Volumen del diluyente (mL) -->
-      <div class="col-span-3">
-        <label class="text-sm">Volumen del diluyente (mL)</label>
-        <input class="w-full border rounded p-2"
-               type="number"
-               step="0.01"
-               min="0"
-               name="presentations[__i__][volumen_diluyente]"
-               placeholder="Ej. 10">
-      </div>
-
-      <div class="col-span-1 flex items-end">
         <button type="button"
-                class="rm-row px-3 py-2 bg-red-500 text-white rounded">
-          X
+                class="rm-row px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded">
+          Eliminar
         </button>
       </div>
 
-      <div class="col-span-3">
-        <label class="text-sm">Lote vigente</label>
-        <input class="w-full border rounded p-2"
-               name="presentations[__i__][batch][lote]"
-               placeholder="ABC123"
-               required>
+      <div class="grid grid-cols-12 gap-3">
+
+        <!-- =========================
+             DATOS DE PRESENTACIÓN
+        ========================== -->
+        <div class="col-span-12 md:col-span-4">
+          <label class="text-sm">Presentación</label>
+          <input class="w-full border rounded p-2"
+                 name="presentations[__i__][presentacion]"
+                 placeholder="Frasco 500 mg"
+                 required>
+        </div>
+
+        <div class="col-span-6 md:col-span-2">
+          <label class="text-sm">Contenido (valor)</label>
+          <input class="w-full border rounded p-2"
+                 type="number"
+                 step="0.01"
+                 min="0"
+                 name="presentations[__i__][contenido_valor]"
+                 required>
+        </div>
+
+        <div class="col-span-6 md:col-span-2">
+          <label class="text-sm">Unidad</label>
+          <select class="w-full border rounded p-2"
+                  name="presentations[__i__][contenido_unidad]">
+            <option>mg</option>
+            <option>g</option>
+            <option>ml</option>
+            <option>UI</option>
+          </select>
+        </div>
+
+        <div class="col-span-12 md:col-span-4">
+          <label class="text-sm">Marca (opcional)</label>
+          <input class="w-full border rounded p-2"
+                 name="presentations[__i__][marca]"
+                 placeholder="Ej. Pfizer">
+        </div>
+
+        <!-- =========================
+             COSTOS / COMPOSICIÓN
+        ========================== -->
+        <div class="col-span-12 md:col-span-3">
+          <label class="text-sm">Precio frasco (opcional)</label>
+          <input class="w-full border rounded p-2"
+                 type="number"
+                 step="0.01"
+                 min="0"
+                 name="presentations[__i__][precio_frasco]"
+                 placeholder="0.00">
+        </div>
+
+        <div class="col-span-12 md:col-span-3">
+          <label class="text-sm">Cantidad de medicamento (mg) (opcional)</label>
+          <input class="w-full border rounded p-2"
+                 type="number"
+                 step="0.01"
+                 min="0"
+                 name="presentations[__i__][cantidad_medicamento]"
+                 placeholder="Ej. 500">
+        </div>
+
+        <div class="col-span-12 md:col-span-3">
+          <label class="text-sm">Volumen del diluyente (mL) (opcional)</label>
+          <input class="w-full border rounded p-2"
+                 type="number"
+                 step="0.01"
+                 min="0"
+                 name="presentations[__i__][volumen_diluyente]"
+                 placeholder="Ej. 10">
+        </div>
+
+        <!-- =========================
+             ESTABILIDAD (NUEVO)
+        ========================== -->
+        <div class="col-span-12 md:col-span-3">
+          <label class="text-sm">Estabilidad (horas) (opcional)</label>
+          <input class="w-full border rounded p-2"
+                 type="number"
+                 min="0"
+                 name="presentations[__i__][stability_hours]"
+                 placeholder="Ej. 24">
+          <div class="text-xs text-gray-500 mt-1">
+            Tiempo máximo de uso recomendado.
+          </div>
+        </div>
+
+        <div class="col-span-6 md:col-span-2">
+          <label class="text-sm">Temp. mín (°C) (opcional)</label>
+          <input class="w-full border rounded p-2"
+                 type="number"
+                 min="0"
+                 name="presentations[__i__][temp_min_c]"
+                 placeholder="Ej. 8">
+        </div>
+
+        <div class="col-span-6 md:col-span-2">
+          <label class="text-sm">Temp. máx (°C) (opcional)</label>
+          <input class="w-full border rounded p-2"
+                 type="number"
+                 min="0"
+                 name="presentations[__i__][temp_max_c]"
+                 placeholder="Ej. 20">
+        </div>
+
+        <div class="col-span-12 md:col-span-5">
+          <label class="text-sm">Leyenda / Indicaciones (opcional)</label>
+          <textarea class="w-full border rounded p-2"
+                    rows="2"
+                    name="presentations[__i__][legend]"
+                    placeholder="Ej. Refrigerar. Proteger de la luz. No agitar."></textarea>
+        </div>
+
+        <!-- =========================
+             LOTE / CADUCIDAD (VIGENTE)
+        ========================== -->
+        <div class="col-span-12 md:col-span-3">
+          <label class="text-sm">Lote vigente</label>
+          <input class="w-full border rounded p-2"
+                 name="presentations[__i__][batch][lote]"
+                 placeholder="ABC123"
+                 required>
+        </div>
+
+        <div class="col-span-12 md:col-span-3">
+          <label class="text-sm">Caducidad vigente</label>
+          <input class="w-full border rounded p-2"
+                 type="date"
+                 name="presentations[__i__][batch][caducidad]"
+                 required>
+        </div>
+
+        <input type="hidden"
+               name="presentations[__i__][batch][is_current]"
+               value="1">
+
+        <!-- =========================
+             DISPONIBILIDAD
+        ========================== -->
+        <div class="col-span-12 md:col-span-3">
+          <label class="text-sm">Disponible</label>
+          <select class="w-full border rounded p-2"
+                  name="presentations[__i__][is_available]">
+            <option value="1" selected>Sí</option>
+            <option value="0">No</option>
+          </select>
+        </div>
+
       </div>
-
-      <div class="col-span-3">
-        <label class="text-sm">Caducidad vigente</label>
-        <input class="w-full border rounded p-2"
-               type="date"
-               name="presentations[__i__][batch][caducidad]"
-               required>
-      </div>
-
-      <input type="hidden"
-             name="presentations[__i__][batch][is_current]"
-             value="1">
-
-      <div class="col-span-3">
-        <label class="text-sm">Disponible</label>
-        <select class="w-full border rounded p-2"
-                name="presentations[__i__][is_available]">
-          <option value="1" selected>Sí</option>
-          <option value="0">No</option>
-        </select>
-      </div>
-
     </div>
   </template>
 
@@ -149,12 +214,16 @@
     let i = 0;
 
     const addRow = () => {
-      rows.insertAdjacentHTML('beforeend', tpl.replaceAll('__i__', i++));
+      const html = tpl
+        .replaceAll('__i__', i)
+        .replaceAll('__n__', (i + 1).toString());
+      rows.insertAdjacentHTML('beforeend', html);
+      i++;
     };
 
     add.addEventListener('click', addRow);
 
-    rows.addEventListener('click', e => {
+    rows.addEventListener('click', (e) => {
       if (e.target.classList.contains('rm-row')) {
         e.target.closest('.p-4').remove();
       }

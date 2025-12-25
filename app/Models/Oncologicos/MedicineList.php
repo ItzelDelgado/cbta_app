@@ -58,4 +58,9 @@ class MedicineList extends Model
             'precio_mg_override',
         ])->withTimestamps();
     }
+
+    public function distributor()
+    {
+        return $this->hasOne(Distributor::class, 'medicine_list_id');
+    }
 }

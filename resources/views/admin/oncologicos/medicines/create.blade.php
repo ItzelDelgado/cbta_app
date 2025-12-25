@@ -1,5 +1,7 @@
 <x-admin-layout>
     <div class="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-md">
+
+
         <h1 class="text-3xl font-bold text-gray-800 mb-6">Crear Nueva Lista de Medicamentos</h1>
 
         @if ($errors->any())
@@ -13,7 +15,8 @@
             </div>
         @endif
 
-        <form action="{{ route('admin.oncologicos.medicines.store') }}" method="POST" class="space-y-6">
+        <form action="{{ route('admin.oncologicos.medicines.store') }}" method="POST" enctype="multipart/form-data"
+            class="space-y-6">
             @csrf
 
             {{-- Nombre --}}
@@ -65,6 +68,61 @@
                         </span>
                     </span>
                 </label>
+            </div>
+
+            {{-- ================= DISTRIBUTOR (opcional) ================= --}}
+            <div class="border rounded-lg p-4 bg-gray-50">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-sm font-semibold text-gray-800">Distribuidor</h2>
+                        <p class="text-xs text-gray-500">Opcional. Estos datos se usarán para la segunda hoja de
+                            remisión.
+                        </p>
+                    </div>
+
+                    <button type="button" id="btn-toggle-distributor"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded">
+                        + Agregar distribuidor
+                    </button>
+                </div>
+
+                <div id="distributor-form" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+
+                    <div class="md:col-span-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del distribuidor</label>
+                        <input type="text" name="distributor_name" id="distributor_name"
+                            value="{{ old('distributor_name') }}"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
+                            placeholder="Ej. Centro Sequoia">
+                    </div>
+
+                    <div class="md:col-span-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+                        <input type="text" name="distributor_address" id="distributor_address"
+                            value="{{ old('distributor_address') }}"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
+                            placeholder="Calle, número, colonia, ciudad...">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Logo (opcional)</label>
+                        <input type="file" name="distributor_logo" id="distributor_logo" accept="image/*"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white">
+
+                        <div id="distributor-logo-preview-wrap" class="mt-3 hidden">
+                            <p class="text-xs text-gray-500 mb-2">Vista previa:</p>
+                            <img id="distributor-logo-preview" class="h-20 w-auto rounded border bg-white"
+                                alt="Logo preview">
+                        </div>
+
+                        <div class="mt-3 flex gap-2">
+                            <button type="button" id="btn-clear-distributor"
+                                class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-semibold px-3 py-2 rounded">
+                                Quitar distribuidor
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- Tabla de medicamentos agrupados --}}
@@ -208,6 +266,72 @@
     @push('js')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+
+                // ===== Toggle Distributor Form =====
+                const btnToggleDistributor = document.getElementById('btn-toggle-distributor');
+                const distributorForm = document.getElementById('distributor-form');
+                const btnClearDistributor = document.getElementById('btn-clear-distributor');
+
+                const inpDistName = document.getElementById('distributor_name');
+                const inpDistAddress = document.getElementById('distributor_address');
+                const inpDistLogo = document.getElementById('distributor_logo');
+
+                const previewWrap = document.getElementById('distributor-logo-preview-wrap');
+                const previewImg = document.getElementById('distributor-logo-preview');
+
+                function setDistributorVisible(visible) {
+                    if (!distributorForm || !btnToggleDistributor) return;
+
+                    distributorForm.classList.toggle('hidden', !visible);
+                    btnToggleDistributor.textContent = visible ? 'Ocultar distribuidor' : '+ Agregar distribuidor';
+                }
+
+                if (btnToggleDistributor && distributorForm) {
+                    btnToggleDistributor.addEventListener('click', () => {
+                        const isHidden = distributorForm.classList.contains('hidden');
+                        setDistributorVisible(isHidden);
+                    });
+                }
+
+                // Si hay old() (por error de validación), abrir automáticamente
+                const hasOldDistributor =
+                    (inpDistName && inpDistName.value.trim() !== '') ||
+                    (inpDistAddress && inpDistAddress.value.trim() !== '');
+
+                if (hasOldDistributor) {
+                    setDistributorVisible(true);
+                }
+
+                if (inpDistLogo && previewWrap && previewImg) {
+                    inpDistLogo.addEventListener('change', () => {
+                        const file = inpDistLogo.files && inpDistLogo.files[0];
+                        if (!file) {
+                            previewWrap.classList.add('hidden');
+                            previewImg.src = '';
+                            return;
+                        }
+                        const url = URL.createObjectURL(file);
+                        previewImg.src = url;
+                        previewWrap.classList.remove('hidden');
+                    });
+                }
+
+                if (btnClearDistributor) {
+                    btnClearDistributor.addEventListener('click', () => {
+                        if (inpDistName) inpDistName.value = '';
+                        if (inpDistAddress) inpDistAddress.value = '';
+                        if (inpDistLogo) inpDistLogo.value = '';
+
+                        if (previewWrap && previewImg) {
+                            previewWrap.classList.add('hidden');
+                            previewImg.src = '';
+                        }
+
+                        setDistributorVisible(false);
+                    });
+                }
+
+
                 const tbody = document.getElementById('tbody-medicamentos');
                 const tplGrupoHeader = document.getElementById('tpl-grupo-header');
                 const tplPresentacionRow = document.getElementById('tpl-presentacion-row');

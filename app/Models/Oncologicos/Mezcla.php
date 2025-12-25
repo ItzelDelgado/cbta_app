@@ -4,6 +4,11 @@ namespace App\Models\Oncologicos;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Oncologicos\SolicitudOnco;
+use App\Models\Oncologicos\MezclaMedicamento;
+use App\Models\Oncologicos\InspeccionMezcla;
+use App\Models\Oncologicos\Infusor;
+use App\Models\Oncologicos\DiluentPresentation;
 
 class Mezcla extends Model
 {
@@ -18,11 +23,16 @@ class Mezcla extends Model
         'estado',
         'remision',
         'lote',
-        'infusor_id', // ✅ nuevos
+        'infusor_id',
         'set_infusion',
+        'diluent_presentation_id',
     ];
-    protected $casts = ['set_infusion' => 'boolean'];
 
+    protected $casts = [
+        'set_infusion'            => 'boolean',
+        'volumen_dilucion'        => 'decimal:2',
+        'diluent_presentation_id' => 'integer',
+    ];
 
     public function solicitud()
     {
@@ -43,5 +53,11 @@ class Mezcla extends Model
     public function infusor()
     {
         return $this->belongsTo(Infusor::class, 'infusor_id');
+    }
+
+    // ✅ Relación con presentación de diluyente elegida
+    public function diluentPresentation()
+    {
+        return $this->belongsTo(DiluentPresentation::class, 'diluent_presentation_id');
     }
 }

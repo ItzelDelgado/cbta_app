@@ -17,7 +17,6 @@ return new class extends Migration
             $table->boolean('state')->default(true);
             $table->decimal('conc_min', 8, 2)->nullable();
             $table->decimal('conc_max', 8, 2)->nullable();
-            $table->text('legend')->nullable();
             $table->timestamps();
         });
     }

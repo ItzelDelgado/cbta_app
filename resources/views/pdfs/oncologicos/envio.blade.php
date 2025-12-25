@@ -26,6 +26,7 @@
         'F' => 'Femenino',
         default => '—',
     };
+    $alergias = $solicitud->alergias ?? '—';
 
     $diagnostico = $solicitud->diagnostico ?? '—';
     $servicio = $solicitud->servicio ?? '—';
@@ -299,13 +300,15 @@
                 <td class="border-1 border-l-0 px-1 bg-cbta text-center font-bold">Nombre completo</td>
                 <td class="border-1 px-1 bg-cbta text-center font-bold">Fecha de nacimiento</td>
                 <td class="border-1 px-1 bg-cbta text-center font-bold">Edad</td>
-                <td class="border-1 border-r-0 px-1 bg-cbta text-center font-bold">Género</td>
+                <td class="border-1 px-1 bg-cbta text-center font-bold">Género</td>
+                <td class="border-1 border-r-0 px-1 bg-cbta text-center font-bold">Alergias</td>
             </tr>
             <tr>
                 <td class="border-x-1 border-l-0 px-1 text-center">{{ $pacienteNombre }}</td>
                 <td class="border-x-1 px-1 text-center">{{ $fechaNac ? $fechaNac->format('d/m/Y') : '—' }}</td>
                 <td class="border-x-1 px-1 text-center">{{ $edad }}</td>
-                <td class="border-x-1 border-r-0 px-1 text-center">{{ $sexo }}</td>
+                <td class="border-x-1 px-1 text-center">{{ $sexo }}</td>
+                <td class="border-x-1 border-r-0 px-1 text-center">{{ $alergias }}</td>
             </tr>
         </table>
 

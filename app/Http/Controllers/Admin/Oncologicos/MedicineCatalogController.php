@@ -41,7 +41,6 @@ class MedicineCatalogController extends Controller
             'denominacion_comercial' => 'required|string|max:255',
             'conc_min'               => 'nullable|numeric|min:0',
             'conc_max'               => 'nullable|numeric|min:0',
-            'legend'                 => 'nullable|string|max:1000',
             'requires_infusor'       => 'nullable|boolean',
             'diluents'               => 'nullable|array',
             'diluents.*'             => 'integer|exists:diluents,id',
@@ -56,7 +55,6 @@ class MedicineCatalogController extends Controller
             'denominacion_comercial' => $request->denominacion_comercial,
             'conc_min'               => $request->conc_min,
             'conc_max'               => $request->conc_max,
-            'legend'                 => $request->legend,
             'requires_infusor'       => $request->boolean('requires_infusor', false),
             // si dejaste cantidad_medicamento/volumen_diluyente en la tabla, puedes
             // inicializarlos como null y usarlos solo de referencia, no para cálculos
@@ -115,7 +113,6 @@ class MedicineCatalogController extends Controller
             'denominacion_comercial' => 'required|string|max:255',
             'conc_min'               => 'nullable|numeric|min:0',
             'conc_max'               => 'nullable|numeric|min:0',
-            'legend'                 => 'nullable|string|max:1000',
             'requires_infusor'       => 'nullable|boolean',
             'diluents'               => 'nullable|array',
             'diluents.*'             => 'integer|exists:diluents,id',
@@ -130,7 +127,6 @@ class MedicineCatalogController extends Controller
             'denominacion_comercial' => $request->denominacion_comercial,
             'conc_min'               => $request->conc_min,
             'conc_max'               => $request->conc_max,
-            'legend'                 => $request->legend,
             'requires_infusor'       => $request->boolean('requires_infusor', false),
         ]);
 

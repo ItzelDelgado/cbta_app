@@ -40,6 +40,8 @@ return new class extends Migration
             $table->index(['medicine_batch_id']);
             $table->index(['lote_usado']);
             $table->index(['caducidad_usada']);
+
+
         });
     }
 

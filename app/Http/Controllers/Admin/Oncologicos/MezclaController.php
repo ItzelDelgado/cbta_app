@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Oncologicos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Oncologicos\DiluentPresentation;
 use App\Models\Oncologicos\InspeccionMezcla;
 use App\Models\Oncologicos\MedicineOnco;
 use App\Models\Oncologicos\MedicinePresentation;
@@ -31,15 +32,6 @@ class MezclaController extends Controller
         return view('admin.oncologicos.mezclas.index', compact('solicitud'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        return view('admin.oncologicos.mezclas.create');
-    }
 
     // Other methods can be added here as needed
 
@@ -127,8 +119,8 @@ class MezclaController extends Controller
         // ==============================
         // 1) OBTENER PRESENTACIONES DE LA LISTA
         // ==============================
-        $presentacionesLista = collect();
-        $catalogIdsDesdeLista = collect();
+        $presentacionesLista      = collect();
+        $catalogIdsDesdeLista     = collect();
 
         if ($listaId) {
             // Presentaciones ligadas a la lista del usuario
@@ -145,10 +137,7 @@ class MezclaController extends Controller
             $catalogIdsDesdeLista = $presentacionesLista->pluck('catalog_id')->unique()->values();
         }
 
-        // Si el usuario NO tiene lista, podrías:
-        // - mostrar todos
-        // - o ninguno
-        // Aquí hago fallback a TODOS los catálogos como antes
+        // Si el usuario NO tiene lista, fallback a TODOS los catálogos
         if ($catalogIdsDesdeLista->isEmpty()) {
             $catalogIdsDesdeLista = DB::table('medicines_catalog')->pluck('id');
         }
@@ -175,7 +164,6 @@ class MezclaController extends Controller
 
         // ==============================
         // 3) COMPLETAR CON MEDS YA USADOS EN LA MEZCLA
-        // (por si la lista cambió y ahora no los trae)
         // ==============================
         $idsCatalogo = $medicamentos->pluck('id')->all();
 
@@ -239,10 +227,8 @@ class MezclaController extends Controller
         }
 
         // ==============================
-        // 5) PRESENTACIONES POR CATÁLOGO PERMITIDAS POR LA LISTA
+        // 5) PRESENTACIONES DE MEDICAMENTOS POR CATÁLOGO
         // ==============================
-
-        // Si hay lista → usar solo sus presentaciones
         if ($listaId && $presentacionesLista->isNotEmpty()) {
             $presentacionesPorCatalogo = $presentacionesLista
                 ->groupBy('catalog_id')
@@ -254,8 +240,6 @@ class MezclaController extends Controller
                             'presentacion'         => $p->presentacion,
                             'cantidad_medicamento' => $p->cantidad_medicamento,
                             'volumen_diluyente'    => $p->volumen_diluyente,
-                            // OJO: ya no usamos precio_frasco como fuente oficial,
-                            // pero lo dejamos si aún lo ocupas de referencia
                             'precio_frasco'        => $p->precio_frasco,
                             'lote'                 => $batch->lote ?? null,
                             'caducidad'            => $batch->caducidad ?? null,
@@ -264,10 +248,9 @@ class MezclaController extends Controller
                     })->values();
                 });
         } else {
-            // Fallback: como lo tenías antes (todas las presentaciones disponibles)
             $catalogIds = $medicamentos->pluck('catalog_id')->unique()->values();
 
-            $presentacionesPorCatalogo = MedicinePresentation::whereIn('catalog_id', $catalogIds)
+            $presentacionesPorCatalogo = \App\Models\Oncologicos\MedicinePresentation::whereIn('catalog_id', $catalogIds)
                 ->where('is_available', 1)
                 ->with(['batches' => function ($q) {
                     $q->where('is_current', true);
@@ -292,7 +275,29 @@ class MezclaController extends Controller
         }
 
         // ==============================
-        // 6) INFUSORES
+        // 6) PRESENTACIONES DE DILUYENTES
+        // ==============================
+        $diluentPresentationsPorDiluyente = DiluentPresentation::query()
+            ->where('is_active', true)
+            ->orderBy('volume_ml')
+            ->get()
+            ->groupBy('diluent_id')
+            ->map(function ($group) {
+                return $group->map(function ($p) {
+                    return [
+                        'id'                     => $p->id,
+                        'diluent_id'             => $p->diluent_id,
+                        'presentacion'           => $p->presentacion,
+                        'volume_ml'              => $p->volume_ml,
+                        'denominacion_comercial' => $p->denominacion_comercial,
+                        'lote'                   => $p->lote,
+                        'caducidad'              => $p->caducidad,
+                    ];
+                })->values();
+            });
+
+        // ==============================
+        // 7) INFUSORES
         // ==============================
         $infusors = DB::table('infusors')
             ->select('id', 'nombre_generico', 'nombre_comercial')
@@ -302,42 +307,59 @@ class MezclaController extends Controller
             ->get();
 
         return view('admin.oncologicos.mezclas.edit', [
-            'mezcla'                    => $mezcla,
-            'solicitud'                 => $solicitud,
-            'medicamentos'              => $medicamentos,
-            'infoAdicional'             => $infoAdicional,
-            'infusors'                  => $infusors,
-            'presentacionesPorCatalogo' => $presentacionesPorCatalogo,
+            'mezcla'                           => $mezcla,
+            'solicitud'                        => $solicitud,
+            'medicamentos'                     => $medicamentos,
+            'infoAdicional'                    => $infoAdicional,
+            'infusors'                         => $infusors,
+            'presentacionesPorCatalogo'        => $presentacionesPorCatalogo,
+            'diluentPresentationsPorDiluyente' => $diluentPresentationsPorDiluyente,
         ]);
     }
 
 
     public function update(Request $request, $id)
     {
-        // ... (helpers y bloques 'preparada' / 'entregada' se quedan igual que ya los tienes) ...
 
-        // ---------- Edición normal ----------
         $request->validate([
             'mezcla_json'      => 'required|json',
-            'paciente_nombre'  => 'required|string',
-            'servicio'         => 'required|string',
-            'registro'         => 'required|string',
+
+            'paciente_nombre'  => 'required|string|max:255',
+            'servicio'         => 'required|string|max:255',
+            'registro'         => 'required|string|max:255',
+
             'sexo'             => 'nullable|in:M,F',
-            'fecha_nacimiento' => 'nullable|date',
-            'peso'             => 'nullable|numeric',
-            'piso'             => 'nullable|string',
-            'cama'             => 'nullable|string',
-            'diagnostico'      => 'nullable|string',
-            'medico_nombre'    => 'nullable|string',
-            'medico_cedula'    => 'nullable|string',
-            'fecha_entrega'    => 'nullable|date',
-            'observaciones'    => 'nullable|string',
+
+            // 👇 MISMA REGLA DE EDAD (PERO NULLABLE)
+            'fecha_nacimiento' => [
+                'nullable',
+                'date',
+                'after:' . Carbon::now()->subYears(100)->format('Y-m-d'),
+                'before:' . Carbon::today()->format('Y-m-d'),
+            ],
+
+            'peso'             => 'nullable|numeric|min:1|max:500',
+            'piso'             => 'nullable|string|max:50',
+            'cama'             => 'nullable|string|max:50',
+            'diagnostico'      => 'nullable|string|max:255',
+            'medico_nombre'    => 'nullable|string|max:255',
+            'medico_cedula'    => 'nullable|string|max:255',
+
+            // 👇 Entrega válida solo si viene
+            'fecha_entrega'    => 'nullable|date|after_or_equal:today',
+
+            'observaciones'    => 'nullable|string|max:500',
+        ], [
+            // ✨ Mensajes claros (solo disparan si el campo viene)
+            'fecha_nacimiento.after'  => 'La fecha de nacimiento no puede ser mayor a 100 años.',
+            'fecha_nacimiento.before' => 'La fecha de nacimiento debe ser anterior a hoy.',
+            'fecha_entrega.after_or_equal' => 'La fecha de entrega no puede ser anterior a hoy.',
         ]);
 
-        $mezcla = Mezcla::with('solicitud.user')->findOrFail($id);
+        $mezcla     = Mezcla::with('solicitud.user')->findOrFail($id);
         $mezclaData = json_decode($request->mezcla_json, true);
 
-        // 🔹 CAMBIO 1: lista que define los precios (la del dueño de la solicitud)
+        // Lista que define los precios (del dueño de la solicitud)
         $listaId = optional(optional($mezcla->solicitud)->user)->medicine_list_id;
 
         DB::beginTransaction();
@@ -376,6 +398,23 @@ class MezclaController extends Controller
                 }
             }
 
+            // 🔹 Nueva parte: presentación de diluyente
+            $diluentPresentationId = $mezclaData['diluent_presentation_id'] ?? null;
+            if ($diluentPresentationId) {
+                $dilPres = DiluentPresentation::where('id', (int)$diluentPresentationId)
+                    ->where('is_active', true)
+                    ->first();
+
+                if (!$dilPres) {
+                    throw new \Exception("La presentación de diluyente seleccionada no existe o no está activa.");
+                }
+
+                // Si hay diluyente fijo en la mezcla, asegura que coincidan
+                if ($refDil && (int)$dilPres->diluent_id !== (int)$refDil) {
+                    throw new \Exception("La presentación de diluyente no pertenece al diluyente seleccionado en la mezcla.");
+                }
+            }
+
             // Validar infusor
             if ($infusorId) {
                 $infusor = DB::table('infusors')
@@ -404,10 +443,11 @@ class MezclaController extends Controller
                 }
             }
 
-            $mezcla->volumen_dilucion = $volumenDilucion;
-            $mezcla->tiempo_infusion  = $tiempoInfusion;
-            $mezcla->set_infusion     = $setInfusion;
-            $mezcla->infusor_id       = $infusorId;
+            $mezcla->volumen_dilucion        = $volumenDilucion;
+            $mezcla->tiempo_infusion         = $tiempoInfusion;
+            $mezcla->set_infusion            = $setInfusion;
+            $mezcla->infusor_id              = $infusorId;
+            $mezcla->diluent_presentation_id = $diluentPresentationId ?: null; // 🔹 se guarda aquí
             $mezcla->save();
 
             // 2) Solicitud asociada
@@ -465,9 +505,6 @@ class MezclaController extends Controller
                     'dosis_ml'              => $dosisML,
                     'diluyente_id'          => $diluyenteId,
                     'via_administracion_id' => $viaAdminId,
-                    // Si más adelante quieres snapshot de mg:
-                    // 'charge_by'          => ...,
-                    // 'precio_mg_snapshot' => ...,
                 ]);
 
                 // 3.b) Guardar las presentaciones usadas (si vienen en el JSON)
@@ -480,7 +517,6 @@ class MezclaController extends Controller
                         continue;
                     }
 
-                    // 🔹 CAMBIO 2: el precio viene de medicine_list_presentation, no de mp.precio_frasco
                     $batch = DB::table('medicine_batches as mb')
                         ->join('medicine_presentations as mp', 'mb.medicine_presentation_id', '=', 'mp.id')
                         ->leftJoin('medicine_list_presentation as mlp', function ($join) use ($listaId) {
@@ -494,7 +530,7 @@ class MezclaController extends Controller
                             'mb.id',
                             'mb.lote',
                             'mb.caducidad',
-                            'mp.precio_frasco as precio_frasco_base',  // solo referencia
+                            'mp.precio_frasco as precio_frasco_base',
                             'mlp.precio as precio_lista'
                         )
                         ->first();
@@ -503,7 +539,6 @@ class MezclaController extends Controller
                         throw new \Exception("No se encontró el lote (batch) con ID {$batchId}.");
                     }
 
-                    // Precio oficial = el de la lista (si existe), o el base como fallback
                     $precioFrasco = $batch->precio_lista ?? $batch->precio_frasco_base ?? 0;
                     $subtotal     = $precioFrasco ? $precioFrasco * $unidades : null;
 
@@ -577,7 +612,6 @@ class MezclaController extends Controller
 
     public function ordenPreparacion(Mezcla $mezcla)
     {
-        // Mezcla + solicitud + hospital + inspección + TODO lo necesario para medicación
         $mezcla = Mezcla::with([
             'solicitud.user.hospital',
             'inspeccion',
@@ -585,13 +619,13 @@ class MezclaController extends Controller
             'medicamentos.diluyente',
             'medicamentos.viaAdministracion',
             'medicamentos.presentacionesUsadas.batch.presentation',
+
+            // ✅ NUEVO (si tienes la relación):
+            'infusor',
         ])->findOrFail($mezcla->id);
 
-        // ===== MEDICAMENTOS PARA LA ORDEN =====
-        // Construimos un arreglo plano con los campos que la vista usa:
-        //  lote, caducidad, denominacion_comercial, denominacion, presentacion, dosis, dosis_ml, volumen_total
+        // ===== MEDICAMENTOS =====
         $medicamentos = $mezcla->medicamentos->map(function ($mm) use ($mezcla) {
-
             $presentaciones = $mm->presentacionesUsadas ?? collect();
             $firstPres      = $presentaciones->first();
 
@@ -599,27 +633,22 @@ class MezclaController extends Controller
             $presModel = optional($firstPres)->presentation;
             $catalog   = optional(optional($mm->medicamentoOnco)->catalog);
 
-            // Lote / caducidad: preferimos los guardados en la mezcla, luego el batch
-            $lote = $firstPres->lote_usado
-                ?? ($batch->lote ?? null);
-
-            $caducidad = $firstPres->caducidad_usada
-                ?? ($batch->caducidad ?? null);
+            $lote = $firstPres->lote_usado ?? ($batch->lote ?? null);
+            $caducidad = $firstPres->caducidad_usada ?? ($batch->caducidad ?? null);
 
             return (object) [
-                'lote'                  => $lote,
-                'caducidad'             => $caducidad,
+                'lote'                   => $lote,
+                'caducidad'              => $caducidad,
                 'denominacion_comercial' => $catalog->denominacion_comercial ?? null,
-                'denominacion'          => $catalog->denominacion ?? null,   // genérica
-                'presentacion'          => $presModel->presentacion ?? null,
-                'dosis'                 => $mm->dosis,
-                'dosis_ml'              => $mm->dosis_ml,
-                // Para las tablas donde usas volumen_total
-                'volumen_total'         => $mezcla->volumen_dilucion,
+                'denominacion'           => $catalog->denominacion ?? null,
+                'presentacion'           => $presModel->presentacion ?? null,
+                'dosis'                  => $mm->dosis,
+                'dosis_ml'               => $mm->dosis_ml,
+                'volumen_total'          => $mezcla->volumen_dilucion,
             ];
         })->values();
 
-        // ===== FECHAS PREPARACIÓN / LÍMITE DE USO =====
+        // ===== FECHAS =====
         $aprobada = DB::table('solicitud_aprobadas')
             ->where('solicitud_id', $mezcla->solicitud_id)
             ->first();
@@ -632,10 +661,32 @@ class MezclaController extends Controller
             ? Carbon::parse($aprobada->fecha_hora_limite_uso)
             : $fechaPreparacion->copy()->addHours(48);
 
-        // ===== HOSPITAL =====
         $hospital = optional($mezcla->solicitud->user->hospital)->name ?? 'No asignado';
 
-        // ===== NOMBRES DE INSPECCIÓN =====
+        // ✅ ===== EQUIPO INFUSIÓN/INFUSOR =====
+        $esSetInfusion = (bool) $mezcla->set_infusion;
+
+        if ($esSetInfusion) {
+            // No hay lote/caducidad en DB para set_infusion (por tu esquema actual)
+            $equipoInfusion = (object) [
+                'tipo'            => 'set',
+                'lote'            => null,
+                'caducidad'       => null,
+                'nombre_comercial' => 'Set de infusión',
+                'nombre_generico' => 'Set de infusión',
+            ];
+        } else {
+            $inf = $mezcla->infusor; // viene por with('infusor')
+            $equipoInfusion = (object) [
+                'tipo'            => 'infusor',
+                'lote'            => optional($inf)->lote,
+                'caducidad'       => optional($inf)->caducidad,
+                'nombre_comercial' => optional($inf)->nombre_comercial,
+                'nombre_generico' => optional($inf)->nombre_generico,
+            ];
+        }
+
+        // ===== NOMBRES INSPECCIÓN =====
         $aproboNombre  = optional($mezcla->inspeccion)->aprobo_nombre;
         $revisoNombre  = optional($mezcla->inspeccion)->reviso_nombre;
         $preparoNombre = optional($mezcla->inspeccion)->preparo_nombre;
@@ -651,10 +702,14 @@ class MezclaController extends Controller
             'reviso_nombre'     => $revisoNombre,
             'preparo_nombre'    => $preparoNombre,
             'libero_nombre'     => $liberoNombre,
+
+            // ✅ NUEVO
+            'equipoInfusion'    => $equipoInfusion,
         ])->setPaper('letter', 'portrait');
 
         return $pdf->stream("orden-preparacion-{$mezcla->id}.pdf");
     }
+
 
 
     public function inspeccion(Mezcla $mezcla)
@@ -674,7 +729,11 @@ class MezclaController extends Controller
 
     public function etiqueta(Mezcla $mezcla)
     {
-        $mezcla = Mezcla::with('solicitud')->findOrFail($mezcla->id);
+        // 🔹 Cargar también el diluyente y su presentación
+        $mezcla = Mezcla::with([
+            'solicitud',
+            'diluentPresentation.diluent',
+        ])->findOrFail($mezcla->id);
 
         // Buscar si la mezcla tiene aprobación con fechas
         $aprobada = DB::table('solicitud_aprobadas')
@@ -691,21 +750,31 @@ class MezclaController extends Controller
             )
             ->get();
 
+        // 🔹 Construir texto de diluyente + presentación (ej. "Cloruro de sodio 0.9% de 50 ml")
+        $diluyenteTexto = '—';
+        if ($mezcla->diluentPresentation) {
+            $dp = $mezcla->diluentPresentation;
+            $nombreDil = optional($dp->diluent)->denominacion_generica; // ej. "Cloruro de sodio 0.9%"
+            $volumen   = $dp->volume_ml;                                // ej. 50
+            $present   = $dp->presentacion;                             // ej. "Bolsa 50 mL"
+
+            if ($nombreDil && $volumen) {
+                // 50 → "50" o "50.5", sin ceros basura
+                $volFmt = rtrim(rtrim(number_format($volumen, 2, '.', ''), '0'), '.');
+                $diluyenteTexto = $nombreDil . ' de ' . $volFmt . ' ml';
+            } elseif ($present) {
+                $diluyenteTexto = $present;
+            }
+        }
+
         $customPaper = [0, 0, 368.50, 255.12]; // 9cm x 13cm
         $pdf = Pdf::loadView('pdfs.oncologicos.etiqueta', [
-            'mezcla' => $mezcla,
-            'solicitud' => $mezcla->solicitud,
-            'aprobada' => $aprobada,
-            'medicamentos' => $medicamentos,
+            'mezcla'        => $mezcla,
+            'solicitud'     => $mezcla->solicitud,
+            'aprobada'      => $aprobada,
+            'medicamentos'  => $medicamentos,
+            'diluyenteTexto' => $diluyenteTexto, // 🔹 pasamos el texto a la vista
         ])->setPaper($customPaper, 'landscape');
-
-        // return ([
-        //      'mezcla' => $mezcla,
-        //     'solicitud' => $mezcla->solicitud,
-        //     'aprobada' => $aprobada,
-        //     'medicamentos' => $medicamentos,
-        // ]);
-
 
         return $pdf->stream();
     }

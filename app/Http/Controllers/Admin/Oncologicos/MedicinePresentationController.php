@@ -34,13 +34,19 @@ class MedicinePresentationController extends Controller
 
             'presentations.*.presentacion'                    => 'required|string|max:255',
             'presentations.*.contenido_valor'                 => 'required|numeric|min:0',
-            'presentations.*.contenido_unidad'                => 'required|string|in:mg,g,ml,UI',
+            'presentations.*.contenido_unidad'                => 'required|string|in:mg,g,ml,UI,smg',
             'presentations.*.marca'                           => 'nullable|string|max:255',
             'presentations.*.precio_frasco'                   => 'nullable|numeric|min:0',
 
-            // NUEVOS CAMPOS
+            // NUEVOS CAMPOS (ya los tenías)
             'presentations.*.cantidad_medicamento'            => 'nullable|numeric|min:0',
             'presentations.*.volumen_diluyente'               => 'nullable|numeric|min:0',
+
+            // ✅ NUEVOS CAMPOS (leyenda + estabilidad)
+            'presentations.*.legend'                          => 'nullable|string|max:2000',
+            'presentations.*.temp_min_c'                      => 'nullable|integer|min:0|max:99',
+            'presentations.*.temp_max_c'                      => 'nullable|integer|min:0|max:99',
+            'presentations.*.stability_hours'                 => 'nullable|integer|min:0|max:2000',
 
             // Batch vigente
             'presentations.*.batch.lote'                      => 'required|string|max:255',
@@ -50,6 +56,20 @@ class MedicinePresentationController extends Controller
             // disponibilidad
             'presentations.*.is_available'                    => 'required|in:0,1',
         ]);
+
+        // Validación extra: temp_max_c >= temp_min_c (cuando ambos vienen)
+        foreach ($request->input('presentations', []) as $idx => $p) {
+            $min = $p['temp_min_c'] ?? null;
+            $max = $p['temp_max_c'] ?? null;
+
+            if ($min !== null && $max !== null && (int)$max < (int)$min) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        "presentations.$idx.temp_max_c" => "La temperatura máxima debe ser mayor o igual a la mínima."
+                    ]);
+            }
+        }
 
         DB::beginTransaction();
 
@@ -65,9 +85,14 @@ class MedicinePresentationController extends Controller
                     'marca'                 => $p['marca'] ?? null,
                     'precio_frasco'         => $p['precio_frasco'] ?? null,
 
-                    // nuevos campos
                     'cantidad_medicamento'  => $p['cantidad_medicamento'] ?? null,
                     'volumen_diluyente'     => $p['volumen_diluyente'] ?? null,
+
+                    // ✅ nuevos campos ya existentes en medicine_presentations
+                    'legend'                => $p['legend'] ?? null,
+                    'temp_min_c'            => $p['temp_min_c'] ?? null,
+                    'temp_max_c'            => $p['temp_max_c'] ?? null,
+                    'stability_hours'       => $p['stability_hours'] ?? null,
 
                     'is_available'          => $p['is_available'],
                 ]);
@@ -76,7 +101,7 @@ class MedicinePresentationController extends Controller
                 $presentation->batches()->create([
                     'lote'          => $p['batch']['lote'],
                     'caducidad'     => $p['batch']['caducidad'],
-                    'is_current'    => true,
+                    'is_current'    => true, // o (bool) $p['batch']['is_current']
                 ]);
             }
 
@@ -94,6 +119,7 @@ class MedicinePresentationController extends Controller
                 ->withErrors(['error' => 'Error al guardar presentaciones: ' . $e->getMessage()]);
         }
     }
+
 
     public function edit(MedicinesCatalog $catalog, MedicinePresentation $presentation)
     {
@@ -116,18 +142,35 @@ class MedicinePresentationController extends Controller
         $data = $request->validate([
             'presentacion'         => 'required|string|max:255',
             'contenido_valor'      => 'required|numeric|min:0',
-            'contenido_unidad'     => 'required|string|in:mg,g,ml,UI',
+            'contenido_unidad'     => 'required|string|in:mg,g,ml,UI,smg',
             'marca'                => 'nullable|string|max:255',
             'precio_frasco'        => 'nullable|numeric|min:0',
 
             'cantidad_medicamento' => 'nullable|numeric|min:0',
             'volumen_diluyente'    => 'nullable|numeric|min:0',
 
+            // ✅ NUEVOS CAMPOS
+            'legend'               => 'nullable|string|max:2000',
+            'temp_min_c'           => 'nullable|integer|min:0|max:99',
+            'temp_max_c'           => 'nullable|integer|min:0|max:99',
+            'stability_hours'      => 'nullable|integer|min:0|max:2000',
+
             'is_available'         => 'required|in:0,1',
 
             'batch.lote'           => 'required|string|max:255',
             'batch.caducidad'      => 'required|date',
         ]);
+
+        // Validación extra: temp_max_c >= temp_min_c (cuando ambos vienen)
+        $min = $data['temp_min_c'] ?? null;
+        $max = $data['temp_max_c'] ?? null;
+        if ($min !== null && $max !== null && (int)$max < (int)$min) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'temp_max_c' => 'La temperatura máxima debe ser mayor o igual a la mínima.',
+                ]);
+        }
 
         DB::beginTransaction();
 
@@ -141,6 +184,13 @@ class MedicinePresentationController extends Controller
                 'precio_frasco'        => $data['precio_frasco'] ?? null,
                 'cantidad_medicamento' => $data['cantidad_medicamento'] ?? null,
                 'volumen_diluyente'    => $data['volumen_diluyente'] ?? null,
+
+                // ✅ NUEVOS CAMPOS
+                'legend'               => $data['legend'] ?? null,
+                'temp_min_c'           => $data['temp_min_c'] ?? null,
+                'temp_max_c'           => $data['temp_max_c'] ?? null,
+                'stability_hours'      => $data['stability_hours'] ?? null,
+
                 'is_available'         => $data['is_available'],
             ]);
 
@@ -185,6 +235,7 @@ class MedicinePresentationController extends Controller
                 ]);
         }
     }
+
 
     public function destroy(MedicinesCatalog $catalog, MedicinePresentation $presentation)
     {

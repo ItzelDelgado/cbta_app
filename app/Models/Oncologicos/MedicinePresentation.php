@@ -22,13 +22,24 @@ class MedicinePresentation extends Model
         'is_available',
         'virtual_stock',
         'precio_frasco',
+
+        // ✅ NUEVOS
+        'legend',
+        'temp_min_c',
+        'temp_max_c',
+        'stability_hours',
     ];
 
     protected $casts = [
-        'contenido_valor' => 'decimal:2',
-        'is_available'    => 'boolean',
-        'virtual_stock'   => 'integer',
-        'precio_frasco'   => 'decimal:4',
+        'contenido_valor'   => 'decimal:2',
+        'is_available'      => 'boolean',
+        'virtual_stock'     => 'integer',
+        'precio_frasco'     => 'decimal:4',
+
+        // ✅ NUEVOS
+        'temp_min_c'        => 'integer',
+        'temp_max_c'        => 'integer',
+        'stability_hours'   => 'integer',
     ];
 
     public function catalog()

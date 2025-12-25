@@ -39,12 +39,6 @@
                class="w-full p-2 text-sm bg-gray-50 border rounded-lg" />
       </div>
 
-      <div class="col-span-4">
-        <label class="block mb-2 text-sm font-medium text-gray-700">Leyenda de protección</label>
-        <textarea name="legend" rows="2"
-                  class="w-full p-2 text-sm bg-gray-50 border rounded-lg"
-                  placeholder="Ej. No agitar. Conservar a 2–8°C">{{ old('legend') }}</textarea>
-      </div>
 
       <div>
         <label class="block mb-2 text-sm font-medium text-gray-700">¿Requiere infusor?</label>

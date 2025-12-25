@@ -203,6 +203,10 @@
                     </td>
                     <td class="px-1">Género: {{ $solicitud->sexo ?? '—' }}</td>
                 </tr>
+                <tr>
+                    <td class="px-1">Alergias: {{ $solicitud->alergias ?? '—' }}</td>
+
+                </tr>
 
                 <tr>
                     <td class="px-1">Médico: {{ $solicitud->nombre_medico }}</td>
@@ -224,9 +228,12 @@
                 @endforeach
 
                 <tr>
-                    <td class="px-1">{{ $mezcla->volumen_dilucion }}</td>
-                    <td class="px-1">ml</td>
+                    <td class="px-1" colspan="2">
+                        <strong>Diluyente:</strong> {{ $diluyenteTexto ?? '—' }}
+                    </td>
                 </tr>
+
+
             </table>
 
             <!-- Fecha y hora de preparación -->

@@ -1,6 +1,6 @@
 <x-admin-layout>
     <div class="mt-2 mb-4 flex items-center justify-between">
-        <h1 class="text-2xl font-medium text-gray-800">Listas de Medicamentos</h1>
+        <h1 class="text-2xl font-medium text-gray-800">Crear nueva lista de precios</h1>
 
         <a href="{{ route('admin.oncologicos.medicines.create') }}"
             class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
