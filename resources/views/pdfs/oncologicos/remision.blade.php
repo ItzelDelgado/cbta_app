@@ -1,15 +1,25 @@
 @php
     // ===== Helpers de formato (sin "use Carbon\Carbon") =====
     $fmtDate = function ($v) {
-        if (!$v) return '—';
-        try { return \Carbon\Carbon::parse($v)->format('d/m/Y'); }
-        catch (\Exception $e) { return '—'; }
+        if (!$v) {
+            return '—';
+        }
+        try {
+            return \Carbon\Carbon::parse($v)->format('d/m/Y');
+        } catch (\Exception $e) {
+            return '—';
+        }
     };
 
     $fmtDateTime = function ($v) {
-        if (!$v) return '—';
-        try { return \Carbon\Carbon::parse($v)->format('d/m/Y H:i'); }
-        catch (\Exception $e) { return '—'; }
+        if (!$v) {
+            return '—';
+        }
+        try {
+            return \Carbon\Carbon::parse($v)->format('d/m/Y H:i');
+        } catch (\Exception $e) {
+            return '—';
+        }
     };
 
     $money = function ($v) {
@@ -21,9 +31,9 @@
     $fechaNac = $solicitud->fecha_nacimiento ? $fmtDate($solicitud->fecha_nacimiento) : '—';
     $observaciones = $solicitud->observaciones ?? '—';
 
-    $edad = $solicitud->edad ?? ($solicitud->fecha_nacimiento
-        ? \Carbon\Carbon::parse($solicitud->fecha_nacimiento)->age
-        : '—');
+    $edad =
+        $solicitud->edad ??
+        ($solicitud->fecha_nacimiento ? \Carbon\Carbon::parse($solicitud->fecha_nacimiento)->age : '—');
 
     $sexo = $solicitud->sexo === 'M' ? 'Masculino' : ($solicitud->sexo === 'F' ? 'Femenino' : '—');
     $alergias = $solicitud->alergias ?? '—';
@@ -34,11 +44,11 @@
 
     // ===== Emisor 1: Prodifem (siempre) =====
     $prodifemLogoFile = public_path('img/logo-cbta.jpg');
-    $prodifemLogoSrc  = file_exists($prodifemLogoFile) ? ('file://' . $prodifemLogoFile) : null;
+    $prodifemLogoSrc = file_exists($prodifemLogoFile) ? 'file://' . $prodifemLogoFile : null;
 
     // ===== Emisor 2: Distribuidor (opcional) =====
     // (Por tus errores previos, tu tabla parece usar nombre/direccion, no name/address)
-    $distNombre    = $distributor->nombre    ?? ($distributor->name    ?? null);
+    $distNombre = $distributor->nombre ?? ($distributor->name ?? null);
     $distDireccion = $distributor->direccion ?? ($distributor->address ?? null);
 
     $distLogoSrc = null;
@@ -49,7 +59,9 @@
         }
     }
     // fallback si no hay logo del distribuidor
-    if (!$distLogoSrc) $distLogoSrc = $prodifemLogoSrc;
+    if (!$distLogoSrc) {
+        $distLogoSrc = $prodifemLogoSrc;
+    }
 
     // Contador para la tabla
     $contador = 1;
@@ -57,44 +69,120 @@
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Remisión</title>
 
     <style>
-        @page { margin: 1rem; }
-        body { margin: 0; padding: 20px; background-color: white; font-family: "Arial", sans-serif; }
+        @page {
+            margin: 1rem;
+        }
 
-        .bg-cbta { background-color: #1F4E78; color: white; }
-        .contenedor { padding: 0; }
-        table { width: 100%; border-collapse: collapse; }
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: white;
+            font-family: "Arial", sans-serif;
+        }
 
-        th, td { border: 0px solid black; padding: 0px; font-size: 12px; }
+        .bg-cbta {
+            background-color: #1F4E78;
+            color: white;
+        }
 
-        .border-1 { border: 1px solid black; }
-        .border-x-1 { border-left: 1px solid black; border-right: 1px solid black; }
-        .border-l-0 { border-left: none; }
-        .border-r-0 { border-right: none; }
-        .border-t-1 { border-top: 1px solid black; }
-        .border-b-1 { border-bottom: 1px solid black; }
+        .contenedor {
+            padding: 0;
+        }
 
-        .px-1 { padding-left: 0.25rem; padding-right: 0.25rem; }
-        .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-        .mt-2 { margin-top: 0.5rem; }
-        .mt-12 { margin-top: 3rem; }
-        .mb-4 { margin-bottom: 1rem; }
+        th,
+        td {
+            border: 0px solid black;
+            padding: 0px;
+            font-size: 12px;
+        }
 
-        .text-left { text-align: left; }
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
-        .font-bold { font-weight: bold; }
+        .border-1 {
+            border: 1px solid black;
+        }
 
-        .fila-presentacion td { font-size: 11px; background-color: #E9F2FF; }
-        .bg-presentacion { background-color: #E9F2FF; }
+        .border-x-1 {
+            border-left: 1px solid black;
+            border-right: 1px solid black;
+        }
 
-        .page-break { page-break-after: always; }
+        .border-l-0 {
+            border-left: none;
+        }
+
+        .border-r-0 {
+            border-right: none;
+        }
+
+        .border-t-1 {
+            border-top: 1px solid black;
+        }
+
+        .border-b-1 {
+            border-bottom: 1px solid black;
+        }
+
+        .px-1 {
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
+        }
+
+        .py-1 {
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+        }
+
+        .mt-2 {
+            margin-top: 0.5rem;
+        }
+
+        .mt-12 {
+            margin-top: 3rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .font-bold {
+            font-weight: bold;
+        }
+
+        .fila-presentacion td {
+            font-size: 11px;
+            background-color: #E9F2FF;
+        }
+
+        .bg-presentacion {
+            background-color: #E9F2FF;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
     </style>
 </head>
 
@@ -140,7 +228,11 @@
         </table>
 
         <!-- Datos del paciente -->
-        <table><tr><td class="px-1 text-center">DATOS DEL PACIENTE</td></tr></table>
+        <table>
+            <tr>
+                <td class="px-1 text-center">DATOS DEL PACIENTE</td>
+            </tr>
+        </table>
 
         <table>
             <tr>
@@ -201,13 +293,14 @@
                 @php
                     $loteMezcla = $mezcla->lote ?? '—';
                     $remisionMezcla = $mezcla->remision ?? '—';
-                    $volumenMezcla = isset($mezcla->volumen_dilucion) ? ($mezcla->volumen_dilucion . ' ml') : '—';
+                    $volumenMezcla = isset($mezcla->volumen_dilucion) ? $mezcla->volumen_dilucion . ' ml' : '—';
                 @endphp
 
                 @forelse ($mezcla->medicamentos as $med)
                     @php
-                        $denom = optional(optional($med->medicamentoOnco)->catalog)->denominacion
-                            ?? ($med->nombre_medicamento ?? '—');
+                        $denom =
+                            optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
+                            ($med->nombre_medicamento ?? '—');
 
                         $dosis = $med->dosis ?? 0;
                         $dosisFmt = is_numeric($dosis)
@@ -223,38 +316,56 @@
 
                         $presentaciones = $med->presentacionesUsadas ?? collect();
 
-                        $presentacionesTexto = $presentaciones->map(function ($pres) {
-                            $batch = $pres->batch;
-                            $presBase = $pres->presentation;
+                        $presentacionesTexto = $presentaciones
+                            ->map(function ($pres) {
+                                $batch = $pres->batch;
+                                $presBase = $pres->presentation;
 
-                            $nombrePres = trim($presBase->presentacion ?? '');
+                                $nombrePres = trim($presBase->presentacion ?? '');
 
-                            $linea1Partes = [];
-                            if ($pres->unidades_usadas) $linea1Partes[] = $pres->unidades_usadas . ' pza(s)';
-                            if ($nombrePres) $linea1Partes[] = $nombrePres;
-                            $linea1 = '• ' . implode(' - ', $linea1Partes);
+                                $linea1Partes = [];
+                                if ($pres->unidades_usadas) {
+                                    $linea1Partes[] = $pres->unidades_usadas . ' pza(s)';
+                                }
+                                if ($nombrePres) {
+                                    $linea1Partes[] = $nombrePres;
+                                }
 
-                            $lote = $pres->lote_usado ?? $batch?->lote;
-                            $cad  = $pres->caducidad_usada ?? $batch?->caducidad;
+                                $linea1 = '• ' . implode(' - ', $linea1Partes);
 
-                            $linea2Partes = [];
-                            if ($lote) $linea2Partes[] = 'Lote ' . $lote;
-                            if ($cad) {
-                                try { $linea2Partes[] = 'Cad. ' . \Carbon\Carbon::parse($cad)->format('d/m/Y'); }
-                                catch (\Exception $e) { $linea2Partes[] = 'Cad. ' . $cad; }
-                            }
-                            $linea2 = count($linea2Partes) ? implode(' · ', $linea2Partes) : '';
+                                $lote = $pres->lote_usado ?? $batch?->lote;
+                                $cad = $pres->caducidad_usada ?? $batch?->caducidad;
 
-                            return $linea2 ? $linea1 . '<br>&nbsp;&nbsp;' . $linea2 : $linea1;
-                        })->implode('<br>');
+                                $linea2Partes = [];
+                                if ($lote) {
+                                    $linea2Partes[] = 'Lote ' . $lote;
+                                }
 
-                        if ($presentacionesTexto === '') $presentacionesTexto = 'Sin detalle de presentación.';
+                                if ($cad) {
+                                    try {
+                                        $linea2Partes[] = 'Cad. ' . \Carbon\Carbon::parse($cad)->format('d/m/Y');
+                                    } catch (\Exception $e) {
+                                        $linea2Partes[] = 'Cad. ' . $cad;
+                                    }
+                                }
+
+                                $linea2 = count($linea2Partes) ? implode(' · ', $linea2Partes) : '';
+
+                                return $linea2 ? $linea1 . '<br>&nbsp;&nbsp;' . $linea2 : $linea1;
+                            })
+                            ->implode('<br>');
+
+                        if ($presentacionesTexto === '') {
+                            $presentacionesTexto = 'Sin detalle de presentación.';
+                        }
                     @endphp
 
                     <tr>
                         <td class="border-1 border-l-0 px-1 text-center">{{ $contador++ }}</td>
                         <td class="border-1 px-1 text-center">{{ $denom }}</td>
-                        <td class="border-1 px-1 text-center">{{ is_numeric($dosisFmt) ? ($dosisFmt . ' mg') : $dosisFmt }}</td>
+                        <td class="border-1 px-1 text-center">
+                            {{ is_numeric($dosisFmt) ? $dosisFmt . ' mg' : $dosisFmt }}
+                        </td>
                         <td class="border-1 px-1 text-center">{{ $diluyente }}</td>
                         <td class="border-1 px-1 text-center">{{ $volumenMezcla }}</td>
                         <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
@@ -285,10 +396,35 @@
                         </td>
                     </tr>
                 @endforelse
+
+                {{-- ✅ Renglón extra: INFUSOR (si aplica en esta mezcla) --}}
+                @if (($mezcla->infusor_aplica ?? false) && (float) ($mezcla->infusor_subtotal ?? 0) > 0)
+                    <tr>
+                        <td class="border-1 border-l-0 px-1 text-center">{{ $contador++ }}</td>
+                        <td class="border-1 px-1 text-center">
+                            {{ 'Infusor: ' . ($mezcla->infusor_nombre ?? '—') }}
+                        </td>
+                        <td class="border-1 px-1 text-center">—</td>
+                        <td class="border-1 px-1 text-center">—</td>
+                        <td class="border-1 px-1 text-center">{{ $volumenMezcla }}</td>
+                        <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
+                        <td class="border-1 px-1 text-center">{{ $remisionMezcla }}</td>
+                        <td class="border-1 px-1 text-center">Pieza</td>
+                        <td class="border-1 px-1 text-center">1</td>
+                        <td class="border-1 px-1 text-center">{{ $money($mezcla->infusor_precio ?? 0) }}</td>
+                        <td class="border-1 border-r-0 px-1 text-center">{{ $money($mezcla->infusor_subtotal ?? 0) }}
+                        </td>
+                    </tr>
+                @endif
             @endforeach
+
         </table>
 
-        <table><tr><td class="text-right">Total {{ $money($totalRemision) }}</td></tr></table>
+        <table>
+            <tr>
+                <td class="text-right">Total {{ $money($totalRemision) }}</td>
+            </tr>
+        </table>
 
         <table>
             <tr>
@@ -367,7 +503,11 @@
                 </tr>
             </table>
 
-            <table><tr><td class="px-1 text-center">DATOS DEL PACIENTE</td></tr></table>
+            <table>
+                <tr>
+                    <td class="px-1 text-center">DATOS DEL PACIENTE</td>
+                </tr>
+            </table>
 
             <table>
                 <tr>
@@ -429,13 +569,14 @@
                     @php
                         $loteMezcla = $mezcla->lote ?? '—';
                         $remisionMezcla = $mezcla->remision ?? '—';
-                        $volumenMezcla = isset($mezcla->volumen_dilucion) ? ($mezcla->volumen_dilucion . ' ml') : '—';
+                        $volumenMezcla = isset($mezcla->volumen_dilucion) ? $mezcla->volumen_dilucion . ' ml' : '—';
                     @endphp
 
                     @forelse ($mezcla->medicamentos as $med)
                         @php
-                            $denom = optional(optional($med->medicamentoOnco)->catalog)->denominacion
-                                ?? ($med->nombre_medicamento ?? '—');
+                            $denom =
+                                optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
+                                ($med->nombre_medicamento ?? '—');
 
                             $dosis = $med->dosis ?? 0;
                             $dosisFmt = is_numeric($dosis)
@@ -451,38 +592,52 @@
 
                             $presentaciones = $med->presentacionesUsadas ?? collect();
 
-                            $presentacionesTexto = $presentaciones->map(function ($pres) {
-                                $batch = $pres->batch;
-                                $presBase = $pres->presentation;
+                            $presentacionesTexto = $presentaciones
+                                ->map(function ($pres) {
+                                    $batch = $pres->batch;
+                                    $presBase = $pres->presentation;
 
-                                $nombrePres = trim($presBase->presentacion ?? '');
+                                    $nombrePres = trim($presBase->presentacion ?? '');
 
-                                $linea1Partes = [];
-                                if ($pres->unidades_usadas) $linea1Partes[] = $pres->unidades_usadas . ' pza(s)';
-                                if ($nombrePres) $linea1Partes[] = $nombrePres;
-                                $linea1 = '• ' . implode(' - ', $linea1Partes);
+                                    $linea1Partes = [];
+                                    if ($pres->unidades_usadas) {
+                                        $linea1Partes[] = $pres->unidades_usadas . ' pza(s)';
+                                    }
+                                    if ($nombrePres) {
+                                        $linea1Partes[] = $nombrePres;
+                                    }
+                                    $linea1 = '• ' . implode(' - ', $linea1Partes);
 
-                                $lote = $pres->lote_usado ?? $batch?->lote;
-                                $cad  = $pres->caducidad_usada ?? $batch?->caducidad;
+                                    $lote = $pres->lote_usado ?? $batch?->lote;
+                                    $cad = $pres->caducidad_usada ?? $batch?->caducidad;
 
-                                $linea2Partes = [];
-                                if ($lote) $linea2Partes[] = 'Lote ' . $lote;
-                                if ($cad) {
-                                    try { $linea2Partes[] = 'Cad. ' . \Carbon\Carbon::parse($cad)->format('d/m/Y'); }
-                                    catch (\Exception $e) { $linea2Partes[] = 'Cad. ' . $cad; }
-                                }
-                                $linea2 = count($linea2Partes) ? implode(' · ', $linea2Partes) : '';
+                                    $linea2Partes = [];
+                                    if ($lote) {
+                                        $linea2Partes[] = 'Lote ' . $lote;
+                                    }
+                                    if ($cad) {
+                                        try {
+                                            $linea2Partes[] = 'Cad. ' . \Carbon\Carbon::parse($cad)->format('d/m/Y');
+                                        } catch (\Exception $e) {
+                                            $linea2Partes[] = 'Cad. ' . $cad;
+                                        }
+                                    }
+                                    $linea2 = count($linea2Partes) ? implode(' · ', $linea2Partes) : '';
 
-                                return $linea2 ? $linea1 . '<br>&nbsp;&nbsp;' . $linea2 : $linea1;
-                            })->implode('<br>');
+                                    return $linea2 ? $linea1 . '<br>&nbsp;&nbsp;' . $linea2 : $linea1;
+                                })
+                                ->implode('<br>');
 
-                            if ($presentacionesTexto === '') $presentacionesTexto = 'Sin detalle de presentación.';
+                            if ($presentacionesTexto === '') {
+                                $presentacionesTexto = 'Sin detalle de presentación.';
+                            }
                         @endphp
 
                         <tr>
                             <td class="border-1 border-l-0 px-1 text-center">{{ $contador++ }}</td>
                             <td class="border-1 px-1 text-center">{{ $denom }}</td>
-                            <td class="border-1 px-1 text-center">{{ is_numeric($dosisFmt) ? ($dosisFmt . ' mg') : $dosisFmt }}</td>
+                            <td class="border-1 px-1 text-center">
+                                {{ is_numeric($dosisFmt) ? $dosisFmt . ' mg' : $dosisFmt }}</td>
                             <td class="border-1 px-1 text-center">{{ $diluyente }}</td>
                             <td class="border-1 px-1 text-center">{{ $volumenMezcla }}</td>
                             <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
@@ -513,10 +668,33 @@
                             </td>
                         </tr>
                     @endforelse
+                    {{-- ✅ Renglón extra: INFUSOR (si aplica en esta mezcla) --}}
+                    @if ($mezcla->infusor_aplica && ($mezcla->infusor_subtotal ?? 0) > 0)
+                        <tr>
+                            <td class="border-1 border-l-0 px-1 text-center">{{ $contador++ }}</td>
+                            <td class="border-1 px-1 text-center">
+                                {{ 'Infusor: ' . ($mezcla->infusor_nombre ?? '—') }}
+                            </td>
+                            <td class="border-1 px-1 text-center">—</td>
+                            <td class="border-1 px-1 text-center">—</td>
+                            <td class="border-1 px-1 text-center">{{ $volumenMezcla }}</td>
+                            <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
+                            <td class="border-1 px-1 text-center">{{ $remisionMezcla }}</td>
+                            <td class="border-1 px-1 text-center">Pieza</td>
+                            <td class="border-1 px-1 text-center">1</td>
+                            <td class="border-1 px-1 text-center">{{ $money($mezcla->infusor_precio ?? 0) }}</td>
+                            <td class="border-1 border-r-0 px-1 text-center">
+                                {{ $money($mezcla->infusor_subtotal ?? 0) }}</td>
+                        </tr>
+                    @endif
                 @endforeach
             </table>
 
-            <table><tr><td class="text-right">Total {{ $money($totalRemision) }}</td></tr></table>
+            <table>
+                <tr>
+                    <td class="text-right">Total {{ $money($totalRemision) }}</td>
+                </tr>
+            </table>
 
             <table>
                 <tr>
@@ -543,4 +721,5 @@
     @endif
 
 </body>
+
 </html>

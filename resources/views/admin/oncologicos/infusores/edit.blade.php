@@ -14,7 +14,7 @@
         @endif
 
         <form action="{{ route('admin.oncologicos.infusores.update', $infusor) }}" method="POST"
-              class="bg-white p-4 rounded shadow space-y-4">
+            class="bg-white p-4 rounded shadow space-y-4">
             @csrf
             @method('PUT')
 
@@ -24,8 +24,8 @@
                     Nombre genérico
                 </label>
                 <input type="text" name="nombre_generico"
-                       value="{{ old('nombre_generico', $infusor->nombre_generico) }}"
-                       class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
+                    value="{{ old('nombre_generico', $infusor->nombre_generico) }}"
+                    class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
             </div>
 
             {{-- Nombre comercial --}}
@@ -34,18 +34,28 @@
                     Nombre comercial
                 </label>
                 <input type="text" name="nombre_comercial"
-                       value="{{ old('nombre_comercial', $infusor->nombre_comercial) }}"
-                       class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
+                    value="{{ old('nombre_comercial', $infusor->nombre_comercial) }}"
+                    class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
             </div>
+            {{-- Precio --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Precio (MXN)
+                </label>
+
+                <input type="number" name="precio" value="{{ old('precio', $infusor->precio) }}" step="0.01"
+                    min="0" inputmode="decimal" placeholder="0.00"
+                    class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
+            </div>
+
 
             {{-- Lote --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Lote
                 </label>
-                <input type="text" name="lote"
-                       value="{{ old('lote', $infusor->lote) }}"
-                       class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
+                <input type="text" name="lote" value="{{ old('lote', $infusor->lote) }}"
+                    class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
             </div>
 
             {{-- Fecha de caducidad --}}
@@ -54,15 +64,15 @@
                     Fecha de caducidad
                 </label>
                 <input type="date" name="caducidad"
-                       value="{{ old('caducidad', $infusor->caducidad ? $infusor->caducidad->format('Y-m-d') : '') }}"
-                       class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
+                    value="{{ old('caducidad', $infusor->caducidad ? $infusor->caducidad->format('Y-m-d') : '') }}"
+                    class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
             </div>
 
             {{-- Activo --}}
             <div class="flex items-center">
                 <input type="checkbox" name="is_active" id="is_active" value="1"
-                       {{ old('is_active', $infusor->is_active) ? 'checked' : '' }}
-                       class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                    {{ old('is_active', $infusor->is_active) ? 'checked' : '' }}
+                    class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                 <label for="is_active" class="ml-2 text-sm text-gray-700">
                     Activo
                 </label>
@@ -71,11 +81,10 @@
             {{-- Botones --}}
             <div class="text-right">
                 <a href="{{ route('admin.oncologicos.infusores.index') }}"
-                   class="px-4 py-2 mr-2 border rounded text-gray-700 hover:bg-gray-50">
+                    class="px-4 py-2 mr-2 border rounded text-gray-700 hover:bg-gray-50">
                     Cancelar
                 </a>
-                <button type="submit"
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                     Actualizar
                 </button>
             </div>

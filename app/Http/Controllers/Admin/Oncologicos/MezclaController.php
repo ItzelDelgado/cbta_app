@@ -124,7 +124,7 @@ class MezclaController extends Controller
 
         if ($listaId) {
             // Presentaciones ligadas a la lista del usuario
-            $presentacionesLista = \App\Models\Oncologicos\MedicinePresentation::query()
+            $presentacionesLista = MedicinePresentation::query()
                 ->whereHas('lists', function ($q) use ($listaId) {
                     $q->where('medicine_list_id', $listaId);
                 })
@@ -250,7 +250,7 @@ class MezclaController extends Controller
         } else {
             $catalogIds = $medicamentos->pluck('catalog_id')->unique()->values();
 
-            $presentacionesPorCatalogo = \App\Models\Oncologicos\MedicinePresentation::whereIn('catalog_id', $catalogIds)
+            $presentacionesPorCatalogo = MedicinePresentation::whereIn('catalog_id', $catalogIds)
                 ->where('is_available', 1)
                 ->with(['batches' => function ($q) {
                     $q->where('is_current', true);
@@ -320,6 +320,144 @@ class MezclaController extends Controller
 
     public function update(Request $request, $id)
     {
+        // ---------- Helpers internos ----------
+        $generarLotePorMezcla = function (Mezcla $mezcla) {
+            if ($mezcla->lote) return; // no sobreescribir si ya existe
+
+            $hoy = Carbon::today();
+
+            // Consecutivo diario para LOTES: cuenta mezclas del día con lote ya asignado
+            $conteoHoy = Mezcla::whereDate('created_at', $hoy)
+                ->whereNotNull('lote')
+                ->lockForUpdate()
+                ->count();
+
+            $consecutivo = str_pad($conteoHoy + 1, 3, '0', STR_PAD_LEFT);
+
+            // Mes abreviado (ES) sin depender del locale
+            $abbr = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+            $mesAbbr = $abbr[$hoy->month - 1];
+
+            $dia  = $hoy->format('d');
+            $anio = $hoy->format('y');
+
+            // Lote por mezcla: L+DD+MES+YY+###
+            $mezcla->lote = 'L' . $dia . $mesAbbr . $anio . $consecutivo;
+        };
+
+        $asegurarRemisionPorSolicitud = function (SolicitudOnco $solicitud) {
+            if ($solicitud->remision) return $solicitud->remision; // reutiliza
+
+            $hoy = Carbon::today();
+
+            // Consecutivo diario para REMISIONES: cuenta solicitudes del día con remisión ya asignada
+            $conteoHoy = SolicitudOnco::whereDate('created_at', $hoy)
+                ->whereNotNull('remision')
+                ->lockForUpdate()
+                ->count();
+
+            $consecutivo = str_pad($conteoHoy + 1, 3, '0', STR_PAD_LEFT);
+
+            $abbr = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+            $mesAbbr = $abbr[$hoy->month - 1];
+
+            $dia  = $hoy->format('d');
+            $anio = $hoy->format('y');
+
+            // Remisión por solicitud: R+DD+MES+YY+###
+            $solicitud->remision = 'R' . $dia . $mesAbbr . $anio . $consecutivo;
+            $solicitud->save();
+
+            return $solicitud->remision;
+        };
+
+        // ---------- Acciones rápidas ----------
+        if ($request->accion === 'preparada') {
+            $mezcla = Mezcla::with('solicitud')->findOrFail($id);
+            $user   = auth()->user();
+
+            // Obtén un nombre legible del usuario autenticado
+            $preparoNombre = $user?->name
+                ?? ($user?->nombre ?? null)
+                ?? $user?->email
+                ?? 'Usuario';
+
+            DB::transaction(function () use ($mezcla, $generarLotePorMezcla, $asegurarRemisionPorSolicitud, $preparoNombre) {
+                $mezcla->estado = 'preparada';
+
+                // 1) LOTE por mezcla
+                $generarLotePorMezcla($mezcla);
+
+                // 2) REMISIÓN por solicitud (todas las mezclas comparten)
+                if ($mezcla->solicitud) {
+                    $remision = $asegurarRemisionPorSolicitud($mezcla->solicitud);
+                    $mezcla->remision = $remision;
+
+                    // Poner solicitud en "enproceso" si al menos una mezcla ya fue preparada
+                    if ($mezcla->solicitud->estado === 'pendiente') {
+                        if ($mezcla->solicitud->mezclas()->where('estado', 'preparada')->exists()) {
+                            $mezcla->solicitud->estado = 'enproceso';
+                            $mezcla->solicitud->save();
+                        }
+                    }
+                }
+
+                $mezcla->save();
+            });
+
+            return redirect()
+                ->route('admin.oncologicos.mezclas.index', $mezcla->solicitud->id)
+                ->with('success', 'Mezcla marcada como preparada. Se registró el responsable en la inspección.');
+        }
+
+        if ($request->accion === 'entregada') {
+            $mezcla = Mezcla::with('solicitud')->findOrFail($id);
+
+            // Nombre del usuario activo que libera
+            $user = auth()->user();
+            $liberoNombre = $user?->name
+                ?? ($user?->nombre ?? null)
+                ?? $user?->email
+                ?? 'Usuario';
+
+            DB::transaction(function () use ($mezcla, $liberoNombre) {
+                $mezcla->estado = 'entregada';
+                $mezcla->save();
+
+                // Asegurar que exista 1 sola inspección por mezcla y actualizar libero_nombre
+                $inspeccion = InspeccionMezcla::firstOrCreate(
+                    ['mezcla_id' => $mezcla->id],
+                    [
+                        // mínimos para cumplir NOT NULL si nunca se creó antes
+                        'fecha_inspeccion' => now()->toDateString(),
+                        'hora_inspeccion'  => now()->format('H:i:s'),
+                        'reviso_nombre'    => '',
+                        'aprobo_nombre'    => '',
+                    ]
+                );
+
+                // Guardar quién liberó
+                $inspeccion->libero_nombre = $liberoNombre;
+                $inspeccion->save();
+
+                // Si todas las mezclas están entregadas, finaliza la solicitud
+                if ($mezcla->solicitud) {
+                    $todasEntregadas = $mezcla->solicitud->mezclas()
+                        ->where('estado', '!=', 'entregada')
+                        ->doesntExist();
+
+                    if ($todasEntregadas) {
+                        $mezcla->solicitud->estado = 'finalizada';
+                        $mezcla->solicitud->save();
+                    }
+                }
+            });
+
+            return redirect()
+                ->route('admin.oncologicos.mezclas.index', $mezcla->solicitud->id)
+                ->with('success', 'Mezcla marcada como entregada y liberador registrado.');
+        }
+
 
         $request->validate([
             'mezcla_json'      => 'required|json',
@@ -619,12 +757,11 @@ class MezclaController extends Controller
             'medicamentos.diluyente',
             'medicamentos.viaAdministracion',
             'medicamentos.presentacionesUsadas.batch.presentation',
-
-            // ✅ NUEVO (si tienes la relación):
+            'diluentPresentation.diluent', // ✅ para nombre real del diluyente
             'infusor',
         ])->findOrFail($mezcla->id);
 
-        // ===== MEDICAMENTOS =====
+        // ===== MEDICAMENTOS (para tablas) =====
         $medicamentos = $mezcla->medicamentos->map(function ($mm) use ($mezcla) {
             $presentaciones = $mm->presentacionesUsadas ?? collect();
             $firstPres      = $presentaciones->first();
@@ -633,7 +770,7 @@ class MezclaController extends Controller
             $presModel = optional($firstPres)->presentation;
             $catalog   = optional(optional($mm->medicamentoOnco)->catalog);
 
-            $lote = $firstPres->lote_usado ?? ($batch->lote ?? null);
+            $lote      = $firstPres->lote_usado ?? ($batch->lote ?? null);
             $caducidad = $firstPres->caducidad_usada ?? ($batch->caducidad ?? null);
 
             return (object) [
@@ -663,26 +800,25 @@ class MezclaController extends Controller
 
         $hospital = optional($mezcla->solicitud->user->hospital)->name ?? 'No asignado';
 
-        // ✅ ===== EQUIPO INFUSIÓN/INFUSOR =====
+        // ===== EQUIPO INFUSIÓN/INFUSOR =====
         $esSetInfusion = (bool) $mezcla->set_infusion;
 
         if ($esSetInfusion) {
-            // No hay lote/caducidad en DB para set_infusion (por tu esquema actual)
             $equipoInfusion = (object) [
-                'tipo'            => 'set',
-                'lote'            => null,
-                'caducidad'       => null,
+                'tipo'             => 'set',
+                'lote'             => null,
+                'caducidad'        => null,
                 'nombre_comercial' => 'Set de infusión',
-                'nombre_generico' => 'Set de infusión',
+                'nombre_generico'  => 'Set de infusión',
             ];
         } else {
-            $inf = $mezcla->infusor; // viene por with('infusor')
+            $inf = $mezcla->infusor;
             $equipoInfusion = (object) [
-                'tipo'            => 'infusor',
-                'lote'            => optional($inf)->lote,
-                'caducidad'       => optional($inf)->caducidad,
+                'tipo'             => 'infusor',
+                'lote'             => optional($inf)->lote,
+                'caducidad'        => optional($inf)->caducidad,
                 'nombre_comercial' => optional($inf)->nombre_comercial,
-                'nombre_generico' => optional($inf)->nombre_generico,
+                'nombre_generico'  => optional($inf)->nombre_generico,
             ];
         }
 
@@ -691,6 +827,73 @@ class MezclaController extends Controller
         $revisoNombre  = optional($mezcla->inspeccion)->reviso_nombre;
         $preparoNombre = optional($mezcla->inspeccion)->preparo_nombre;
         $liberoNombre  = optional($mezcla->inspeccion)->libero_nombre;
+
+        // ==========================================================
+        // ✅ Cálculos "Extraer / Agregar" (SIN "agregar a X mL de diluyente")
+        //
+        // Interpretación correcta para tu formato:
+        // - Si vas a AGREGAR X mL de medicamento reconstituido,
+        //   entonces debes EXTRAER X mL del diluyente base para mantener el volumen final.
+        //
+        // Por eso:
+        // - Extraer = SUMA(volumen_extraer_ml) de todos los medicamentos
+        // - Agregar = lista por medicamento de su volumen (mL)
+        // - Leyenda = primera legend no vacía
+        // ==========================================================
+
+        $diluyenteBase = optional(optional($mezcla->diluentPresentation)->diluent)->denominacion_generica
+            ?? '—';
+
+        $extraerTotal = 0.0;
+        $detalleAgregar = [];
+        $legendProteccion = null;
+
+        foreach ($mezcla->medicamentos as $mm) {
+            $presentaciones = $mm->presentacionesUsadas ?? collect();
+            $firstPresUsed  = $presentaciones->first();
+            $presModel      = optional($firstPresUsed)->presentation;
+
+            // Leyenda (primera que exista)
+            if (!$legendProteccion) {
+                $candLegend = trim((string) optional($presModel)->legend);
+                if ($candLegend !== '') $legendProteccion = $candLegend;
+            }
+
+            $nombreMed = $mm->nombre_medicamento
+                ?? optional(optional($mm->medicamentoOnco)->catalog)->denominacion
+                ?? 'Medicamento';
+
+            // Si ya tienes dosis_ml, úsalo directo (es el mejor dato)
+            $volExtraer = null;
+            if (!is_null($mm->dosis_ml) && is_numeric($mm->dosis_ml)) {
+                $volExtraer = (float) $mm->dosis_ml;
+            } else {
+                // Si no, lo derivamos:
+                // volumen_extraer_ml = (dosis_mg / mg_frasco) * volumen_diluyente_ml
+                $dosisMg  = (float) ($mm->dosis ?? 0);
+                $mgFrasco = (float) (optional($presModel)->cantidad_medicamento ?? 0); // mg
+                $volDilMl = (float) (optional($presModel)->volumen_diluyente ?? 0);    // mL
+
+                if ($dosisMg > 0 && $mgFrasco > 0 && $volDilMl > 0) {
+                    $volExtraer = ($dosisMg / $mgFrasco) * $volDilMl;
+                }
+            }
+
+            if (is_null($volExtraer) || $volExtraer <= 0) {
+                continue;
+            }
+
+            // Formato bonito
+            $volExtraerFmt = rtrim(rtrim(number_format($volExtraer, 2, '.', ''), '0'), '.');
+
+            $detalleAgregar[] = "{$volExtraerFmt} mL de {$nombreMed}";
+            $extraerTotal += $volExtraer;
+        }
+
+        $extraerTotalFmt = rtrim(rtrim(number_format($extraerTotal, 2, '.', ''), '0'), '.');
+        if ($extraerTotalFmt === '') $extraerTotalFmt = '0';
+
+        if (!$legendProteccion) $legendProteccion = '—';
 
         $pdf = Pdf::loadView('pdfs.oncologicos.orden-de-preparacion', [
             'mezcla'            => $mezcla,
@@ -702,15 +905,17 @@ class MezclaController extends Controller
             'reviso_nombre'     => $revisoNombre,
             'preparo_nombre'    => $preparoNombre,
             'libero_nombre'     => $liberoNombre,
-
-            // ✅ NUEVO
             'equipoInfusion'    => $equipoInfusion,
+
+            // ✅ SOLO lo necesario para tu texto final:
+            'diluyente_base'    => $diluyenteBase,
+            'extraer_ml'        => $extraerTotalFmt,
+            'detalle_agregar'   => $detalleAgregar,
+            'legend_proteccion' => $legendProteccion,
         ])->setPaper('letter', 'portrait');
 
         return $pdf->stream("orden-preparacion-{$mezcla->id}.pdf");
     }
-
-
 
     public function inspeccion(Mezcla $mezcla)
     {
@@ -727,12 +932,17 @@ class MezclaController extends Controller
     }
 
 
+
+
+
     public function etiqueta(Mezcla $mezcla)
     {
-        // 🔹 Cargar también el diluyente y su presentación
+        // ✅ Cargar todo lo necesario (incluye presentaciones usadas -> batch -> presentation)
         $mezcla = Mezcla::with([
             'solicitud',
             'diluentPresentation.diluent',
+            'medicamentos.presentacionesUsadas.batch.presentation',
+            'medicamentos.medicamentoOnco.catalog',
         ])->findOrFail($mezcla->id);
 
         // Buscar si la mezcla tiene aprobación con fechas
@@ -740,26 +950,90 @@ class MezclaController extends Controller
             ->where('solicitud_id', $mezcla->solicitud_id)
             ->first();
 
-        $medicamentos = DB::table('mezcla_medicamentos')
-            ->join('medicine_oncos', 'mezcla_medicamentos.medicamento_id', '=', 'medicine_oncos.id')
-            ->join('medicines_catalog', 'medicine_oncos.catalog_id', '=', 'medicines_catalog.id')
-            ->where('mezcla_medicamentos.mezcla_id', $mezcla->id)
-            ->select(
-                'medicines_catalog.denominacion as nombre',
-                'mezcla_medicamentos.dosis'
-            )
-            ->get();
+        // =========================================
+        // 1) Construir lista de medicamentos (para tu tabla)
+        // =========================================
+        $medicamentosTabla = $mezcla->medicamentos->map(function ($m) {
+            $nombre = optional(optional($m->medicamentoOnco)->catalog)->denominacion
+                ?? $m->nombre_medicamento
+                ?? '—';
 
-        // 🔹 Construir texto de diluyente + presentación (ej. "Cloruro de sodio 0.9% de 50 ml")
+            return (object)[
+                'nombre' => $nombre,
+                'dosis'  => $m->dosis ?? 0,
+            ];
+        });
+
+        // =========================================
+        // 2) Resolver “medicamento más restrictivo”
+        //    (menor stability_hours)
+        // =========================================
+        $chosenLegend = null;
+        $chosenTempMin = null;
+        $chosenTempMax = null;
+        $chosenStabilityHours = null;
+
+        foreach ($mezcla->medicamentos as $m) {
+
+            $presentaciones = $m->presentacionesUsadas ?? collect();
+            $firstUsed = $presentaciones->first();
+
+            // presentation viene por batch.presentation (tu JSON así lo muestra)
+            $presentation = optional(optional($firstUsed)->batch)->presentation
+                ?? optional($firstUsed)->presentation
+                ?? null;
+
+            if (!$presentation) {
+                continue;
+            }
+
+            $stability = isset($presentation->stability_hours) ? (int)$presentation->stability_hours : null;
+
+            // si no hay estabilidad definida, no puede competir como “más restrictivo”
+            if (!$stability || $stability <= 0) {
+                continue;
+            }
+
+            // si es la primera válida o es menor, la elegimos
+            if ($chosenStabilityHours === null || $stability < $chosenStabilityHours) {
+                $chosenStabilityHours = $stability;
+                $chosenLegend = $presentation->legend ?? null;
+                $chosenTempMin = $presentation->temp_min_c ?? null;
+                $chosenTempMax = $presentation->temp_max_c ?? null;
+            }
+        }
+
+        // =========================================
+        // 3) Calcular fecha límite de uso
+        //    basado en fecha de preparación (aprobación)
+        // =========================================
+        $fechaPreparacion = null;
+
+        if (!empty($aprobada?->fecha_hora_preparacion)) {
+            $fechaPreparacion = \Carbon\Carbon::parse($aprobada->fecha_hora_preparacion);
+        } else {
+            // fallback: si no existe aprobación, intenta al menos usar updated_at de mezcla
+            $fechaPreparacion = $mezcla->updated_at
+                ? \Carbon\Carbon::parse($mezcla->updated_at)
+                : null;
+        }
+
+        $fechaLimiteUso = null;
+        if ($fechaPreparacion && $chosenStabilityHours) {
+            $fechaLimiteUso = $fechaPreparacion->copy()->addHours($chosenStabilityHours);
+        }
+
+        // =========================================
+        // 4) Texto del diluyente (igual que ya tenías)
+        // =========================================
         $diluyenteTexto = '—';
         if ($mezcla->diluentPresentation) {
             $dp = $mezcla->diluentPresentation;
-            $nombreDil = optional($dp->diluent)->denominacion_generica; // ej. "Cloruro de sodio 0.9%"
-            $volumen   = $dp->volume_ml;                                // ej. 50
-            $present   = $dp->presentacion;                             // ej. "Bolsa 50 mL"
+            $nombreDil = optional($dp->diluent)->denominacion_generica;
+            $volumen   = $dp->volume_ml;
+            $present   = $dp->presentacion;
 
             if ($nombreDil && $volumen) {
-                // 50 → "50" o "50.5", sin ceros basura
                 $volFmt = rtrim(rtrim(number_format($volumen, 2, '.', ''), '0'), '.');
                 $diluyenteTexto = $nombreDil . ' de ' . $volFmt . ' ml';
             } elseif ($present) {
@@ -767,14 +1041,29 @@ class MezclaController extends Controller
             }
         }
 
-        $customPaper = [0, 0, 368.50, 255.12]; // 9cm x 13cm
+        // ✅ PDF (9cm x 13cm)
+        $customPaper = [0, 0, 368.50, 255.12];
+
         $pdf = Pdf::loadView('pdfs.oncologicos.etiqueta', [
-            'mezcla'        => $mezcla,
-            'solicitud'     => $mezcla->solicitud,
-            'aprobada'      => $aprobada,
-            'medicamentos'  => $medicamentos,
-            'diluyenteTexto' => $diluyenteTexto, // 🔹 pasamos el texto a la vista
+            'mezcla'             => $mezcla,
+            'solicitud'          => $mezcla->solicitud,
+            'aprobada'           => $aprobada,
+
+            // tabla meds
+            'medicamentos'       => $medicamentosTabla,
+
+            // diluyente
+            'diluyenteTexto'     => $diluyenteTexto,
+
+            // ✅ nuevos datos calculados para etiqueta
+            'fechaPreparacion'   => $fechaPreparacion,
+            'fechaLimiteUso'     => $fechaLimiteUso,
+            'legendEtiqueta'     => $chosenLegend,
+            'tempMinEtiqueta'    => $chosenTempMin,
+            'tempMaxEtiqueta'    => $chosenTempMax,
+            'stabilityEtiqueta'  => $chosenStabilityHours,
         ])->setPaper($customPaper, 'landscape');
+
 
         return $pdf->stream();
     }

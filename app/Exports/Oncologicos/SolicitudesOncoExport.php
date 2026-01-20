@@ -1,0 +1,146 @@
+<?php
+
+namespace App\Exports\Oncologicos;
+
+use App\Models\Oncologicos\SolicitudOnco;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+
+class SolicitudesOncoExport implements FromArray, WithHeadings, ShouldAutoSize
+{
+    public function array(): array
+    {
+        $rows = [];
+
+        $solicitudes = SolicitudOnco::with([
+            'user.hospital',
+            'user.medicineList',
+            'mezclas.medicamentos.medicamentoOnco.catalog',
+            'mezclas.medicamentos.diluyente',
+            'mezclas.medicamentos.presentacionesUsadas.batch.presentation',
+        ])->get();
+
+        foreach ($solicitudes as $solicitud) {
+
+            $hospital = optional($solicitud->user->hospital)->name;
+            $usuario  = optional($solicitud->user)->name . ' ' . optional($solicitud->user)->lastname;
+            $lista    = optional($solicitud->user->medicineList);
+            $listaCharge = $lista->charge_by ?? 'frasco';
+
+            $cfgPorPresentacion = collect();
+
+            if ($lista) {
+                $cfgPorPresentacion = DB::table('medicine_list_presentation')
+                    ->where('medicine_list_id', $lista->id)
+                    ->get()
+                    ->keyBy('medicine_presentation_id');
+            }
+
+            foreach ($solicitud->mezclas as $mezcla) {
+                foreach ($mezcla->medicamentos as $med) {
+
+                    // ===== LÓGICA DE COBRO (MISMA QUE REMISIÓN) =====
+                    $unidadCobro = '';
+                    $cantidad    = 0;
+                    $precioUnit  = 0;
+                    $subtotal    = 0;
+
+                    $presentaciones = $med->presentacionesUsadas ?? collect();
+
+                    if ($presentaciones->isEmpty()) {
+                        $unidadCobro = $listaCharge === 'mg' ? 'mg' : 'frasco';
+                        $cantidad    = $unidadCobro === 'mg' ? (float)$med->dosis : 1;
+                    } else {
+                        $first = $presentaciones->first();
+                        $presentationId =
+                            optional($first->batch)->medicine_presentation_id
+                            ?? optional(optional($first->batch)->presentation)->id;
+
+                        $cfg = $cfgPorPresentacion->get($presentationId);
+                        $chargeBy = $cfg->charge_by ?? $listaCharge;
+
+                        $unidadCobro = $chargeBy === 'mg' ? 'mg' : 'frasco';
+
+                        if ($chargeBy === 'frasco') {
+                            foreach ($presentaciones as $pu) {
+                                $pid =
+                                    optional($pu->batch)->medicine_presentation_id
+                                    ?? optional(optional($pu->batch)->presentation)->id;
+
+                                $cfgPres = $cfgPorPresentacion->get($pid);
+                                $precio  = (float)($cfgPres->precio ?? 0);
+                                $unidades = (float)($pu->unidades_usadas ?? 1);
+
+                                $cantidad += $unidades;
+                                $subtotal += $precio * $unidades;
+                            }
+
+                            $precioUnit = $cantidad > 0 ? $subtotal / $cantidad : 0;
+                        } else {
+                            $cantidad   = (float)$med->dosis;
+                            $precioUnit = (float)($cfg->precio_mg_override ?? 0);
+                            $subtotal   = $cantidad * $precioUnit;
+                        }
+                    }
+
+                    $rows[] = [
+                        $hospital,
+                        $usuario,
+                        $lista->name ?? 'N/A',
+                        $solicitud->id,
+                        $solicitud->created_at,
+                        $solicitud->estado,
+
+                        $mezcla->id,
+                        $mezcla->estado,
+                        $mezcla->volumen_dilucion,
+                        $mezcla->tiempo_infusion,
+                        $mezcla->set_infusion ? 'Sí' : 'No',
+
+                        optional($med->medicamentoOnco->catalog)->denominacion_comercial,
+                        $med->dosis,
+                        $unidadCobro,
+                        $cantidad,
+                        round($precioUnit, 4),
+                        round($subtotal, 2),
+
+                        optional($med->diluyente)->denominacion_generica,
+                        $mezcla->remision,
+                    ];
+                }
+            }
+        }
+
+        return $rows;
+    }
+
+    public function headings(): array
+    {
+        return [
+            'Hospital',
+            'Usuario',
+            'Lista de precios',
+            'ID Solicitud',
+            'Fecha solicitud',
+            'Estado solicitud',
+
+            'ID Mezcla',
+            'Estado mezcla',
+            'Volumen dilución',
+            'Tiempo infusión',
+            'Set infusión',
+
+            'Medicamento',
+            'Dosis',
+            'Unidad cobro',
+            'Cantidad cobro',
+            'Precio unitario',
+            'Subtotal',
+
+            'Diluyente',
+            'Remisión',
+        ];
+    }
+}

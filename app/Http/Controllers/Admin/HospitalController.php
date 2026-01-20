@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\Hospital\MezclasOncoPorHospitalExport;
 use App\Http\Controllers\Controller;
 use App\Models\Hospital;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class HospitalController extends Controller
 {
@@ -31,8 +33,8 @@ class HospitalController extends Controller
     public function store(Request $request)
     {
         $request->validate(([
-            'name_hp'=>'required|string|max:255',
-            'adress'=>'required|string|max:400',
+            'name_hp' => 'required|string|max:255',
+            'adress' => 'required|string|max:400',
         ]));
         //Para la solicitud
         $datos = $request->all();
@@ -41,10 +43,12 @@ class HospitalController extends Controller
 
         Hospital::create($datos);
 
-        session()->flash('swal',[
-            'title'=>"¡Bien hecho!",
-            'text'=>"El hospital se ha creado con éxito.",
-            'icon'=>"success"
+        session()->flash(
+            'swal',
+            [
+                'title' => "¡Bien hecho!",
+                'text' => "El hospital se ha creado con éxito.",
+                'icon' => "success"
 
             ]
         );
@@ -66,7 +70,7 @@ class HospitalController extends Controller
     public function edit(Hospital $hospital)
     {
         //return $hospital;
-        return view('admin.hospitals.edit',compact('hospital'));
+        return view('admin.hospitals.edit', compact('hospital'));
     }
 
     /**
@@ -75,16 +79,18 @@ class HospitalController extends Controller
     public function update(Request $request, Hospital $hospital)
     {
         $request->validate(([
-            'name'=>'required|string|max:255',
-            'adress'=>'required|string|max:400',
-            'is_active'=>'required|boolean',
+            'name' => 'required|string|max:255',
+            'adress' => 'required|string|max:400',
+            'is_active' => 'required|boolean',
         ]));
 
         $hospital->update($request->all());
-        session()->flash('swal',[
-            'title'=>"¡Bien hecho!",
-            'text'=>"El hospital se ha actualizado con éxito.",
-            'icon'=>"success"
+        session()->flash(
+            'swal',
+            [
+                'title' => "¡Bien hecho!",
+                'text' => "El hospital se ha actualizado con éxito.",
+                'icon' => "success"
             ]
         );
         return redirect()->route('admin.hospitals.index');
@@ -99,4 +105,12 @@ class HospitalController extends Controller
     // {
     //     //
     // }
+
+    public function exportarMezclasOnco(Hospital $hospital)
+    {
+        return Excel::download(
+            new MezclasOncoPorHospitalExport($hospital->id),
+            'reporte_mezclas_onco_hospital_' . $hospital->id . '.xlsx'
+        );
+    }
 }

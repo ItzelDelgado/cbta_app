@@ -35,6 +35,11 @@ class MedicineList extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function users()
+    {
+        return $this->hasMany(User::class, 'medicine_list_id');
+    }
+
     // Helpers opcionales
     public function chargeByMg(): bool
     {

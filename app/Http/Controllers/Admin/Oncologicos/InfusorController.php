@@ -26,34 +26,25 @@ class InfusorController extends Controller
         return view('admin.oncologicos.infusores.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        // Validación básica
         $validated = $request->validate([
             'nombre_generico'   => 'nullable|string|max:255',
             'nombre_comercial'  => 'nullable|string|max:255',
+            'precio'            => 'required|numeric|min:0', // o nullable|numeric|min:0
             'lote'              => 'nullable|string|max:100',
             'caducidad'         => 'nullable|date',
             'is_active'         => 'boolean',
         ]);
 
-        // Guardar
+        // Si quieres que siempre exista:
+        $validated['is_active'] = $request->boolean('is_active');
+
         Infusor::create($validated);
 
         return redirect()
             ->route('admin.oncologicos.infusores.index')
             ->with('success', 'Infusor creado correctamente');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
     }
 
     /**
@@ -64,14 +55,12 @@ class InfusorController extends Controller
         return view('admin.oncologicos.infusores.edit', compact('infusor'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Infusor $infusor)
     {
         $data = $request->validate([
             'nombre_generico'  => ['nullable', 'string', 'max:255'],
             'nombre_comercial' => ['nullable', 'string', 'max:255'],
+            'precio'           => ['required', 'numeric', 'min:0'], // o ['nullable','numeric','min:0']
             'lote'             => ['nullable', 'string', 'max:100'],
             'caducidad'        => ['nullable', 'date'],
             'is_active'        => ['nullable', 'boolean'],

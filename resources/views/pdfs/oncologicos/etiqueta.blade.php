@@ -156,136 +156,205 @@
     </style>
 </head>
 
+@php
+    $fmtDate = function ($v) {
+        if (!$v) {
+            return '—';
+        }
+        try {
+            return \Carbon\Carbon::parse($v)->format('d/m/Y');
+        } catch (\Exception $e) {
+            return '—';
+        }
+    };
+
+    $fmtDateTime = function ($v) {
+        if (!$v) {
+            return '—';
+        }
+        try {
+            return \Carbon\Carbon::parse($v)->format('d/m/Y H:i');
+        } catch (\Exception $e) {
+            return '—';
+        }
+    };
+
+    $fmtTime = function ($v) {
+        if (!$v) {
+            return '—';
+        }
+        try {
+            return \Carbon\Carbon::parse($v)->format('H:i');
+        } catch (\Exception $e) {
+            return '—';
+        }
+    };
+
+    // Edad
+    $edadTexto = '—';
+    if (!empty($solicitud->fecha_nacimiento)) {
+        $fnac = \Carbon\Carbon::parse($solicitud->fecha_nacimiento);
+        $hoy = \Carbon\Carbon::now();
+        $diff = $fnac->diff($hoy);
+        if ($diff->y > 0) {
+            $edadTexto = $diff->y . ' años';
+        } elseif ($diff->m > 0) {
+            $edadTexto = $diff->m . ' meses';
+        } else {
+            $edadTexto = $diff->d . ' días';
+        }
+    }
+
+    // Preparación (fecha/hora)
+    $prep = $fechaPreparacion
+        ? $fechaPreparacion
+        : (!empty($aprobada?->fecha_hora_preparacion)
+            ? \Carbon\Carbon::parse($aprobada->fecha_hora_preparacion)
+            : null);
+
+    // Límite (ya calculado en controller)
+    $limite = $fechaLimiteUso;
+
+    // Leyenda y condiciones
+    $legend = $legendEtiqueta ?? null;
+    $tmin = $tempMinEtiqueta ?? null;
+    $tmax = $tempMaxEtiqueta ?? null;
+    $stab = $stabilityEtiqueta ?? null;
+@endphp
 
 <body>
-    <div class="border-1 border-dotted">
-        <div>
-            <table>
-                <tr class="text-center">
-                    <td style="font-size: 11px">
-                        <strong>ETIQUETA <br> MEZCLAS ESTÉRILES ONCOLÓGICAS</strong>
-                    </td>
-                </tr>
-            </table>
+    <div class="border-1">
+        <table>
+            <tr class="text-center">
+                <td style="font-size: 11px">
+                    <strong>ETIQUETA <br> MEZCLAS ESTÉRILES ONCOLÓGICAS</strong>
+                </td>
+            </tr>
+        </table>
 
-            <table>
-                <tr>
-                    <td class="px-1">Cliente:</td>
-                    <td class="px-1">Lote: {{ $mezcla->lote ?? '—' }}</td>
-                </tr>
-                <tr>
-                    <td class="px-1">Paciente: {{ $solicitud->nombre_paciente }}</td>
-                    <td class="px-1">
-                        F. Nac:
-                        {{ $solicitud->fecha_nacimiento ? \Carbon\Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') : '—' }}
-                    </td>
-                </tr>
-                <tr>
-                    <td class="px-1">
-                        Edad:
-                        @if ($solicitud->fecha_nacimiento)
-                            @php
-                                $fnac = \Carbon\Carbon::parse($solicitud->fecha_nacimiento);
-                                $hoy = \Carbon\Carbon::now();
-                                $diff = $fnac->diff($hoy);
-                                if ($diff->y > 0) {
-                                    $edad = $diff->y . ' años';
-                                } elseif ($diff->m > 0) {
-                                    $edad = $diff->m . ' meses';
-                                } else {
-                                    $edad = $diff->d . ' días';
-                                }
-                            @endphp
-                            {{ $edad }}
-                        @else
-                            —
-                        @endif
-                    </td>
-                    <td class="px-1">Género: {{ $solicitud->sexo ?? '—' }}</td>
-                </tr>
-                <tr>
-                    <td class="px-1">Alergias: {{ $solicitud->alergias ?? '—' }}</td>
+        <table>
+            <tr>
+                <td class="px-1">Cliente:</td>
+                <td class="px-1 text-right">Lote: {{ $mezcla->lote ?? '—' }}</td>
+            </tr>
+            <tr>
+                <td class="px-1">Paciente: {{ $solicitud->nombre_paciente ?? '—' }}</td>
+                <td class="px-1 text-right">
+                    F. Nac:
+                    {{ !empty($solicitud->fecha_nacimiento) ? \Carbon\Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') : '—' }}
+                </td>
+            </tr>
+            <tr>
+                <td class="px-1">Edad: {{ $edadTexto }}</td>
+                <td class="px-1 text-right">Género: {{ $solicitud->sexo ?? '—' }}</td>
+            </tr>
+            <tr>
+                <td class="px-1">Alergias: {{ $solicitud->alergias ?? '—' }}</td>
+                <td class="px-1 text-right"></td>
+            </tr>
+            <tr>
+                <td class="px-1">Médico: {{ $solicitud->nombre_medico ?? '—' }}</td>
+                <td class="px-1 text-right">No. Registro: {{ $solicitud->registro_paciente ?? '—' }}</td>
+            </tr>
 
-                </tr>
+            <tr>
+                <td colspan="2" class="px-1 sep">
+                    <strong>Medicamentos:</strong>
+                </td>
+            </tr>
 
+            @foreach ($medicamentos as $med)
                 <tr>
-                    <td class="px-1">Médico: {{ $solicitud->nombre_medico }}</td>
-                    <td class="px-1">No. Registro: {{ $solicitud->registro_paciente ?? '—' }}</td>
+                    <td class="px-1 text-left">{{ $med->nombre ?? '—' }}</td>
+                    <td class="px-1 text-right">{{ $med->dosis ?? 0 }} mg</td>
                 </tr>
+            @endforeach
 
-                <tr>
-                    <td colspan="2" class="px-1"
-                        style="border-top: 2px dotted black; border-bottom: 2px dotted black;">
-                        <strong>Medicamentos:</strong>
-                    </td>
-                </tr>
+            <tr>
+                <td class="px-1" colspan="2">
+                    <strong>Diluyente:</strong> {{ $diluyenteTexto ?? '—' }}
+                </td>
+            </tr>
+        </table>
 
-                @foreach ($medicamentos as $med)
-                    <tr>
-                        <td class="px-1 text-left">{{ $med->nombre }}</td>
-                        <td class="px-1 text-left">{{ $med->dosis }} mg</td>
-                    </tr>
-                @endforeach
+        <!-- Fecha y hora de preparación -->
+        <table>
+            <tr>
+                <td class="px-1 sep">
+                    Fecha y hora de preparación:
+                    {{ $prep ? $prep->format('d/m/Y H:i') : '—' }}
+                </td>
+            </tr>
+        </table>
 
-                <tr>
-                    <td class="px-1" colspan="2">
-                        <strong>Diluyente:</strong> {{ $diluyenteTexto ?? '—' }}
-                    </td>
-                </tr>
+        <!-- Fecha y hora límite de uso -->
+        <table>
+            <tr>
+                <td class="px-1">
+                    Úsese antes de:
+                    {{ $limite ? $limite->format('d/m/Y H:i') : '—' }}
+                </td>
+                <td class="px-1 text-right">
+                    Vel. de infusión:
+                    {{ $mezcla->tiempo_infusion > 0
+                        ? number_format((float) $mezcla->volumen_dilucion / (float) $mezcla->tiempo_infusion, 3, '.', '')
+                        : '—' }}
+                </td>
+            </tr>
+            <tr>
+                <td class="px-1">
+                    A las:
+                    {{ $limite ? $limite->format('H:i') : '—' }}
+                </td>
+                <td class="px-1 text-right">
+                    Administrar en: {{ $mezcla->tiempo_infusion ?? '—' }} min
+                </td>
+            </tr>
+        </table>
 
+        <!-- Leyenda + condiciones -->
+        <table>
+            <tr>
+                <td class="px-1 sep-top">
+                    Leyenda de proyección:
+                </td>
+            </tr>
+            <tr>
+                <td class="px-1">
+                    {{ $legend ?: '—' }}
+                </td>
+            </tr>
 
-            </table>
+            <tr>
+                <td class="px-1">
+                    <strong>Condiciones:</strong>
+                    @php
+                        $cond = [];
+                        if ($tmin !== null || $tmax !== null) {
+                            $cond[] =
+                                'Temp. ' .
+                                ($tmin !== null ? $tmin : '—') .
+                                '–' .
+                                ($tmax !== null ? $tmax : '—') .
+                                ' °C';
+                        }
+                        if ($stab) {
+                            $cond[] = 'Estabilidad ' . $stab . ' h';
+                        }
+                    @endphp
 
-            <!-- Fecha y hora de preparación -->
-            <table>
-                <tr>
-                    <td style="border-top: 2px dotted black; border-bottom: 2px dotted black; border-left: none; border-right: none;"
-                        class="px-1">
-                        Fecha y hora de preparación:
-                        {{ $aprobada ? \Carbon\Carbon::parse($aprobada->fecha_hora_preparacion)->format('d/m/Y H:i') : '—' }}
-                    </td>
-                </tr>
-            </table>
+                    {{ count($cond) ? implode(' | ', $cond) : '—' }}
+                </td>
+            </tr>
 
-            <!-- Fecha y hora límite de uso -->
-            <table>
-                <tr>
-                    <td class="px-1">
-                        Úsese antes de:
-                        {{ $aprobada && $aprobada->fecha_hora_limite_uso ? \Carbon\Carbon::parse($aprobada->fecha_hora_limite_uso)->format('d/m/Y H:i') : '—' }}
-                    </td>
-                    <td class="px-1">
-                        Vel. de infusión:
-                        {{ $mezcla->tiempo_infusion > 0
-                            ? number_format($mezcla->volumen_dilucion / $mezcla->tiempo_infusion, 3, '.', '')
-                            : '—' }}
-                    </td>
-                </tr>
-                <tr>
-                    <td class="px-1">
-                        A las:
-                        {{ $aprobada && $aprobada->fecha_hora_limite_uso
-                            ? \Carbon\Carbon::parse($aprobada->fecha_hora_limite_uso)->format('H:i')
-                            : '—' }}
-                    </td>
-                    <td class="px-1">Administrar en: {{ $mezcla->tiempo_infusion }} min IV</td>
-                </tr>
-            </table>
-
-            <!-- Leyenda -->
-            <table>
-                <tr>
-                    <td style="border-top: 2px dotted black;" class="px-1">
-                        Leyenda de proyección: {{ $mezcla->leyenda ?? '—' }}
-                    </td>
-                </tr>
-                <tr>
-                    <td class="px-1">Preparada por:</td>
-                </tr>
-            </table>
-        </div>
+            <tr>
+                <td class="px-1">Preparada por:</td>
+            </tr>
+        </table>
     </div>
 </body>
+
+
 
 
 </html>

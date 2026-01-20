@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\Oncologicos;
 
+use App\Exports\Oncologicos\SolicitudesOncoExport as OncologicosSolicitudesOncoExport;
 use App\Http\Controllers\Controller;
 use App\Models\Oncologicos\MedicineOnco;
 use App\Models\Oncologicos\Mezcla;
@@ -12,6 +13,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\SolicitudesOncoExport;
+
 
 class SolicitudController extends Controller
 {
@@ -743,79 +747,97 @@ class SolicitudController extends Controller
     {
         $solicitud_onco = SolicitudOnco::with([
             'user.hospital',
-            'user.medicineList.distributor', // ✅ traer distributor en la misma carga
+            'user.medicineList.distributor',
+            'mezclas.infusor', // ✅ para precio del infusor
             'mezclas.medicamentos.medicamentoOnco.catalog',
             'mezclas.medicamentos.diluyente',
             'mezclas.medicamentos.presentacionesUsadas.batch.presentation',
         ])->findOrFail($solicitud->id);
 
-        // ✅ Distributor (puede venir null)
         $distributor = optional(optional($solicitud_onco->user)->medicineList)->distributor;
 
-        // Lista de precios asignada al usuario
+        // ✅ Lista de precios asignada al usuario
         $lista       = optional($solicitud_onco->user)->medicineList;
-        $listaCharge = $lista->charge_by ?? null;
+        $listaCharge = $lista->charge_by ?? 'frasco';
+
+        // ✅ Config por presentación (medicine_list_presentation)
+        $cfgPorPresentacion = collect();
+
+        if ($lista) {
+            $cfgPorPresentacion = DB::table('medicine_list_presentation')
+                ->where('medicine_list_id', $lista->id)
+                ->get()
+                ->keyBy('medicine_presentation_id');
+        }
 
         $totalRemision = 0.0;
 
         foreach ($solicitud_onco->mezclas as $mezcla) {
+
+            // =========================================================
+            // ✅ 1) CALCULO MEDICAMENTOS (lo tuyo tal cual)
+            // =========================================================
             foreach ($mezcla->medicamentos as $med) {
 
                 $presentaciones = $med->presentacionesUsadas ?? collect();
 
-                $chargeBy = $med->charge_by ?? $listaCharge ?? 'frasco';
-
                 $cantidad    = 0.0;
                 $precioUnit  = 0.0;
                 $subtotal    = 0.0;
-                $unidadCobro = $chargeBy === 'mg' ? 'mg' : 'frasco';
+                $unidadCobro = null;
 
-                if ($chargeBy === 'mg') {
-                    $dosis = (float) ($med->dosis ?? 0);
-
-                    $precioMg = (float) ($med->precio_mg_snapshot ?? 0);
-
-                    if ($precioMg <= 0) {
-                        $precioMg = (float) (optional($med->medicamentoOnco)->precio_mg ?? 0);
-                    }
-
-                    if ($precioMg <= 0 && $presentaciones->isNotEmpty()) {
-                        $firstPres    = $presentaciones->first();
-                        $precioFrasco = (float) ($firstPres->precio_frasco_snapshot ?? 0);
-                        $mgFrasco     = (float) (optional($firstPres->presentation)->cantidad_medicamento ?? 0);
-
-                        if ($precioFrasco > 0 && $mgFrasco > 0) {
-                            $precioMg = $precioFrasco / $mgFrasco;
-                        }
-                    }
-
-                    $precioUnit = $precioMg > 0 ? $precioMg : 0.0;
-                    $cantidad   = $dosis;
-                    $subtotal   = $cantidad * $precioUnit;
+                if ($presentaciones->isEmpty()) {
+                    $unidadCobro = $listaCharge === 'mg' ? 'mg' : 'frasco';
+                    $cantidad    = $unidadCobro === 'mg' ? (float)($med->dosis ?? 0) : 1;
+                    $precioUnit  = 0.0;
+                    $subtotal    = 0.0;
                 } else {
-                    $unidades        = (float) ($presentaciones->sum('unidades_usadas') ?: 0);
-                    $subtotalFrascos = (float) $presentaciones->sum('subtotal');
 
-                    if ($unidades <= 0) {
-                        $unidades = 1;
-                    }
+                    $first = $presentaciones->first();
 
-                    if ($subtotalFrascos > 0) {
-                        $precioUnit = $subtotalFrascos / $unidades;
-                        $subtotal   = $subtotalFrascos;
+                    $presentationId =
+                        optional($first->batch)->medicine_presentation_id
+                        ?? optional(optional($first->batch)->presentation)->id
+                        ?? optional($first->presentation)->id;
+
+                    $cfg = $presentationId ? $cfgPorPresentacion->get($presentationId) : null;
+
+                    $chargeBy = $cfg->charge_by ?? $listaCharge;
+                    $unidadCobro = $chargeBy === 'mg' ? 'mg' : 'frasco';
+
+                    if ($chargeBy === 'frasco') {
+
+                        $subtotal = 0.0;
+                        $unidadesTotales = 0.0;
+
+                        foreach ($presentaciones as $pu) {
+
+                            $pid =
+                                optional($pu->batch)->medicine_presentation_id
+                                ?? optional(optional($pu->batch)->presentation)->id
+                                ?? optional($pu->presentation)->id;
+
+                            $cfgPres = $pid ? $cfgPorPresentacion->get($pid) : null;
+
+                            $precioFrascoLista = (float)($cfgPres->precio ?? 0);
+                            $unidades = (float)($pu->unidades_usadas ?? 0);
+                            if ($unidades <= 0) $unidades = 1;
+
+                            $unidadesTotales += $unidades;
+                            $subtotal += ($precioFrascoLista * $unidades);
+                        }
+
+                        $cantidad = $unidadesTotales;
+                        $precioUnit = $unidadesTotales > 0 ? ($subtotal / $unidadesTotales) : 0.0;
                     } else {
-                        $firstPres    = $presentaciones->first();
-                        $precioFrasco = (float) (
-                            $firstPres->precio_frasco_snapshot
-                            ?? optional($firstPres->presentation)->precio_frasco
-                            ?? 0
-                        );
 
-                        $precioUnit = $precioFrasco;
-                        $subtotal   = $precioFrasco * $unidades;
+                        $dosis = (float)($med->dosis ?? 0);
+                        $precioMgLista = (float)($cfg->precio_mg_override ?? 0);
+
+                        $cantidad   = $dosis;
+                        $precioUnit = $precioMgLista;
+                        $subtotal   = $cantidad * $precioUnit;
                     }
-
-                    $cantidad = $unidades;
                 }
 
                 $precioUnit = round($precioUnit, 4);
@@ -828,18 +850,61 @@ class SolicitudController extends Controller
 
                 $totalRemision += $subtotal;
             }
+
+            // =========================================================
+            // ✅ 2) SUMAR INFUSOR SI SE REQUIERE (por mezcla)
+            // =========================================================
+
+            // A) ¿La mezcla usa infusor? (por flag set_infusion o por si trae infusor_id)
+            $mezclaUsaInfusor = (bool)($mezcla->set_infusion ?? false) || !empty($mezcla->infusor_id);
+
+            // B) ¿Algún medicamento requiere infusor? (requires_infusor del catálogo)
+            $requierePorCatalogo = false;
+            foreach ($mezcla->medicamentos as $med) {
+                $requires = (bool) optional(optional($med->medicamentoOnco)->catalog)->requires_infusor;
+                if ($requires) {
+                    $requierePorCatalogo = true;
+                    break;
+                }
+            }
+
+            // C) Regla final
+            $infusorAplica = $mezclaUsaInfusor && $requierePorCatalogo && !empty($mezcla->infusor);
+
+            if ($infusorAplica) {
+                $precioInfusor = (float)($mezcla->infusor->precio ?? 0);
+
+                // Guardamos datos para la vista
+                $mezcla->setAttribute('infusor_aplica', true);
+                $mezcla->setAttribute('infusor_nombre', trim(($mezcla->infusor->nombre_generico ?? '') . ' ' . ($mezcla->infusor->nombre_comercial ?? '')) ?: 'Infusor');
+                $mezcla->setAttribute('infusor_precio', round($precioInfusor, 2));
+                $mezcla->setAttribute('infusor_subtotal', round($precioInfusor, 2));
+
+                // Sumamos al total
+                $totalRemision += round($precioInfusor, 2);
+            } else {
+                // Para que la vista no truene
+                $mezcla->setAttribute('infusor_aplica', false);
+                $mezcla->setAttribute('infusor_precio', 0);
+                $mezcla->setAttribute('infusor_subtotal', 0);
+            }
         }
 
         $pdf = Pdf::loadView('pdfs.oncologicos.remision', [
             'solicitud'     => $solicitud_onco,
             'mezclas'       => $solicitud_onco->mezclas,
             'fechaEmision'  => now(),
-            'totalRemision' => $totalRemision,
-
-            // ✅ nuevo
+            'totalRemision' => round($totalRemision, 2),
             'distributor'   => $distributor,
         ])->setPaper('letter', 'portrait');
 
         return $pdf->stream();
+    }
+
+
+
+    public function exportarExcel()
+    {
+        return Excel::download(new OncologicosSolicitudesOncoExport, 'solicitudes_oncologicas.xlsx');
     }
 }

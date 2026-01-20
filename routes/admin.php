@@ -58,7 +58,9 @@ Route::resource('nutricionales/medicines', MedicineController::class)
     ->middleware(['can:medicamentos_nutricionales'])
     ->names('nutricionales.medicines');
 
-
+Route::get('hospitals/{hospital}/reporte-mezclas-onco', [HospitalController::class, 'exportarMezclasOnco'])
+    ->name('hospitals.exportarMezclasOnco')
+    ->middleware(['can:hospitales']);
 
 // Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy'])
 //     ->middleware(['can:solicitudes']);
@@ -91,13 +93,13 @@ Route::put('nutricionales/solicitudes/{solicitud}', [SolicitudController::class,
 // ->middleware(['can:solicitudes_destroy']);
 
 
-
-
 // También puedes excluir la ruta de eliminación
 // Route::resource('solicitudes', SolicitudController::class)->parameter('solicitudes', 'solicitud')->except(['destroy']);
 
 Route::get('nutricionales/solicitudes/solicitud/{solicitud}', [SolicitudController::class, 'solicitud'])->name('nutricionales.solicitudes.solicitud')
     ->middleware(['can:nutricionales_solicitudes_index']);
+
+
 
 Route::get('nutricionales/solicitudes/orden-de-preparacion/{solicitud}', [SolicitudController::class, 'ordenPreparacion'])->name('nutricionales.solicitudes.ordenPreparacion')
     ->middleware(['can:nutricionales_solicitudes_index']);
@@ -113,26 +115,42 @@ Route::get('nutricionales/solicitudes/etiqueta/{solicitud}', [SolicitudControlle
 
 // RUTAS PARA ONCOLOGICOS
 
-Route::get('oncologicos/solicitudes', [OncologicosSolicitudController::class, 'index'])->name('oncologicos.solicitudes.index');
+Route::get('oncologicos/solicitudes/exportar', [OncologicosSolicitudController::class, 'exportarExcel'])
+    ->name('oncologicos.solicitudes.exportar')
+    ->middleware(['can:oncologicos_solicitudes_index']);
 
-Route::get('oncologicos/solicitudes/create', [OncologicosSolicitudController::class, 'create'])->name('oncologicos.solicitudes.create');
+Route::get('oncologicos/solicitudes', [OncologicosSolicitudController::class, 'index'])->name('oncologicos.solicitudes.index')
+    ->middleware(['can:oncologicos_solicitudes_index']);
 
-Route::post('oncologicos/solicitudes', [OncologicosSolicitudController::class, 'store'])->name('oncologicos.solicitudes.store');
+Route::get('oncologicos/solicitudes/create', [OncologicosSolicitudController::class, 'create'])->name('oncologicos.solicitudes.create')
+    ->middleware(['can:oncologicos_solicitudes_create']);
 
-Route::get('oncologicos/solicitudes/{id}', [OncologicosSolicitudController::class, 'show'])->name('oncologicos.solicitudes.show');
+Route::post('oncologicos/solicitudes', [OncologicosSolicitudController::class, 'store'])->name('oncologicos.solicitudes.store')
+    ->middleware(['can:oncologicos_solicitudes_store']);
 
-Route::get('oncologicos/solicitudes/{id}/edit', [OncologicosSolicitudController::class, 'edit'])->name('oncologicos.solicitudes.edit');
+Route::get('oncologicos/solicitudes/{id}', [OncologicosSolicitudController::class, 'show'])->name('oncologicos.solicitudes.show')
+    ->middleware(['can:oncologicos_solicitudes_show']);
 
-Route::put('oncologicos/solicitudes/{id}', [OncologicosSolicitudController::class, 'update'])->name('oncologicos.solicitudes.update');
+Route::get('oncologicos/solicitudes/{id}/edit', [OncologicosSolicitudController::class, 'edit'])->name('oncologicos.solicitudes.edit')
+    ->middleware(['can:oncologicos_solicitudes_edit']);
+
+Route::put('oncologicos/solicitudes/{id}', [OncologicosSolicitudController::class, 'update'])->name('oncologicos.solicitudes.update')
+    ->middleware(['can:oncologicos_solicitudes_update']);
 
 //RUTAS PARA MEZCLAS ONCOLOGICAS
 
-Route::get('oncologicos/solicitudes/mezclas/{mezcla}', [MezclaController::class, 'index'])->name('oncologicos.mezclas.index');
-Route::get('oncologicos/mezclas/create', [MezclaController::class, 'create'])->name('oncologicos.mezclas.create');
-Route::get('oncologicos/mezclas/{mezcla}', [MezclaController::class, 'show'])->name('oncologicos.mezclas.show');
-Route::post('oncologicos/mezclas', [MezclaController::class, 'store'])->name('oncologicos.mezclas.store');
-Route::get('oncologicos/mezclas/{mezcla}/edit', [MezclaController::class, 'edit'])->name('oncologicos.mezclas.edit');
-Route::put('oncologicos/mezclas/{mezcla}', [MezclaController::class, 'update'])->name('oncologicos.mezclas.update');
+Route::get('oncologicos/solicitudes/mezclas/{mezcla}', [MezclaController::class, 'index'])->name('oncologicos.mezclas.index')
+    ->middleware(['can:oncologicos_mezclas_index']);
+Route::get('oncologicos/mezclas/create', [MezclaController::class, 'create'])->name('oncologicos.mezclas.create')
+    ->middleware(['can:oncologicos_mezclas_create']);
+Route::get('oncologicos/mezclas/{mezcla}', [MezclaController::class, 'show'])->name('oncologicos.mezclas.show')
+    ->middleware(['can:oncologicos_mezclas_show']);
+Route::post('oncologicos/mezclas', [MezclaController::class, 'store'])->name('oncologicos.mezclas.store')
+    ->middleware(['can:oncologicos_mezclas_store']);
+Route::get('oncologicos/mezclas/{mezcla}/edit', [MezclaController::class, 'edit'])->name('oncologicos.mezclas.edit')
+    ->middleware(['can:oncologicos_mezclas_edit']);
+Route::put('oncologicos/mezclas/{mezcla}', [MezclaController::class, 'update'])->name('oncologicos.mezclas.update')
+    ->middleware(['can:oncologicos_mezclas_update']);
 
 // PDF para solicitud de mezcla oncologicas
 
@@ -159,30 +177,29 @@ Route::get('oncologicos/mezclas/remision/{solicitud}', [OncologicosSolicitudCont
 // Listado
 Route::get('oncologicos/diluents', [DiluentController::class, 'index'])
     ->name('oncologicos.diluents.index')
-    ->middleware(['can:oncologicos_mezclas_index']);
+    ->middleware(['can:oncologicos_diluents_index']);
 
 // Crear
 Route::get('oncologicos/diluents/crear', [DiluentController::class, 'create'])
     ->name('oncologicos.diluents.create')
-    ->middleware(['can:oncologicos_mezclas_index']);
+    ->middleware(['can:oncologicos_diluents_create']);
 
 Route::post('oncologicos/diluents', [DiluentController::class, 'store'])
     ->name('oncologicos.diluents.store')
-    ->middleware(['can:oncologicos_mezclas_index']);
-
+    ->middleware(['can:oncologicos_diluents_store']);
 // Editar
 Route::get('oncologicos/diluents/{diluent}/editar', [DiluentController::class, 'edit'])
     ->name('oncologicos.diluents.edit')
-    ->middleware(['can:oncologicos_mezclas_index']);
+    ->middleware(['can:oncologicos_diluents_edit']);
 
 Route::put('oncologicos/diluents/{diluent}', [DiluentController::class, 'update'])
     ->name('oncologicos.diluents.update')
-    ->middleware(['can:oncologicos_mezclas_index']);
+    ->middleware(['can:oncologicos_diluents_update']);
 
 // Eliminar
 Route::delete('oncologicos/diluents/{diluent}', [DiluentController::class, 'destroy'])
     ->name('oncologicos.diluents.destroy')
-    ->middleware(['can:oncologicos_mezclas_index']);
+    ->middleware(['can:oncologicos_diluents_destroy']);
 
 //END DILUENTS
 
@@ -190,30 +207,30 @@ Route::delete('oncologicos/diluents/{diluent}', [DiluentController::class, 'dest
 // LISTAR presentaciones de un diluyente
 Route::get('oncologicos/diluents/{diluent}/presentaciones', [DiluentPresentationController::class, 'index'])
     ->name('oncologicos.diluent_presentations.index')
-    ->middleware(['can:oncologicos_mezclas_index']);
+    ->middleware(['can:oncologicos_diluents_index']);
 
 // CREAR
 Route::get('oncologicos/diluents/{diluent}/presentaciones/crear', [DiluentPresentationController::class, 'create'])
     ->name('oncologicos.diluent_presentations.create')
-    ->middleware(['can:oncologicos_mezclas_index']);
+    ->middleware(['can:oncologicos_diluents_create']);
 
 Route::post('oncologicos/diluents/{diluent}/presentaciones', [DiluentPresentationController::class, 'store'])
     ->name('oncologicos.diluent_presentations.store')
-    ->middleware(['can:oncologicos_mezclas_index']);
+    ->middleware(['can:oncologicos_diluents_store']);
 
 // EDITAR
 Route::get('oncologicos/diluents/{diluent}/presentaciones/{presentation}/editar', [DiluentPresentationController::class, 'edit'])
     ->name('oncologicos.diluent_presentations.edit')
-    ->middleware(['can:oncologicos_mezclas_index']);
+    ->middleware(['can:oncologicos_diluents_edit']);
 
 Route::put('oncologicos/diluents/{diluent}/presentaciones/{presentation}', [DiluentPresentationController::class, 'update'])
     ->name('oncologicos.diluent_presentations.update')
-    ->middleware(['can:oncologicos_mezclas_index']);
+    ->middleware(['can:oncologicos_diluents_update']);
 
 // ELIMINAR
 Route::delete('oncologicos/diluents/{diluent}/presentaciones/{presentation}', [DiluentPresentationController::class, 'destroy'])
     ->name('oncologicos.diluent_presentations.destroy')
-    ->middleware(['can:oncologicos_mezclas_index']);
+    ->middleware(['can:oncologicos_diluents_destroy']);
 
 //END SUBCRUDDILUYENTES
 
@@ -223,8 +240,14 @@ Route::resource('oncologicos/medicines/catalog', MedicineCatalogController::clas
 
 
 Route::resource('oncologicos/medicines', OncologicosMedicineController::class)
+    ->except(['show'])
     ->middleware(['can:medicamentos_oncologicos'])
     ->names('oncologicos.medicines');
+
+Route::get('oncologicos/medicines/{medicineList}/exportar', [OncologicosMedicineController::class, 'exportarExcel'])
+    ->name('oncologicos.medicines.exportar')
+    ->middleware(['can:medicamentos_oncologicos']);
+
 
 // RUTAS PARA ONCOLÓGICOS / INFUSORES
 Route::prefix('oncologicos')->name('oncologicos.')->group(function () {

@@ -37,6 +37,8 @@ class SolicitudController extends Controller
      * Display a listing of the resource.
      */ public function index()
     {
+
+        
         $user = Auth::user(); // Obtener el usuario actual
         $role = $user->roles[0]->name;
         if ($role === 'Admin' or $role === 'Super Admin') {

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin\Oncologicos;
 
+use App\Exports\Oncologicos\MedicineListExport;
+use App\Exports\Oncologicos\MedicineListPricesByHospitalExport;
 use App\Http\Controllers\Controller;
 use App\Models\Oncologicos\Distributor;
 use App\Models\Oncologicos\MedicineList;
@@ -11,6 +13,7 @@ use App\Models\Oncologicos\MedicinesCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MedicineController extends Controller
 {
@@ -339,5 +342,12 @@ class MedicineController extends Controller
                 'error' => 'Error al eliminar la lista: ' . $e->getMessage()
             ]);
         }
+    }
+
+
+    public function exportarExcel(MedicineList $medicineList)
+    {
+        $filename = 'lista_precios_' . $medicineList->id . '.xlsx';
+        return Excel::download(new MedicineListExport($medicineList->id), $filename);
     }
 }

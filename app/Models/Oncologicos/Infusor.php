@@ -12,6 +12,7 @@ class Infusor extends Model
         'nombre_generico',
         'nombre_comercial',
         'lote',
+        'precio',
         'caducidad',
         'is_active'
     ];

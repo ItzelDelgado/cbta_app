@@ -471,24 +471,19 @@
                     </tr>
                 @endif
             </table>
-            <table>
-                <tr>
-                    <td>Cálculos y forma de preparación:</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td>Extraer:</td>
-                </tr>
-            </table>
-            <table>
-                <tr>
-                    <td style="width: 5%">Agregar:</td>
-                </tr>
-                <tr>
-                    <td>Leyenda de protección</td>
-                </tr>
-            </table>
+            <p><strong>Cálculos y forma de preparación:</strong></p>
+
+            <p>
+                Extraer: {{ $extraer_ml }} mL de {{ $diluyente_base }}
+            </p>
+
+            @foreach ($detalle_agregar as $linea)
+                <p>Agregar: {{ $linea }}</p>
+            @endforeach
+
+            <p>
+                Leyenda de protección: {{ $legend_proteccion }}
+            </p>
         </div>
 
         <table class="mx-2">

@@ -11,11 +11,13 @@
                 Agregar</a>
         </div>
         <div class="mb-4">
-            <a href=""
+            <a href="{{ route('admin.oncologicos.solicitudes.exportar') }}"
+                target="_blank"
                 class="text-white bg-green-600 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2">
                 <i class="fa-solid fa-file-excel pr-1"></i> Exportar a Excel
             </a>
         </div>
+
     </div>
 
 
@@ -56,11 +58,11 @@
             <tbody>
                 @foreach ($solicitudes as $solicitud)
                     <tr @class([
-                            'border-b dark:bg-gray-800 dark:border-gray-700',
-                            'bg-green-200 font-bold' => $solicitud->estado === 'finalizada',
-                            'bg-blue-200 font-semibold' => $solicitud->estado === 'enproceso',
-                            'bg-gray-200' => $solicitud->estado === 'pendiente',
-                        ])>
+                        'border-b dark:bg-gray-800 dark:border-gray-700',
+                        'bg-green-200 font-bold' => $solicitud->estado === 'finalizada',
+                        'bg-blue-200 font-semibold' => $solicitud->estado === 'enproceso',
+                        'bg-gray-200' => $solicitud->estado === 'pendiente',
+                    ])>
 
                         <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                             {{ $solicitud->id }}
@@ -97,8 +99,7 @@
                                 </a>
 
                                 @if ($solicitud->estado !== 'enproceso')
-                                    <form method="POST"
-                                        action="#">
+                                    <form method="POST" action="#">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"

@@ -44,11 +44,13 @@
 
                         <td class="px-6 py-2">
                             @if ($lista->charge_by === 'mg')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                     Cobro por mg
                                 </span>
                             @elseif ($lista->charge_by === 'frasco')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                                     Cobro por frasco
                                 </span>
                             @else
@@ -58,11 +60,13 @@
 
                         <td class="px-6 py-2">
                             @if ($lista->active_brands)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
                                     Marcas activas
                                 </span>
                             @else
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
                                     Solo genéricos
                                 </span>
                             @endif
@@ -75,8 +79,7 @@
                             </a>
 
                             <form id="delete-form-{{ $lista->id }}"
-                                action="{{ route('admin.oncologicos.medicines.destroy', $lista->id) }}"
-                                method="POST"
+                                action="{{ route('admin.oncologicos.medicines.destroy', $lista->id) }}" method="POST"
                                 class="inline">
                                 @csrf
                                 @method('DELETE')
@@ -86,6 +89,10 @@
                                     Eliminar
                                 </button>
                             </form>
+                            <a href="{{ route('admin.oncologicos.medicines.exportar', $lista) }}" target="_blank"
+                                class="px-4 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition">
+                                <i class="fa-solid fa-file-excel pr-1"></i> Exportar
+                            </a>
                         </td>
                     </tr>
                 @empty
