@@ -761,30 +761,6 @@ class MezclaController extends Controller
             'infusor',
         ])->findOrFail($mezcla->id);
 
-        // ===== MEDICAMENTOS (para tablas) =====
-        $medicamentos = $mezcla->medicamentos->map(function ($mm) use ($mezcla) {
-            $presentaciones = $mm->presentacionesUsadas ?? collect();
-            $firstPres      = $presentaciones->first();
-
-            $batch     = optional($firstPres)->batch;
-            $presModel = optional($firstPres)->presentation;
-            $catalog   = optional(optional($mm->medicamentoOnco)->catalog);
-
-            $lote      = $firstPres->lote_usado ?? ($batch->lote ?? null);
-            $caducidad = $firstPres->caducidad_usada ?? ($batch->caducidad ?? null);
-
-            return (object) [
-                'lote'                   => $lote,
-                'caducidad'              => $caducidad,
-                'denominacion_comercial' => $catalog->denominacion_comercial ?? null,
-                'denominacion'           => $catalog->denominacion ?? null,
-                'presentacion'           => $presModel->presentacion ?? null,
-                'dosis'                  => $mm->dosis,
-                'dosis_ml'               => $mm->dosis_ml,
-                'volumen_total'          => $mezcla->volumen_dilucion,
-            ];
-        })->values();
-
         // ===== FECHAS =====
         $aprobada = DB::table('solicitud_aprobadas')
             ->where('solicitud_id', $mezcla->solicitud_id)
@@ -828,72 +804,138 @@ class MezclaController extends Controller
         $preparoNombre = optional($mezcla->inspeccion)->preparo_nombre;
         $liberoNombre  = optional($mezcla->inspeccion)->libero_nombre;
 
-        // ==========================================================
-        // ✅ Cálculos "Extraer / Agregar" (SIN "agregar a X mL de diluyente")
-        //
-        // Interpretación correcta para tu formato:
-        // - Si vas a AGREGAR X mL de medicamento reconstituido,
-        //   entonces debes EXTRAER X mL del diluyente base para mantener el volumen final.
-        //
-        // Por eso:
-        // - Extraer = SUMA(volumen_extraer_ml) de todos los medicamentos
-        // - Agregar = lista por medicamento de su volumen (mL)
-        // - Leyenda = primera legend no vacía
-        // ==========================================================
-
+        // ===== DILUYENTE BASE =====
         $diluyenteBase = optional(optional($mezcla->diluentPresentation)->diluent)->denominacion_generica
             ?? '—';
 
-        $extraerTotal = 0.0;
-        $detalleAgregar = [];
-        $legendProteccion = null;
+        // ==========================================================
+        // ✅ CÁLCULOS:
+        // Volumen orden de preparación (mL):
+        //   dosis(mg) * volumen_presentacion(ml) / mg_presentacion(mg)
+        //
+        // Volumen diluyente (mL):
+        //   volumen_total_solicitado - volumen_medicamento
+        // ==========================================================
 
-        foreach ($mezcla->medicamentos as $mm) {
+        $volumenTotalSolicitado = (float) ($mezcla->volumen_dilucion ?? 0);
+
+        $legendProteccion = null;
+        $totalVolMedicamentos = 0.0;
+
+        // ===== MEDICAMENTOS (para tablas) =====
+        $medicamentos = $mezcla->medicamentos->map(function ($mm) use ($mezcla, $volumenTotalSolicitado, &$legendProteccion, &$totalVolMedicamentos) {
+
             $presentaciones = $mm->presentacionesUsadas ?? collect();
             $firstPresUsed  = $presentaciones->first();
-            $presModel      = optional($firstPresUsed)->presentation;
 
-            // Leyenda (primera que exista)
+            $batch     = optional($firstPresUsed)->batch;
+            $presModel = optional($firstPresUsed)->presentation;
+            $catalog   = optional(optional($mm->medicamentoOnco)->catalog);
+
+            $lote      = optional($firstPresUsed)->lote_usado ?? ($batch->lote ?? null);
+            $caducidad = optional($firstPresUsed)->caducidad_usada ?? ($batch->caducidad ?? null);
+
+            // ✅ Leyenda (primera que exista)
             if (!$legendProteccion) {
                 $candLegend = trim((string) optional($presModel)->legend);
                 if ($candLegend !== '') $legendProteccion = $candLegend;
             }
 
+            // Nombre para usar también en texto "Agregar"
             $nombreMed = $mm->nombre_medicamento
-                ?? optional(optional($mm->medicamentoOnco)->catalog)->denominacion
+                ?? ($catalog->denominacion ?? null)
                 ?? 'Medicamento';
 
-            // Si ya tienes dosis_ml, úsalo directo (es el mejor dato)
-            $volExtraer = null;
-            if (!is_null($mm->dosis_ml) && is_numeric($mm->dosis_ml)) {
-                $volExtraer = (float) $mm->dosis_ml;
-            } else {
-                // Si no, lo derivamos:
-                // volumen_extraer_ml = (dosis_mg / mg_frasco) * volumen_diluyente_ml
-                $dosisMg  = (float) ($mm->dosis ?? 0);
-                $mgFrasco = (float) (optional($presModel)->cantidad_medicamento ?? 0); // mg
-                $volDilMl = (float) (optional($presModel)->volumen_diluyente ?? 0);    // mL
+            // ====== Volumen de orden de preparación (mL) ======
+            // Preferimos dosis_ml si ya viene calculado, pero si no, aplicamos la fórmula.
+            $volOrdenPrep = null;
 
-                if ($dosisMg > 0 && $mgFrasco > 0 && $volDilMl > 0) {
-                    $volExtraer = ($dosisMg / $mgFrasco) * $volDilMl;
+            if (!is_null($mm->dosis_ml) && is_numeric($mm->dosis_ml) && (float)$mm->dosis_ml > 0) {
+                $volOrdenPrep = (float) $mm->dosis_ml;
+            } else {
+                $dosisMg     = (float) ($mm->dosis ?? 0);
+                $mgPres      = (float) (optional($presModel)->cantidad_medicamento ?? 0); // mg de la presentación
+                $volPresMl   = (float) (optional($presModel)->volumen_diluyente ?? 0);    // mL de la presentación
+
+                if ($dosisMg > 0 && $mgPres > 0 && $volPresMl > 0) {
+                    $volOrdenPrep = ($dosisMg * $volPresMl) / $mgPres;
                 }
             }
 
-            if (is_null($volExtraer) || $volExtraer <= 0) {
-                continue;
+            if (is_null($volOrdenPrep) || $volOrdenPrep <= 0) {
+                $volOrdenPrep = 0.0;
             }
 
-            // Formato bonito
-            $volExtraerFmt = rtrim(rtrim(number_format($volExtraer, 2, '.', ''), '0'), '.');
+            // ====== Volumen del diluyente (mL) ======
+            $volDiluyente = $volumenTotalSolicitado - $volOrdenPrep;
+            if ($volDiluyente < 0) $volDiluyente = 0.0;
 
-            $detalleAgregar[] = "{$volExtraerFmt} mL de {$nombreMed}";
-            $extraerTotal += $volExtraer;
-        }
+            $totalVolMedicamentos += $volOrdenPrep;
 
-        $extraerTotalFmt = rtrim(rtrim(number_format($extraerTotal, 2, '.', ''), '0'), '.');
-        if ($extraerTotalFmt === '') $extraerTotalFmt = '0';
+            return (object) [
+                'lote'                   => $lote,
+                'caducidad'              => $caducidad,
+                'denominacion_comercial' => $catalog->denominacion_comercial ?? null,
+                'denominacion'           => $catalog->denominacion ?? null,
+                'presentacion'           => optional($presModel)->presentacion ?? null,
+                'dosis'                  => $mm->dosis, // mg
+                // ✅ nuevos campos para tu PDF:
+                'volumen_orden_preparacion' => $volOrdenPrep,   // mL
+                'volumen_diluyente'         => $volDiluyente,   // mL
+                'volumen_total'             => $mezcla->volumen_dilucion, // mL
+                // para texto
+                'nombre_para_texto'         => $nombreMed,
+            ];
+        })->values();
 
         if (!$legendProteccion) $legendProteccion = '—';
+
+        // ===== Texto final de "Extraer / Agregar" sin repetir el diluyente por medicamento =====
+        // Extraer = suma de volúmenes de medicamento
+        $extraerTotal = (float) $totalVolMedicamentos;
+
+        // Diluyente restante = volumen total - suma medicamentos
+        $diluyenteRestante = $volumenTotalSolicitado - $extraerTotal;
+        if ($diluyenteRestante < 0) $diluyenteRestante = 0.0;
+
+        $fmt = function ($n) {
+            return rtrim(rtrim(number_format((float)$n, 2, '.', ''), '0'), '.');
+        };
+
+        $extraerTotalFmt = $fmt($extraerTotal);
+        $diluyenteRestanteFmt = $fmt($diluyenteRestante);
+
+        // Armamos UNA sola línea "Agregar: ..."
+        $partesMed = $medicamentos
+            ->filter(fn($m) => (float)($m->volumen_orden_preparacion ?? 0) > 0)
+            ->map(function ($m) use ($fmt) {
+                $v = $fmt($m->volumen_orden_preparacion ?? 0);
+                $nom = $m->nombre_para_texto ?? 'Medicamento';
+                return "{$v} mL de {$nom}";
+            })
+            ->values()
+            ->all();
+
+        $detalleAgregar = [];
+        if (count($partesMed) > 0) {
+            $detalleAgregar[] = implode(' + ', $partesMed) . " a {$diluyenteRestanteFmt} mL de {$diluyenteBase}";
+        }
+
+        $dosisTotalMg = $mezcla->medicamentos
+            ->sum(fn($m) => (float) ($m->dosis ?? 0));
+
+        $volumenFinalMl = (float) ($mezcla->volumen_dilucion ?? 0);
+
+        $concentracionFinal = null;
+
+        if ($dosisTotalMg > 0 && $volumenFinalMl > 0) {
+            $concentracionFinal = $dosisTotalMg / $volumenFinalMl;
+        }
+
+        // Formato bonito
+        $concentracionFinalFmt = $concentracionFinal !== null
+            ? rtrim(rtrim(number_format($concentracionFinal, 4, '.', ''), '0'), '.')
+            : '—';
 
         $pdf = Pdf::loadView('pdfs.oncologicos.orden-de-preparacion', [
             'mezcla'            => $mezcla,
@@ -906,8 +948,9 @@ class MezclaController extends Controller
             'preparo_nombre'    => $preparoNombre,
             'libero_nombre'     => $liberoNombre,
             'equipoInfusion'    => $equipoInfusion,
+            'concentracion_final' => $concentracionFinalFmt,
 
-            // ✅ SOLO lo necesario para tu texto final:
+            // ✅ Para sección "Cálculos y forma de preparación"
             'diluyente_base'    => $diluyenteBase,
             'extraer_ml'        => $extraerTotalFmt,
             'detalle_agregar'   => $detalleAgregar,
@@ -931,13 +974,8 @@ class MezclaController extends Controller
         return $pdf->stream("inspeccion-mezcla-{$mezcla->id}.pdf");
     }
 
-
-
-
-
     public function etiqueta(Mezcla $mezcla)
     {
-        // ✅ Cargar todo lo necesario (incluye presentaciones usadas -> batch -> presentation)
         $mezcla = Mezcla::with([
             'solicitud',
             'diluentPresentation.diluent',
@@ -945,28 +983,47 @@ class MezclaController extends Controller
             'medicamentos.medicamentoOnco.catalog',
         ])->findOrFail($mezcla->id);
 
-        // Buscar si la mezcla tiene aprobación con fechas
         $aprobada = DB::table('solicitud_aprobadas')
             ->where('solicitud_id', $mezcla->solicitud_id)
             ->first();
 
         // =========================================
-        // 1) Construir lista de medicamentos (para tu tabla)
+        // 0) Observaciones (para etiqueta)
+        // =========================================
+        $observaciones = $mezcla->solicitud->observaciones ?? null;
+
+        // =========================================
+        // 1) Medicamentos: nombre + dosis + lote + caducidad (de la presentación usada)
         // =========================================
         $medicamentosTabla = $mezcla->medicamentos->map(function ($m) {
+
             $nombre = optional(optional($m->medicamentoOnco)->catalog)->denominacion
                 ?? $m->nombre_medicamento
                 ?? '—';
 
-            return (object)[
+            $presentaciones = $m->presentacionesUsadas ?? collect();
+            $firstUsed = $presentaciones->first();
+
+            $batch = optional($firstUsed)->batch;
+
+            $lote = optional($firstUsed)->lote_usado
+                ?? optional($batch)->lote
+                ?? null;
+
+            $cad = optional($firstUsed)->caducidad_usada
+                ?? optional($batch)->caducidad
+                ?? null;
+
+            return (object) [
                 'nombre' => $nombre,
                 'dosis'  => $m->dosis ?? 0,
+                'lote'   => $lote,
+                'cad'    => $cad,
             ];
         });
 
         // =========================================
-        // 2) Resolver “medicamento más restrictivo”
-        //    (menor stability_hours)
+        // 2) Medicamento más restrictivo (menor stability_hours)
         // =========================================
         $chosenLegend = null;
         $chosenTempMin = null;
@@ -978,23 +1035,15 @@ class MezclaController extends Controller
             $presentaciones = $m->presentacionesUsadas ?? collect();
             $firstUsed = $presentaciones->first();
 
-            // presentation viene por batch.presentation (tu JSON así lo muestra)
             $presentation = optional(optional($firstUsed)->batch)->presentation
                 ?? optional($firstUsed)->presentation
                 ?? null;
 
-            if (!$presentation) {
-                continue;
-            }
+            if (!$presentation) continue;
 
-            $stability = isset($presentation->stability_hours) ? (int)$presentation->stability_hours : null;
+            $stability = isset($presentation->stability_hours) ? (int) $presentation->stability_hours : null;
+            if (!$stability || $stability <= 0) continue;
 
-            // si no hay estabilidad definida, no puede competir como “más restrictivo”
-            if (!$stability || $stability <= 0) {
-                continue;
-            }
-
-            // si es la primera válida o es menor, la elegimos
             if ($chosenStabilityHours === null || $stability < $chosenStabilityHours) {
                 $chosenStabilityHours = $stability;
                 $chosenLegend = $presentation->legend ?? null;
@@ -1004,15 +1053,11 @@ class MezclaController extends Controller
         }
 
         // =========================================
-        // 3) Calcular fecha límite de uso
-        //    basado en fecha de preparación (aprobación)
+        // 3) Fechas preparación / límite
         // =========================================
-        $fechaPreparacion = null;
-
         if (!empty($aprobada?->fecha_hora_preparacion)) {
             $fechaPreparacion = \Carbon\Carbon::parse($aprobada->fecha_hora_preparacion);
         } else {
-            // fallback: si no existe aprobación, intenta al menos usar updated_at de mezcla
             $fechaPreparacion = $mezcla->updated_at
                 ? \Carbon\Carbon::parse($mezcla->updated_at)
                 : null;
@@ -1024,46 +1069,61 @@ class MezclaController extends Controller
         }
 
         // =========================================
-        // 4) Texto del diluyente (igual que ya tenías)
+        // 4) Texto del diluyente + lote/cad (si existen en tu tabla)
         // =========================================
         $diluyenteTexto = '—';
+        $diluyenteLote = null;
+        $diluyenteCad  = null;
+
         if ($mezcla->diluentPresentation) {
             $dp = $mezcla->diluentPresentation;
+
             $nombreDil = optional($dp->diluent)->denominacion_generica;
-            $volumen   = $dp->volume_ml;
-            $present   = $dp->presentacion;
+            $volumen   = $dp->volume_ml ?? null;
+            $present   = $dp->presentacion ?? null;
 
             if ($nombreDil && $volumen) {
-                $volFmt = rtrim(rtrim(number_format($volumen, 2, '.', ''), '0'), '.');
+                $volFmt = rtrim(rtrim(number_format((float)$volumen, 2, '.', ''), '0'), '.');
                 $diluyenteTexto = $nombreDil . ' de ' . $volFmt . ' ml';
             } elseif ($present) {
                 $diluyenteTexto = $present;
+            } elseif ($nombreDil) {
+                $diluyenteTexto = $nombreDil;
             }
+
+            // ⚠️ Estos campos dependen de tu BD.
+            // Si tu diluentPresentation NO tiene lote/caducidad, quedarán null y en la vista verás "—".
+            $diluyenteLote = $dp->lote ?? null;
+            $diluyenteCad  = $dp->caducidad ?? null;
         }
 
         // ✅ PDF (9cm x 13cm)
         $customPaper = [0, 0, 368.50, 255.12];
 
         $pdf = Pdf::loadView('pdfs.oncologicos.etiqueta', [
-            'mezcla'             => $mezcla,
-            'solicitud'          => $mezcla->solicitud,
-            'aprobada'           => $aprobada,
+            'mezcla'            => $mezcla,
+            'solicitud'         => $mezcla->solicitud,
+            'aprobada'          => $aprobada,
 
-            // tabla meds
-            'medicamentos'       => $medicamentosTabla,
+            // tabla meds (incluye lote/cad)
+            'medicamentos'      => $medicamentosTabla,
 
-            // diluyente
-            'diluyenteTexto'     => $diluyenteTexto,
+            // diluyente + lote/cad
+            'diluyenteTexto'    => $diluyenteTexto,
+            'diluyenteLote'     => $diluyenteLote,
+            'diluyenteCad'      => $diluyenteCad,
 
-            // ✅ nuevos datos calculados para etiqueta
-            'fechaPreparacion'   => $fechaPreparacion,
-            'fechaLimiteUso'     => $fechaLimiteUso,
-            'legendEtiqueta'     => $chosenLegend,
-            'tempMinEtiqueta'    => $chosenTempMin,
-            'tempMaxEtiqueta'    => $chosenTempMax,
-            'stabilityEtiqueta'  => $chosenStabilityHours,
+            // observaciones
+            'observaciones'     => $observaciones,
+
+            // fechas + leyenda + condiciones
+            'fechaPreparacion'  => $fechaPreparacion,
+            'fechaLimiteUso'    => $fechaLimiteUso,
+            'legendEtiqueta'    => $chosenLegend,
+            'tempMinEtiqueta'   => $chosenTempMin,
+            'tempMaxEtiqueta'   => $chosenTempMax,
+            'stabilityEtiqueta' => $chosenStabilityHours,
         ])->setPaper($customPaper, 'landscape');
-
 
         return $pdf->stream();
     }

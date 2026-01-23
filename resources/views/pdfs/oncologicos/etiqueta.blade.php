@@ -158,36 +158,15 @@
 
 @php
     $fmtDate = function ($v) {
-        if (!$v) {
-            return '—';
-        }
-        try {
-            return \Carbon\Carbon::parse($v)->format('d/m/Y');
-        } catch (\Exception $e) {
-            return '—';
-        }
+        if (!$v) return '—';
+        try { return \Carbon\Carbon::parse($v)->format('d/m/Y'); }
+        catch (\Exception $e) { return '—'; }
     };
 
     $fmtDateTime = function ($v) {
-        if (!$v) {
-            return '—';
-        }
-        try {
-            return \Carbon\Carbon::parse($v)->format('d/m/Y H:i');
-        } catch (\Exception $e) {
-            return '—';
-        }
-    };
-
-    $fmtTime = function ($v) {
-        if (!$v) {
-            return '—';
-        }
-        try {
-            return \Carbon\Carbon::parse($v)->format('H:i');
-        } catch (\Exception $e) {
-            return '—';
-        }
+        if (!$v) return '—';
+        try { return \Carbon\Carbon::parse($v)->format('d/m/Y H:i'); }
+        catch (\Exception $e) { return '—'; }
     };
 
     // Edad
@@ -196,13 +175,9 @@
         $fnac = \Carbon\Carbon::parse($solicitud->fecha_nacimiento);
         $hoy = \Carbon\Carbon::now();
         $diff = $fnac->diff($hoy);
-        if ($diff->y > 0) {
-            $edadTexto = $diff->y . ' años';
-        } elseif ($diff->m > 0) {
-            $edadTexto = $diff->m . ' meses';
-        } else {
-            $edadTexto = $diff->d . ' días';
-        }
+        if ($diff->y > 0) $edadTexto = $diff->y . ' años';
+        elseif ($diff->m > 0) $edadTexto = $diff->m . ' meses';
+        else $edadTexto = $diff->d . ' días';
     }
 
     // Preparación (fecha/hora)
@@ -212,7 +187,7 @@
             ? \Carbon\Carbon::parse($aprobada->fecha_hora_preparacion)
             : null);
 
-    // Límite (ya calculado en controller)
+    // Límite
     $limite = $fechaLimiteUso;
 
     // Leyenda y condiciones
@@ -220,28 +195,33 @@
     $tmin = $tempMinEtiqueta ?? null;
     $tmax = $tempMaxEtiqueta ?? null;
     $stab = $stabilityEtiqueta ?? null;
+
+    // Observaciones (puede venir null)
+    $obs = $observaciones ?? null;
 @endphp
+
 
 <body>
     <div class="border-1">
+        {{-- Título --}}
         <table>
-            <tr class="text-center">
-                <td style="font-size: 11px">
+            <tr>
+                <td class="text-center" style="font-size: 11px; padding: 6px 4px;">
                     <strong>ETIQUETA <br> MEZCLAS ESTÉRILES ONCOLÓGICAS</strong>
                 </td>
             </tr>
         </table>
 
+        {{-- Datos generales --}}
         <table>
             <tr>
                 <td class="px-1">Cliente:</td>
-                <td class="px-1 text-right">Lote: {{ $mezcla->lote ?? '—' }}</td>
+                <td class="px-1 text-right">Lote mezcla: {{ $mezcla->lote ?? '—' }}</td>
             </tr>
             <tr>
                 <td class="px-1">Paciente: {{ $solicitud->nombre_paciente ?? '—' }}</td>
                 <td class="px-1 text-right">
-                    F. Nac:
-                    {{ !empty($solicitud->fecha_nacimiento) ? \Carbon\Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') : '—' }}
+                    F. Nac: {{ !empty($solicitud->fecha_nacimiento) ? \Carbon\Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') : '—' }}
                 </td>
             </tr>
             <tr>
@@ -256,55 +236,65 @@
                 <td class="px-1">Médico: {{ $solicitud->nombre_medico ?? '—' }}</td>
                 <td class="px-1 text-right">No. Registro: {{ $solicitud->registro_paciente ?? '—' }}</td>
             </tr>
+        </table>
 
-            <tr>
-                <td colspan="2" class="px-1 sep">
-                    <strong>Medicamentos:</strong>
-                </td>
-            </tr>
+        {{-- Medicamentos --}}
+        <table>
+            <tr><td colspan="2" class="px-1 sep rowline"><strong>Medicamentos:</strong></td></tr>
 
-            @foreach ($medicamentos as $med)
+            @forelse ($medicamentos as $med)
                 <tr>
                     <td class="px-1 text-left">{{ $med->nombre ?? '—' }}</td>
                     <td class="px-1 text-right">{{ $med->dosis ?? 0 }} mg</td>
                 </tr>
-            @endforeach
+                <tr>
+                    <td class="px-1 text-left xs" colspan="2">
+                        Lote: {{ $med->lote ?? '—' }} |
+                        Cad: {{ !empty($med->cad) ? $fmtDate($med->cad) : '—' }}
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td class="px-1" colspan="2">—</td>
+                </tr>
+            @endforelse
 
+            {{-- Diluyente + lote/cad --}}
+            <tr><td colspan="2" class="px-1 sep rowline"><strong>Diluyente:</strong> {{ $diluyenteTexto ?? '—' }}</td></tr>
             <tr>
-                <td class="px-1" colspan="2">
-                    <strong>Diluyente:</strong> {{ $diluyenteTexto ?? '—' }}
+                <td class="px-1 xs" colspan="2">
+                    Lote: {{ $diluyenteLote ?? '—' }} |
+                    Cad: {{ !empty($diluyenteCad) ? $fmtDate($diluyenteCad) : '—' }}
                 </td>
             </tr>
         </table>
 
-        <!-- Fecha y hora de preparación -->
+        {{-- Fechas --}}
         <table>
             <tr>
-                <td class="px-1 sep">
-                    Fecha y hora de preparación:
-                    {{ $prep ? $prep->format('d/m/Y H:i') : '—' }}
+                <td class="px-1 sep rowline" colspan="2">
+                    Fecha y hora de preparación: {{ $prep ? $prep->format('d/m/Y H:i') : '—' }}
                 </td>
             </tr>
         </table>
 
-        <!-- Fecha y hora límite de uso -->
         <table>
             <tr>
                 <td class="px-1">
-                    Úsese antes de:
-                    {{ $limite ? $limite->format('d/m/Y H:i') : '—' }}
+                    Úsese antes de: {{ $limite ? $limite->format('d/m/Y H:i') : '—' }}
                 </td>
                 <td class="px-1 text-right">
-                    Vel. de infusión:
-                    {{ $mezcla->tiempo_infusion > 0
+                    Vel. infusión:
+                    {{
+                        ($mezcla->tiempo_infusion ?? 0) > 0
                         ? number_format((float) $mezcla->volumen_dilucion / (float) $mezcla->tiempo_infusion, 3, '.', '')
-                        : '—' }}
+                        : '—'
+                    }}
                 </td>
             </tr>
             <tr>
                 <td class="px-1">
-                    A las:
-                    {{ $limite ? $limite->format('H:i') : '—' }}
+                    A las: {{ $limite ? $limite->format('H:i') : '—' }}
                 </td>
                 <td class="px-1 text-right">
                     Administrar en: {{ $mezcla->tiempo_infusion ?? '—' }} min
@@ -312,48 +302,43 @@
             </tr>
         </table>
 
-        <!-- Leyenda + condiciones -->
+        {{-- Observaciones --}}
         <table>
             <tr>
-                <td class="px-1 sep-top">
-                    Leyenda de proyección:
-                </td>
+                <td class="px-1 sep rowline" colspan="2"><strong>Observaciones:</strong></td>
             </tr>
             <tr>
-                <td class="px-1">
-                    {{ $legend ?: '—' }}
-                </td>
+                <td class="px-1" colspan="2">{{ !empty($obs) ? $obs : '—' }}</td>
             </tr>
+        </table>
 
+        {{-- Leyenda + condiciones --}}
+        <table>
             <tr>
-                <td class="px-1">
+                <td class="px-1 sep-top rowline" colspan="2">Leyenda de protección:</td>
+            </tr>
+            <tr>
+                <td class="px-1" colspan="2">{{ $legend ?: '—' }}</td>
+            </tr>
+            <tr>
+                <td class="px-1" colspan="2">
                     <strong>Condiciones:</strong>
                     @php
                         $cond = [];
                         if ($tmin !== null || $tmax !== null) {
-                            $cond[] =
-                                'Temp. ' .
-                                ($tmin !== null ? $tmin : '—') .
-                                '–' .
-                                ($tmax !== null ? $tmax : '—') .
-                                ' °C';
+                            $cond[] = 'Temp. ' . ($tmin !== null ? $tmin : '—') . '–' . ($tmax !== null ? $tmax : '—') . ' °C';
                         }
-                        if ($stab) {
-                            $cond[] = 'Estabilidad ' . $stab . ' h';
-                        }
+                        if ($stab) $cond[] = 'Estabilidad ' . $stab . ' h';
                     @endphp
-
                     {{ count($cond) ? implode(' | ', $cond) : '—' }}
                 </td>
             </tr>
-
             <tr>
-                <td class="px-1">Preparada por:</td>
+                <td class="px-1" colspan="2">Preparada por:</td>
             </tr>
         </table>
     </div>
 </body>
-
 
 
 

@@ -360,7 +360,8 @@
                     <td class="border-1 text-center" style="width: 10%"><strong>Denominación genérica</strong></td>
                     <td class="border-1 text-center" style="width: 7%"><strong>Presentación</strong></td>
                     <td class="border-1 text-center" style="width: 5%"><strong>Dosis</strong></td>
-                    <td class="border-1 text-center" style="width: 5%"><strong>Volumen</strong></td>
+                    <td class="border-1 text-center" style="width: 5%"><strong>Volumen de orden de preparación</strong>
+                    </td>
                 </tr>
 
                 @foreach ($medicamentos as $i => $med)
@@ -373,7 +374,11 @@
                         <td class="border-1 border-t-0 text-center">{{ $med->presentacion ?? '—' }}</td>
                         <td class="border-1 border-t-0 text-center">{{ $med->dosis ?? '—' }}</td>
                         <td class="border-1 border-t-0 text-center">
-                            {{ isset($med->dosis_ml) ? $med->dosis_ml . ' mL' : '—' }}</td>
+                            @php
+                                $vop = $med->volumen_orden_preparacion ?? null;
+                            @endphp
+                            {{ is_numeric($vop) ? rtrim(rtrim(number_format($vop, 2, '.', ''), '0'), '.') . ' mL' : '—' }}
+                        </td>
                     </tr>
                 @endforeach
             </table>
@@ -382,6 +387,16 @@
                 <tr>
                     <td class="text-right border-x-1 border-b-1">
                         <strong>Contenedor y volumen final: {{ $mezcla->volumen_dilucion ?? '—' }} ML</strong>
+                    </td>
+                </tr>
+            </table>
+            <table>
+                <tr>
+                    <td class="text-right border-x-1 border-b-1">
+                        <strong>
+                            Concentración final de la mezcla:
+                            {{ $concentracion_final !== '—' ? $concentracion_final . ' mg/mL' : '—' }}
+                        </strong>
                     </td>
                 </tr>
             </table>
@@ -409,7 +424,8 @@
                         </td>
                         <td class="border-x-1 border-b-1 text-center bg-black"><strong>Presentación</strong></td>
                         <td class="border-x-1 border-b-1 text-center bg-black"><strong>Volumen total</strong></td>
-                        <td class="border-x-1 border-b-1 text-center bg-black"><strong>Volumen</strong></td>
+                        <td class="border-x-1 border-b-1 text-center bg-black"><strong>Volumen del diluyente</strong>
+                        </td>
                     </tr>
                 </thead>
                 <tbody>
@@ -425,7 +441,10 @@
                                 {{ is_numeric($m->volumen_total) ? rtrim(rtrim(number_format($m->volumen_total, 2, '.', ''), '0'), '.') . ' mL' : '—' }}
                             </td>
                             <td class="text-center border-b-1 border-r-1">
-                                {{ is_numeric($m->dosis_ml) ? rtrim(rtrim(number_format($m->dosis_ml, 2, '.', ''), '0'), '.') . ' mL' : '—' }}
+                                @php
+                                    $vd = $m->volumen_diluyente ?? null;
+                                @endphp
+                                {{ is_numeric($vd) ? rtrim(rtrim(number_format($vd, 2, '.', ''), '0'), '.') . ' mL' : '—' }}
                             </td>
                         </tr>
                     @endforeach
