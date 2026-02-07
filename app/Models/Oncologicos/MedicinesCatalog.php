@@ -13,7 +13,6 @@ class MedicinesCatalog extends Model
 
     protected $fillable = [
         'denominacion',
-        'denominacion_comercial',
         'presentacion',
         'requires_infusor',          // 👈 nuevo
         'state',

@@ -25,7 +25,6 @@ class SolicitudController extends Controller
             ->orderByDesc('id')
             ->get();
 
-
         return view('admin.oncologicos.solicitudes.index', compact('solicitudes'));
     }
 
@@ -34,27 +33,15 @@ class SolicitudController extends Controller
         $user    = Auth::user();
         $listaId = $user->medicine_list_id; // puede ser null
 
-        // 1) Catálogo genérico + precios (lista > onco > 0)
-        $medicamentos = DB::table('medicines_catalog as mc')
-            ->leftJoin('medicine_oncos as mo', 'mo.catalog_id', '=', 'mc.id')
-            ->leftJoin('medicine_medicine_lists as mml', function ($join) use ($listaId) {
-                $join->on('mml.medicine_id', '=', 'mo.id');
-                // si hay lista, se usa solo para el override de precio
-                if ($listaId) {
-                    $join->where('mml.medicine_list_id', '=', $listaId);
-                }
-            })
-            ->where('mc.state', true) // solo genéricos activos
+        // ==============================
+        // 1) CATÁLOGOS GENÉRICOS ACTIVOS
+        // ==============================
+        $catalogos = DB::table('medicines_catalog as mc')
+            ->where('mc.state', true)
             ->select(
-                // 👇 ESTE id es el que usará el front (catálogo genérico)
                 'mc.id as id',
                 'mc.denominacion',
-                'mc.denominacion_comercial',
-                'mc.requires_infusor',
-                // por si lo necesitas después
-                'mo.id as medicine_onco_id',
-                // precio elegido: lista > onco > 0
-                DB::raw('COALESCE(mml.precio, mo.precio, 0) as precio')
+                'mc.requires_infusor'
             )
             ->orderBy('mc.denominacion')
             ->get()
@@ -63,13 +50,65 @@ class SolicitudController extends Controller
                 return $m;
             });
 
-        // 2) infoAdicional por catálogo (llave = mc.id)
+        // ✅ Alias para no romper la vista/JS actual
+        $medicamentos = $catalogos;
+
+        // ==============================
+        // 2) PRESENTACIONES POR CATÁLOGO
+        // ==============================
+        $presentacionesPorCatalogo = collect();
+
+        if ($listaId) {
+            $presentaciones = DB::table('medicine_presentations as mp')
+                ->join('medicine_list_presentation as mlp', 'mlp.medicine_presentation_id', '=', 'mp.id')
+                ->where('mlp.medicine_list_id', $listaId)
+                ->where('mp.is_available', 1)
+                ->select(
+                    'mp.id',
+                    'mp.catalog_id',
+                    'mp.presentacion',
+                    'mp.marca',
+                    'mp.cantidad_medicamento',
+                    'mp.volumen_diluyente',
+                    'mp.precio_frasco',
+                    'mlp.charge_by',
+                    'mlp.precio',
+                    'mlp.precio_mg_override'
+                )
+                ->orderBy('mp.presentacion')
+                ->get();
+
+            $presentacionesPorCatalogo = $presentaciones
+                ->groupBy('catalog_id')
+                ->map(fn($rows) => $rows->values());
+        } else {
+            $presentaciones = DB::table('medicine_presentations as mp')
+                ->where('mp.is_available', 1)
+                ->select(
+                    'mp.id',
+                    'mp.catalog_id',
+                    'mp.presentacion',
+                    'mp.marca',
+                    'mp.cantidad_medicamento',
+                    'mp.volumen_diluyente',
+                    'mp.precio_frasco'
+                )
+                ->orderBy('mp.presentacion')
+                ->get();
+
+            $presentacionesPorCatalogo = $presentaciones
+                ->groupBy('catalog_id')
+                ->map(fn($rows) => $rows->values());
+        }
+
+        // ==============================
+        // 3) INFO ADICIONAL por catálogo
+        // ==============================
         $infoAdicional = [];
-        foreach ($medicamentos as $med) {
-            // importante: aquí usamos el ID de catálogo (mc.id) -> $med->id
+        foreach ($catalogos as $cat) {
             $diluyentes = DB::table('diluent_medicine_catalog')
                 ->join('diluents', 'diluent_medicine_catalog.diluent_id', '=', 'diluents.id')
-                ->where('diluent_medicine_catalog.medicine_catalog_id', $med->id)
+                ->where('diluent_medicine_catalog.medicine_catalog_id', $cat->id)
                 ->select(
                     'diluents.id',
                     DB::raw('diluents.denominacion_generica as name')
@@ -78,19 +117,20 @@ class SolicitudController extends Controller
 
             $vias = DB::table('administration_route_medicine_catalog')
                 ->join('administration_routes', 'administration_route_medicine_catalog.administration_route_id', '=', 'administration_routes.id')
-                ->where('administration_route_medicine_catalog.medicine_catalog_id', $med->id)
+                ->where('administration_route_medicine_catalog.medicine_catalog_id', $cat->id)
                 ->select('administration_routes.id', 'administration_routes.name')
                 ->get();
 
-            // 🔑 clave = id de catálogo (coincide con <option value="..."> del select)
-            $infoAdicional[$med->id] = [
+            $infoAdicional[$cat->id] = [
                 'diluyentes'       => $diluyentes,
                 'vias'             => $vias,
-                'requires_infusor' => (int) $med->requires_infusor,
+                'requires_infusor' => (int) $cat->requires_infusor,
             ];
         }
 
-        // 3) Infusores activos
+        // ==============================
+        // 4) INFUSORES
+        // ==============================
         $infusors = DB::table('infusors')
             ->select('id', 'nombre_generico', 'nombre_comercial')
             ->where('is_active', true)
@@ -99,13 +139,15 @@ class SolicitudController extends Controller
             ->get();
 
         return view('admin.oncologicos.solicitudes.create', [
-            'medicamentos'  => $medicamentos,
-            'infoAdicional' => $infoAdicional,
-            'infusors'      => $infusors,
+            // ✅ deja ambos para compatibilidad
+            'catalogos'                 => $catalogos,
+            'medicamentos'              => $medicamentos,
+
+            'presentacionesPorCatalogo' => $presentacionesPorCatalogo,
+            'infoAdicional'             => $infoAdicional,
+            'infusors'                  => $infusors,
         ]);
     }
-
-
 
 
     public function store(Request $request)
@@ -353,60 +395,83 @@ class SolicitudController extends Controller
         $user    = Auth::user();
         $listaId = $user->medicine_list_id; // puede ser null
 
-        // =========================
-        // 1) Base query genérica
-        // =========================
-        $baseQuery = DB::table('medicine_oncos as mo')
-            ->join('medicines_catalog as mc', 'mo.catalog_id', '=', 'mc.id')
+        // ==============================
+        // 1) CATÁLOGOS GENÉRICOS ACTIVOS
+        // ==============================
+        $catalogos = DB::table('medicines_catalog as mc')
+            ->where('mc.state', true)
             ->select(
-                'mo.id as id',
+                'mc.id as id',
                 'mc.denominacion',
-                DB::raw('mc.denominacion_comercial as presentacion'),
-                'mc.id as catalog_id',
-                'mc.requires_infusor as requires_infusor',
-                DB::raw('NULL as lote'),
-                DB::raw('NULL as caducidad')
-            );
+                'mc.requires_infusor'
+            )
+            ->orderBy('mc.denominacion')
+            ->get()
+            ->map(function ($m) {
+                $m->requires_infusor = (int) ($m->requires_infusor ?? 0);
+                return $m;
+            });
 
-        // =========================
-        // 2) Intentar usar la lista del usuario
-        // =========================
+        // ==============================
+        // 2) PRESENTACIONES POR CATÁLOGO
+        //    - Con lista: solo presentaciones de la lista
+        //    - Sin lista: todas las disponibles
+        // ==============================
+        $presentacionesPorCatalogo = collect();
+
         if ($listaId) {
-            $medicamentos = (clone $baseQuery)
-                ->join('medicine_medicine_lists as mml', function ($join) use ($listaId) {
-                    $join->on('mml.medicine_id', '=', 'mo.id')
-                        ->where('mml.medicine_list_id', '=', $listaId);
-                })
-                ->addSelect(DB::raw('mml.precio as precio'))
+            $presentaciones = DB::table('medicine_presentations as mp')
+                ->join('medicine_list_presentation as mlp', 'mlp.medicine_presentation_id', '=', 'mp.id')
+                ->where('mlp.medicine_list_id', $listaId)
+                ->where('mp.is_available', 1)
+                ->select(
+                    'mp.id',
+                    'mp.catalog_id',
+                    'mp.presentacion',
+                    'mp.marca',
+                    'mp.cantidad_medicamento',
+                    'mp.volumen_diluyente',
+                    'mp.precio_frasco',
+                    'mlp.charge_by',
+                    'mlp.precio',
+                    'mlp.precio_mg_override'
+                )
+                ->orderBy('mp.presentacion')
                 ->get();
+
+            $presentacionesPorCatalogo = $presentaciones
+                ->groupBy('catalog_id')
+                ->map(fn($rows) => $rows->values());
         } else {
-            $medicamentos = collect();
-        }
-
-        // =========================
-        // 3) Si la lista está vacía, fallback a TODOS los genéricos
-        // =========================
-        if ($medicamentos->isEmpty()) {
-            $medicamentos = (clone $baseQuery)
-                ->addSelect(DB::raw('mo.precio as precio'))
+            $presentaciones = DB::table('medicine_presentations as mp')
+                ->where('mp.is_available', 1)
+                ->select(
+                    'mp.id',
+                    'mp.catalog_id',
+                    'mp.presentacion',
+                    'mp.marca',
+                    'mp.cantidad_medicamento',
+                    'mp.volumen_diluyente',
+                    'mp.precio_frasco'
+                )
+                ->orderBy('mp.presentacion')
                 ->get();
+
+            $presentacionesPorCatalogo = $presentaciones
+                ->groupBy('catalog_id')
+                ->map(fn($rows) => $rows->values());
         }
 
-        // Normalizar requires_infusor
-        $medicamentos = $medicamentos->map(function ($m) {
-            $m->requires_infusor = (int) ($m->requires_infusor ?? 0);
-            return $m;
-        });
-
-        // =========================
-        // 4) Info adicional (diluyentes + vías) por catálogo
-        // =========================
+        // ==============================
+        // 3) INFO ADICIONAL por catálogo_id
+        //    (clave = mc.id)
+        // ==============================
         $infoAdicional = [];
 
-        foreach ($medicamentos as $med) {
+        foreach ($catalogos as $cat) {
             $diluyentes = DB::table('diluent_medicine_catalog')
                 ->join('diluents', 'diluent_medicine_catalog.diluent_id', '=', 'diluents.id')
-                ->where('diluent_medicine_catalog.medicine_catalog_id', $med->catalog_id)
+                ->where('diluent_medicine_catalog.medicine_catalog_id', $cat->id)
                 ->select(
                     'diluents.id',
                     DB::raw('diluents.denominacion_generica as name')
@@ -415,20 +480,20 @@ class SolicitudController extends Controller
 
             $vias = DB::table('administration_route_medicine_catalog')
                 ->join('administration_routes', 'administration_route_medicine_catalog.administration_route_id', '=', 'administration_routes.id')
-                ->where('administration_route_medicine_catalog.medicine_catalog_id', $med->catalog_id)
+                ->where('administration_route_medicine_catalog.medicine_catalog_id', $cat->id)
                 ->select('administration_routes.id', 'administration_routes.name')
                 ->get();
 
-            $infoAdicional[$med->id] = [
+            $infoAdicional[$cat->id] = [
                 'diluyentes'       => $diluyentes,
                 'vias'             => $vias,
-                'requires_infusor' => (int) $med->requires_infusor,
+                'requires_infusor' => (int) $cat->requires_infusor,
             ];
         }
 
-        // =========================
-        // 5) Infusores activos
-        // =========================
+        // ==============================
+        // 4) INFUSORES
+        // ==============================
         $infusors = DB::table('infusors')
             ->select('id', 'nombre_generico', 'nombre_comercial')
             ->where('is_active', true)
@@ -436,17 +501,17 @@ class SolicitudController extends Controller
             ->orderBy('nombre_comercial')
             ->get();
 
-        // =========================
-        // 6) Enviar a la vista
-        // =========================
+        // ==============================
+        // 5) ENVIAR A LA VISTA
+        // ==============================
         return view('admin.oncologicos.solicitudes.edit', [
-            'solicitud'     => $solicitud,
-            'medicamentos'  => $medicamentos,
-            'infoAdicional' => $infoAdicional,
-            'infusors'      => $infusors,
+            'solicitud'                 => $solicitud,
+            'catalogos'                 => $catalogos,                 // ✅ ya no "medicamentos"
+            'presentacionesPorCatalogo' => $presentacionesPorCatalogo, // ✅ nuevo
+            'infoAdicional'             => $infoAdicional,             // ✅ llave por catalog_id
+            'infusors'                  => $infusors,
         ]);
     }
-
 
 
 
@@ -890,6 +955,8 @@ class SolicitudController extends Controller
             }
         }
 
+
+
         $pdf = Pdf::loadView('pdfs.oncologicos.remision', [
             'solicitud'     => $solicitud_onco,
             'mezclas'       => $solicitud_onco->mezclas,
@@ -897,6 +964,8 @@ class SolicitudController extends Controller
             'totalRemision' => round($totalRemision, 2),
             'distributor'   => $distributor,
         ])->setPaper('letter', 'portrait');
+
+
 
         return $pdf->stream();
     }

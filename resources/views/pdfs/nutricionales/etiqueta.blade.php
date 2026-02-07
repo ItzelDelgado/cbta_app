@@ -376,8 +376,7 @@
             </table>
             <table>
                 <tr>
-                    <td style="border: none; text-align: center; border-top: 1px solid black;"><strong>MANTENER EN
-                            REFIGERACIÓN <br>
+                    <td style="border: none; text-align: center; border-top: 1px solid black;"><strong>MANTENER EN REFRIGERACIÓN DE 2 A 8 GRADOS <br>
                             HASTA UNA HORA ANTES DE SU ADMINISTRACIÓN</strong></td>
                 </tr>
                 <tr>

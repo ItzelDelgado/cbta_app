@@ -29,6 +29,7 @@ class MezclaController extends Controller
         $solicitud = SolicitudOnco::with(['user.hospital', 'mezclas'])
             ->findOrFail($id);
 
+
         return view('admin.oncologicos.mezclas.index', compact('solicitud'));
     }
 
@@ -50,48 +51,55 @@ class MezclaController extends Controller
 
     public function show($id)
     {
-        // Mezcla con solicitud y medicamentos cargados
         $mezcla = Mezcla::with(['solicitud', 'medicamentos'])->findOrFail($id);
 
-        // IDs de medicamentos que participan en ESTA mezcla
-        $medIds = $mezcla->medicamentos->pluck('medicamento_id')->unique()->values();
+        $medIds = $mezcla->medicamentos->pluck('medicamento_id')->filter()->unique()->values();
 
         $infoAdicional = [];
 
         if ($medIds->isNotEmpty()) {
-            // Traer info de medicine_oncos + medicines_catalog SOLO para esos IDs
+
+            // Trae denominación + catalog_id desde medicine_oncos + medicines_catalog
             $medicamentos = DB::table('medicine_oncos as mo')
                 ->join('medicines_catalog as mc', 'mo.catalog_id', '=', 'mc.id')
                 ->whereIn('mo.id', $medIds)
                 ->select(
                     'mo.id as id',
                     'mc.denominacion',
-                    DB::raw('mc.denominacion_comercial as presentacion'),
                     'mc.id as catalog_id'
                 )
                 ->get();
 
             foreach ($medicamentos as $med) {
+
+                // ✅ PRESENTACIÓN REAL (medicine_presentations.presentacion)
+                // Toma la primera presentación usada (si hay varias, luego te doy variante)
+                $presentacion = DB::table('mezcla_medicamentos as mm')
+                    ->join('mezcla_medicamento_presentaciones as mmp', 'mmp.mezcla_medicamento_id', '=', 'mm.id')
+                    ->join('medicine_batches as mb', 'mb.id', '=', 'mmp.medicine_batch_id')
+                    ->join('medicine_presentations as mp', 'mp.id', '=', 'mb.medicine_presentation_id')
+                    ->where('mm.mezcla_id', $mezcla->id)
+                    ->where('mm.medicamento_id', $med->id) // ← medicine_oncos.id
+                    ->orderBy('mmp.id')
+                    ->value('mp.presentacion');
+
                 // Diluyentes asociados al catálogo
-                $diluyentes = DB::table('diluent_medicine_catalog')
-                    ->join('diluents', 'diluent_medicine_catalog.diluent_id', '=', 'diluents.id')
-                    ->where('diluent_medicine_catalog.medicine_catalog_id', $med->catalog_id)
-                    ->select(
-                        'diluents.id',
-                        DB::raw('diluents.denominacion_generica as name')
-                    )
+                $diluyentes = DB::table('diluent_medicine_catalog as dmc')
+                    ->join('diluents as d', 'dmc.diluent_id', '=', 'd.id')
+                    ->where('dmc.medicine_catalog_id', $med->catalog_id)
+                    ->select('d.id', DB::raw('d.denominacion_generica as name'))
                     ->get();
 
                 // Vías asociadas al catálogo
-                $vias = DB::table('administration_route_medicine_catalog')
-                    ->join('administration_routes', 'administration_route_medicine_catalog.administration_route_id', '=', 'administration_routes.id')
-                    ->where('administration_route_medicine_catalog.medicine_catalog_id', $med->catalog_id)
-                    ->select('administration_routes.id', 'administration_routes.name')
+                $vias = DB::table('administration_route_medicine_catalog as armc')
+                    ->join('administration_routes as ar', 'armc.administration_route_id', '=', 'ar.id')
+                    ->where('armc.medicine_catalog_id', $med->catalog_id)
+                    ->select('ar.id', 'ar.name')
                     ->get();
 
                 $infoAdicional[$med->id] = [
                     'denominacion' => $med->denominacion,
-                    'presentacion' => $med->presentacion, // por si luego quieres mostrarla
+                    'presentacion' => $presentacion ?: '—',
                     'diluyentes'   => $diluyentes,
                     'vias'         => $vias,
                 ];
@@ -119,8 +127,8 @@ class MezclaController extends Controller
         // ==============================
         // 1) OBTENER PRESENTACIONES DE LA LISTA
         // ==============================
-        $presentacionesLista      = collect();
-        $catalogIdsDesdeLista     = collect();
+        $presentacionesLista  = collect();
+        $catalogIdsDesdeLista = collect();
 
         if ($listaId) {
             // Presentaciones ligadas a la lista del usuario
@@ -142,20 +150,28 @@ class MezclaController extends Controller
             $catalogIdsDesdeLista = DB::table('medicines_catalog')->pluck('id');
         }
 
-        // ==============================
-        // 2) MEDICAMENTOS (GENÉRICOS) PERMITIDOS
-        // ==============================
         $query = DB::table('medicine_oncos as mo')
             ->join('medicines_catalog as mc', 'mo.catalog_id', '=', 'mc.id')
+            ->leftJoin('medicine_presentations as mp', function ($join) {
+                $join->on('mp.catalog_id', '=', 'mc.id')
+                    ->where('mp.is_available', 1);
+            })
             ->select(
                 'mo.id as id',
                 DB::raw('mo.precio as precio'),
                 'mc.denominacion',
-                DB::raw('mc.denominacion_comercial AS presentacion'),
                 'mc.id as catalog_id',
-                'mc.requires_infusor as requires_infusor'
+                'mc.requires_infusor as requires_infusor',
+                DB::raw('MIN(mp.presentacion) as presentacion_default')
             )
-            ->whereIn('mc.id', $catalogIdsDesdeLista);
+            ->whereIn('mc.id', $catalogIdsDesdeLista)
+            ->groupBy(
+                'mo.id',
+                'mo.precio',
+                'mc.denominacion',
+                'mc.id',
+                'mc.requires_infusor'
+            );
 
         $medicamentos = $query->get()->map(function ($m) {
             $m->requires_infusor = (int) ($m->requires_infusor ?? 0);
@@ -165,27 +181,38 @@ class MezclaController extends Controller
         // ==============================
         // 3) COMPLETAR CON MEDS YA USADOS EN LA MEZCLA
         // ==============================
-        $idsCatalogo = $medicamentos->pluck('id')->all();
+        $idsMedicamentosOnco = $medicamentos->pluck('id')->all();
 
         foreach ($mezcla->medicamentos as $mm) {
-            if (!in_array($mm->medicamento_id, $idsCatalogo, true)) {
+            if (!in_array($mm->medicamento_id, $idsMedicamentosOnco, true)) {
                 $extra = DB::table('medicine_oncos as mo')
                     ->join('medicines_catalog as mc', 'mo.catalog_id', '=', 'mc.id')
+                    ->leftJoin('medicine_presentations as mp', function ($join) {
+                        $join->on('mp.catalog_id', '=', 'mc.id')
+                            ->where('mp.is_available', 1);
+                    })
                     ->where('mo.id', $mm->medicamento_id)
                     ->select(
                         'mo.id as id',
                         DB::raw('mo.precio as precio'),
                         'mc.denominacion',
-                        DB::raw('mc.denominacion_comercial AS presentacion'),
                         'mc.id as catalog_id',
-                        'mc.requires_infusor as requires_infusor'
+                        'mc.requires_infusor as requires_infusor',
+                        DB::raw('MIN(mp.presentacion) as presentacion_default')
+                    )
+                    ->groupBy(
+                        'mo.id',
+                        'mo.precio',
+                        'mc.denominacion',
+                        'mc.id',
+                        'mc.requires_infusor'
                     )
                     ->first();
 
                 if ($extra) {
                     $extra->requires_infusor = (int) ($extra->requires_infusor ?? 0);
                     $medicamentos->push($extra);
-                    $idsCatalogo[] = $extra->id;
+                    $idsMedicamentosOnco[] = $extra->id;
                 }
             }
         }
@@ -217,12 +244,12 @@ class MezclaController extends Controller
 
             $infoAdicional[$med->id] = [
                 'denominacion'     => $med->denominacion,
-                'presentacion'     => $med->presentacion,
+                'presentacion'     => $med->presentacion_default ?? '—', // ✅ ya no viene de catalog
                 'precio'           => $med->precio,
                 'catalog_id'       => $med->catalog_id,
                 'diluyentes'       => $diluyentes,
                 'vias'             => $vias,
-                'requires_infusor' => (int) $med->requires_infusor,
+                'requires_infusor' => (int) ($med->requires_infusor ?? 0),
             ];
         }
 
@@ -318,6 +345,7 @@ class MezclaController extends Controller
     }
 
 
+
     public function update(Request $request, $id)
     {
         // ---------- Helpers internos ----------
@@ -383,6 +411,7 @@ class MezclaController extends Controller
                 ?? 'Usuario';
 
             DB::transaction(function () use ($mezcla, $generarLotePorMezcla, $asegurarRemisionPorSolicitud, $preparoNombre) {
+
                 $mezcla->estado = 'preparada';
 
                 // 1) LOTE por mezcla
@@ -403,6 +432,23 @@ class MezclaController extends Controller
                 }
 
                 $mezcla->save();
+
+                // ✅ 3) Asegurar inspección y guardar quién preparó (sin nulls)
+                $inspeccion = InspeccionMezcla::firstOrCreate(
+                    ['mezcla_id' => $mezcla->id],
+                    [
+                        'fecha_inspeccion' => now()->toDateString(),
+                        'hora_inspeccion'  => now()->format('H:i:s'),
+                        'reviso_nombre'    => '', // ✅ NOT NULL
+                        'aprobo_nombre'    => '', // ✅ NOT NULL
+                    ]
+                );
+
+                // ✅ evita sobrescribir si ya había alguien
+                if ($inspeccion->preparo_nombre === '' || $inspeccion->preparo_nombre === null) {
+                    $inspeccion->preparo_nombre = $preparoNombre;
+                    $inspeccion->save();
+                }
             });
 
             return redirect()
@@ -700,7 +746,7 @@ class MezclaController extends Controller
                 $mezcla->save();
 
                 $user = auth()->user();
-                $preparoNombre = $user?->name
+                $aproboNombre = $user?->name
                     ?? ($user?->nombre ?? null)
                     ?? $user?->email
                     ?? 'Usuario';
@@ -715,9 +761,10 @@ class MezclaController extends Controller
                     ]
                 );
 
-                $inspeccion->preparo_nombre = $preparoNombre;
+                $inspeccion->aprobo_nombre = $aproboNombre;
                 $inspeccion->save();
             }
+
 
             DB::commit();
 
@@ -757,7 +804,7 @@ class MezclaController extends Controller
             'medicamentos.diluyente',
             'medicamentos.viaAdministracion',
             'medicamentos.presentacionesUsadas.batch.presentation',
-            'diluentPresentation.diluent', // ✅ para nombre real del diluyente
+            'diluentPresentation.diluent',
             'infusor',
         ])->findOrFail($mezcla->id);
 
@@ -774,7 +821,7 @@ class MezclaController extends Controller
             ? Carbon::parse($aprobada->fecha_hora_limite_uso)
             : $fechaPreparacion->copy()->addHours(48);
 
-        $hospital = optional($mezcla->solicitud->user->hospital)->name ?? 'No asignado';
+        $hospital = optional(optional($mezcla->solicitud)->user->hospital)->name ?? 'No asignado';
 
         // ===== EQUIPO INFUSIÓN/INFUSOR =====
         $esSetInfusion = (bool) $mezcla->set_infusion;
@@ -804,58 +851,96 @@ class MezclaController extends Controller
         $preparoNombre = optional($mezcla->inspeccion)->preparo_nombre;
         $liberoNombre  = optional($mezcla->inspeccion)->libero_nombre;
 
+        $preparadaPor = $preparoNombre ?: '—';
+
         // ===== DILUYENTE BASE =====
-        $diluyenteBase = optional(optional($mezcla->diluentPresentation)->diluent)->denominacion_generica
-            ?? '—';
+        $diluyenteBase = optional(optional($mezcla->diluentPresentation)->diluent)->denominacion_generica ?? '—';
+
+        // ===== fallback presentaciones =====
+        $catalogIds = $mezcla->medicamentos
+            ->map(fn($mm) => optional(optional($mm->medicamentoOnco)->catalog)->id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $presentacionFallbackPorCatalogo = DB::table('medicine_presentations')
+            ->whereIn('catalog_id', $catalogIds)
+            ->where('is_available', 1)
+            ->orderBy('presentacion')
+            ->get()
+            ->groupBy('catalog_id')
+            ->map(fn($rows) => $rows->first());
 
         // ==========================================================
-        // ✅ CÁLCULOS:
-        // Volumen orden de preparación (mL):
-        //   dosis(mg) * volumen_presentacion(ml) / mg_presentacion(mg)
-        //
-        // Volumen diluyente (mL):
-        //   volumen_total_solicitado - volumen_medicamento
+        // ✅ CÁLCULOS
         // ==========================================================
-
         $volumenTotalSolicitado = (float) ($mezcla->volumen_dilucion ?? 0);
 
         $legendProteccion = null;
         $totalVolMedicamentos = 0.0;
 
-        // ===== MEDICAMENTOS (para tablas) =====
-        $medicamentos = $mezcla->medicamentos->map(function ($mm) use ($mezcla, $volumenTotalSolicitado, &$legendProteccion, &$totalVolMedicamentos) {
+        // ✅ Regla: si cualquier medicamento requiere infusor, ocultar "Extraer"
+        $ocultarExtraer = $mezcla->medicamentos->contains(function ($mm) {
+            return (bool) (optional(optional($mm->medicamentoOnco)->catalog)->requires_infusor ?? false);
+        });
 
+        // ===== MEDICAMENTOS (para tablas) =====
+        $medicamentos = $mezcla->medicamentos->map(function ($mm) use (
+            $mezcla,
+            $volumenTotalSolicitado,
+            &$legendProteccion,
+            &$totalVolMedicamentos,
+            $presentacionFallbackPorCatalogo
+        ) {
             $presentaciones = $mm->presentacionesUsadas ?? collect();
             $firstPresUsed  = $presentaciones->first();
 
             $batch     = optional($firstPresUsed)->batch;
             $presModel = optional($firstPresUsed)->presentation;
             $catalog   = optional(optional($mm->medicamentoOnco)->catalog);
+            $catalogId = optional($catalog)->id;
 
-            $lote      = optional($firstPresUsed)->lote_usado ?? ($batch->lote ?? null);
-            $caducidad = optional($firstPresUsed)->caducidad_usada ?? ($batch->caducidad ?? null);
+            if (!$presModel && $catalogId) {
+                $fallback = $presentacionFallbackPorCatalogo->get($catalogId);
+                if ($fallback) {
+                    $presModel = (object) $fallback;
+                }
+            }
 
-            // ✅ Leyenda (primera que exista)
+            $lote      = optional($firstPresUsed)->lote_usado ?? (optional($batch)->lote ?? null);
+            $caducidad = optional($firstPresUsed)->caducidad_usada ?? (optional($batch)->caducidad ?? null);
+
             if (!$legendProteccion) {
                 $candLegend = trim((string) optional($presModel)->legend);
                 if ($candLegend !== '') $legendProteccion = $candLegend;
             }
 
-            // Nombre para usar también en texto "Agregar"
-            $nombreMed = $mm->nombre_medicamento
-                ?? ($catalog->denominacion ?? null)
-                ?? 'Medicamento';
+            // ✅ Nombre para texto (Denominación + Marca)
+            // - Denominación: medicines_catalog.denominacion
+            // - Marca: medicine_presentations.marca (presentación usada)
+            $denom = trim((string) (optional($catalog)->denominacion ?? ''));
+            $marca = trim((string) (optional($presModel)->marca ?? ''));
 
-            // ====== Volumen de orden de preparación (mL) ======
-            // Preferimos dosis_ml si ya viene calculado, pero si no, aplicamos la fórmula.
+            // Fallback: si por algo no hay denom, usa nombre_medicamento pero limpiando "(undefined)"
+            $fallbackNombre = $mm->nombre_medicamento ?? 'Medicamento';
+            $fallbackNombre = trim(preg_replace('/\s*\(undefined\)\s*/i', '', $fallbackNombre));
+
+            // Nombre final para texto
+            if ($denom !== '') {
+                $nombreMed = $marca !== '' ? "{$denom} ({$marca})" : $denom;
+            } else {
+                $nombreMed = $fallbackNombre;
+            }
+
+            // ====== Volumen orden de preparación (mL) ======
             $volOrdenPrep = null;
 
             if (!is_null($mm->dosis_ml) && is_numeric($mm->dosis_ml) && (float)$mm->dosis_ml > 0) {
                 $volOrdenPrep = (float) $mm->dosis_ml;
             } else {
-                $dosisMg     = (float) ($mm->dosis ?? 0);
-                $mgPres      = (float) (optional($presModel)->cantidad_medicamento ?? 0); // mg de la presentación
-                $volPresMl   = (float) (optional($presModel)->volumen_diluyente ?? 0);    // mL de la presentación
+                $dosisMg   = (float) ($mm->dosis ?? 0);
+                $mgPres    = (float) (optional($presModel)->cantidad_medicamento ?? 0);
+                $volPresMl = (float) (optional($presModel)->volumen_diluyente ?? 0);
 
                 if ($dosisMg > 0 && $mgPres > 0 && $volPresMl > 0) {
                     $volOrdenPrep = ($dosisMg * $volPresMl) / $mgPres;
@@ -873,28 +958,25 @@ class MezclaController extends Controller
             $totalVolMedicamentos += $volOrdenPrep;
 
             return (object) [
-                'lote'                   => $lote,
-                'caducidad'              => $caducidad,
-                'denominacion_comercial' => $catalog->denominacion_comercial ?? null,
-                'denominacion'           => $catalog->denominacion ?? null,
-                'presentacion'           => optional($presModel)->presentacion ?? null,
-                'dosis'                  => $mm->dosis, // mg
-                // ✅ nuevos campos para tu PDF:
-                'volumen_orden_preparacion' => $volOrdenPrep,   // mL
-                'volumen_diluyente'         => $volDiluyente,   // mL
-                'volumen_total'             => $mezcla->volumen_dilucion, // mL
-                // para texto
-                'nombre_para_texto'         => $nombreMed,
+                'lote'      => $lote,
+                'caducidad' => $caducidad,
+                'denominacion' => optional($catalog)->denominacion ?? null,
+                'presentacion' => optional($presModel)->presentacion ?? null,
+                'dosis' => $mm->dosis,
+
+                'volumen_orden_preparacion' => $volOrdenPrep,
+                'volumen_diluyente'         => $volDiluyente,
+                'volumen_total'             => $mezcla->volumen_dilucion,
+
+                'nombre_para_texto' => $nombreMed,
             ];
         })->values();
 
         if (!$legendProteccion) $legendProteccion = '—';
 
-        // ===== Texto final de "Extraer / Agregar" sin repetir el diluyente por medicamento =====
-        // Extraer = suma de volúmenes de medicamento
+        // ===== Texto final "Extraer / Agregar" =====
         $extraerTotal = (float) $totalVolMedicamentos;
 
-        // Diluyente restante = volumen total - suma medicamentos
         $diluyenteRestante = $volumenTotalSolicitado - $extraerTotal;
         if ($diluyenteRestante < 0) $diluyenteRestante = 0.0;
 
@@ -904,12 +986,12 @@ class MezclaController extends Controller
 
         $extraerTotalFmt = $fmt($extraerTotal);
         $diluyenteRestanteFmt = $fmt($diluyenteRestante);
+        $volTotalFmt = $fmt($volumenTotalSolicitado);
 
-        // Armamos UNA sola línea "Agregar: ..."
         $partesMed = $medicamentos
             ->filter(fn($m) => (float)($m->volumen_orden_preparacion ?? 0) > 0)
             ->map(function ($m) use ($fmt) {
-                $v = $fmt($m->volumen_orden_preparacion ?? 0);
+                $v   = $fmt($m->volumen_orden_preparacion ?? 0);
                 $nom = $m->nombre_para_texto ?? 'Medicamento';
                 return "{$v} mL de {$nom}";
             })
@@ -918,47 +1000,59 @@ class MezclaController extends Controller
 
         $detalleAgregar = [];
         if (count($partesMed) > 0) {
-            $detalleAgregar[] = implode(' + ', $partesMed) . " a {$diluyenteRestanteFmt} mL de {$diluyenteBase}";
+            // ✅ Si hay medicamento con infusor: NO "a restante", sino "y VOLUMEN TOTAL ... al infusor"
+            if ($ocultarExtraer) {
+                $detalleAgregar[] = implode(' + ', $partesMed) . " y {$volTotalFmt} mL de {$diluyenteBase} al infusor.";
+            } else {
+                // comportamiento original
+                $detalleAgregar[] = implode(' + ', $partesMed) . " a {$diluyenteRestanteFmt} mL de {$diluyenteBase}";
+            }
         }
 
-        $dosisTotalMg = $mezcla->medicamentos
-            ->sum(fn($m) => (float) ($m->dosis ?? 0));
-
+        // ===== Concentración final =====
+        $dosisTotalMg = $mezcla->medicamentos->sum(fn($m) => (float) ($m->dosis ?? 0));
         $volumenFinalMl = (float) ($mezcla->volumen_dilucion ?? 0);
 
         $concentracionFinal = null;
-
         if ($dosisTotalMg > 0 && $volumenFinalMl > 0) {
             $concentracionFinal = $dosisTotalMg / $volumenFinalMl;
         }
 
-        // Formato bonito
         $concentracionFinalFmt = $concentracionFinal !== null
             ? rtrim(rtrim(number_format($concentracionFinal, 4, '.', ''), '0'), '.')
             : '—';
 
         $pdf = Pdf::loadView('pdfs.oncologicos.orden-de-preparacion', [
-            'mezcla'            => $mezcla,
-            'medicamentos'      => $medicamentos,
-            'fecha_preparacion' => $fechaPreparacion,
-            'fecha_limite_uso'  => $fechaLimiteUso,
-            'hospital'          => $hospital,
-            'aprobo_nombre'     => $aproboNombre,
-            'reviso_nombre'     => $revisoNombre,
-            'preparo_nombre'    => $preparoNombre,
-            'libero_nombre'     => $liberoNombre,
-            'equipoInfusion'    => $equipoInfusion,
-            'concentracion_final' => $concentracionFinalFmt,
+            'mezcla'               => $mezcla,
+            'medicamentos'         => $medicamentos,
+            'fecha_preparacion'    => $fechaPreparacion,
+            'fecha_limite_uso'     => $fechaLimiteUso,
+            'hospital'             => $hospital,
 
-            // ✅ Para sección "Cálculos y forma de preparación"
-            'diluyente_base'    => $diluyenteBase,
-            'extraer_ml'        => $extraerTotalFmt,
-            'detalle_agregar'   => $detalleAgregar,
-            'legend_proteccion' => $legendProteccion,
+            'aprobo_nombre'        => $aproboNombre,
+            'reviso_nombre'        => $revisoNombre,
+            'preparo_nombre'       => $preparoNombre,
+            'libero_nombre'        => $liberoNombre,
+
+            'preparadaPor'         => $preparadaPor,
+
+            'equipoInfusion'       => $equipoInfusion,
+            'concentracion_final'  => $concentracionFinalFmt,
+
+            'diluyente_base'       => $diluyenteBase,
+            'extraer_ml'           => $extraerTotalFmt,
+            'detalle_agregar'      => $detalleAgregar,
+            'legend_proteccion'    => $legendProteccion,
+
+            // ✅ NUEVO: para ocultar Extraer en Blade
+            'ocultarExtraer'       => $ocultarExtraer,
         ])->setPaper('letter', 'portrait');
 
         return $pdf->stream("orden-preparacion-{$mezcla->id}.pdf");
     }
+
+
+
 
     public function inspeccion(Mezcla $mezcla)
     {
@@ -976,8 +1070,14 @@ class MezclaController extends Controller
 
     public function etiqueta(Mezcla $mezcla)
     {
+        // Bloquear clientes
+        if (auth()->user()?->hasRole('cliente')) {
+            abort(403, 'No autorizado');
+        }
+
         $mezcla = Mezcla::with([
-            'solicitud',
+            'solicitud.user.hospital', // ✅ para Cliente (hospital)
+            'inspeccion',              // ✅ solo para preparo_nombre
             'diluentPresentation.diluent',
             'medicamentos.presentacionesUsadas.batch.presentation',
             'medicamentos.medicamentoOnco.catalog',
@@ -986,6 +1086,17 @@ class MezclaController extends Controller
         $aprobada = DB::table('solicitud_aprobadas')
             ->where('solicitud_id', $mezcla->solicitud_id)
             ->first();
+
+        // =========================================
+        // ✅ Cliente = Hospital
+        // =========================================
+        $cliente = optional(optional(optional($mezcla->solicitud)->user)->hospital)->name
+            ?? '—';
+
+        // =========================================
+        // ✅ Preparada por (SOLO este campo desde inspeccion_mezclas)
+        // =========================================
+        $preparadaPor = optional($mezcla->inspeccion)->preparo_nombre ?: '—';
 
         // =========================================
         // 0) Observaciones (para etiqueta)
@@ -1069,7 +1180,7 @@ class MezclaController extends Controller
         }
 
         // =========================================
-        // 4) Texto del diluyente + lote/cad (si existen en tu tabla)
+        // 4) Texto del diluyente + lote/cad
         // =========================================
         $diluyenteTexto = '—';
         $diluyenteLote = null;
@@ -1091,21 +1202,25 @@ class MezclaController extends Controller
                 $diluyenteTexto = $nombreDil;
             }
 
-            // ⚠️ Estos campos dependen de tu BD.
-            // Si tu diluentPresentation NO tiene lote/caducidad, quedarán null y en la vista verás "—".
             $diluyenteLote = $dp->lote ?? null;
             $diluyenteCad  = $dp->caducidad ?? null;
         }
 
-        // ✅ PDF (9cm x 13cm)
-        $customPaper = [0, 0, 368.50, 255.12];
+        // ✅ PDF (7.5cm x 5cm)
+        $customPaper = [0, 0, 212.6, 141.7];
 
         $pdf = Pdf::loadView('pdfs.oncologicos.etiqueta', [
             'mezcla'            => $mezcla,
             'solicitud'         => $mezcla->solicitud,
             'aprobada'          => $aprobada,
 
-            // tabla meds (incluye lote/cad)
+            // ✅ NUEVO
+            'cliente'           => $cliente,
+
+            // ✅ Solo este campo desde inspeccion_mezclas
+            'preparadaPor'      => $preparadaPor,
+
+            // tabla meds
             'medicamentos'      => $medicamentosTabla,
 
             // diluyente + lote/cad

@@ -11,22 +11,24 @@
             <div class="flex items-center gap-3 mb-4">
                 <div class="mt-4">
                     <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5"
-                       href="{{ route('admin.oncologicos.mezclas.ordenPreparacion', $mezcla) }}" target="_blank">
-                        Orden de preparación
+                        href="{{ route('admin.oncologicos.mezclas.ordenPreparacion', $mezcla) }}" target="_blank">
+                        {{ auth()->user()?->hasRole('Cliente') ? 'Trazabilidad' : 'Orden de preparación' }}
                     </a>
                 </div>
                 <div class="mt-4">
                     <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5"
-                       href="{{ route('admin.oncologicos.mezclas.inspeccion', $mezcla) }}" target="_blank">
+                        href="{{ route('admin.oncologicos.mezclas.inspeccion', $mezcla) }}" target="_blank">
                         Inspección
                     </a>
                 </div>
-                <div class="mt-4">
-                    <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5"
-                       href="{{ route('admin.oncologicos.mezclas.etiqueta', $mezcla) }}" target="_blank">
-                        Etiqueta
-                    </a>
-                </div>
+                @unless (auth()->user()?->hasRole('Cliente'))
+                    <div class="mt-4">
+                        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5"
+                            href="{{ route('admin.oncologicos.mezclas.etiqueta', $mezcla) }}" target="_blank">
+                            Etiqueta
+                        </a>
+                    </div>
+                @endunless
             </div>
 
             {{-- Datos del paciente --}}
@@ -54,26 +56,31 @@
             <div class="grid grid-cols-4 gap-4">
                 <div>
                     <label class="text-sm font-semibold">Sexo</label>
-                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">{{ $mezcla->solicitud->sexo }}</p>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->sexo }}</p>
                 </div>
                 <div>
                     <label class="text-sm font-semibold">Fecha de nacimiento</label>
-                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">{{ $mezcla->solicitud->fecha_nacimiento }}</p>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->fecha_nacimiento }}</p>
                 </div>
                 <div>
                     <label class="text-sm font-semibold">Peso</label>
-                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">{{ $mezcla->solicitud->peso }} kg</p>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->peso }} kg</p>
                 </div>
                 <div>
                     <label class="text-sm font-semibold">Cama</label>
-                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">{{ $mezcla->solicitud->cama }}</p>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->cama }}</p>
                 </div>
             </div>
 
             <div class="grid grid-cols-4 gap-4">
                 <div>
                     <label class="text-sm font-semibold">Piso</label>
-                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">{{ $mezcla->solicitud->piso }}</p>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->piso }}</p>
                 </div>
                 <div>
                     <label class="text-sm font-semibold">Fecha de entrega</label>
@@ -83,22 +90,26 @@
                 </div>
                 <div>
                     <label class="text-sm font-semibold">Médico</label>
-                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">{{ $mezcla->solicitud->nombre_medico }}</p>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->nombre_medico }}</p>
                 </div>
                 <div>
                     <label class="text-sm font-semibold">Cédula</label>
-                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">{{ $mezcla->solicitud->cedula_medico }}</p>
+                    <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                        {{ $mezcla->solicitud->cedula_medico }}</p>
                 </div>
             </div>
 
             <div>
                 <label class="text-sm font-semibold">Diagnóstico</label>
-                <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">{{ $mezcla->solicitud->diagnostico }}</p>
+                <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                    {{ $mezcla->solicitud->diagnostico }}</p>
             </div>
 
             <div>
                 <label class="text-sm font-semibold">Observaciones</label>
-                <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">{{ $mezcla->solicitud->observaciones }}</p>
+                <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
+                    {{ $mezcla->solicitud->observaciones }}</p>
             </div>
 
             {{-- Mezcla visualizada --}}
@@ -108,16 +119,19 @@
 
                     {{-- Badge XOR (informativo) --}}
                     <div>
-                        @if($mezcla->set_infusion && !$mezcla->infusor_id)
-                            <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 border border-green-200">
+                        @if ($mezcla->set_infusion && !$mezcla->infusor_id)
+                            <span
+                                class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 border border-green-200">
                                 Set de infusión activo
                             </span>
                         @elseif(!$mezcla->set_infusion && $mezcla->infusor_id)
-                            <span class="text-xs px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
+                            <span
+                                class="text-xs px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
                                 Infusor seleccionado
                             </span>
                         @else
-                            <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                            <span
+                                class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
                                 Sin set / infusor
                             </span>
                         @endif
@@ -142,9 +156,7 @@
                                 $diluente = null;
                                 if ($info && isset($info['diluyentes'])) {
                                     $dItem = $info['diluyentes']->firstWhere('id', $med->diluyente_id);
-                                    $diluente = $dItem->name
-                                                ?? $dItem->denominacion_generica
-                                                ?? null;
+                                    $diluente = $dItem->name ?? ($dItem->denominacion_generica ?? null);
                                 }
 
                                 // Vía

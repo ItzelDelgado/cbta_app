@@ -18,13 +18,15 @@ class MedicineListExport implements FromCollection, WithHeadings, WithMapping, S
 
     public function collection(): Collection
     {
-        // Cargamos la lista y sus relaciones relevantes
         $this->lista = MedicineList::with([
             'distributor',
-            'presentations', // incluye pivot (charge_by, precio, precio_mg_override)
+            // ✅ Trae también el catálogo del genérico para evitar N+1
+            'presentations' => function ($q) {
+                $q->with('catalog:id,denominacion');
+            },
         ])->findOrFail($this->medicineListId);
 
-        // Vamos a exportar filas por cada presentación configurada.
+        // Exporta una fila por presentación configurada en la lista
         return $this->lista->presentations;
     }
 
@@ -43,6 +45,7 @@ class MedicineListExport implements FromCollection, WithHeadings, WithMapping, S
             'Medicamento (genérico)',
             'Medicamento (comercial)',
             'Presentación',
+            'Marca — Presentación',
             'Cobro (presentación/lista)',
             'Precio frasco',
             'Precio mg (override)',
@@ -51,11 +54,9 @@ class MedicineListExport implements FromCollection, WithHeadings, WithMapping, S
 
     public function map($presentation): array
     {
-        // ===== Lista =====
         $lista = $this->lista;
 
-        // ===== Hospitales asignados a esta lista =====
-        // (No depende de MedicineList->users(), usa tabla users directamente)
+        // ===== Hospitales asignados a esta lista (por usuarios) =====
         $hospitales = User::query()
             ->where('medicine_list_id', $lista->id)
             ->with('hospital:id,name')
@@ -66,24 +67,30 @@ class MedicineListExport implements FromCollection, WithHeadings, WithMapping, S
             ->values()
             ->implode(', ');
 
-        // ===== Distribuidor (si existe) =====
+        // ===== Distribuidor =====
         $dist = $lista->distributor;
-        $distNombre = $dist->nombre ?? ($dist->name ?? '');
+        $distNombre    = $dist->nombre ?? ($dist->name ?? '');
         $distDireccion = $dist->direccion ?? ($dist->address ?? '');
 
-        // ===== Medicamento + presentación =====
-        // Ojo: aquí depende de cómo esté tu modelo MedicinePresentation.
-        // En muchos casos trae relación al catálogo o al medicine_onco.
-        // Intentamos resolverlo con fallbacks seguros:
-        $medGenerico  = $presentation->medicineCatalog->denominacion ?? $presentation->catalog->denominacion ?? '';
-        $medComercial = $presentation->medicineCatalog->denominacion_comercial ?? $presentation->catalog->denominacion_comercial ?? '';
+        // ===== Genérico (desde medicines_catalog) =====
+        $medGenerico = $presentation->catalog->denominacion ?? '—';
 
-        $presentacionTxt = $presentation->presentacion ?? $presentation->name ?? '';
+        // ===== Comercial (marca, está en medicine_presentations.marca) =====
+        $marca = trim((string) ($presentation->marca ?? ''));
 
-        // Pivot de configuración por lista
-        $cobro = $presentation->pivot->charge_by ?? $lista->charge_by ?? '';
+        // ===== Presentación =====
+        $presTxt = trim((string) ($presentation->presentacion ?? $presentation->name ?? ''));
+
+        // ✅ Marca — Presentación (tal cual lo querías)
+        $marcaPres = ($marca !== '' && $presTxt !== '')
+            ? "{$marca} — {$presTxt}"
+            : ($presTxt !== '' ? $presTxt : '—');
+
+        // ===== Pivot configuración por lista =====
+        $cobro = $presentation->pivot->charge_by ?? $lista->charge_by ?? '—';
+
         $precioFrasco = (float) ($presentation->pivot->precio ?? 0);
-        $precioMg = (float) ($presentation->pivot->precio_mg_override ?? 0);
+        $precioMg     = (float) ($presentation->pivot->precio_mg_override ?? 0);
 
         return [
             $lista->id,
@@ -95,12 +102,14 @@ class MedicineListExport implements FromCollection, WithHeadings, WithMapping, S
             $distNombre ?: '—',
             $distDireccion ?: '—',
 
-            $medGenerico ?: '—',
-            $medComercial ?: '—',
-            $presentacionTxt ?: '—',
+            $medGenerico,
+            $marca !== '' ? $marca : '—',
+            $presTxt !== '' ? $presTxt : '—',
+            $marcaPres,
+
             $cobro ?: '—',
-            $precioFrasco ?: 0,
-            $precioMg ?: 0,
+            $precioFrasco,
+            $precioMg,
         ];
     }
 }

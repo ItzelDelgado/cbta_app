@@ -22,13 +22,12 @@ class MedicineCatalogController extends Controller
 
     public function create()
     {
-        // Diluyentes con sus presentaciones activas (solo para mostrar info en el form)
         $diluents = Diluent::with([
             'presentations' => fn($q) => $q->where('is_active', true)->orderBy('volume_ml')
-        ])->orderBy('denominacion_generica')
+        ])
+            ->orderBy('denominacion_generica')
             ->get(['id', 'denominacion_generica']);
 
-        // Vías de administración
         $routes = AdministrationRoute::orderBy('name')->get(['id', 'name']);
 
         return view('admin.oncologicos.catalog.create', compact('diluents', 'routes'));
@@ -38,7 +37,6 @@ class MedicineCatalogController extends Controller
     {
         $request->validate([
             'denominacion'           => 'required|string|max:255',
-            'denominacion_comercial' => 'required|string|max:255',
             'conc_min'               => 'nullable|numeric|min:0',
             'conc_max'               => 'nullable|numeric|min:0',
             'requires_infusor'       => 'nullable|boolean',
@@ -52,7 +50,6 @@ class MedicineCatalogController extends Controller
         // ahora se calculará por presentación (medicine_presentations).
         $catalog = MedicinesCatalog::create([
             'denominacion'           => $request->denominacion,
-            'denominacion_comercial' => $request->denominacion_comercial,
             'conc_min'               => $request->conc_min,
             'conc_max'               => $request->conc_max,
             'requires_infusor'       => $request->boolean('requires_infusor', false),
@@ -81,21 +78,21 @@ class MedicineCatalogController extends Controller
 
     public function edit(string $id)
     {
-        $medicamento = MedicinesCatalog::with(['diluents', 'administrationRoutes'])->findOrFail($id);
+        $medicamento = MedicinesCatalog::with([
+            'diluents:id,denominacion_generica',
+            'administrationRoutes:id,name',
+        ])->findOrFail($id);
 
-        // DILUYENTES con presentaciones activas
         $diluents = Diluent::with([
             'presentations' => fn($q) => $q->where('is_active', true)->orderBy('volume_ml')
         ])
             ->orderBy('denominacion_generica')
             ->get(['id', 'denominacion_generica']);
 
-        // VÍAS
         $routes = AdministrationRoute::orderBy('name')->get(['id', 'name']);
 
-        // IDs seleccionados
-        $selectedDiluents = $medicamento->diluents->pluck('id')->toArray();
-        $selectedRoutes   = $medicamento->administrationRoutes->pluck('id')->toArray();
+        $selectedDiluents = $medicamento->diluents->pluck('id')->all();
+        $selectedRoutes   = $medicamento->administrationRoutes->pluck('id')->all();
 
         return view('admin.oncologicos.catalog.edit', compact(
             'medicamento',
@@ -105,12 +102,12 @@ class MedicineCatalogController extends Controller
             'selectedRoutes'
         ));
     }
-    
+
+
     public function update(Request $request, $id)
     {
         $request->validate([
             'denominacion'           => 'required|string|max:255',
-            'denominacion_comercial' => 'required|string|max:255',
             'conc_min'               => 'nullable|numeric|min:0',
             'conc_max'               => 'nullable|numeric|min:0',
             'requires_infusor'       => 'nullable|boolean',
@@ -124,7 +121,6 @@ class MedicineCatalogController extends Controller
 
         $medicamento->update([
             'denominacion'           => $request->denominacion,
-            'denominacion_comercial' => $request->denominacion_comercial,
             'conc_min'               => $request->conc_min,
             'conc_max'               => $request->conc_max,
             'requires_infusor'       => $request->boolean('requires_infusor', false),

@@ -611,7 +611,7 @@
                            value="${med.dosis}"
                            class="w-full border px-2 py-1 text-sm dosis-input"
                            oninput="recalcularResumenPresentaciones(${contadorFilas})">
-                    <div class="mt-1 text-xs text-gray-600" id="resumen_dosis_${contadorFilas}">
+                    <div class="mt-1 text-sm text-red-600" id="resumen_dosis_${contadorFilas}">
                         Dosis objetivo: ${med.dosis} mg<br>
                         Dosis aportada: 0 mg (restan ${med.dosis} mg)
                     </div>

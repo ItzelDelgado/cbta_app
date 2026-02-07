@@ -57,7 +57,14 @@ class InspeccionMezcla extends Component
     #[On('abrir-modal-inspeccion')]
     public function abrirModalInspeccion($mezclaId)
     {
-        $this->mezclaId = $mezclaId;
+        // si llega como array [id]
+        if (is_array($mezclaId)) {
+            $mezclaId = $mezclaId[0] ?? null;
+        }
+
+        if (!$mezclaId) return;
+
+        $this->mezclaId = (int) $mezclaId;
         $this->mostrarModalInspeccion = true;
 
         // Hidratar con la inspección existente (creada en "Aprobar")

@@ -24,15 +24,6 @@
                required
                class="w-full p-2 text-sm bg-gray-50 border rounded-lg" />
       </div>
-
-      <div>
-        <label class="block mb-2 text-sm font-medium text-gray-700">Denominación comercial</label>
-        <input name="denominacion_comercial"
-               value="{{ old('denominacion_comercial', $medicamento->denominacion_comercial) }}"
-               required
-               class="w-full p-2 text-sm bg-gray-50 border rounded-lg" />
-      </div>
-
       <div>
         <label class="block mb-2 text-sm font-medium text-gray-700">Concentración mínima (mg/mL)</label>
         <input type="number" step="0.01" min="0"

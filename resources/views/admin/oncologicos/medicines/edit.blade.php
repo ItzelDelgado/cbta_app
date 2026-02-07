@@ -3,7 +3,6 @@
         <h1 class="text-3xl font-bold text-gray-800 mb-6">
             Editar Lista de Medicamentos: {{ $lista->name }}
         </h1>
-
         @if ($errors->any())
             <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                 <strong class="font-bold">¡Oops! Algo salió mal:</strong>
@@ -12,9 +11,12 @@
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
+
+                @if ($errors->has('medicamentos'))
+                    <p class="mt-2 text-sm font-semibold">{{ $errors->first('medicamentos') }}</p>
+                @endif
             </div>
         @endif
-
         <form action="{{ route('admin.oncologicos.medicines.update', $lista->id) }}" method="POST"
             enctype="multipart/form-data" class="space-y-6">
             @csrf
@@ -74,6 +76,7 @@
 
             @php
                 $distributor = $lista->distributor ?? null;
+                $distEnabledOld = (int) old('distributor_enabled', $distributor ? 1 : 0);
             @endphp
 
             {{-- ================= DISTRIBUIDOR ================= --}}
@@ -88,28 +91,26 @@
 
                     <button type="button" id="btn-toggle-distributor"
                         class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-2 rounded">
-                        {{ $distributor || old('distributor_enabled') ? 'Ocultar' : 'Agregar' }} distribuidor
+                        {{ $distEnabledOld ? 'Ocultar' : 'Agregar' }} distribuidor
                     </button>
                 </div>
 
                 <input type="hidden" name="distributor_enabled" id="distributor_enabled"
-                    value="{{ old('distributor_enabled', $distributor ? 1 : 0) }}">
+                    value="{{ $distEnabledOld }}">
 
-                <div id="distributor_form"
-                    class="{{ old('distributor_enabled', $distributor ? 1 : 0) ? '' : 'hidden' }} mt-4 space-y-4">
-
+                <div id="distributor_form" class="{{ $distEnabledOld ? '' : 'hidden' }} mt-4 space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del distribuidor*</label>
-                            <input type="text" name="distributor_nombre"
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del distribuidor</label>
+                            <input type="text" name="distributor_nombre" id="distributor_nombre"
                                 value="{{ old('distributor_nombre', $distributor->nombre ?? '') }}"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
                                 placeholder="Ej. Distribuidora ABC">
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Dirección*</label>
-                            <input type="text" name="distributor_direccion"
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+                            <input type="text" name="distributor_direccion" id="distributor_direccion"
                                 value="{{ old('distributor_direccion', $distributor->direccion ?? '') }}"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200"
                                 placeholder="Calle, número, colonia, ciudad">
@@ -119,7 +120,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Logo (PNG/JPG)</label>
-                            <input type="file" name="distributor_logo" accept="image/*"
+                            <input type="file" name="distributor_logo" id="distributor_logo" accept="image/*"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white">
                             <p class="text-xs text-gray-500 mt-1">Si no subes uno nuevo, se conserva el actual.</p>
                         </div>
@@ -130,7 +131,6 @@
                                     alt="Logo distribuidor" class="h-16 object-contain">
                             @endif
 
-                            {{-- Si quieres permitir borrar el distribuidor desde edit --}}
                             <label class="inline-flex items-center gap-2 text-sm text-gray-700">
                                 <input type="checkbox" name="distributor_delete" value="1"
                                     class="rounded border-gray-300">
@@ -138,7 +138,6 @@
                             </label>
                         </div>
                     </div>
-
                 </div>
             </div>
             {{-- ================= /DISTRIBUIDOR ================= --}}
@@ -176,9 +175,7 @@
                         <tr id="tpl-grupo-header">
                             <td class="px-4 py-2 text-center font-bold bg-gray-50 border-t" colspan="6">
                                 <div class="flex items-center gap-3">
-                                    <span class="text-xs uppercase text-gray-500 mr-2">
-                                        Medicamento genérico:
-                                    </span>
+                                    <span class="text-xs uppercase text-gray-500 mr-2">Medicamento genérico:</span>
 
                                     <select class="select-generico border-gray-300 rounded text-sm"
                                         data-role="generico">
@@ -186,19 +183,14 @@
                                         @foreach ($catalogos as $cat)
                                             <option value="{{ $cat->id }}">
                                                 {{ $cat->denominacion }}
-                                                @if ($cat->denominacion_comercial)
-                                                    ({{ $cat->denominacion_comercial }})
-                                                @endif
                                             </option>
                                         @endforeach
                                     </select>
-
                                     <button type="button"
                                         class="btn-add-presentacion ml-auto bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded"
                                         data-role="add-presentacion">
                                         + Agregar presentación
                                     </button>
-
                                     <button type="button"
                                         class="btn-remove-grupo bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded"
                                         data-role="remove-grupo">
@@ -216,10 +208,7 @@
                         <tr id="tpl-presentacion-row" class="fila-presentacion border-t" data-group="">
                             <td class="px-4 py-2 text-center align-top" data-role="row-index">1</td>
 
-                            {{-- nombre del genérico (solo texto) --}}
-                            <td class="px-4 py-2 align-top text-gray-800 text-sm" data-role="generico-label">
-                                <!-- se llena por JS -->
-                            </td>
+                            <td class="px-4 py-2 align-top text-gray-800 text-sm" data-role="generico-label"></td>
 
                             <td class="px-4 py-2 align-top">
                                 <select class="w-full border-gray-300 rounded text-sm select-presentacion"
@@ -227,22 +216,23 @@
                                     <option value="">Seleccione presentación...</option>
                                 </select>
 
-                                {{-- hidden para backend --}}
                                 <input type="hidden" data-role="input-catalog-id">
-                                <input type="hidden" data-role="input-index">
                             </td>
 
+                            {{-- ✅ Cobro: SOLO visual y BLOQUEADO --}}
                             <td class="px-4 py-2 text-center align-top">
-                                <select class="border-gray-300 rounded text-sm" data-role="charge-by">
+                                <select class="border-gray-300 rounded text-sm" data-role="charge-by" disabled>
                                     <option value="mg">mg</option>
                                     <option value="frasco">frasco</option>
                                 </select>
+                                {{-- ✅ el que se envía --}}
+                                <input type="hidden" data-role="charge-by-hidden">
                             </td>
 
                             <td class="px-4 py-2 text-center align-top">
                                 <input type="number" step="0.0001" min="0"
-                                    class="w-full border-gray-300 rounded text-sm text-right" placeholder="Precio"
-                                    data-role="precio">
+                                    class="w-full border border-gray-300 rounded text-sm text-right"
+                                    placeholder="Precio" data-role="precio">
                             </td>
 
                             <td class="px-4 py-2 text-center align-top">
@@ -270,22 +260,29 @@
         // Para el JS: presentaciones por catálogo => [{id, text}, ...]
         $presentacionesPorCatalogo = $catalogos->mapWithKeys(function ($c) {
             return [
-                $c->id => $c->presentations->map(function ($p) {
-                    return [
-                        'id' => $p->id,
-                        'text' => $p->presentacion,
-                        'mg' => $p->cantidad_medicamento,
-                    ];
-                }),
+                (string) $c->id => $c->presentations
+                    ->map(function ($p) {
+                        $marca = trim((string) ($p->marca ?? ''));
+                        $pres = trim((string) ($p->presentacion ?? ''));
+
+                        // Texto EXACTO: "Marca — Presentación"
+                        $text = $marca !== '' ? "{$marca} - {$pres}" : $pres;
+
+                        return [
+                            'id' => $p->id,
+                            'text' => $text,
+                        ];
+                    })
+                    ->values(),
             ];
         });
     @endphp
-
     @push('js')
         <script>
-            // Datos globales para JS
+            // ===== Datos globales =====
             window.PRESENTACIONES_POR_CATALOGO = @json($presentacionesPorCatalogo);
-            window.LISTA_ITEMS = @json($listaItems);
+            window.LISTA_ITEMS = @json($listaItems ?? []);
+            window.OLD_ITEMS = @json(old('medicamentos', null));
 
             document.addEventListener('DOMContentLoaded', function() {
 
@@ -308,6 +305,8 @@
                         }
                     });
                 }
+
+                // ===== Tabla dinámica =====
                 const tbody = document.getElementById('tbody-medicamentos');
                 const tplGrupoHeader = document.getElementById('tpl-grupo-header');
                 const tplPresentacionRow = document.getElementById('tpl-presentacion-row');
@@ -317,107 +316,126 @@
 
                 const PRESENT = window.PRESENTACIONES_POR_CATALOGO || {};
                 const PRESET_ITEMS = window.LISTA_ITEMS || [];
+                const OLD_ITEMS = window.OLD_ITEMS;
 
-                // ===== Helpers de presentaciones / conversión =====
+                // ✅ lista maestra de genéricos (value/text) tomada del template
+                const MASTER_GENERIC = (() => {
+                    const tmp = tplGrupoHeader.querySelector('[data-role="generico"]');
+                    return Array.from(tmp.options).map(o => ({
+                        value: o.value,
+                        text: o.text
+                    }));
+                })();
 
-                // Regresa la info de una presentación dado catálogo + presentación
-                function getPresentacionInfo(catalogId, presId) {
-                    const lista = PRESENT[catalogId] || [];
-                    return lista.find(p => String(p.id) === String(presId)) || null;
+                // ===== Switch de cobro global =====
+                const chargeByHidden = document.getElementById('charge_by');
+                const chargeSwitch = document.getElementById('charge_by_switch');
+                const chargeLabel = document.getElementById('charge_by_label');
+
+                function getGlobalChargeBy() {
+                    return (chargeByHidden && chargeByHidden.value) ? chargeByHidden.value : 'mg';
                 }
 
-                // Convierte el precio de una fila cuando cambia el modo de cobro
-                // (mg <-> frasco) usando los mg totales de la presentación
-                function convertirPrecioPorModo(selectChargeBy, nuevoModo) {
-                    const row = selectChargeBy.closest('tr.fila-presentacion');
-                    if (!row) return;
+                function syncChargeVisualToAllRows() {
+                    if (!chargeByHidden || !chargeSwitch || !chargeLabel) return;
 
-                    const inputPrecio = row.querySelector('[data-role="precio"]');
-                    const selPres = row.querySelector('[data-role="presentacion"]');
-                    const inputCatalog = row.querySelector('[data-role="input-catalog-id"]');
-                    if (!inputPrecio || !selPres || !inputCatalog) return;
+                    const value = chargeSwitch.checked ? 'frasco' : 'mg';
+                    chargeByHidden.value = value;
+                    chargeLabel.textContent = value;
 
-                    const modoAnterior = selectChargeBy.dataset.lastValue || selectChargeBy.value;
-                    if (modoAnterior === nuevoModo) {
-                        selectChargeBy.dataset.lastValue = nuevoModo;
-                        return;
-                    }
-
-                    const precioActual = parseFloat(inputPrecio.value);
-                    if (!precioActual || isNaN(precioActual)) {
-                        // No hay precio para convertir, solo actualizamos modo
-                        selectChargeBy.value = nuevoModo;
-                        selectChargeBy.dataset.lastValue = nuevoModo;
-                        return;
-                    }
-
-                    const catalogId = inputCatalog.value;
-                    const presId = selPres.value;
-                    if (!catalogId || !presId) {
-                        selectChargeBy.value = nuevoModo;
-                        selectChargeBy.dataset.lastValue = nuevoModo;
-                        return;
-                    }
-
-                    const infoPres = getPresentacionInfo(catalogId, presId);
-                    const mgPorFrasco = infoPres ? parseFloat(infoPres.mg || 0) : 0;
-
-                    if (!mgPorFrasco || isNaN(mgPorFrasco) || mgPorFrasco <= 0) {
-                        // Sin dato de mg no podemos convertir de forma segura
-                        selectChargeBy.value = nuevoModo;
-                        selectChargeBy.dataset.lastValue = nuevoModo;
-                        return;
-                    }
-
-                    let nuevoPrecio = precioActual;
-
-                    if (modoAnterior === 'frasco' && nuevoModo === 'mg') {
-                        // 1000 pesos / 500 mg = 2 pesos/mg
-                        nuevoPrecio = precioActual / mgPorFrasco;
-                    } else if (modoAnterior === 'mg' && nuevoModo === 'frasco') {
-                        // 2 pesos/mg * 500 mg = 1000 pesos/frasco
-                        nuevoPrecio = precioActual * mgPorFrasco;
-                    }
-
-                    if (isFinite(nuevoPrecio)) {
-                        inputPrecio.value = nuevoPrecio.toFixed(4); // ajusta decimales si quieres
-                    }
-
-                    selectChargeBy.value = nuevoModo;
-                    selectChargeBy.dataset.lastValue = nuevoModo;
+                    tbody.querySelectorAll('tr.fila-presentacion').forEach(row => {
+                        const sel = row.querySelector('[data-role="charge-by"]'); // visual disabled
+                        const hid = row.querySelector('[data-role="charge-by-hidden"]'); // enviado
+                        if (sel) sel.value = value;
+                        if (hid) hid.value = value;
+                    });
                 }
 
+                if (chargeSwitch && chargeByHidden && chargeLabel) {
+                    chargeSwitch.addEventListener('change', syncChargeVisualToAllRows);
+                    syncChargeVisualToAllRows();
+                }
 
-                // ================= Helpers =================
-
+                // ===== Helpers =====
                 function renumerarFilas() {
                     let n = 1;
                     tbody.querySelectorAll('tr.fila-presentacion').forEach(row => {
                         const cellIndex = row.querySelector('[data-role="row-index"]');
-                        if (cellIndex) {
-                            cellIndex.textContent = n++;
-                        }
+                        if (cellIndex) cellIndex.textContent = n++;
                     });
                 }
 
-                // regresa IDs de presentaciones ya usadas para un catálogo (excepto currentValue)
-                function getUsedPresentationIdsPorCatalog(catalogId, currentValue = null) {
-                    const ids = [];
+                // --- Genéricos usados (en otros grupos) ---
+                function getSelectedCatalogIds(exceptGroupId = null) {
+                    const used = [];
+                    tbody.querySelectorAll('tr[data-group]').forEach(headerRow => {
+                        // headers tienen data-group y NO son fila-presentacion
+                        if (headerRow.classList.contains('fila-presentacion')) return;
+
+                        const groupId = headerRow.dataset.group;
+                        if (exceptGroupId && String(groupId) === String(exceptGroupId)) return;
+
+                        const sel = headerRow.querySelector('[data-role="generico"]');
+                        if (sel && sel.value) used.push(String(sel.value));
+                    });
+                    return used;
+                }
+
+                function refreshGenericSelect(selectEl, groupId, currentValue = '') {
+                    const used = getSelectedCatalogIds(groupId);
+                    const cur = String(currentValue || '');
+
+                    selectEl.innerHTML = '';
+                    MASTER_GENERIC.forEach(optData => {
+                        if (!optData.value) {
+                            const opt = document.createElement('option');
+                            opt.value = '';
+                            opt.textContent = optData.text || 'Seleccione un medicamento...';
+                            selectEl.appendChild(opt);
+                            return;
+                        }
+
+                        const val = String(optData.value);
+                        if (used.includes(val) && val !== cur) return; // ✅ NO agregar usados
+
+                        const opt = document.createElement('option');
+                        opt.value = optData.value;
+                        opt.textContent = optData.text;
+                        if (val === cur) opt.selected = true;
+                        selectEl.appendChild(opt);
+                    });
+                }
+
+                function refreshAllGenericSelects() {
+                    tbody.querySelectorAll('tr[data-group]').forEach(headerRow => {
+                        if (headerRow.classList.contains('fila-presentacion')) return;
+                        const groupId = headerRow.dataset.group;
+                        const sel = headerRow.querySelector('[data-role="generico"]');
+                        if (!sel) return;
+                        const cur = sel.value || '';
+                        refreshGenericSelect(sel, groupId, cur);
+                    });
+                }
+
+                // --- Presentaciones usadas por catálogo (global) ---
+                function getSelectedPresentationIdsByCatalog(catalogId, exceptSelectEl = null) {
+                    const used = [];
                     tbody.querySelectorAll('tr.fila-presentacion').forEach(row => {
                         const inputCatalog = row.querySelector('[data-role="input-catalog-id"]');
                         const selPres = row.querySelector('[data-role="presentacion"]');
                         if (!inputCatalog || !selPres) return;
 
-                        if (String(inputCatalog.value) === String(catalogId) && selPres.value) {
-                            if (!currentValue || String(selPres.value) !== String(currentValue)) {
-                                ids.push(String(selPres.value));
-                            }
-                        }
+                        if (String(inputCatalog.value) !== String(catalogId)) return;
+                        if (!selPres.value) return;
+                        if (exceptSelectEl && selPres === exceptSelectEl) return;
+
+                        used.push(String(selPres.value));
                     });
-                    return ids;
+                    return used;
                 }
 
-                function cargarPresentacionesEnSelect(selectEl, catalogId, currentValue = null) {
+                function cargarPresentacionesEnSelect(selectEl, catalogId, keepValue = null) {
+                    const currentValue = keepValue ? String(keepValue) : (selectEl.value ? String(selectEl.value) : '');
                     selectEl.innerHTML = '<option value="">Seleccione presentación...</option>';
 
                     if (!catalogId) {
@@ -425,28 +443,36 @@
                         return;
                     }
 
-                    const lista = PRESENT[catalogId] || [];
-                    const usados = getUsedPresentationIdsPorCatalog(catalogId, currentValue);
+                    const usados = getSelectedPresentationIdsByCatalog(catalogId, selectEl);
+                    const lista = PRESENT[String(catalogId)] || [];
 
                     lista.forEach(p => {
+                        const idStr = String(p.id);
+                        if (usados.includes(idStr) && idStr !== currentValue) return; // ✅ NO agregar usados
+
                         const opt = document.createElement('option');
                         opt.value = p.id;
                         opt.textContent = p.text;
-
-                        if (String(p.id) === String(currentValue)) {
-                            opt.selected = true;
-                        } else if (usados.includes(String(p.id))) {
-                            opt.disabled = true;
-                        }
-
+                        if (idStr === currentValue) opt.selected = true;
                         selectEl.appendChild(opt);
                     });
 
                     selectEl.disabled = false;
                 }
 
-                // ================= Grupos y filas =================
+                function refreshAllPresentationsForCatalog(catalogId) {
+                    tbody.querySelectorAll('tr.fila-presentacion').forEach(row => {
+                        const inputCatalog = row.querySelector('[data-role="input-catalog-id"]');
+                        const selPres = row.querySelector('[data-role="presentacion"]');
+                        if (!inputCatalog || !selPres) return;
+                        if (String(inputCatalog.value) !== String(catalogId)) return;
 
+                        const cur = selPres.value || null;
+                        cargarPresentacionesEnSelect(selPres, catalogId, cur);
+                    });
+                }
+
+                // ===== Grupos / Filas =====
                 function addGrupo(initialCatalogId = null) {
                     const groupId = 'g' + (groupCounter++);
 
@@ -459,16 +485,17 @@
                     const btnAddPres = header.querySelector('[data-role="add-presentacion"]');
                     const btnRemoveGrupo = header.querySelector('[data-role="remove-grupo"]');
 
-                    if (initialCatalogId) {
-                        selectGenerico.value = String(initialCatalogId);
-                    }
+                    // ✅ construir opciones quitando las usadas
+                    refreshGenericSelect(selectGenerico, groupId, initialCatalogId ? String(initialCatalogId) : '');
+
+                    if (initialCatalogId) selectGenerico.value = String(initialCatalogId);
 
                     selectGenerico.addEventListener('change', function() {
                         const catalogId = this.value;
 
-                        // actualizar todas las filas de este grupo
-                        tbody.querySelectorAll('tr.fila-presentacion[data-group="' + groupId + '"]')
-                            .forEach(row => {
+                        // actualizar labels + hidden catalog en filas del grupo y recargar presentaciones
+                        tbody.querySelectorAll('tr.fila-presentacion[data-group="' + groupId + '"]').forEach(
+                            row => {
                                 const label = row.querySelector('[data-role="generico-label"]');
                                 const inputCatalog = row.querySelector('[data-role="input-catalog-id"]');
                                 const selPres = row.querySelector('[data-role="presentacion"]');
@@ -476,8 +503,13 @@
                                 label.textContent = this.options[this.selectedIndex]?.text || '';
                                 inputCatalog.value = catalogId;
 
-                                cargarPresentacionesEnSelect(selPres, catalogId, selPres.value || null);
+                                // reset presentación
+                                selPres.value = '';
+                                cargarPresentacionesEnSelect(selPres, catalogId, null);
                             });
+
+                        // ✅ refrescar genéricos para quitar el seleccionado en otros selects
+                        refreshAllGenericSelects();
                     });
 
                     btnAddPres.addEventListener('click', function() {
@@ -485,15 +517,25 @@
                             alert('Selecciona primero el medicamento genérico.');
                             return;
                         }
-                        addPresentacionRow(groupId, selectGenerico);
+                        addPresentacionRow(groupId, selectGenerico, null);
                     });
 
                     btnRemoveGrupo.addEventListener('click', function() {
-                        tbody.querySelectorAll('tr.fila-presentacion[data-group="' + groupId + '"]')
-                            .forEach(r => r.remove());
+                        // liberar presentaciones usadas por ese catálogo
+                        const oldCatalogId = selectGenerico.value;
+
+                        tbody.querySelectorAll('tr.fila-presentacion[data-group="' + groupId + '"]').forEach(
+                            r => r.remove());
                         header.remove();
                         renumerarFilas();
+
+                        // refrescar genéricos y presentaciones
+                        refreshAllGenericSelects();
+                        if (oldCatalogId) refreshAllPresentationsForCatalog(oldCatalogId);
                     });
+
+                    // al crear grupo, refrescar genéricos para que todos vean el cambio
+                    refreshAllGenericSelects();
 
                     return groupId;
                 }
@@ -506,154 +548,124 @@
                     const labelGenerico = row.querySelector('[data-role="generico-label"]');
                     const selectPresent = row.querySelector('[data-role="presentacion"]');
                     const inputCatalog = row.querySelector('[data-role="input-catalog-id"]');
-                    const inputIndex = row.querySelector('[data-role="input-index"]');
-                    const selectChargeBy = row.querySelector('[data-role="charge-by"]');
+                    const selectChargeBy = row.querySelector('[data-role="charge-by"]'); // disabled
+                    const hiddenChargeBy = row.querySelector('[data-role="charge-by-hidden"]');
                     const inputPrecio = row.querySelector('[data-role="precio"]');
                     const btnRemoveRow = row.querySelector('[data-role="remove-row"]');
 
                     const catalogId = selectGenerico.value;
-                    labelGenerico.textContent = selectGenerico.options[selectGenerico.selectedIndex]?.text || '';
-                    inputCatalog.value = catalogId;
 
-                    const idx = globalIndex++;
-                    inputIndex.value = idx;
-
-                    inputCatalog.name = `medicamentos[${idx}][catalog_id]`;
-                    selectPresent.name = `medicamentos[${idx}][presentation_id]`;
-                    selectChargeBy.name = `medicamentos[${idx}][charge_by]`;
-                    inputPrecio.name = `medicamentos[${idx}][precio]`;
-
-                    let presetPresentationId = null;
-                    if (presetItem) {
-                        presetPresentationId = presetItem.presentation_id;
-                        selectChargeBy.value = presetItem.charge_by || 'mg';
-                        inputPrecio.value = presetItem.precio;
-                    } else {
-                        // Si es una fila nueva, usamos el modo global actual como default
-                        const hiddenGlobal = document.getElementById('charge_by');
-                        const globalMode = hiddenGlobal ? hiddenGlobal.value : 'mg';
-                        selectChargeBy.value = globalMode;
-                    }
-
-                    // Guardamos el modo actual como "anterior" para futuras conversiones
-                    selectChargeBy.dataset.lastValue = selectChargeBy.value;
-
-
-                    cargarPresentacionesEnSelect(selectPresent, catalogId, presetPresentationId);
-
-                    // insertar fila debajo del último renglón del grupo
+                    // insertar debajo del último renglón del grupo
                     let lastRowOfGroup = null;
                     tbody.querySelectorAll('tr.fila-presentacion').forEach(r => {
-                        if (r.dataset.group === groupId) {
-                            lastRowOfGroup = r;
-                        }
+                        if (r.dataset.group === groupId) lastRowOfGroup = r;
                     });
 
-                    if (lastRowOfGroup) {
-                        lastRowOfGroup.insertAdjacentElement('afterend', row);
-                    } else {
+                    if (lastRowOfGroup) lastRowOfGroup.insertAdjacentElement('afterend', row);
+                    else {
                         const header = tbody.querySelector('tr[data-group="' + groupId + '"]');
                         header.insertAdjacentElement('afterend', row);
                     }
 
-                    btnRemoveRow.addEventListener('click', function() {
-                        row.remove();
-                        renumerarFilas();
-                    });
+                    const idx = globalIndex++;
+                    labelGenerico.textContent = selectGenerico.options[selectGenerico.selectedIndex]?.text || '';
+                    inputCatalog.value = catalogId;
 
-                    // cuando cambie la presentación, re-aplicar regla de no duplicados
-                    selectPresent.addEventListener('change', function() {
-                        const currentVal = this.value || null;
+                    inputCatalog.name = `medicamentos[${idx}][catalog_id]`;
+                    selectPresent.name = `medicamentos[${idx}][presentation_id]`;
+                    inputPrecio.name = `medicamentos[${idx}][precio]`;
 
-                        // refrescar todas las filas de este grupo
-                        tbody.querySelectorAll('tr.fila-presentacion[data-group="' + groupId + '"]')
-                            .forEach(r => {
-                                const sel = r.querySelector('[data-role="presentacion"]');
-                                if (!sel) return;
-                                const cur = sel === this ? currentVal : sel.value || null;
-                                cargarPresentacionesEnSelect(sel, catalogId, cur);
-                            });
-                    });
+                    // ✅ cobro: solo global
+                    selectChargeBy.name = ''; // no se envía
+                    hiddenChargeBy.name =
+                        `medicamentos[${idx}][charge_by]`; // aunque el backend lo ignora, sirve para old()
+                    hiddenChargeBy.value = getGlobalChargeBy();
+                    selectChargeBy.value = hiddenChargeBy.value;
 
-                    // Cuando cambie el modo de cobro en esta fila, convertimos el precio
-                    selectChargeBy.addEventListener('change', function() {
-                        convertirPrecioPorModo(this, this.value);
-                    });
-
-
-                    renumerarFilas();
-                }
-
-                // ================= Switch de cobro global =================
-
-                const chargeByHidden = document.getElementById('charge_by');
-                const chargeSwitch = document.getElementById('charge_by_switch');
-                const chargeLabel = document.getElementById('charge_by_label');
-
-                let chargeByInitialized = false;
-
-                function syncChargeVisual() {
-                    if (!chargeByHidden || !chargeSwitch || !chargeLabel) return;
-
-                    const value = chargeSwitch.checked ? 'frasco' : 'mg';
-                    chargeByHidden.value = value;
-                    chargeLabel.textContent = value;
-
-                    // La primera llamada (al cargar la página) solo sincroniza texto/hidden
-                    if (!chargeByInitialized) {
-                        chargeByInitialized = true;
-                        return;
+                    // preset desde DB/old
+                    const presetPresentationId = presetItem?.presentation_id ? String(presetItem.presentation_id) :
+                        null;
+                    if (presetItem && presetItem.precio !== undefined && presetItem.precio !== null) {
+                        inputPrecio.value = presetItem.precio;
+                    } else {
+                        inputPrecio.value = '';
                     }
 
-                    // A partir de aquí, cada vez que el usuario cambie el switch,
-                    // convertimos el precio de todas las filas en función del nuevo modo.
-                    tbody.querySelectorAll('[data-role="charge-by"]').forEach(sel => {
-                        convertirPrecioPorModo(sel, value);
+                    // ✅ cargar opciones de presentación (removiendo usadas)
+                    cargarPresentacionesEnSelect(selectPresent, catalogId, presetPresentationId);
+
+                    // ✅ si traía preset, asegurar selección
+                    if (presetPresentationId) selectPresent.value = presetPresentationId;
+
+                    // al cambiar presentación, refrescar TODAS del mismo catálogo (para remover/volver a mostrar)
+                    selectPresent.addEventListener('change', function() {
+                        refreshAllPresentationsForCatalog(catalogId);
                     });
+
+                    btnRemoveRow.addEventListener('click', function() {
+                        const oldCatalogId = inputCatalog.value;
+                        row.remove();
+                        renumerarFilas();
+                        if (oldCatalogId) refreshAllPresentationsForCatalog(oldCatalogId);
+                    });
+
+                    renumerarFilas();
+                    // asegurar switch global aplicado
+                    syncChargeVisualToAllRows();
                 }
 
-                if (chargeSwitch && chargeByHidden && chargeLabel) {
-                    chargeSwitch.addEventListener('change', syncChargeVisual);
-                    // Primera sincronización (no toca los precios gracias a la bandera)
-                    syncChargeVisual();
-                }
-
-                // ================= Inicialización (edit vs create) =================
-
-                const btnAddGrupo = document.getElementById('btn-add-grupo');
-
-                btnAddGrupo.addEventListener('click', function() {
+                // ===== Inicialización: old() tiene prioridad =====
+                document.getElementById('btn-add-grupo')?.addEventListener('click', function() {
                     addGrupo();
                 });
 
-                if (PRESET_ITEMS.length === 0) {
-                    // Lista sin registros → un grupo vacío
+                const SOURCE_ITEMS = (OLD_ITEMS && Object.keys(OLD_ITEMS).length) ?
+                    Object.values(OLD_ITEMS) :
+                    (PRESET_ITEMS || []);
+
+                if (SOURCE_ITEMS.length === 0) {
                     addGrupo();
                 } else {
-                    // Agrupar items existentes por catalog_id
                     const groupsByCatalog = {};
-                    PRESET_ITEMS.forEach(item => {
-                        const cid = String(item.catalog_id);
+                    const order = [];
+
+                    SOURCE_ITEMS.forEach(item => {
+                        const cid = String(item.catalog_id || '');
+                        if (!cid) return;
+
                         if (!groupsByCatalog[cid]) {
                             groupsByCatalog[cid] = [];
+                            order.push(cid);
                         }
-                        groupsByCatalog[cid].push(item);
+
+                        groupsByCatalog[cid].push({
+                            catalog_id: cid,
+                            presentation_id: item.presentation_id ? String(item.presentation_id) : '',
+                            precio: item.precio ?? '',
+                        });
                     });
 
-                    Object.entries(groupsByCatalog).forEach(([catalogId, items]) => {
+                    if (!order.length) {
+                        addGrupo();
+                        return;
+                    }
+
+                    order.forEach((catalogId) => {
                         const groupId = addGrupo(catalogId);
 
                         const header = tbody.querySelector('tr[data-group="' + groupId + '"]');
                         const selectGenerico = header.querySelector('[data-role="generico"]');
-
+                        // reconstruir opciones (para que no desaparezca el actual)
+                        refreshGenericSelect(selectGenerico, groupId, catalogId);
                         selectGenerico.value = catalogId;
 
-                        items.forEach(item => {
+                        groupsByCatalog[catalogId].forEach(item => {
                             addPresentacionRow(groupId, selectGenerico, item);
                         });
 
-                        // dispara el change para actualizar labels de filas si cambias el genérico luego
-                        selectGenerico.dispatchEvent(new Event('change'));
+                        // asegurar que el catálogo elegido “quite” opciones en otros selects
+                        refreshAllGenericSelects();
+                        refreshAllPresentationsForCatalog(catalogId);
                     });
                 }
             });

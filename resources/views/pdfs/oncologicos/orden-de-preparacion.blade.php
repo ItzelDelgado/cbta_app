@@ -369,7 +369,6 @@
                         <td class="border-1 border-t-0 text-center"><strong>{{ $i + 1 }}</strong></td>
                         <td class="border-1 border-t-0 text-center">{{ $med->lote ?? '—' }}</td>
                         <td class="border-1 border-t-0 text-center">{{ $fmtDate($med->caducidad ?? null) }}</td>
-                        <td class="border-1 border-t-0 text-center">{{ $med->denominacion_comercial ?? '—' }}</td>
                         <td class="border-1 border-t-0 text-center">{{ $med->denominacion ?? '—' }}</td>
                         <td class="border-1 border-t-0 text-center">{{ $med->presentacion ?? '—' }}</td>
                         <td class="border-1 border-t-0 text-center">{{ $med->dosis ?? '—' }}</td>
@@ -418,8 +417,7 @@
                         <td class="border-x-1 border-b-1 text-center bg-black"><strong>#</strong></td>
                         <td class="border-x-1 border-b-1 text-center bg-black"><strong>No. de lote</strong></td>
                         <td class="border-x-1 border-b-1 text-center bg-black"><strong>Caducidad</strong></td>
-                        <td class="border-x-1 border-b-1 text-center bg-black"><strong>Denominación comercial</strong>
-                        </td>
+
                         <td class="border-x-1 border-b-1 text-center bg-black"><strong>Denominación genérica</strong>
                         </td>
                         <td class="border-x-1 border-b-1 text-center bg-black"><strong>Presentación</strong></td>
@@ -434,7 +432,6 @@
                             <td class="text-center border-b-1 border-l-1">{{ $loop->iteration }}</td>
                             <td class="text-center border-b-1 border-r-1">{{ $m->lote ?? '—' }}</td>
                             <td class="text-center border-b-1 border-r-1">{{ $fmtDate($m->caducidad ?? null) }}</td>
-                            <td class="text-center border-b-1 border-r-1">{{ $m->denominacion_comercial ?? '—' }}</td>
                             <td class="text-center border-b-1 border-r-1">{{ $m->denominacion ?? '—' }}</td>
                             <td class="text-center border-b-1 border-r-1">{{ $m->presentacion ?? '—' }}</td>
                             <td class="text-center border-b-1 border-r-1">
@@ -492,9 +489,11 @@
             </table>
             <p><strong>Cálculos y forma de preparación:</strong></p>
 
-            <p>
-                Extraer: {{ $extraer_ml }} mL de {{ $diluyente_base }}
-            </p>
+            @if (empty($ocultarExtraer) || !$ocultarExtraer)
+                <p>
+                    Extraer: {{ $extraer_ml }} mL de {{ $diluyente_base }}
+                </p>
+            @endif
 
             @foreach ($detalle_agregar as $linea)
                 <p>Agregar: {{ $linea }}</p>
@@ -513,7 +512,7 @@
                 <td>Preparación: {{ $preparo_nombre ?? '—' }}</td>
             </tr>
             <tr>
-                <td>Inspeccionó y aprobó: {{ $libero_nombre ?? '—' }}</td>
+                <td>Inspeccionó y aprobó: {{ $reviso_nombre ?? '—' }}</td>
             </tr>
         </table>
     </div>

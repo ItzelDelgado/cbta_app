@@ -147,7 +147,7 @@
 
     <script>
         // 👇 Aquí deben venir SOLO medicamentos genéricos (medicines_catalog)
-        // con campos: id, denominacion, denominacion_comercial, requires_infusor, etc.
+        // con campos: id, denominacion, requires_infusor, etc.
         const medicamentos = @json($medicamentos);
         const infoAdicional = @json($infoAdicional);
         const mezclasOld = @json(old('mezclas') ? json_decode(old('mezclas'), true) : []);
@@ -322,7 +322,7 @@
                 onchange="actualizarDiluentesYVias(this, ${idMezcla}, ${contadorFilasGlobal}); actualizarOpcionesMedicamentos(${idMezcla})">
                 <option value="">Seleccione el medicamento</option>
                 ${medicamentos.map(m => `<option value="${m.id}" ${m.id == (med.medicamento_id ?? '') ? 'selected' : ''}>
-                        ${m.denominacion} (${m.denominacion_comercial ?? ''})
+                        ${m.denominacion}
                     </option>`).join('')}
             </select>
         </td>
@@ -438,7 +438,7 @@
                     if (esPrimero || esCompatible || mId === valorActual) {
                         const option = document.createElement('option');
                         option.value = m.id;
-                        option.text = `${m.denominacion} (${m.denominacion_comercial ?? ''})`;
+                        option.text = `${m.denominacion}`;
                         if (mId === valorActual) option.selected = true;
                         select.appendChild(option);
                     }

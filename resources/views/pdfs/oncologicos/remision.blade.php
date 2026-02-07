@@ -223,7 +223,7 @@
                     Fecha de envío:
                     <strong>{{ $fmtDateTime($fechaEmision) }}</strong>
                 </td>
-                <td class="px-1 text-right">DOMICILIO CLIENTE RECEPTOR:</td>
+                <td class="px-1 text-right">No. Remisión: {{ $solicitud->remision ?? '—' }}</td>
             </tr>
         </table>
 
@@ -282,7 +282,6 @@
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Diluyente</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Volumen mezcla</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Lote de la mezcla</td>
-                <td class="border-1 px-1 text-center bg-cbta font-bold">No. Remisión</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Unidad de cobro</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Cantidad</td>
                 <td class="border-1 px-1 text-center bg-cbta font-bold">Precio unitario</td>
@@ -292,7 +291,6 @@
             @foreach ($mezclas as $mezcla)
                 @php
                     $loteMezcla = $mezcla->lote ?? '—';
-                    $remisionMezcla = $mezcla->remision ?? '—';
                     $volumenMezcla = isset($mezcla->volumen_dilucion) ? $mezcla->volumen_dilucion . ' ml' : '—';
                 @endphp
 
@@ -369,7 +367,6 @@
                         <td class="border-1 px-1 text-center">{{ $diluyente }}</td>
                         <td class="border-1 px-1 text-center">{{ $volumenMezcla }}</td>
                         <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
-                        <td class="border-1 px-1 text-center">{{ $remisionMezcla }}</td>
                         <td class="border-1 px-1 text-center">{{ ucfirst($unidadCobro) }}</td>
                         <td class="border-1 px-1 text-center">
                             @if ($unidadCobro === 'mg')
@@ -408,7 +405,6 @@
                         <td class="border-1 px-1 text-center">—</td>
                         <td class="border-1 px-1 text-center">{{ $volumenMezcla }}</td>
                         <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
-                        <td class="border-1 px-1 text-center">{{ $remisionMezcla }}</td>
                         <td class="border-1 px-1 text-center">Pieza</td>
                         <td class="border-1 px-1 text-center">1</td>
                         <td class="border-1 px-1 text-center">{{ $money($mezcla->infusor_precio ?? 0) }}</td>
@@ -494,7 +490,8 @@
                         Fecha de envío:
                         <strong>{{ $fmtDateTime($fechaEmision) }}</strong>
                     </td>
-                    <td class="px-1 text-right">DOMICILIO CLIENTE RECEPTOR:</td>
+                    {{-- <td class="px-1 text-right">No. Remisión: {{  $remisionMezcla = $mezcla->remision ?? '—'; }}</td> --}}
+
                     {{-- <td class="px-1 text-right">{{ $distNombre ?: '—' }}</td> --}}
                 </tr>
                 <tr>
@@ -558,7 +555,6 @@
                     <td class="border-1 px-1 text-center bg-cbta font-bold">Diluyente</td>
                     <td class="border-1 px-1 text-center bg-cbta font-bold">Volumen mezcla</td>
                     <td class="border-1 px-1 text-center bg-cbta font-bold">Lote de la mezcla</td>
-                    <td class="border-1 px-1 text-center bg-cbta font-bold">No. Remisión</td>
                     <td class="border-1 px-1 text-center bg-cbta font-bold">Unidad de cobro</td>
                     <td class="border-1 px-1 text-center bg-cbta font-bold">Cantidad</td>
                     <td class="border-1 px-1 text-center bg-cbta font-bold">Precio unitario</td>
@@ -568,7 +564,6 @@
                 @foreach ($mezclas as $mezcla)
                     @php
                         $loteMezcla = $mezcla->lote ?? '—';
-                        $remisionMezcla = $mezcla->remision ?? '—';
                         $volumenMezcla = isset($mezcla->volumen_dilucion) ? $mezcla->volumen_dilucion . ' ml' : '—';
                     @endphp
 
@@ -641,7 +636,6 @@
                             <td class="border-1 px-1 text-center">{{ $diluyente }}</td>
                             <td class="border-1 px-1 text-center">{{ $volumenMezcla }}</td>
                             <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
-                            <td class="border-1 px-1 text-center">{{ $remisionMezcla }}</td>
                             <td class="border-1 px-1 text-center">{{ ucfirst($unidadCobro) }}</td>
                             <td class="border-1 px-1 text-center">
                                 @if ($unidadCobro === 'mg')

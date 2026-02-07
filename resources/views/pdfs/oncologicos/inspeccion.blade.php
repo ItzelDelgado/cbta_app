@@ -71,7 +71,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Orden de preparación</title>
+    <title>Inspección</title>
 
     <style>
         @page {
@@ -271,7 +271,7 @@
 
             <table>
                 <tr>
-                    <td style="width: 5%">Fecha:</td>
+                    <td style="width: 5%">Fecha: </td>
                     <td style="width: 15%" class="border-b-1">{{ $fmtDateSmart($val($ins, 'fecha')) }}</td>
                     <td style="width: 35%"></td>
                     <td style="width: 20%" class="text-right">Hora de inspección:</td>
@@ -421,7 +421,7 @@
                 </tr>
                 <tr>
                     <td style="width: 10%"></td>
-                    <td style="width: 35%" class="text-center">Revisó</td>
+                    <td style="width: 35%" class="text-center">Inspecciono</td>
                     <td style="width: 10%"></td>
                     <td style="width: 35%" class="text-center">Aprobó</td>
                     <td style="width: 10%"></td>

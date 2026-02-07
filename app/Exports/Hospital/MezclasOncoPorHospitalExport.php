@@ -182,7 +182,6 @@ class MezclasOncoPorHospitalExport implements FromArray, WithHeadings, ShouldAut
                         $med->id,
                         $med->nombre_medicamento,
                         $catalog->denominacion ?? '',
-                        $catalog->denominacion_comercial ?? '',
                         ($catalog->requires_infusor ?? false) ? 'SI' : 'NO',
                         $catalog->conc_min,
                         $catalog->conc_max,

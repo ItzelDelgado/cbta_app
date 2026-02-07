@@ -25,7 +25,7 @@ class SolicitudesOncoExport implements FromArray, WithHeadings, ShouldAutoSize
         foreach ($solicitudes as $solicitud) {
 
             $hospital = optional($solicitud->user->hospital)->name;
-            $usuario  = optional($solicitud->user)->name . ' ' . optional($solicitud->user)->lastname;
+            $usuario  = trim((optional($solicitud->user)->name ?? '') . ' ' . (optional($solicitud->user)->lastname ?? ''));
             $lista    = optional($solicitud->user->medicineList);
             $listaCharge = $lista->charge_by ?? 'frasco';
 
@@ -41,6 +41,24 @@ class SolicitudesOncoExport implements FromArray, WithHeadings, ShouldAutoSize
             foreach ($solicitud->mezclas as $mezcla) {
                 foreach ($mezcla->medicamentos as $med) {
 
+                    // =========================
+                    // ✅ Denominación (catalog)
+                    // =========================
+                    $denominacion = optional(optional($med->medicamentoOnco)->catalog)->denominacion
+                        ?? $med->nombre_medicamento
+                        ?? '—';
+
+                    // =========================
+                    // ✅ Marca (presentation)
+                    // Tomamos la primera presentación usada (si existe)
+                    // =========================
+                    $firstUsed = ($med->presentacionesUsadas ?? collect())->first();
+                    $presentation = optional(optional($firstUsed)->batch)->presentation
+                        ?? optional($firstUsed)->presentation
+                        ?? null;
+
+                    $marca = $presentation?->marca ?? '—';
+
                     // ===== LÓGICA DE COBRO (MISMA QUE REMISIÓN) =====
                     $unidadCobro = '';
                     $cantidad    = 0;
@@ -51,7 +69,7 @@ class SolicitudesOncoExport implements FromArray, WithHeadings, ShouldAutoSize
 
                     if ($presentaciones->isEmpty()) {
                         $unidadCobro = $listaCharge === 'mg' ? 'mg' : 'frasco';
-                        $cantidad    = $unidadCobro === 'mg' ? (float)$med->dosis : 1;
+                        $cantidad    = $unidadCobro === 'mg' ? (float) $med->dosis : 1;
                     } else {
                         $first = $presentaciones->first();
                         $presentationId =
@@ -70,8 +88,8 @@ class SolicitudesOncoExport implements FromArray, WithHeadings, ShouldAutoSize
                                     ?? optional(optional($pu->batch)->presentation)->id;
 
                                 $cfgPres = $cfgPorPresentacion->get($pid);
-                                $precio  = (float)($cfgPres->precio ?? 0);
-                                $unidades = (float)($pu->unidades_usadas ?? 1);
+                                $precio  = (float) ($cfgPres->precio ?? 0);
+                                $unidades = (float) ($pu->unidades_usadas ?? 1);
 
                                 $cantidad += $unidades;
                                 $subtotal += $precio * $unidades;
@@ -79,8 +97,8 @@ class SolicitudesOncoExport implements FromArray, WithHeadings, ShouldAutoSize
 
                             $precioUnit = $cantidad > 0 ? $subtotal / $cantidad : 0;
                         } else {
-                            $cantidad   = (float)$med->dosis;
-                            $precioUnit = (float)($cfg->precio_mg_override ?? 0);
+                            $cantidad   = (float) $med->dosis;
+                            $precioUnit = (float) ($cfg->precio_mg_override ?? 0);
                             $subtotal   = $cantidad * $precioUnit;
                         }
                     }
@@ -91,21 +109,25 @@ class SolicitudesOncoExport implements FromArray, WithHeadings, ShouldAutoSize
                         $lista->name ?? 'N/A',
                         $solicitud->id,
                         $solicitud->created_at,
-                        $solicitud->estado,
 
+                        // ✅ NUEVAS (después de fecha solicitud)
+                        $denominacion,
+                        $marca,
+
+                        $solicitud->estado,
                         $mezcla->id,
                         $mezcla->estado,
                         $mezcla->volumen_dilucion,
                         $mezcla->tiempo_infusion,
+
                         $mezcla->set_infusion ? 'Sí' : 'No',
 
-                        optional($med->medicamentoOnco->catalog)->denominacion_comercial,
                         $med->dosis,
                         $unidadCobro,
                         $cantidad,
                         round($precioUnit, 4),
-                        round($subtotal, 2),
 
+                        round($subtotal, 2),
                         optional($med->diluyente)->denominacion_generica,
                         $mezcla->remision,
                     ];
@@ -124,21 +146,24 @@ class SolicitudesOncoExport implements FromArray, WithHeadings, ShouldAutoSize
             'Lista de precios',
             'ID Solicitud',
             'Fecha solicitud',
-            'Estado solicitud',
 
+            // ✅ NUEVAS
+            'Denominación',
+            'Marca',
+
+            'Estado solicitud',
             'ID Mezcla',
             'Estado mezcla',
             'Volumen dilución',
             'Tiempo infusión',
-            'Set infusión',
 
-            'Medicamento',
+            'Set infusión',
             'Dosis',
             'Unidad cobro',
             'Cantidad cobro',
+
             'Precio unitario',
             'Subtotal',
-
             'Diluyente',
             'Remisión',
         ];

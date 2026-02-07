@@ -10,13 +10,13 @@
 
     <style>
         @page {
-            margin: 1rem;
+            margin: 0;
         }
 
         /* Estilos básicos */
         body {
             margin: 0;
-            padding: 20px;
+            padding: 5px;
             /* Espacio alrededor del contenedor para que el borde no toque los bordes de la ventana del navegador */
             background-color: white;
             /* Fondo blanco para el body */
@@ -32,7 +32,7 @@
         td {
             border: 0px solid black;
             padding: 0px;
-            font-size: 9px
+            font-size: 7px
         }
 
         .border-1 {
@@ -75,7 +75,7 @@
         }
 
         p {
-            font-size: 11px
+            font-size: 10px
         }
 
         .liberacion-area td {
@@ -158,15 +158,25 @@
 
 @php
     $fmtDate = function ($v) {
-        if (!$v) return '—';
-        try { return \Carbon\Carbon::parse($v)->format('d/m/Y'); }
-        catch (\Exception $e) { return '—'; }
+        if (!$v) {
+            return '—';
+        }
+        try {
+            return \Carbon\Carbon::parse($v)->format('d/m/Y');
+        } catch (\Exception $e) {
+            return '—';
+        }
     };
 
     $fmtDateTime = function ($v) {
-        if (!$v) return '—';
-        try { return \Carbon\Carbon::parse($v)->format('d/m/Y H:i'); }
-        catch (\Exception $e) { return '—'; }
+        if (!$v) {
+            return '—';
+        }
+        try {
+            return \Carbon\Carbon::parse($v)->format('d/m/Y H:i');
+        } catch (\Exception $e) {
+            return '—';
+        }
     };
 
     // Edad
@@ -175,9 +185,13 @@
         $fnac = \Carbon\Carbon::parse($solicitud->fecha_nacimiento);
         $hoy = \Carbon\Carbon::now();
         $diff = $fnac->diff($hoy);
-        if ($diff->y > 0) $edadTexto = $diff->y . ' años';
-        elseif ($diff->m > 0) $edadTexto = $diff->m . ' meses';
-        else $edadTexto = $diff->d . ' días';
+        if ($diff->y > 0) {
+            $edadTexto = $diff->y . ' años';
+        } elseif ($diff->m > 0) {
+            $edadTexto = $diff->m . ' meses';
+        } else {
+            $edadTexto = $diff->d . ' días';
+        }
     }
 
     // Preparación (fecha/hora)
@@ -206,7 +220,7 @@
         {{-- Título --}}
         <table>
             <tr>
-                <td class="text-center" style="font-size: 11px; padding: 6px 4px;">
+                <td class="text-center" style="font-size: 7px; padding: 3px 2px;">
                     <strong>ETIQUETA <br> MEZCLAS ESTÉRILES ONCOLÓGICAS</strong>
                 </td>
             </tr>
@@ -215,13 +229,14 @@
         {{-- Datos generales --}}
         <table>
             <tr>
-                <td class="px-1">Cliente:</td>
+                <td class="px-1">Cliente: {{ $cliente }}</td>
                 <td class="px-1 text-right">Lote mezcla: {{ $mezcla->lote ?? '—' }}</td>
             </tr>
             <tr>
                 <td class="px-1">Paciente: {{ $solicitud->nombre_paciente ?? '—' }}</td>
                 <td class="px-1 text-right">
-                    F. Nac: {{ !empty($solicitud->fecha_nacimiento) ? \Carbon\Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') : '—' }}
+                    F. Nac:
+                    {{ !empty($solicitud->fecha_nacimiento) ? \Carbon\Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') : '—' }}
                 </td>
             </tr>
             <tr>
@@ -240,7 +255,9 @@
 
         {{-- Medicamentos --}}
         <table>
-            <tr><td colspan="2" class="px-1 sep rowline"><strong>Medicamentos:</strong></td></tr>
+            <tr>
+                <td colspan="2" class="px-1 sep rowline"><strong>Medicamentos:</strong></td>
+            </tr>
 
             @forelse ($medicamentos as $med)
                 <tr>
@@ -260,7 +277,10 @@
             @endforelse
 
             {{-- Diluyente + lote/cad --}}
-            <tr><td colspan="2" class="px-1 sep rowline"><strong>Diluyente:</strong> {{ $diluyenteTexto ?? '—' }}</td></tr>
+            <tr>
+                <td colspan="2" class="px-1 sep rowline"><strong>Diluyente:</strong> {{ $diluyenteTexto ?? '—' }}
+                </td>
+            </tr>
             <tr>
                 <td class="px-1 xs" colspan="2">
                     Lote: {{ $diluyenteLote ?? '—' }} |
@@ -285,11 +305,9 @@
                 </td>
                 <td class="px-1 text-right">
                     Vel. infusión:
-                    {{
-                        ($mezcla->tiempo_infusion ?? 0) > 0
+                    {{ ($mezcla->tiempo_infusion ?? 0) > 0
                         ? number_format((float) $mezcla->volumen_dilucion / (float) $mezcla->tiempo_infusion, 3, '.', '')
-                        : '—'
-                    }}
+                        : '—' }}
                 </td>
             </tr>
             <tr>
@@ -326,15 +344,22 @@
                     @php
                         $cond = [];
                         if ($tmin !== null || $tmax !== null) {
-                            $cond[] = 'Temp. ' . ($tmin !== null ? $tmin : '—') . '–' . ($tmax !== null ? $tmax : '—') . ' °C';
+                            $cond[] =
+                                'Temp. ' .
+                                ($tmin !== null ? $tmin : '—') .
+                                '–' .
+                                ($tmax !== null ? $tmax : '—') .
+                                ' °C';
                         }
-                        if ($stab) $cond[] = 'Estabilidad ' . $stab . ' h';
+                        if ($stab) {
+                            $cond[] = 'Estabilidad ' . $stab . ' h';
+                        }
                     @endphp
                     {{ count($cond) ? implode(' | ', $cond) : '—' }}
                 </td>
             </tr>
             <tr>
-                <td class="px-1" colspan="2">Preparada por:</td>
+                <td class="px-1" colspan="2">Preparada por: {{ $preparadaPor }}</td>
             </tr>
         </table>
     </div>
