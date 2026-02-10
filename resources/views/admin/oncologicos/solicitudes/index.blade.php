@@ -69,7 +69,7 @@
                         </td>
 
                         <td class="px-6 py-4">
-                            {{ $solicitud->user->hospital->name ?? 'N/A' }}
+                            {{ $solicitud->hospital->name ?? 'N/A' }}
                         </td>
 
                         <td class="px-6 py-4">

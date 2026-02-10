@@ -154,22 +154,50 @@
         const mezcla = @json($mezcla);
         const infusors = @json($infusors ?? []);
         const presentacionesPorCatalogo = @json($presentacionesPorCatalogo ?? []);
-        // NUEVO: presentaciones de diluyente agrupadas por diluent_id
         const diluentPresentationsPorDiluyente = @json($diluentPresentationsPorDiluyente ?? []);
 
         let contadorFilas = 0;
+
+        // ===== Helpers: charge_by =====
+        function getChargeBy(medId) {
+            if (!medId) return 'frasco';
+
+            const med = (medicamentos || []).find(m => String(m.id) === String(medId));
+            const raw = med?.charge_by ?? med?.chargeBy ?? infoAdicional?.[medId]?.charge_by ?? 'frasco';
+            const val = String(raw || 'frasco').toLowerCase().trim();
+
+            if (['mg', 'frasco', 'pieza'].includes(val)) return val;
+            return 'frasco';
+        }
+
+        function isCobroPorMg(medId) {
+            return getChargeBy(medId) === 'mg';
+        }
+
+        function toggleUIByChargeBy(filaId, medId) {
+            const fila = document.getElementById(`fila_${filaId}`);
+            if (!fila) return;
+
+            const btnConfig = fila.querySelector('[data-action="toggle-presentaciones"]');
+            const wrap = document.getElementById(`presentaciones_wrap_${filaId}`);
+
+            if (isCobroPorMg(medId)) {
+                if (btnConfig) btnConfig.classList.add('hidden');
+                if (wrap) wrap.classList.add('hidden');
+            } else {
+                if (btnConfig) btnConfig.classList.remove('hidden');
+            }
+        }
 
         // ===== Helpers Infusor vs Set =====
         function requiereInfusorParaMed(medId) {
             if (!medId) return false;
             const med = medicamentos.find(m => String(m.id) === String(medId));
-            if (med && typeof med.requires_infusor !== 'undefined') {
-                return Number(med.requires_infusor) === 1;
-            }
+            if (med && typeof med.requires_infusor !== 'undefined') return Number(med.requires_infusor) === 1;
+
             const info = infoAdicional[medId];
-            if (info && typeof info.requires_infusor !== 'undefined') {
-                return Number(info.requires_infusor) === 1;
-            }
+            if (info && typeof info.requires_infusor !== 'undefined') return Number(info.requires_infusor) === 1;
+
             return false;
         }
 
@@ -177,9 +205,7 @@
             const filas = document.querySelectorAll('#medicamentos_mezcla tr');
             for (const fila of filas) {
                 const medSel = fila.querySelector('[data-name="medicamento"]') || fila.querySelector('.medicamento-select');
-                if (medSel && medSel.value && requiereInfusorParaMed(medSel.value)) {
-                    return true;
-                }
+                if (medSel && medSel.value && requiereInfusorParaMed(medSel.value)) return true;
             }
             return false;
         }
@@ -196,7 +222,6 @@
                 selInf.disabled = true;
                 return;
             }
-
             selInf.disabled = !admite;
             if (!admite) selInf.value = '';
         }
@@ -204,7 +229,6 @@
         function toggleSetInfusion(checkbox) {
             const selInf = document.querySelector('[data-name="infusor_id"]');
             if (!selInf) return;
-
             if (checkbox.checked) {
                 selInf.value = '';
                 selInf.disabled = true;
@@ -224,14 +248,20 @@
                 setCb.disabled = false;
             }
         }
-        // ==================================
 
         // ===== Presentaciones por medicamento =====
         function onMedicamentoChange(selectElem) {
             const filaId = parseInt(selectElem.closest('tr').id.replace('fila_', ''), 10) || 0;
             const medId = selectElem.value;
-            inicializarPresentacionesFila(filaId, medId);
-            recalcularResumenPresentaciones(filaId);
+
+            toggleUIByChargeBy(filaId, medId);
+
+            // Solo inicializar presentaciones si se cobra por frasco/pieza
+            if (!isCobroPorMg(medId)) {
+                inicializarPresentacionesFila(filaId, medId);
+                recalcularResumenPresentaciones(filaId);
+            }
+
             updateInfusorDisponibilidad();
             updateDiluentPresentationSelector();
             autoSelectDiluentPresentationForVolume();
@@ -247,7 +277,7 @@
             const info = infoAdicional[medicamentoId];
             if (!info) return;
 
-            const catalogId = info.catalog_id;
+            const catalogId = medicamentoId;
             const lista = presentacionesPorCatalogo[catalogId] || [];
             const tbody = document.getElementById(`presentaciones_body_${filaId}`);
             if (!tbody) return;
@@ -261,28 +291,24 @@
                 tr.dataset.cantidadMg = p.cantidad_medicamento || 0;
                 tr.dataset.batchId = p.batch_id || '';
 
-                const guardada = presentacionesGuardadas.find(g =>
-                    Number(g.medicine_batch_id) === Number(p.batch_id)
-                );
+                const guardada = presentacionesGuardadas.find(g => Number(g.medicine_batch_id) === Number(p.batch_id));
                 const frascosValue = guardada ? Number(guardada.unidades_usadas) : 0;
 
                 tr.innerHTML = `
-                <td class="border px-1 py-1">${p.presentacion}</td>
-                <td class="border px-1 py-1 text-right">${p.cantidad_medicamento ?? '—'}</td>
-                <td class="border px-1 py-1 text-right">${p.volumen_diluyente ?? '—'}</td>
-                <td class="border px-1 py-1">${p.lote ?? '—'}</td>
-                <td class="border px-1 py-1">
-                    ${p.caducidad ? (new Date(p.caducidad)).toLocaleDateString() : '—'}
-                </td>
-                <td class="border px-1 py-1">
-                    <input type="number"
-                           min="0"
-                           step="1"
-                           class="w-16 border rounded px-1 py-0.5 text-right input-frascos"
-                           value="${frascosValue}"
-                           oninput="recalcularResumenPresentaciones(${filaId})">
-                </td>
-            `;
+                    <td class="border px-1 py-1">${p.presentacion}</td>
+                    <td class="border px-1 py-1 text-right">${p.cantidad_medicamento ?? '—'}</td>
+                    <td class="border px-1 py-1 text-right">${p.volumen_diluyente ?? '—'}</td>
+                    <td class="border px-1 py-1">${p.lote ?? '—'}</td>
+                    <td class="border px-1 py-1">${p.caducidad ? (new Date(p.caducidad)).toLocaleDateString() : '—'}</td>
+                    <td class="border px-1 py-1">
+                        <input type="number"
+                            min="0"
+                            step="1"
+                            class="w-16 border rounded px-1 py-0.5 text-right input-frascos"
+                            value="${frascosValue}"
+                            oninput="recalcularResumenPresentaciones(${filaId})">
+                    </td>
+                `;
                 tbody.appendChild(tr);
             });
 
@@ -308,19 +334,16 @@
             const resumen = document.getElementById(`resumen_dosis_${filaId}`);
             if (resumen) {
                 const diff = objetivo - aportada;
-                const textoDiff = diff > 0 ?
-                    `faltan ${diff.toFixed(2)} mg` :
-                    diff < 0 ?
-                    `sobran ${Math.abs(diff).toFixed(2)} mg` :
+                const textoDiff = diff > 0 ? `faltan ${diff.toFixed(2)} mg` :
+                    diff < 0 ? `sobran ${Math.abs(diff).toFixed(2)} mg` :
                     'dosis exacta';
 
                 resumen.innerHTML = `
-                Dosis objetivo: ${objetivo.toFixed(2)} mg<br>
-                Dosis aportada: ${aportada.toFixed(2)} mg (${textoDiff})
-            `;
+                    Dosis objetivo: ${objetivo.toFixed(2)} mg<br>
+                    Dosis aportada: ${aportada.toFixed(2)} mg (${textoDiff})
+                `;
             }
         }
-        // ==================================
 
         // ===== Diluyente común + presentaciones de diluyente =====
         function getDiluyenteComunId() {
@@ -337,7 +360,6 @@
                     return null;
                 }
             }
-
             return diluyenteComun;
         }
 
@@ -355,9 +377,7 @@
                 opt.textContent = 'Seleccione un diluyente (y su presentación) para esta mezcla';
                 select.appendChild(opt);
 
-                if (hint) {
-                    hint.textContent = 'Se sugerirá una presentación en función del volumen de dilución.';
-                }
+                if (hint) hint.textContent = 'Se sugerirá una presentación en función del volumen de dilución.';
                 return;
             }
 
@@ -387,14 +407,11 @@
 
                 if (hint) {
                     const optSel = select.options[select.selectedIndex];
-                    if (optSel && optSel.value) {
-                        hint.textContent = `Presentación guardada previamente: ${optSel.textContent}.`;
-                    } else {
-                        hint.textContent = 'Se sugerirá una presentación en función del volumen de dilución.';
-                    }
+                    hint.textContent = (optSel && optSel.value)
+                        ? `Presentación guardada previamente: ${optSel.textContent}.`
+                        : 'Se sugerirá una presentación en función del volumen de dilución.';
                 }
             }
-
         }
 
         function autoSelectDiluentPresentationForVolume() {
@@ -417,12 +434,8 @@
             lista.forEach(p => {
                 const v = parseFloat(p.volume_ml || '0');
                 if (!v || v <= 0) return;
-
                 if (v >= vol && (!elegida || v < elegida.volume_ml)) {
-                    elegida = {
-                        ...p,
-                        volume_ml: v
-                    };
+                    elegida = { ...p, volume_ml: v };
                 }
             });
 
@@ -430,12 +443,8 @@
                 lista.forEach(p => {
                     const v = parseFloat(p.volume_ml || '0');
                     if (!v || v <= 0) return;
-
                     if (!elegida || v > elegida.volume_ml) {
-                        elegida = {
-                            ...p,
-                            volume_ml: v
-                        };
+                        elegida = { ...p, volume_ml: v };
                     }
                 });
             }
@@ -449,22 +458,18 @@
                 }
             }
         }
-        // ==================================
 
+        // ===== Render =====
         function renderMezcla(mezclaData) {
-
             const mezclaDiv = document.createElement('div');
             mezclaDiv.classList.add("border", "border-black", "p-4", "relative");
 
-            // 👇 diluyente de la mezcla (todos los meds comparten diluyente_id)
-            const firstDiluentId = (mezclaData.medicamentos && mezclaData.medicamentos.length > 0) ?
-                mezclaData.medicamentos[0].diluyente_id :
-                null;
+            const firstDiluentId = (mezclaData.medicamentos && mezclaData.medicamentos.length > 0)
+                ? mezclaData.medicamentos[0].diluyente_id
+                : null;
 
-            // 👇 id de presentación guardado en BD
             const selectedDiluentPresId = mezclaData.diluent_presentation_id || null;
 
-            // Opciones del select de presentación de diluyente
             let opcionesPresentacionDiluyente = '<option value="">Selecciona presentación</option>';
 
             if (firstDiluentId && diluentPresentationsPorDiluyente[firstDiluentId]) {
@@ -473,194 +478,207 @@
                     const cad = p.caducidad ? (new Date(p.caducidad)).toLocaleDateString() : '—';
 
                     opcionesPresentacionDiluyente += `
-                <option value="${p.id}" ${seleccionado}>
-                    ${p.presentacion}
-                    ${p.denominacion_comercial ? ' · ' + p.denominacion_comercial : ''}
-                    ${p.lote ? ' · Lote ' + p.lote : ''}
-                    ${cad !== '—' ? ' · Cad. ' + cad : ''}
-                </option>
-            `;
+                        <option value="${p.id}" ${seleccionado}>
+                            ${p.presentacion}
+                            ${p.denominacion_comercial ? ' · ' + p.denominacion_comercial : ''}
+                            ${p.lote ? ' · Lote ' + p.lote : ''}
+                            ${cad !== '—' ? ' · Cad. ' + cad : ''}
+                        </option>
+                    `;
                 });
             }
 
             mezclaDiv.innerHTML = `
-    <h3 class="text-lg font-semibold mb-4">Mezcla</h3>
+                <h3 class="text-lg font-semibold mb-4">Mezcla</h3>
 
-    <table class="table-auto w-full border text-center mb-4">
-        <thead class="bg-gray-100">
-            <tr>
-                <th class="border px-2 py-1 text-xs">MEDICAMENTO</th>
-                <th class="border px-2 py-1 text-xs">DOSIS</th>
-                <th class="border px-2 py-1 text-xs">DILUYENTE</th>
-                <th class="border px-2 py-1 text-xs">VÍA DE ADMINISTRACIÓN</th>
-            </tr>
-        </thead>
-        <tbody id="medicamentos_mezcla"></tbody>
-    </table>
+                <table class="table-auto w-full border text-center mb-4">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="border px-2 py-1 text-xs">MEDICAMENTO</th>
+                            <th class="border px-2 py-1 text-xs">DOSIS</th>
+                            <th class="border px-2 py-1 text-xs">DILUYENTE</th>
+                            <th class="border px-2 py-1 text-xs">VÍA DE ADMINISTRACIÓN</th>
+                        </tr>
+                    </thead>
+                    <tbody id="medicamentos_mezcla"></tbody>
+                </table>
 
-    <div class="grid grid-cols-2 gap-4 mb-4">
-        <div>
-            <label>Volumen de dilución (ml)*</label>
-            <input type="number" data-name="volumen_dilucion"
-                   class="w-full border rounded px-2 py-1 text-sm"
-                   value="${mezclaData.volumen_dilucion ?? ''}">
-        </div>
-        <div>
-            <label>Tiempo de infusión (min)*</label>
-            <input type="number" data-name="tiempo_infusion"
-                   class="w-full border rounded px-2 py-1 text-sm"
-                   value="${mezclaData.tiempo_infusion ?? ''}">
-        </div>
-    </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label>Volumen de dilución (ml)*</label>
+                        <input type="number" data-name="volumen_dilucion"
+                            class="w-full border rounded px-2 py-1 text-sm"
+                            value="${mezclaData.volumen_dilucion ?? ''}">
+                    </div>
+                    <div>
+                        <label>Tiempo de infusión (min)*</label>
+                        <input type="number" data-name="tiempo_infusion"
+                            class="w-full border rounded px-2 py-1 text-sm"
+                            value="${mezclaData.tiempo_infusion ?? ''}">
+                    </div>
+                </div>
 
-    <div class="mb-4">
-        <label>Presentación del diluyente</label>
-        <select data-name="diluent_presentation_id"
-                class="w-full border rounded px-2 py-1 text-sm">
-            ${opcionesPresentacionDiluyente}
-        </select>
-        <p class="text-xs text-gray-500" id="diluent_presentation_hint">
-            Se sugerirá en función del volumen de dilución de la mezcla.
-        </p>
-    </div>
+                <div class="mb-4">
+                    <label>Presentación del diluyente</label>
+                    <select data-name="diluent_presentation_id"
+                        class="w-full border rounded px-2 py-1 text-sm">
+                        ${opcionesPresentacionDiluyente}
+                    </select>
+                    <p class="text-xs text-gray-500" id="diluent_presentation_hint">
+                        Se sugerirá en función del volumen de dilución de la mezcla.
+                    </p>
+                </div>
 
-    <div class="grid grid-cols-2 gap-4 mb-4">
-        <div class="flex items-center gap-2">
-            <input type="checkbox"
-                   data-name="set_infusion"
-                   class="w-4 h-4"
-                   ${mezclaData.set_infusion ? 'checked' : ''}
-                   onchange="toggleSetInfusion(this)">
-            <label class="select-none">Set de infusión</label>
-        </div>
-        <div>
-            <label>Infusor</label>
-            <select data-name="infusor_id"
-                    class="w-full border rounded px-2 py-1 text-sm"
-                    onchange="toggleInfusorSelect(this)">
-                <option value="">Selecciona infusor</option>
-                ${
-                    (infusors || [])
-                        .map(i => `
-                                        <option value="${i.id}"
-                                            ${Number(mezclaData.infusor_id || '') === Number(i.id) ? 'selected' : ''}>
-                                            ${i.nombre_generico ?? i.nombre_comercial ?? ('Infusor #'+i.id)}
-                                        </option>
-                                    `).join('')
-                }
-            </select>
-            <p class="text-xs text-gray-500">
-                Se habilita si la mezcla contiene medicamento(s) que admiten infusor.
-            </p>
-        </div>
-    </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox"
+                            data-name="set_infusion"
+                            class="w-4 h-4"
+                            ${mezclaData.set_infusion ? 'checked' : ''}
+                            onchange="toggleSetInfusion(this)">
+                        <label class="select-none">Set de infusión</label>
+                    </div>
+                    <div>
+                        <label>Infusor</label>
+                        <select data-name="infusor_id"
+                            class="w-full border rounded px-2 py-1 text-sm"
+                            onchange="toggleInfusorSelect(this)">
+                            <option value="">Selecciona infusor</option>
+                            ${(infusors || []).map(i => `
+                                <option value="${i.id}"
+                                    ${Number(mezclaData.infusor_id || '') === Number(i.id) ? 'selected' : ''}>
+                                    ${i.nombre_generico ?? i.nombre_comercial ?? ('Infusor #'+i.id)}
+                                </option>
+                            `).join('')}
+                        </select>
+                        <p class="text-xs text-gray-500">
+                            Se habilita si la mezcla contiene medicamento(s) que admiten infusor.
+                        </p>
+                    </div>
+                </div>
 
-    <button type="button"
-            class="btn-agregar-medicamento bg-green-600 hover:bg-green-700 text-white text-xs font-medium py-1 px-2 rounded">
-        + Agregar Medicamento
-    </button>
-`;
-
+                <button type="button"
+                    class="btn-agregar-medicamento bg-green-600 hover:bg-green-700 text-white text-xs font-medium py-1 px-2 rounded">
+                    + Agregar Medicamento
+                </button>
+            `;
 
             document.getElementById('contenedorMezcla').appendChild(mezclaDiv);
 
             const tbody = mezclaDiv.querySelector('#medicamentos_mezcla');
+
             (mezclaData.medicamentos || []).forEach(med => {
                 contadorFilas++;
                 const fila = document.createElement('tr');
                 fila.id = `fila_${contadorFilas}`;
 
                 const medicamentoId = med.medicamento_id;
-                const data = infoAdicional[medicamentoId] || {
-                    diluyentes: [],
-                    vias: []
-                };
+                const data = infoAdicional[medicamentoId] || { diluyentes: [], vias: [] };
 
                 const diluyenteOptions = data.diluyentes.map(d =>
-                    `<option value="${d.id}" ${d.id == med.diluyente_id ? 'selected' : ''}>${d.name ?? d.denominacion_generica ?? '—'}</option>`
+                    `<option value="${d.id}" ${String(d.id) === String(med.diluyente_id) ? 'selected' : ''}>${d.name ?? d.denominacion_generica ?? '—'}</option>`
                 ).join('');
 
                 const viaOptions = data.vias.map(v =>
-                    `<option value="${v.id}" ${v.id == med.via_administracion_id ? 'selected' : ''}>${v.name}</option>`
+                    `<option value="${v.id}" ${String(v.id) === String(med.via_administracion_id) ? 'selected' : ''}>${v.name}</option>`
                 ).join('');
 
+                // charge_by para este medicamento (si viene en el JSON del modelo, úsalo; si no, calcula por medId)
+                const chargeBy = (med.charge_by || med.chargeBy || getChargeBy(medicamentoId));
+
                 fila.innerHTML = `
-                <td class="border align-top">
-                    <select class="medicamento-select w-full border px-2 py-1 text-sm"
+                    <td class="border align-top">
+                        <select class="medicamento-select w-full border px-2 py-1 text-sm"
                             data-name="medicamento"
                             name="medicamento_existente[]"
                             onchange="actualizarDiluentesYVias(this, ${contadorFilas}); onMedicamentoChange(this)">
-                        ${medicamentos.map(m =>
-                            `<option value="${m.id}" ${m.id == medicamentoId ? 'selected' : ''}>
-                                                    ${m.denominacion} (${m.presentacion})
-                                                 </option>`
-                        ).join('')}
-                    </select>
+                            ${medicamentos.map(m =>
+                                `<option value="${m.id}" ${String(m.id) === String(medicamentoId) ? 'selected' : ''}>
+                                    ${m.denominacion}
+                                </option>`
+                            ).join('')}
+                        </select>
 
-                    <div class="mt-2 text-left">
-                        <button type="button"
+                        <div class="mt-2 text-left flex items-center gap-2">
+                            <span class="text-[11px] text-gray-500">
+                                Cobro:
+                                <span class="font-semibold">${String(chargeBy).toUpperCase()}</span>
+                            </span>
+
+                            <button type="button"
+                                data-action="toggle-presentaciones"
                                 class="text-xs text-blue-600 underline"
                                 onclick="togglePresentaciones(${contadorFilas})">
-                            Configurar presentaciones
-                        </button>
-                    </div>
-                </td>
-                <td class="border align-top">
-                    <input type="number"
-                           name="dosis_existente[]"
-                           value="${med.dosis}"
-                           class="w-full border px-2 py-1 text-sm dosis-input"
-                           oninput="recalcularResumenPresentaciones(${contadorFilas})">
-                    <div class="mt-1 text-sm text-red-600" id="resumen_dosis_${contadorFilas}">
-                        Dosis objetivo: ${med.dosis} mg<br>
-                        Dosis aportada: 0 mg (restan ${med.dosis} mg)
-                    </div>
-                </td>
-                <td class="border align-top">
-                    <select name="diluyente_existente[]"
+                                Configurar presentaciones
+                            </button>
+                        </div>
+                    </td>
+
+                    <td class="border align-top">
+                        <input type="number"
+                            name="dosis_existente[]"
+                            value="${med.dosis}"
+                            class="w-full border px-2 py-1 text-sm dosis-input"
+                            oninput="recalcularResumenPresentaciones(${contadorFilas})">
+
+                        <div class="mt-1 text-sm text-red-600" id="resumen_dosis_${contadorFilas}">
+                            Dosis objetivo: ${Number(med.dosis || 0).toFixed(2)} mg<br>
+                            Dosis aportada: 0 mg
+                        </div>
+                    </td>
+
+                    <td class="border align-top">
+                        <select name="diluyente_existente[]"
                             data-name="diluyente"
                             class="w-full border px-2 py-1 text-sm">
-                        <option value="">Diluyentes</option>
-                        ${diluyenteOptions}
-                    </select>
-                </td>
-                <td class="border align-top">
-                    <select name="via_existente[]"
+                            <option value="">Diluyentes</option>
+                            ${diluyenteOptions}
+                        </select>
+                    </td>
+
+                    <td class="border align-top">
+                        <select name="via_existente[]"
                             data-name="via_administracion"
                             class="w-full border px-2 py-1 text-sm">
-                        <option value="">Vía de admin</option>
-                        ${viaOptions}
-                    </select>
+                            <option value="">Vía de admin</option>
+                            ${viaOptions}
+                        </select>
 
-                    <div id="presentaciones_wrap_${contadorFilas}"
-                         class="mt-2 border-t pt-2 hidden">
-                        <div class="text-xs font-semibold mb-1">
-                            Presentaciones disponibles
+                        <div id="presentaciones_wrap_${contadorFilas}"
+                            class="mt-2 border-t pt-2 hidden">
+                            <div class="text-xs font-semibold mb-1">
+                                Presentaciones disponibles
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-[11px] border">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="border px-1 py-1">Presentación</th>
+                                            <th class="border px-1 py-1">Cant. (mg)</th>
+                                            <th class="border px-1 py-1">Vol (mL)</th>
+                                            <th class="border px-1 py-1">Lote</th>
+                                            <th class="border px-1 py-1">Caducidad</th>
+                                            <th class="border px-1 py-1">Frascos</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="presentaciones_body_${contadorFilas}">
+                                        <!-- dinámico -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-[11px] border">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="border px-1 py-1">Presentación</th>
-                                        <th class="border px-1 py-1">Cant. (mg)</th>
-                                        <th class="border px-1 py-1">Vol (mL)</th>
-                                        <th class="border px-1 py-1">Lote</th>
-                                        <th class="border px-1 py-1">Caducidad</th>
-                                        <th class="border px-1 py-1">Frascos</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="presentaciones_body_${contadorFilas}">
-                                    <!-- dinámico -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </td>
-            `;
+                    </td>
+                `;
+
                 tbody.appendChild(fila);
 
+                // Si se cobra por frasco/pieza -> inicializa y recalcula
                 const presentacionesGuardadas = med.presentaciones_usadas || [];
-                inicializarPresentacionesFila(contadorFilas, medicamentoId, presentacionesGuardadas);
+                toggleUIByChargeBy(contadorFilas, medicamentoId);
+
+                if (!isCobroPorMg(medicamentoId)) {
+                    inicializarPresentacionesFila(contadorFilas, medicamentoId, presentacionesGuardadas);
+                }
             });
 
             const setCb = mezclaDiv.querySelector('[data-name="set_infusion"]');
@@ -675,17 +693,9 @@
                 selInf.disabled = true;
             }
 
-            // id de presentación guardada en BD (puede ser null)
             const savedDilPresId = mezclaData.diluent_presentation_id || null;
-
-            // Rellena el select con las presentaciones del diluyente común
-            // y, si existe, marca la guardada
             updateDiluentPresentationSelector(savedDilPresId);
-
-            // ⚠️ Solo sugerimos automáticamente si NO hay una presentación guardada
-            if (!savedDilPresId) {
-                autoSelectDiluentPresentationForVolume();
-            }
+            if (!savedDilPresId) autoSelectDiluentPresentationForVolume();
 
             const volInput = mezclaDiv.querySelector('[data-name="volumen_dilucion"]');
             if (volInput) {
@@ -695,23 +705,18 @@
             }
 
             updateInfusorDisponibilidad();
-
         }
 
         function actualizarDiluentesYVias(selectElem, filaId) {
             const medicamentoId = selectElem.value;
             const fila = document.getElementById(`fila_${filaId}`);
-            const data = infoAdicional[medicamentoId] || {
-                diluyentes: [],
-                vias: []
-            };
+            const data = infoAdicional[medicamentoId] || { diluyentes: [], vias: [] };
 
             const selectDiluyente = fila.querySelector('[data-name="diluyente"]');
             const selectVia = fila.querySelector('[data-name="via_administracion"]');
 
             selectDiluyente.innerHTML = `<option value="">Diluyentes</option>` +
-                data.diluyentes.map(d => `<option value="${d.id}">${d.name ?? d.denominacion_generica ?? '—'}</option>`)
-                .join('');
+                data.diluyentes.map(d => `<option value="${d.id}">${d.name ?? d.denominacion_generica ?? '—'}</option>`).join('');
 
             selectVia.innerHTML = `<option value="">Vía de admin</option>` +
                 data.vias.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
@@ -733,81 +738,87 @@
                 fila.id = `fila_${contadorFilas}`;
 
                 fila.innerHTML = `
-                <td class="border align-top">
-                    <select class="medicamento-select w-full border px-2 py-1 text-sm"
+                    <td class="border align-top">
+                        <select class="medicamento-select w-full border px-2 py-1 text-sm"
                             data-name="medicamento"
                             name="nuevo_medicamento[]"
                             onchange="actualizarDiluentesYVias(this, ${contadorFilas}); onMedicamentoChange(this)">
-                        <option value="">Seleccione</option>
-                        ${medicamentos.map(m => `<option value="${m.id}">${m.denominacion} (${m.presentacion})</option>`).join('')}
-                    </select>
+                            <option value="">Seleccione</option>
+                            ${medicamentos.map(m => `<option value="${m.id}">${m.denominacion} (${m.presentacion})</option>`).join('')}
+                        </select>
 
-                    <div class="mt-2 text-left">
-                        <button type="button"
+                        <div class="mt-2 text-left">
+                            <button type="button"
+                                data-action="toggle-presentaciones"
                                 class="text-xs text-blue-600 underline"
                                 onclick="togglePresentaciones(${contadorFilas})">
-                            Configurar presentaciones
-                        </button>
-                    </div>
-                </td>
-                <td class="border align-top">
-                    <input type="number"
-                           name="nueva_dosis[]"
-                           class="w-full border px-2 py-1 text-sm dosis-input"
-                           oninput="recalcularResumenPresentaciones(${contadorFilas})">
-                    <div class="mt-1 text-xs text-gray-600" id="resumen_dosis_${contadorFilas}">
-                        Dosis objetivo: 0 mg<br>
-                        Dosis aportada: 0 mg (restan 0 mg)
-                    </div>
-                </td>
-                <td class="border align-top">
-                    <select name="nuevo_diluyente[]"
+                                Configurar presentaciones
+                            </button>
+                        </div>
+                    </td>
+
+                    <td class="border align-top">
+                        <input type="number"
+                            name="nueva_dosis[]"
+                            class="w-full border px-2 py-1 text-sm dosis-input"
+                            oninput="recalcularResumenPresentaciones(${contadorFilas})">
+                        <div class="mt-1 text-xs text-gray-600" id="resumen_dosis_${contadorFilas}">
+                            Dosis objetivo: 0 mg<br>
+                            Dosis aportada: 0 mg
+                        </div>
+                    </td>
+
+                    <td class="border align-top">
+                        <select name="nuevo_diluyente[]"
                             data-name="diluyente"
                             class="w-full border px-2 py-1 text-sm">
-                        <option value="">Diluyentes</option>
-                    </select>
-                </td>
-                <td class="border align-top">
-                    <select name="nueva_via[]"
+                            <option value="">Diluyentes</option>
+                        </select>
+                    </td>
+
+                    <td class="border align-top">
+                        <select name="nueva_via[]"
                             data-name="via_administracion"
                             class="w-full border px-2 py-1 text-sm">
-                        <option value="">Vía de admin</option>
-                    </select>
+                            <option value="">Vía de admin</option>
+                        </select>
 
-                    <div id="presentaciones_wrap_${contadorFilas}"
-                         class="mt-2 border-t pt-2 hidden">
-                        <div class="text-xs font-semibold mb-1">
-                            Presentaciones disponibles
+                        <div id="presentaciones_wrap_${contadorFilas}"
+                            class="mt-2 border-t pt-2 hidden">
+                            <div class="text-xs font-semibold mb-1">
+                                Presentaciones disponibles
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-[11px] border">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="border px-1 py-1">Presentación</th>
+                                            <th class="border px-1 py-1">Cant. (mg)</th>
+                                            <th class="border px-1 py-1">Vol (mL)</th>
+                                            <th class="border px-1 py-1">Lote</th>
+                                            <th class="border px-1 py-1">Caducidad</th>
+                                            <th class="border px-1 py-1">Frascos</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="presentaciones_body_${contadorFilas}">
+                                        <!-- dinámico -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-[11px] border">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="border px-1 py-1">Presentación</th>
-                                        <th class="border px-1 py-1">Cant. (mg)</th>
-                                        <th class="border px-1 py-1">Vol (mL)</th>
-                                        <th class="border px-1 py-1">Lote</th>
-                                        <th class="border px-1 py-1">Caducidad</th>
-                                        <th class="border px-1 py-1">Frascos</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="presentaciones_body_${contadorFilas}">
-                                    <!-- dinámico -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </td>
-            `;
+                    </td>
+                `;
 
                 tbody.appendChild(fila);
+
+                // si aún no selecciona medicamento, igual corre estas para mantener consistencia
                 updateInfusorDisponibilidad();
                 updateDiluentPresentationSelector();
                 autoSelectDiluentPresentationForVolume();
             }
         });
 
-        // Submit: construye mezcla_json incluyendo presentaciones
+        // Submit: construye mezcla_json incluyendo presentaciones + charge_by
         document.getElementById("formularioMezcla").addEventListener("submit", function(e) {
             e.preventDefault();
 
@@ -824,68 +835,77 @@
                 medicamentos: []
             };
 
-            document.querySelectorAll('[name="medicamento_existente[]"]').forEach((medicamentoSelect) => {
-                const fila = medicamentoSelect.closest('tr');
-                const medObj = {
-                    medicamento_id: medicamentoSelect.value,
-                    nombre: medicamentoSelect.options[medicamentoSelect.selectedIndex].text,
-                    dosis: fila.querySelector('[name="dosis_existente[]"]').value,
-                    diluyente_id: fila.querySelector('[name="diluyente_existente[]"]').value || null,
-                    via_administracion_id: fila.querySelector('[name="via_existente[]"]').value || null,
-                    presentaciones: []
-                };
-
+            function buildPresentacionesFromFila(fila) {
                 const presRows = fila.querySelectorAll('.presentacion-row');
+                const arr = [];
                 presRows.forEach(r => {
                     const frascos = parseFloat(r.querySelector('.input-frascos')?.value || "0");
                     const batchId = r.dataset.batchId || null;
-
                     if (frascos > 0 && batchId) {
-                        medObj.presentaciones.push({
+                        arr.push({
                             batch_id: batchId,
                             presentation_id: r.dataset.presentationId,
                             frascos: frascos
                         });
                     }
                 });
+                return arr;
+            }
+
+            // Existentes
+            document.querySelectorAll('[name="medicamento_existente[]"]').forEach((medicamentoSelect) => {
+                const fila = medicamentoSelect.closest('tr');
+                const medId = medicamentoSelect.value;
+
+                const medObj = {
+                    medicamento_id: medId,
+                    nombre: medicamentoSelect.options[medicamentoSelect.selectedIndex]?.text || '',
+                    dosis: fila.querySelector('[name="dosis_existente[]"]').value,
+                    diluyente_id: fila.querySelector('[name="diluyente_existente[]"]').value || null,
+                    via_administracion_id: fila.querySelector('[name="via_existente[]"]').value || null,
+                    charge_by: getChargeBy(medId), // ✅ NUEVO
+                    presentaciones: []
+                };
+
+                // Solo frascos si NO es mg
+                if (!isCobroPorMg(medId)) {
+                    medObj.presentaciones = buildPresentacionesFromFila(fila);
+                }
+
                 mezclaPayload.medicamentos.push(medObj);
             });
 
+            // Nuevos
             document.querySelectorAll('[name="nuevo_medicamento[]"]').forEach((medicamentoSelect) => {
                 const fila = medicamentoSelect.closest('tr');
-                if (medicamentoSelect.value) {
-                    const medObj = {
-                        medicamento_id: medicamentoSelect.value,
-                        nombre: medicamentoSelect.options[medicamentoSelect.selectedIndex].text,
-                        dosis: fila.querySelector('[name="nueva_dosis[]"]').value,
-                        diluyente_id: fila.querySelector('[name="nuevo_diluyente[]"]').value || null,
-                        via_administracion_id: fila.querySelector('[name="nueva_via[]"]').value || null,
-                        presentaciones: []
-                    };
+                if (!medicamentoSelect.value) return;
 
-                    const presRows = fila.querySelectorAll('.presentacion-row');
-                    presRows.forEach(r => {
-                        const frascos = parseFloat(r.querySelector('.input-frascos')?.value || "0");
-                        const batchId = r.dataset.batchId || null;
+                const medId = medicamentoSelect.value;
 
-                        if (frascos > 0 && batchId) {
-                            medObj.presentaciones.push({
-                                batch_id: batchId,
-                                presentation_id: r.dataset.presentationId,
-                                frascos: frascos
-                            });
-                        }
-                    });
+                const medObj = {
+                    medicamento_id: medId,
+                    nombre: medicamentoSelect.options[medicamentoSelect.selectedIndex]?.text || '',
+                    dosis: fila.querySelector('[name="nueva_dosis[]"]').value,
+                    diluyente_id: fila.querySelector('[name="nuevo_diluyente[]"]').value || null,
+                    via_administracion_id: fila.querySelector('[name="nueva_via[]"]').value || null,
+                    charge_by: getChargeBy(medId), // ✅ NUEVO
+                    presentaciones: []
+                };
 
-                    mezclaPayload.medicamentos.push(medObj);
+                if (!isCobroPorMg(medId)) {
+                    medObj.presentaciones = buildPresentacionesFromFila(fila);
                 }
+
+                mezclaPayload.medicamentos.push(medObj);
             });
 
+            // Validación: mismo diluyente y vía
             if (mezclaPayload.medicamentos.length > 0) {
-                let refDil = mezclaPayload.medicamentos[0].diluyente_id;
-                let refVia = mezclaPayload.medicamentos[0].via_administracion_id;
+                const refDil = String(mezclaPayload.medicamentos[0].diluyente_id ?? '');
+                const refVia = String(mezclaPayload.medicamentos[0].via_administracion_id ?? '');
+
                 for (const med of mezclaPayload.medicamentos) {
-                    if (med.diluyente_id !== refDil || med.via_administracion_id !== refVia) {
+                    if (String(med.diluyente_id ?? '') !== refDil || String(med.via_administracion_id ?? '') !== refVia) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
@@ -893,6 +913,18 @@
                         });
                         return;
                     }
+                }
+            }
+
+            // Validación: si es frasco/pieza, debe tener al menos 1 frasco (si se capturó alguna presentación disponible)
+            for (const med of mezclaPayload.medicamentos) {
+                if (String(med.charge_by).toLowerCase() !== 'mg') {
+                    const totalFrascos = (med.presentaciones || []).reduce((acc, p) => acc + Number(p.frascos || 0), 0);
+                    // si quieres forzar siempre frascos para frasco/pieza, descomenta:
+                    // if (totalFrascos <= 0) {
+                    //     Swal.fire({ icon: 'error', title: 'Faltan frascos', text: `Configura frascos/presentaciones para el medicamento: ${med.nombre}` });
+                    //     return;
+                    // }
                 }
             }
 
@@ -910,9 +942,7 @@
                     cancelButton: 'swal-button-cancel'
                 }
             }).then((result) => {
-                if (result.isConfirmed) {
-                    e.target.submit();
-                }
+                if (result.isConfirmed) e.target.submit();
             });
         });
 
@@ -952,7 +982,4 @@
             });
         @endif
     </script>
-
-
-
 </x-admin-layout>

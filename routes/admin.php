@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Models\Solicitud;
 use Illuminate\Support\Facades\Route; //Importamos para generar nuestras rutas.
 use App\Exports\SolicitudesExport;
+use App\Http\Controllers\Admin\ClienteController;
 use App\Http\Controllers\Admin\Oncologicos\DiluentController;
 use App\Http\Controllers\Admin\Oncologicos\DiluentPresentationController;
 use App\Http\Controllers\Admin\Oncologicos\InfusorController;
@@ -256,8 +257,17 @@ Route::prefix('oncologicos')->name('oncologicos.')->group(function () {
         ->names('infusores'); // genera index, create, store, show, edit, update, destroy
 });
 
-//RUTAS PARA PRESENTACIONES 
+//RUTAS PARA PRESENTACIONES
 
 Route::resource('oncologicos/medicines/catalog.presentations', MedicinePresentationController::class)
     ->middleware(['can:medicamentos_oncologicos'])
     ->names('oncologicos.medicines.catalog.presentations');
+
+
+Route::resource('/clientes', ClienteController::class)
+    ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
+    ->middleware(['can:clientes']); // ajusta permiso si quieres otro nombre
+
+Route::get('clientes/{cliente}/exportar-mezclas-onco', [ClienteController::class, 'exportarMezclasOnco'])
+    ->name('clientes.exportarMezclasOnco')
+    ->middleware(['can:clientes']);

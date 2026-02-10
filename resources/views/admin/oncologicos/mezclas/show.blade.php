@@ -57,22 +57,26 @@
                 <div>
                     <label class="text-sm font-semibold">Sexo</label>
                     <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
-                        {{ $mezcla->solicitud->sexo }}</p>
+                        {{ $mezcla->solicitud->sexo }}
+                    </p>
                 </div>
                 <div>
                     <label class="text-sm font-semibold">Fecha de nacimiento</label>
                     <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
-                        {{ $mezcla->solicitud->fecha_nacimiento }}</p>
+                        {{ $mezcla->solicitud->fecha_nacimiento }}
+                    </p>
                 </div>
                 <div>
                     <label class="text-sm font-semibold">Peso</label>
                     <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
-                        {{ $mezcla->solicitud->peso }} kg</p>
+                        {{ $mezcla->solicitud->peso }} kg
+                    </p>
                 </div>
                 <div>
                     <label class="text-sm font-semibold">Cama</label>
                     <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
-                        {{ $mezcla->solicitud->cama }}</p>
+                        {{ $mezcla->solicitud->cama }}
+                    </p>
                 </div>
             </div>
 
@@ -80,7 +84,8 @@
                 <div>
                     <label class="text-sm font-semibold">Piso</label>
                     <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
-                        {{ $mezcla->solicitud->piso }}</p>
+                        {{ $mezcla->solicitud->piso }}
+                    </p>
                 </div>
                 <div>
                     <label class="text-sm font-semibold">Fecha de entrega</label>
@@ -91,25 +96,29 @@
                 <div>
                     <label class="text-sm font-semibold">Médico</label>
                     <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
-                        {{ $mezcla->solicitud->nombre_medico }}</p>
+                        {{ $mezcla->solicitud->nombre_medico }}
+                    </p>
                 </div>
                 <div>
                     <label class="text-sm font-semibold">Cédula</label>
                     <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
-                        {{ $mezcla->solicitud->cedula_medico }}</p>
+                        {{ $mezcla->solicitud->cedula_medico }}
+                    </p>
                 </div>
             </div>
 
             <div>
                 <label class="text-sm font-semibold">Diagnóstico</label>
                 <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
-                    {{ $mezcla->solicitud->diagnostico }}</p>
+                    {{ $mezcla->solicitud->diagnostico }}
+                </p>
             </div>
 
             <div>
                 <label class="text-sm font-semibold">Observaciones</label>
                 <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
-                    {{ $mezcla->solicitud->observaciones }}</p>
+                    {{ $mezcla->solicitud->observaciones }}
+                </p>
             </div>
 
             {{-- Mezcla visualizada --}}
@@ -120,18 +129,15 @@
                     {{-- Badge XOR (informativo) --}}
                     <div>
                         @if ($mezcla->set_infusion && !$mezcla->infusor_id)
-                            <span
-                                class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 border border-green-200">
+                            <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 border border-green-200">
                                 Set de infusión activo
                             </span>
                         @elseif(!$mezcla->set_infusion && $mezcla->infusor_id)
-                            <span
-                                class="text-xs px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
+                            <span class="text-xs px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
                                 Infusor seleccionado
                             </span>
                         @else
-                            <span
-                                class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                            <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
                                 Sin set / infusor
                             </span>
                         @endif
@@ -150,7 +156,8 @@
                     <tbody>
                         @foreach ($mezcla->medicamentos as $med)
                             @php
-                                $info = $infoAdicional[$med->medicamento_id] ?? null;
+                                // ✅ CAMBIO CLAVE: la llave ahora es mezcla_medicamentos.id
+                                $info = $infoAdicional[$med->id] ?? null;
 
                                 // Diluyente: aceptar 'name' o 'denominacion_generica'
                                 $diluente = null;
@@ -201,7 +208,6 @@
                         <label class="text-sm font-semibold">Infusor</label>
                         <p class="border border-gray-300 rounded-md px-2 py-1 bg-gray-100 text-gray-700">
                             @php
-                                // Si tienes relación $mezcla->infusor, úsala:
                                 $inf = optional($mezcla->infusor);
                                 $infNombre = $inf->nombre_generico ?: $inf->nombre_comercial;
                             @endphp

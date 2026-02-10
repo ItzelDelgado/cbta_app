@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\Hospital\MezclasOncoPorHospitalExport;
 use App\Http\Controllers\Controller;
+use App\Models\Cliente;
 use App\Models\Hospital;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -24,7 +25,11 @@ class HospitalController extends Controller
      */
     public function create()
     {
-        return view('admin.hospitals.create');
+        $clientes = Cliente::orderBy('apellido')
+            ->orderBy('nombre')
+            ->get();
+
+        return view('admin.hospitals.create', compact('clientes'));
     }
 
     /**
@@ -32,28 +37,33 @@ class HospitalController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate(([
+        $request->validate([
             'name_hp' => 'required|string|max:255',
-            'adress' => 'required|string|max:400',
-        ]));
-        //Para la solicitud
+            'adress'  => 'required|string|max:400',
+            'clientes'   => 'nullable|array',
+            'clientes.*' => 'integer|exists:clientes,id',
+        ]);
+
+        // Para la solicitud
         $datos = $request->all();
         $datos['name'] = $datos['name_hp'];
         unset($datos['name_hp']);
+        unset($datos['clientes']); // evitamos que intente guardarlo como columna
 
-        Hospital::create($datos);
+        // Crear hospital
+        $hospital = Hospital::create($datos);
 
-        session()->flash(
-            'swal',
-            [
-                'title' => "¡Bien hecho!",
-                'text' => "El hospital se ha creado con éxito.",
-                'icon' => "success"
+        // Guardar relación en pivote (si vienen clientes)
+        $clientesIds = $request->input('clientes', []);
+        $hospital->clientes()->sync($clientesIds);
 
-            ]
-        );
+        session()->flash('swal', [
+            'title' => "¡Bien hecho!",
+            'text'  => "El hospital se ha creado con éxito.",
+            'icon'  => "success"
+        ]);
+
         return redirect()->route('admin.hospitals.index');
-        //return $request->all();
     }
 
     /**
@@ -64,38 +74,47 @@ class HospitalController extends Controller
     //     return view('admin.hospitals.show');
     // }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Hospital $hospital)
     {
-        //return $hospital;
-        return view('admin.hospitals.edit', compact('hospital'));
+        $clientes = Cliente::orderBy('apellido')
+            ->orderBy('nombre')
+            ->get();
+
+        // ids ya asignados al hospital (para precargar seleccionados)
+        $selectedClientesIds = $hospital->clientes()
+            ->pluck('clientes.id')
+            ->toArray();
+
+        return view('admin.hospitals.edit', compact('hospital', 'clientes', 'selectedClientesIds'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Hospital $hospital)
     {
-        $request->validate(([
-            'name' => 'required|string|max:255',
-            'adress' => 'required|string|max:400',
+        $request->validate([
+            'name'      => 'required|string|max:255',
+            'adress'    => 'required|string|max:400',
             'is_active' => 'required|boolean',
-        ]));
 
-        $hospital->update($request->all());
-        session()->flash(
-            'swal',
-            [
-                'title' => "¡Bien hecho!",
-                'text' => "El hospital se ha actualizado con éxito.",
-                'icon' => "success"
-            ]
-        );
+            // clientes (pivot)
+            'clientes'   => 'nullable|array',
+            'clientes.*' => 'integer|exists:clientes,id',
+        ]);
+
+        // Actualiza campos del hospital (sin clientes)
+        $data = $request->only(['name', 'adress', 'is_active']);
+        $hospital->update($data);
+
+        // Actualiza relación pivot (si no mandas nada, queda vacío)
+        $clientesIds = $request->input('clientes', []);
+        $hospital->clientes()->sync($clientesIds);
+
+        session()->flash('swal', [
+            'title' => "¡Bien hecho!",
+            'text'  => "El hospital se ha actualizado con éxito.",
+            'icon'  => "success"
+        ]);
+
         return redirect()->route('admin.hospitals.index');
-        //return $request->all();
-        // return view('admin.hospitals.edit',compact('hospital'));
     }
 
     /**

@@ -1,47 +1,3 @@
-@php
-    use Carbon\Carbon;
-
-    // ---- Datos base de solicitud_oncos ----
-    $pacienteNombre = $solicitud->nombre_paciente ?? '—';
-    $fechaNac = $solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento) : null;
-
-    $edad = '—';
-    if ($fechaNac) {
-        $ahora = Carbon::now();
-        $años = $fechaNac->diffInYears($ahora);
-        $meses = $fechaNac->diffInMonths($ahora);
-        $dias = $fechaNac->diffInDays($ahora);
-
-        if ($años > 0) {
-            $edad = $años . ' años';
-        } elseif ($meses > 0) {
-            $edad = $meses . ' meses';
-        } else {
-            $edad = $dias . ' días';
-        }
-    }
-    // Sexo en solicitud_oncos es enum('M','F')
-    $sexo = match ($solicitud->sexo) {
-        'M' => 'Masculino',
-        'F' => 'Femenino',
-        default => '—',
-    };
-    $alergias = $solicitud->alergias ?? '—';
-
-    $diagnostico = $solicitud->diagnostico ?? '—';
-    $servicio = $solicitud->servicio ?? '—';
-    $expediente = $solicitud->registro_paciente ?? '—';
-    $medico = $solicitud->nombre_medico ?? '—';
-    $observaciones = $solicitud->observaciones ?? '—';
-
-    // Domicilio cliente receptor (hospital del usuario)
-    $domicilioHospital = optional(optional($solicitud->user)->hospital)->adress ?? '—';
-
-    // Contador filas de medicamentos
-    $contador = 1;
-@endphp
-
-
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -249,6 +205,75 @@
 </head>
 
 
+@php
+    use Carbon\Carbon;
+
+    // ---- Datos base de solicitud_oncos ----
+    $pacienteNombre = $solicitud->nombre_paciente ?? '—';
+    $fechaNac = $solicitud->fecha_nacimiento ? Carbon::parse($solicitud->fecha_nacimiento) : null;
+
+    $edad = '—';
+    if ($fechaNac) {
+        $ahora = Carbon::now();
+        $años = $fechaNac->diffInYears($ahora);
+        $meses = $fechaNac->diffInMonths($ahora);
+        $dias = $fechaNac->diffInDays($ahora);
+
+        if ($años > 0) {
+            $edad = $años . ' años';
+        } elseif ($meses > 0) {
+            $edad = $meses . ' meses';
+        } else {
+            $edad = $dias . ' días';
+        }
+    }
+
+    // Sexo en solicitud_oncos es enum('M','F')
+    $sexo = match ($solicitud->sexo) {
+        'M' => 'Masculino',
+        'F' => 'Femenino',
+        default => '—',
+    };
+
+    $alergias = $solicitud->alergias ?? '—';
+    $diagnostico = $solicitud->diagnostico ?? '—';
+    $servicio = $solicitud->servicio ?? '—';
+    $expediente = $solicitud->registro_paciente ?? '—';
+    $medico = $solicitud->nombre_medico ?? '—';
+    $observaciones = $solicitud->observaciones ?? '—';
+
+    // ✅ Domicilio cliente receptor (snapshot del hospital)
+    // (fallback a user->hospital si son datos viejos)
+    $domicilioHospital =
+        optional($solicitud->hospital)->adress ?? (optional(optional($solicitud->user)->hospital)->adress ?? '—');
+
+    // Contador filas de medicamentos
+    $contador = 1;
+
+    // ✅ Nombre medicamento inmutable (snapshot primero)
+    $nombreMedicamentoDoc = function ($med) {
+        $den = trim((string) ($med->denominacion_snapshot ?? ''));
+        $mar = trim((string) ($med->marca_snapshot ?? ''));
+
+        if ($den !== '') {
+            return $mar !== '' ? "{$den} ({$mar})" : $den;
+        }
+
+        // fallback a relación viva (para registros viejos)
+        $denLive = optional(optional($med->medicamentoOnco)->catalog)->denominacion;
+        if (!empty($denLive)) {
+            return $denLive;
+        }
+
+        // fallback a lo guardado
+        if (!empty($med->nombre_medicamento)) {
+            return $med->nombre_medicamento;
+        }
+
+        return '—';
+    };
+@endphp
+
 <body>
 
     <div class="contenedor border-1">
@@ -378,9 +403,8 @@
 
                 @forelse($mezcla->medicamentos as $med)
                     @php
-                        $denom =
-                            optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
-                            ($med->nombre_medicamento ?? '—');
+                        // ✅ medicamento (snapshot -> fallback)
+                        $denom = $nombreMedicamentoDoc($med);
 
                         $dosis = isset($med->dosis)
                             ? (is_numeric($med->dosis)
@@ -388,7 +412,7 @@
                                 : $med->dosis)
                             : '—';
 
-                        // usar el campo correcto del modelo Diluyente
+                        // diluyente (aún vivo; si luego haces snapshot también aquí lo cambiamos)
                         $diluyente = optional($med->diluyente)->denominacion_generica ?? '—';
                     @endphp
 
@@ -450,5 +474,6 @@
 
     </div>
 </body>
+
 
 </html>

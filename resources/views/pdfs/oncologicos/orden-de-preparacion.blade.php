@@ -246,6 +246,15 @@
                 return '—';
             }
         };
+
+        // ✅ Helpers snapshot-friendly
+        $fmtNum = function ($n, $dec = 2, $suffix = '') {
+            if (!is_numeric($n)) {
+                return '—';
+            }
+            $v = rtrim(rtrim(number_format((float) $n, $dec, '.', ''), '0'), '.');
+            return $suffix ? $v . $suffix : $v;
+        };
     @endphp
 
     <div class="contenedor border-1">
@@ -281,7 +290,14 @@
 
         <table class="mx-1">
             <tr>
-                <td><strong>No. de Lote de la mezcla:</strong></td>
+                <td style="width: 50%">
+                    <strong>No. de Lote de la mezcla:</strong>
+                    {{ $mezcla->lote ?? '—' }}
+                </td>
+                <td style="width: 50%" class="text-right">
+                    <strong>Remisión:</strong>
+                    {{ $mezcla->remision ?? '—' }}
+                </td>
             </tr>
         </table>
 
@@ -318,7 +334,8 @@
                     <td class="border-b-1">{{ $mezcla->solicitud['alergias'] ?? '—' }}</td>
                     <td style="width: 4%">Peso:</td>
                     <td class="border-b-1">
-                        {{ isset($mezcla->solicitud['peso']) ? $mezcla->solicitud['peso'] . ' Kg' : '—' }}</td>
+                        {{ isset($mezcla->solicitud['peso']) ? $mezcla->solicitud['peso'] . ' Kg' : '—' }}
+                    </td>
                 </tr>
             </table>
             <table>
@@ -327,7 +344,8 @@
                     <td class="border-b-1">{{ $hospital ?? '—' }}</td>
                     <td style="width: 10%">Dosis/Volumen:</td>
                     <td class="border-b-1">
-                        {{ isset($mezcla->volumen_dilucion) ? $mezcla->volumen_dilucion . ' ML' : '—' }}</td>
+                        {{ is_numeric($mezcla->volumen_dilucion ?? null) ? $fmtNum($mezcla->volumen_dilucion, 2, ' mL') : '—' }}
+                    </td>
                 </tr>
             </table>
         </div>
@@ -351,32 +369,44 @@
                 </tr>
             </table>
 
+            {{-- ✅ TABLA 1 (corrigiendo columnas) --}}
             <table>
                 <tr>
-                    <td class="border-1 text-center" style="width: 1%"><strong></strong></td>
-                    <td class="border-1 text-center" style="width: 5%"><strong>No. de lote</strong></td>
-                    <td class="border-1 text-center" style="width: 6%"><strong>Caducidad</strong></td>
-                    <td class="border-1 text-center" style="width: 10%"><strong>Denominación comercial</strong></td>
-                    <td class="border-1 text-center" style="width: 10%"><strong>Denominación genérica</strong></td>
-                    <td class="border-1 text-center" style="width: 7%"><strong>Presentación</strong></td>
-                    <td class="border-1 text-center" style="width: 5%"><strong>Dosis</strong></td>
-                    <td class="border-1 text-center" style="width: 5%"><strong>Volumen de orden de preparación</strong>
-                    </td>
+                    <td class="border-1 text-center" style="width: 1%"><strong>#</strong></td>
+                    <td class="border-1 text-center" style="width: 7%"><strong>No. de lote</strong></td>
+                    <td class="border-1 text-center" style="width: 8%"><strong>Caducidad</strong></td>
+
+                    {{-- ✅ snapshot-friendly --}}
+                    <td class="border-1 text-center" style="width: 22%"><strong>Medicamento</strong></td>
+
+                    <td class="border-1 text-center" style="width: 14%"><strong>Presentación</strong></td>
+                    <td class="border-1 text-center" style="width: 8%"><strong>Dosis (mg)</strong></td>
+                    <td class="border-1 text-center" style="width: 16%"><strong>Volumen orden prep</strong></td>
                 </tr>
 
                 @foreach ($medicamentos as $i => $med)
+                    @php
+                        // ✅ preferir campos ya "resueltos" del controller
+                        $nombreMed = $med->nombre_para_texto ?? ($med->denominacion ?? '—');
+
+                        $presentacion = $med->presentacion ?? '—';
+                        $dosis = $med->dosis ?? '—';
+                        $vop = $med->volumen_orden_preparacion ?? null;
+                    @endphp
+
                     <tr>
                         <td class="border-1 border-t-0 text-center"><strong>{{ $i + 1 }}</strong></td>
                         <td class="border-1 border-t-0 text-center">{{ $med->lote ?? '—' }}</td>
                         <td class="border-1 border-t-0 text-center">{{ $fmtDate($med->caducidad ?? null) }}</td>
-                        <td class="border-1 border-t-0 text-center">{{ $med->denominacion ?? '—' }}</td>
-                        <td class="border-1 border-t-0 text-center">{{ $med->presentacion ?? '—' }}</td>
-                        <td class="border-1 border-t-0 text-center">{{ $med->dosis ?? '—' }}</td>
+
+                        <td class="border-1 border-t-0 text-center">{{ $nombreMed }}</td>
+
+                        <td class="border-1 border-t-0 text-center">{{ $presentacion }}</td>
                         <td class="border-1 border-t-0 text-center">
-                            @php
-                                $vop = $med->volumen_orden_preparacion ?? null;
-                            @endphp
-                            {{ is_numeric($vop) ? rtrim(rtrim(number_format($vop, 2, '.', ''), '0'), '.') . ' mL' : '—' }}
+                            {{ is_numeric($dosis) ? $fmtNum($dosis, 2) : ($dosis ?: '—') }}
+                        </td>
+                        <td class="border-1 border-t-0 text-center">
+                            {{ is_numeric($vop) ? $fmtNum($vop, 2, ' mL') : '—' }}
                         </td>
                     </tr>
                 @endforeach
@@ -389,6 +419,7 @@
                     </td>
                 </tr>
             </table>
+
             <table>
                 <tr>
                     <td class="text-right border-x-1 border-b-1">
@@ -411,15 +442,14 @@
                 </tr>
             </table>
 
+            {{-- ✅ TABLA 2 (solución/volumen) --}}
             <table>
                 <thead>
                     <tr>
                         <td class="border-x-1 border-b-1 text-center bg-black"><strong>#</strong></td>
                         <td class="border-x-1 border-b-1 text-center bg-black"><strong>No. de lote</strong></td>
                         <td class="border-x-1 border-b-1 text-center bg-black"><strong>Caducidad</strong></td>
-
-                        <td class="border-x-1 border-b-1 text-center bg-black"><strong>Denominación genérica</strong>
-                        </td>
+                        <td class="border-x-1 border-b-1 text-center bg-black"><strong>Medicamento</strong></td>
                         <td class="border-x-1 border-b-1 text-center bg-black"><strong>Presentación</strong></td>
                         <td class="border-x-1 border-b-1 text-center bg-black"><strong>Volumen total</strong></td>
                         <td class="border-x-1 border-b-1 text-center bg-black"><strong>Volumen del diluyente</strong>
@@ -428,20 +458,20 @@
                 </thead>
                 <tbody>
                     @foreach ($medicamentos as $m)
+                        @php
+                            $nombreMed = $m->nombre_para_texto ?? ($m->denominacion ?? '—');
+                        @endphp
                         <tr>
                             <td class="text-center border-b-1 border-l-1">{{ $loop->iteration }}</td>
                             <td class="text-center border-b-1 border-r-1">{{ $m->lote ?? '—' }}</td>
                             <td class="text-center border-b-1 border-r-1">{{ $fmtDate($m->caducidad ?? null) }}</td>
-                            <td class="text-center border-b-1 border-r-1">{{ $m->denominacion ?? '—' }}</td>
+                            <td class="text-center border-b-1 border-r-1">{{ $nombreMed }}</td>
                             <td class="text-center border-b-1 border-r-1">{{ $m->presentacion ?? '—' }}</td>
                             <td class="text-center border-b-1 border-r-1">
-                                {{ is_numeric($m->volumen_total) ? rtrim(rtrim(number_format($m->volumen_total, 2, '.', ''), '0'), '.') . ' mL' : '—' }}
+                                {{ is_numeric($m->volumen_total) ? $fmtNum($m->volumen_total, 2, ' mL') : '—' }}
                             </td>
                             <td class="text-center border-b-1 border-r-1">
-                                @php
-                                    $vd = $m->volumen_diluyente ?? null;
-                                @endphp
-                                {{ is_numeric($vd) ? rtrim(rtrim(number_format($vd, 2, '.', ''), '0'), '.') . ' mL' : '—' }}
+                                {{ is_numeric($m->volumen_diluyente) ? $fmtNum($m->volumen_diluyente, 2, ' mL') : '—' }}
                             </td>
                         </tr>
                     @endforeach
@@ -478,7 +508,6 @@
                     </td>
                 </tr>
 
-                {{-- opcional: una nota cuando sea set --}}
                 @if (($equipoInfusion->tipo ?? null) === 'set')
                     <tr>
                         <td colspan="8" class="border-x-1 border-b-1 text-center" style="font-size: 10px;">
@@ -487,6 +516,7 @@
                     </tr>
                 @endif
             </table>
+
             <p><strong>Cálculos y forma de preparación:</strong></p>
 
             @if (empty($ocultarExtraer) || !$ocultarExtraer)
@@ -517,5 +547,6 @@
         </table>
     </div>
 </body>
+
 
 </html>

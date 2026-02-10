@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('solicitud_oncos', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
+            $table->foreignId('hospital_id')->nullable()->constrained('hospitals')->nullOnDelete();
             $table->string('servicio');
             $table->string('nombre_paciente');
             $table->enum('sexo', ['M', 'F'])->nullable();

@@ -219,6 +219,30 @@
         $safe = function ($v, $fallback = '—') {
             return isset($v) && $v !== '' ? $v : $fallback;
         };
+
+        // ✅ Nombre del medicamento "inmutable" (snapshot primero, fallback después)
+        $nombreMedicamentoDoc = function ($med) {
+            // 1) snapshot (nuevo)
+            $den = trim((string) ($med->denominacion_snapshot ?? ''));
+            $mar = trim((string) ($med->marca_snapshot ?? ''));
+
+            if ($den !== '') {
+                return $mar !== '' ? "{$den} ({$mar})" : $den;
+            }
+
+            // 2) fallback a relación viva (para datos viejos)
+            $denLive = optional(optional($med->medicamentoOnco)->catalog)->denominacion;
+            if (!empty($denLive)) {
+                return $denLive;
+            }
+
+            // 3) fallback a lo que se guardó en nombre_medicamento
+            if (!empty($med->nombre_medicamento)) {
+                return $med->nombre_medicamento;
+            }
+
+            return '—';
+        };
     @endphp
 
     <div class="contenedor border-1">
@@ -279,7 +303,7 @@
 
         <table>
             <tr>
-                <td class="border-b-1 px-1">Observaciones: {{ $safe($solicitud->observaciones, '&nbsp;') }}</td>
+                <td class="border-b-1 px-1">Observaciones: {!! $safe($solicitud->observaciones, '&nbsp;') !!}</td>
             </tr>
         </table>
 
@@ -306,7 +330,7 @@
                     @foreach ($mezcla->medicamentos as $med)
                         <tr>
                             <td class="border-t-1 border-r-1 px-1">
-                                {{ $med->medicamentoOnco->catalog->denominacion ?? '—' }}
+                                {{ $nombreMedicamentoDoc($med) }}
                             </td>
                             <td class="border-t-1 border-r-1 px-1">
                                 {{ isset($med->dosis) ? rtrim(rtrim(number_format($med->dosis, 2, '.', ''), '0'), '.') : '—' }}
@@ -335,6 +359,7 @@
         @endforeach
     </div>
 </body>
+
 
 
 </html>

@@ -2,11 +2,13 @@
 
 namespace App\Models\Oncologicos;
 
+use App\Models\Hospital;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class SolicitudOnco extends Model {
+class SolicitudOnco extends Model
+{
 
     protected $table = 'solicitud_oncos'; // si es necesario
 
@@ -16,6 +18,7 @@ class SolicitudOnco extends Model {
 
     protected $fillable = [
         'user_id',
+        'hospital_id', // 👈 FALTABA
         'servicio',
         'nombre_paciente',
         'sexo',
@@ -35,11 +38,18 @@ class SolicitudOnco extends Model {
         'remision',
     ];
 
-    public function mezclas() {
+    public function mezclas()
+    {
         return $this->hasMany(Mezcla::class, 'solicitud_id');
     }
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class);
+    }
+
+    public function hospital()
+    {
+        return $this->belongsTo(Hospital::class);
     }
 }

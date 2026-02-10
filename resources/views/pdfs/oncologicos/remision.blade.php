@@ -1,72 +1,3 @@
-@php
-    // ===== Helpers de formato (sin "use Carbon\Carbon") =====
-    $fmtDate = function ($v) {
-        if (!$v) {
-            return '—';
-        }
-        try {
-            return \Carbon\Carbon::parse($v)->format('d/m/Y');
-        } catch (\Exception $e) {
-            return '—';
-        }
-    };
-
-    $fmtDateTime = function ($v) {
-        if (!$v) {
-            return '—';
-        }
-        try {
-            return \Carbon\Carbon::parse($v)->format('d/m/Y H:i');
-        } catch (\Exception $e) {
-            return '—';
-        }
-    };
-
-    $money = function ($v) {
-        return '$' . number_format((float) $v, 2, '.', ',');
-    };
-
-    // ===== Datos del paciente / solicitud =====
-    $pacienteNombre = $solicitud->nombre_paciente ?? '—';
-    $fechaNac = $solicitud->fecha_nacimiento ? $fmtDate($solicitud->fecha_nacimiento) : '—';
-    $observaciones = $solicitud->observaciones ?? '—';
-
-    $edad =
-        $solicitud->edad ??
-        ($solicitud->fecha_nacimiento ? \Carbon\Carbon::parse($solicitud->fecha_nacimiento)->age : '—');
-
-    $sexo = $solicitud->sexo === 'M' ? 'Masculino' : ($solicitud->sexo === 'F' ? 'Femenino' : '—');
-    $alergias = $solicitud->alergias ?? '—';
-    $diagnostico = $solicitud->diagnostico ?? '—';
-    $servicio = $solicitud->servicio ?? '—';
-    $expediente = $solicitud->registro_paciente ?? '—';
-    $medico = $solicitud->nombre_medico ?? '—';
-
-    // ===== Emisor 1: Prodifem (siempre) =====
-    $prodifemLogoFile = public_path('img/logo-cbta.jpg');
-    $prodifemLogoSrc = file_exists($prodifemLogoFile) ? 'file://' . $prodifemLogoFile : null;
-
-    // ===== Emisor 2: Distribuidor (opcional) =====
-    // (Por tus errores previos, tu tabla parece usar nombre/direccion, no name/address)
-    $distNombre = $distributor->nombre ?? ($distributor->name ?? null);
-    $distDireccion = $distributor->direccion ?? ($distributor->address ?? null);
-
-    $distLogoSrc = null;
-    if (!empty($distributor?->logo_path)) {
-        $distLogoFile = public_path('storage/' . $distributor->logo_path);
-        if (file_exists($distLogoFile)) {
-            $distLogoSrc = 'file://' . $distLogoFile;
-        }
-    }
-    // fallback si no hay logo del distribuidor
-    if (!$distLogoSrc) {
-        $distLogoSrc = $prodifemLogoSrc;
-    }
-
-    // Contador para la tabla
-    $contador = 1;
-@endphp
-
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -188,6 +119,73 @@
 
 <body>
 
+    @php
+        // ===== Helpers de formato (sin "use Carbon\Carbon") =====
+        $fmtDate = function ($v) {
+            if (!$v) {
+                return '—';
+            }
+            try {
+                return \Carbon\Carbon::parse($v)->format('d/m/Y');
+            } catch (\Exception $e) {
+                return '—';
+            }
+        };
+
+        $fmtDateTime = function ($v) {
+            if (!$v) {
+                return '—';
+            }
+            try {
+                return \Carbon\Carbon::parse($v)->format('d/m/Y H:i');
+            } catch (\Exception $e) {
+                return '—';
+            }
+        };
+
+        $money = function ($v) {
+            return '$' . number_format((float) $v, 2, '.', ',');
+        };
+
+        // ===== Datos del paciente / solicitud =====
+        $pacienteNombre = $solicitud->nombre_paciente ?? '—';
+        $fechaNac = $solicitud->fecha_nacimiento ? $fmtDate($solicitud->fecha_nacimiento) : '—';
+        $observaciones = $solicitud->observaciones ?? '—';
+
+        $edad =
+            $solicitud->edad ??
+            ($solicitud->fecha_nacimiento ? \Carbon\Carbon::parse($solicitud->fecha_nacimiento)->age : '—');
+
+        $sexo = $solicitud->sexo === 'M' ? 'Masculino' : ($solicitud->sexo === 'F' ? 'Femenino' : '—');
+        $alergias = $solicitud->alergias ?? '—';
+        $diagnostico = $solicitud->diagnostico ?? '—';
+        $servicio = $solicitud->servicio ?? '—';
+        $expediente = $solicitud->registro_paciente ?? '—';
+        $medico = $solicitud->nombre_medico ?? '—';
+
+        // ===== Emisor 1: Prodifem (siempre) =====
+        $prodifemLogoFile = public_path('img/logo-cbta.jpg');
+        $prodifemLogoSrc = file_exists($prodifemLogoFile) ? 'file://' . $prodifemLogoFile : null;
+
+        // ===== Emisor 2: Distribuidor (opcional) =====
+        $distNombre = $distributor->nombre ?? ($distributor->name ?? null);
+        $distDireccion = $distributor->direccion ?? ($distributor->address ?? null);
+
+        $distLogoSrc = null;
+        if (!empty($distributor?->logo_path)) {
+            $distLogoFile = public_path('storage/' . $distributor->logo_path);
+            if (file_exists($distLogoFile)) {
+                $distLogoSrc = 'file://' . $distLogoFile;
+            }
+        }
+        if (!$distLogoSrc) {
+            $distLogoSrc = $prodifemLogoSrc;
+        }
+
+        // Contador para la tabla
+        $contador = 1;
+    @endphp
+
     {{-- =========================================================
         HOJA 1: PRODIFEM
     ========================================================== --}}
@@ -292,13 +290,17 @@
                 @php
                     $loteMezcla = $mezcla->lote ?? '—';
                     $volumenMezcla = isset($mezcla->volumen_dilucion) ? $mezcla->volumen_dilucion . ' ml' : '—';
+                    $remisionMezcla = $mezcla->remision ?? '—';
                 @endphp
 
                 @forelse ($mezcla->medicamentos as $med)
                     @php
+                        // ✅ SNAPSHOT primero, luego fallback
                         $denom =
-                            optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
-                            ($med->nombre_medicamento ?? '—');
+                            $med->denominacion_snapshot ??
+                            null ??
+                            (optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
+                                ($med->nombre_medicamento ?? '—'));
 
                         $dosis = $med->dosis ?? 0;
                         $dosisFmt = is_numeric($dosis)
@@ -314,12 +316,19 @@
 
                         $presentaciones = $med->presentacionesUsadas ?? collect();
 
+                        // ✅ Presentaciones: preferir presentacion_snapshot
                         $presentacionesTexto = $presentaciones
                             ->map(function ($pres) {
                                 $batch = $pres->batch;
-                                $presBase = $pres->presentation;
 
-                                $nombrePres = trim($presBase->presentacion ?? '');
+                                // ✅ 1) Snapshot (nuevo)
+                                $nombrePres = trim($pres->presentacion_snapshot ?? '');
+
+                                // ✅ 2) Fallback a relación viva si no hay snapshot
+                                if ($nombrePres === '') {
+                                    $presBase = $pres->presentation;
+                                    $nombrePres = trim($presBase->presentacion ?? '');
+                                }
 
                                 $linea1Partes = [];
                                 if ($pres->unidades_usadas) {
@@ -413,7 +422,6 @@
                     </tr>
                 @endif
             @endforeach
-
         </table>
 
         <table>
@@ -474,10 +482,6 @@
                 </table>
             </div>
 
-            {{-- ====== MISMO CONTENIDO QUE HOJA 1 (solo cambia encabezado) ====== --}}
-            {{-- Para evitar duplicar, aquí lo dejamos igual tal cual copiando la misma sección --}}
-            {{-- (Es exactamente la misma tabla de paciente y mezclas) --}}
-
             <table>
                 <tr style="background-color: #1F4E78; color: white; font-weight: bold;">
                     <td style="text-align: center;">ENTREGA DE LAS MEZCLAS ONCOLÓGICAS PREPARADAS EN CMP</td>
@@ -490,9 +494,6 @@
                         Fecha de envío:
                         <strong>{{ $fmtDateTime($fechaEmision) }}</strong>
                     </td>
-                    {{-- <td class="px-1 text-right">No. Remisión: {{  $remisionMezcla = $mezcla->remision ?? '—'; }}</td> --}}
-
-                    {{-- <td class="px-1 text-right">{{ $distNombre ?: '—' }}</td> --}}
                 </tr>
                 <tr>
                     <td></td>
@@ -545,8 +546,6 @@
                 </tr>
             </table>
 
-            {{-- Repite la misma tabla de mezclas --}}
-            {{-- Copiamos exactamente la tabla de Hoja 1: --}}
             <table>
                 <tr>
                     <td class="border-1 border-l-0 px-1 text-center bg-cbta font-bold">No</td>
@@ -570,8 +569,10 @@
                     @forelse ($mezcla->medicamentos as $med)
                         @php
                             $denom =
-                                optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
-                                ($med->nombre_medicamento ?? '—');
+                                $med->denominacion_snapshot ??
+                                null ??
+                                (optional(optional($med->medicamentoOnco)->catalog)->denominacion ??
+                                    ($med->nombre_medicamento ?? '—'));
 
                             $dosis = $med->dosis ?? 0;
                             $dosisFmt = is_numeric($dosis)
@@ -590,9 +591,12 @@
                             $presentacionesTexto = $presentaciones
                                 ->map(function ($pres) {
                                     $batch = $pres->batch;
-                                    $presBase = $pres->presentation;
 
-                                    $nombrePres = trim($presBase->presentacion ?? '');
+                                    $nombrePres = trim($pres->presentacion_snapshot ?? '');
+                                    if ($nombrePres === '') {
+                                        $presBase = $pres->presentation;
+                                        $nombrePres = trim($presBase->presentacion ?? '');
+                                    }
 
                                     $linea1Partes = [];
                                     if ($pres->unidades_usadas) {
@@ -601,6 +605,7 @@
                                     if ($nombrePres) {
                                         $linea1Partes[] = $nombrePres;
                                     }
+
                                     $linea1 = '• ' . implode(' - ', $linea1Partes);
 
                                     $lote = $pres->lote_usado ?? $batch?->lote;
@@ -617,6 +622,7 @@
                                             $linea2Partes[] = 'Cad. ' . $cad;
                                         }
                                     }
+
                                     $linea2 = count($linea2Partes) ? implode(' · ', $linea2Partes) : '';
 
                                     return $linea2 ? $linea1 . '<br>&nbsp;&nbsp;' . $linea2 : $linea1;
@@ -662,8 +668,8 @@
                             </td>
                         </tr>
                     @endforelse
-                    {{-- ✅ Renglón extra: INFUSOR (si aplica en esta mezcla) --}}
-                    @if ($mezcla->infusor_aplica && ($mezcla->infusor_subtotal ?? 0) > 0)
+
+                    @if (($mezcla->infusor_aplica ?? false) && (float) ($mezcla->infusor_subtotal ?? 0) > 0)
                         <tr>
                             <td class="border-1 border-l-0 px-1 text-center">{{ $contador++ }}</td>
                             <td class="border-1 px-1 text-center">
@@ -673,7 +679,6 @@
                             <td class="border-1 px-1 text-center">—</td>
                             <td class="border-1 px-1 text-center">{{ $volumenMezcla }}</td>
                             <td class="border-1 px-1 text-center">{{ $loteMezcla }}</td>
-                            <td class="border-1 px-1 text-center">{{ $remisionMezcla }}</td>
                             <td class="border-1 px-1 text-center">Pieza</td>
                             <td class="border-1 px-1 text-center">1</td>
                             <td class="border-1 px-1 text-center">{{ $money($mezcla->infusor_precio ?? 0) }}</td>
@@ -715,5 +720,6 @@
     @endif
 
 </body>
+
 
 </html>

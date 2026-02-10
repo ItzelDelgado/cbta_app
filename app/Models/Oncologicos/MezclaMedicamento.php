@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class MezclaMedicamento extends Model
 {
 
-use HasFactory;
+    use HasFactory;
 
     protected $table = 'mezcla_medicamentos';
 
@@ -16,12 +16,19 @@ use HasFactory;
         'mezcla_id',
         'medicamento_id',
         'nombre_medicamento',
+
+        // ✅ snapshots
+        'denominacion_snapshot',
+        'marca_snapshot',
+        'requires_infusor_snapshot',
+        'conc_min_snapshot',
+        'conc_max_snapshot',
+
         'dosis',
         'dosis_ml',
-        'precio_unitario',
         'diluyente_id',
         'via_administracion_id',
-        // NUEVOS
+
         'charge_by',
         'precio_mg_snapshot',
     ];

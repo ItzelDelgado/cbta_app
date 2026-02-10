@@ -10,16 +10,18 @@ class Hospital extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 
+        'name',
         'adress',
         'is_active',
     ];
 
     //Relacion uno a muchos, por que un hospital puede ser asignado a varios usuarios
-    public function users(){
+    public function users()
+    {
         return $this->hasMany(User::class);
     }
-
-    
-
+    public function clientes()
+    {
+        return $this->belongsToMany(\App\Models\Cliente::class, 'cliente_hospital');
+    }
 }

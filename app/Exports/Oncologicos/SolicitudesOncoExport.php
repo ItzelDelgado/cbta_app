@@ -15,7 +15,7 @@ class SolicitudesOncoExport implements FromArray, WithHeadings, ShouldAutoSize
         $rows = [];
 
         $solicitudes = SolicitudOnco::with([
-            'user.hospital',
+            'hospital',
             'user.medicineList',
             'mezclas.medicamentos.medicamentoOnco.catalog',
             'mezclas.medicamentos.diluyente',
@@ -24,7 +24,7 @@ class SolicitudesOncoExport implements FromArray, WithHeadings, ShouldAutoSize
 
         foreach ($solicitudes as $solicitud) {
 
-            $hospital = optional($solicitud->user->hospital)->name;
+            $hospital = optional($solicitud->hospital)->name; // ✅ snapshot correcto
             $usuario  = trim((optional($solicitud->user)->name ?? '') . ' ' . (optional($solicitud->user)->lastname ?? ''));
             $lista    = optional($solicitud->user->medicineList);
             $listaCharge = $lista->charge_by ?? 'frasco';

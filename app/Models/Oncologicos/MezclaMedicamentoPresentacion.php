@@ -17,15 +17,26 @@ class MezclaMedicamentoPresentacion extends Model
         'unidades_usadas',
         'lote_usado',
         'caducidad_usada',
+
+        // ✅ NUEVOS snapshots
+        'presentacion_snapshot',
+        'cantidad_medicamento_snapshot',
+        'volumen_diluyente_snapshot',
+        'legend_snapshot',
+
         'precio_frasco_snapshot',
         'subtotal',
     ];
 
     protected $casts = [
-        'unidades_usadas'       => 'integer',
-        'caducidad_usada'       => 'date',
+        'unidades_usadas'        => 'integer',
+        'caducidad_usada'        => 'date',
         'precio_frasco_snapshot' => 'decimal:4',
-        'subtotal'              => 'decimal:4',
+        'subtotal'               => 'decimal:4',
+
+        // (opcionales)
+        'cantidad_medicamento_snapshot' => 'decimal:4',
+        'volumen_diluyente_snapshot'    => 'decimal:4',
     ];
 
     public function mezclaMedicamento()
@@ -44,10 +55,10 @@ class MezclaMedicamentoPresentacion extends Model
         return $this->hasOneThrough(
             MedicinePresentation::class,
             MedicineBatch::class,
-            'id',                        // local key on MedicineBatch
-            'id',                        // local key on MedicinePresentation
-            'medicine_batch_id',         // foreign key on this model
-            'medicine_presentation_id'   // foreign key on MedicineBatch
+            'id',
+            'id',
+            'medicine_batch_id',
+            'medicine_presentation_id'
         );
     }
 }

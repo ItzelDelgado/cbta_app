@@ -22,7 +22,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-white shadow rounded-lg p-6">
         <div>
             <p class="text-gray-700"><span class="font-semibold text-gray-900">Hospital:</span>
-                {{ $solicitud->user->hospital->name ?? 'N/A' }}</p>
+                {{ $solicitud->hospital->name ?? 'N/A' }}</p>
             <p class="text-gray-700"><span class="font-semibold text-gray-900">Paciente:</span>
                 {{ $solicitud->nombre_paciente }}</p>
         </div>
@@ -31,8 +31,11 @@
                 <span class="font-semibold text-gray-900">Fecha de Solicitud:</span>
                 {{ optional($solicitud->created_at)->timezone('America/Mexico_City')->format('Y-m-d H:i') ?? '—' }}
             </p>
-            <p class="text-gray-700"><span class="font-semibold text-gray-900">Fecha de Entrega:</span>
-                {{ \Carbon\Carbon::parse($solicitud->fecha_solicitud . ' ' . $solicitud->horario_entrega)->format('Y-m-d H:i') }}
+            <p class="text-gray-700">
+                <span class="font-semibold text-gray-900">Fecha de Entrega:</span>
+                {{ $solicitud->fecha_entrega
+                    ? \Carbon\Carbon::parse($solicitud->fecha_entrega)->timezone('America/Mexico_City')->format('Y-m-d H:i')
+                    : '—' }}
             </p>
         </div>
         <div>
@@ -80,7 +83,7 @@
                         ]),
                     ])>
                         <td class="px-6 py-4">{{ $mezcla->id }}</td>
-                        <td class="px-6 py-4">{{ $solicitud->user->hospital->name ?? 'N/A' }}</td>
+                        <td class="px-6 py-4">{{ $solicitud->hospital->name ?? 'N/A' }}</td>
                         <td class="px-6 py-4">{{ $solicitud->nombre_paciente }}</td>
                         <td class="px-6 py-4">
                             {{ optional($solicitud->created_at)->timezone('America/Mexico_City')->format('Y-m-d H:i') ?? '—' }}

@@ -157,12 +157,14 @@
 </head>
 
 @php
+    use Carbon\Carbon;
+
     $fmtDate = function ($v) {
         if (!$v) {
             return '—';
         }
         try {
-            return \Carbon\Carbon::parse($v)->format('d/m/Y');
+            return Carbon::parse($v)->format('d/m/Y');
         } catch (\Exception $e) {
             return '—';
         }
@@ -173,18 +175,34 @@
             return '—';
         }
         try {
-            return \Carbon\Carbon::parse($v)->format('d/m/Y H:i');
+            return Carbon::parse($v)->format('d/m/Y H:i');
         } catch (\Exception $e) {
             return '—';
         }
     };
 
+    $fmtNum = function ($n, $dec = 2, $suffix = '') {
+        if (!is_numeric($n)) {
+            return '—';
+        }
+        $v = rtrim(rtrim(number_format((float) $n, $dec, '.', ''), '0'), '.');
+        return $suffix ? $v . $suffix : $v;
+    };
+
+    $fmtMg = function ($n) use ($fmtNum) {
+        if (!is_numeric($n)) {
+            return '—';
+        }
+        return $fmtNum($n, 2, ' mg');
+    };
+
     // Edad
     $edadTexto = '—';
     if (!empty($solicitud->fecha_nacimiento)) {
-        $fnac = \Carbon\Carbon::parse($solicitud->fecha_nacimiento);
-        $hoy = \Carbon\Carbon::now();
+        $fnac = Carbon::parse($solicitud->fecha_nacimiento);
+        $hoy = Carbon::now();
         $diff = $fnac->diff($hoy);
+
         if ($diff->y > 0) {
             $edadTexto = $diff->y . ' años';
         } elseif ($diff->m > 0) {
@@ -198,7 +216,7 @@
     $prep = $fechaPreparacion
         ? $fechaPreparacion
         : (!empty($aprobada?->fecha_hora_preparacion)
-            ? \Carbon\Carbon::parse($aprobada->fecha_hora_preparacion)
+            ? Carbon::parse($aprobada->fecha_hora_preparacion)
             : null);
 
     // Límite
@@ -210,10 +228,18 @@
     $tmax = $tempMaxEtiqueta ?? null;
     $stab = $stabilityEtiqueta ?? null;
 
-    // Observaciones (puede venir null)
+    // Observaciones
     $obs = $observaciones ?? null;
-@endphp
 
+    // Velocidad de infusión (mL/min) = volumen_dilucion / tiempo_infusion
+    $velInf = null;
+    $vol = is_numeric($mezcla->volumen_dilucion ?? null) ? (float) $mezcla->volumen_dilucion : null;
+    $min = is_numeric($mezcla->tiempo_infusion ?? null) ? (float) $mezcla->tiempo_infusion : null;
+
+    if ($vol !== null && $min !== null && $min > 0) {
+        $velInf = $vol / $min;
+    }
+@endphp
 
 <body>
     <div class="border-1">
@@ -229,15 +255,12 @@
         {{-- Datos generales --}}
         <table>
             <tr>
-                <td class="px-1">Cliente: {{ $cliente }}</td>
+                <td class="px-1">Cliente: {{ $cliente ?? '—' }}</td>
                 <td class="px-1 text-right">Lote mezcla: {{ $mezcla->lote ?? '—' }}</td>
             </tr>
             <tr>
                 <td class="px-1">Paciente: {{ $solicitud->nombre_paciente ?? '—' }}</td>
-                <td class="px-1 text-right">
-                    F. Nac:
-                    {{ !empty($solicitud->fecha_nacimiento) ? \Carbon\Carbon::parse($solicitud->fecha_nacimiento)->format('d/m/Y') : '—' }}
-                </td>
+                <td class="px-1 text-right">F. Nac: {{ $fmtDate($solicitud->fecha_nacimiento ?? null) }}</td>
             </tr>
             <tr>
                 <td class="px-1">Edad: {{ $edadTexto }}</td>
@@ -262,12 +285,12 @@
             @forelse ($medicamentos as $med)
                 <tr>
                     <td class="px-1 text-left">{{ $med->nombre ?? '—' }}</td>
-                    <td class="px-1 text-right">{{ $med->dosis ?? 0 }} mg</td>
+                    <td class="px-1 text-right">{{ $fmtMg($med->dosis ?? null) }}</td>
                 </tr>
                 <tr>
                     <td class="px-1 text-left xs" colspan="2">
                         Lote: {{ $med->lote ?? '—' }} |
-                        Cad: {{ !empty($med->cad) ? $fmtDate($med->cad) : '—' }}
+                        Cad: {{ $fmtDate($med->cad ?? null) }}
                     </td>
                 </tr>
             @empty
@@ -278,13 +301,14 @@
 
             {{-- Diluyente + lote/cad --}}
             <tr>
-                <td colspan="2" class="px-1 sep rowline"><strong>Diluyente:</strong> {{ $diluyenteTexto ?? '—' }}
+                <td colspan="2" class="px-1 sep rowline">
+                    <strong>Diluyente:</strong> {{ $diluyenteTexto ?? '—' }}
                 </td>
             </tr>
             <tr>
                 <td class="px-1 xs" colspan="2">
                     Lote: {{ $diluyenteLote ?? '—' }} |
-                    Cad: {{ !empty($diluyenteCad) ? $fmtDate($diluyenteCad) : '—' }}
+                    Cad: {{ $fmtDate($diluyenteCad ?? null) }}
                 </td>
             </tr>
         </table>
@@ -304,18 +328,17 @@
                     Úsese antes de: {{ $limite ? $limite->format('d/m/Y H:i') : '—' }}
                 </td>
                 <td class="px-1 text-right">
-                    Vel. infusión:
-                    {{ ($mezcla->tiempo_infusion ?? 0) > 0
-                        ? number_format((float) $mezcla->volumen_dilucion / (float) $mezcla->tiempo_infusion, 3, '.', '')
-                        : '—' }}
+                    Vel. infusión: {{ $velInf !== null ? $fmtNum($velInf, 3, ' mL/min') : '—' }}
                 </td>
             </tr>
             <tr>
                 <td class="px-1">
+                    {{-- Si quieres conservar “A las”, aquí la dejo solo como hora --}}
                     A las: {{ $limite ? $limite->format('H:i') : '—' }}
                 </td>
                 <td class="px-1 text-right">
-                    Administrar en: {{ $mezcla->tiempo_infusion ?? '—' }} min
+                    Administrar en:
+                    {{ is_numeric($mezcla->tiempo_infusion ?? null) ? $fmtNum($mezcla->tiempo_infusion, 0, ' min') : '—' }}
                 </td>
             </tr>
         </table>
@@ -359,7 +382,7 @@
                 </td>
             </tr>
             <tr>
-                <td class="px-1" colspan="2">Preparada por: {{ $preparadaPor }}</td>
+                <td class="px-1" colspan="2">Preparada por: {{ $preparadaPor ?? '—' }}</td>
             </tr>
         </table>
     </div>

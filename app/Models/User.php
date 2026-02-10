@@ -2,17 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
 use App\Models\Nutricionales\Solicitud;
-use App\Models\Oncologicos\MedicineList;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -24,12 +20,6 @@ class User extends Authenticatable
     use TwoFactorAuthenticatable;
     use HasRoles;
 
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'lastname',
@@ -37,14 +27,8 @@ class User extends Authenticatable
         'username',
         'is_active',
         'hospital_id',
-        'medicine_list_id', // 👈 esto es clave
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
@@ -52,24 +36,7 @@ class User extends Authenticatable
         'two_factor_secret',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    // protected $casts = [
-    //     'email_verified_at' => 'datetime',
-    // ];
 
-    /**
-     * The accessors to append to the model's array form.
-     *
-     * @var array<int, string>
-     */
-    // protected $appends = [
-    //     'profile_photo_url',
-    // ];
-    //Relacion uno a uno inversa, por que solo esta asignado a un hospital
     public function hospital()
     {
         return $this->belongsTo(Hospital::class);
@@ -81,13 +48,4 @@ class User extends Authenticatable
         return $this->hasOne(Solicitud::class);
     }
 
-    public function medicineLists()
-    {
-        return $this->hasMany(MedicineList::class);
-    }
-
-    public function medicineList()
-    {
-        return $this->belongsTo(MedicineList::class, 'medicine_list_id');
-    }
 }
