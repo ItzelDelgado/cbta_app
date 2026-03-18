@@ -146,8 +146,8 @@
     </div>
 
     <script>
-        const medicamentos = @json($medicamentos);        // SOLO genéricos permitidos
-        const infoAdicional = @json($infoAdicional);      // diluyentes + vías por medicine_onco_id
+        const medicamentos = @json($medicamentos); // SOLO genéricos permitidos
+        const infoAdicional = @json($infoAdicional); // diluyentes + vías por medicine_onco_id
         const mezclasCargadas = @json($solicitud->mezclas ?? []);
         const infusors = @json($infusors ?? []);
 
@@ -261,7 +261,8 @@
                     let esCompatible = true;
 
                     if (seleccionados.length > 0 && !valorActual) {
-                        const tieneDiluyenteComun = info.diluyentes.some(d => diluyentesSet.has(String(d.id)));
+                        const tieneDiluyenteComun = info.diluyentes.some(d => diluyentesSet.has(String(d
+                            .id)));
                         const tieneViaComun = info.vias.some(v => viasSet.has(String(v.id)));
                         esCompatible = tieneDiluyenteComun && tieneViaComun;
                     }
@@ -410,7 +411,10 @@
                 const fila = document.createElement('tr');
                 fila.id = `fila_m${idInternoMezcla}_f${contadorFilasGlobal}`;
 
-                const data = infoAdicional[med.medicamento_id] || { diluyentes: [], vias: [] };
+                const data = infoAdicional[med.medicamento_id] || {
+                    diluyentes: [],
+                    vias: []
+                };
 
                 const diluyenteOptions = data.diluyentes.map(d =>
                     `<option value="${d.id}" ${d.id == med.diluyente_id ? 'selected' : ''}>${d.name}</option>`
@@ -473,7 +477,10 @@
         function actualizarDiluentesYVias(selectElem, idMezcla, idFila) {
             const medicamentoId = selectElem.value;
             const fila = document.getElementById(`fila_m${idMezcla}_f${idFila}`);
-            const data = infoAdicional[medicamentoId] || { diluyentes: [], vias: [] };
+            const data = infoAdicional[medicamentoId] || {
+                diluyentes: [],
+                vias: []
+            };
 
             const selectDiluyente = fila.querySelector('[data-name="diluyente"]');
             const selectVia = fila.querySelector('[data-name="via_administracion"]');
@@ -551,7 +558,8 @@
                 let hayMedQueAdmiteInfusor = false;
 
                 mezclaDiv.querySelectorAll(`#medicamentos_mezcla_${idInterno} tr`).forEach((fila, i) => {
-                    const medSel = fila.querySelector('[data-name="medicamento"]') || fila.querySelector('.medicamento-select');
+                    const medSel = fila.querySelector('[data-name="medicamento"]') || fila
+                        .querySelector('.medicamento-select');
                     const dosisInp = fila.querySelector('[data-name="dosis"]');
                     const dilSel = fila.querySelector('[data-name="diluyente"]');
                     const viaSel = fila.querySelector('[data-name="via_administracion"]');
@@ -566,7 +574,8 @@
                         viaRef = via;
                     } else {
                         if (diluyente !== diluyenteRef || via !== viaRef) {
-                            errorMezclaInvalida = `Mezcla #${numMezcla}: todos los medicamentos deben tener el mismo diluyente y la misma vía de administración.`;
+                            errorMezclaInvalida =
+                                `Mezcla #${numMezcla}: todos los medicamentos deben tener el mismo diluyente y la misma vía de administración.`;
                         }
                     }
 
@@ -576,7 +585,8 @@
 
                     medicamentosArr.push({
                         medicamento_id: medSel.value,
-                        nombre: (medSel.options && medSel.options[medSel.selectedIndex]) ? medSel.options[medSel.selectedIndex].text : '',
+                        nombre: (medSel.options && medSel.options[medSel.selectedIndex]) ?
+                            medSel.options[medSel.selectedIndex].text : '',
                         dosis: dosisInp.value,
                         diluyente_id: diluyente,
                         via_administracion_id: via
@@ -588,11 +598,13 @@
                 }
 
                 if (set_infusion && infusor_id) {
-                    errorMezclaInvalida = `Mezcla #${numMezcla}: selecciona set de infusión o un infusor, no ambos.`;
+                    errorMezclaInvalida =
+                        `Mezcla #${numMezcla}: selecciona set de infusión o un infusor, no ambos.`;
                 }
 
                 if (infusor_id && !hayMedQueAdmiteInfusor) {
-                    errorMezclaInvalida = `Mezcla #${numMezcla}: para usar un infusor, al menos un medicamento de la mezcla debe admitirlo.`;
+                    errorMezclaInvalida =
+                        `Mezcla #${numMezcla}: para usar un infusor, al menos un medicamento de la mezcla debe admitirlo.`;
                 }
 
                 const mezclaObj = {

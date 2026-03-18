@@ -25,6 +25,7 @@
             class="bg-white rounded-lg p-6 shadow-lg">
             @csrf
 
+
             <div class="flex justify-between mb-4 gap-4">
                 <div class="w-1/3">
                     <label for="paciente_nombre">Paciente Nombre(s)</label>
@@ -98,7 +99,8 @@
                 </div>
                 <div class="w-1/5">
                     <label for="medico_nombre">Nombre del Médico*</label>
-                    <input type="text" name="medico_nombre" id="medico_nombre" value="{{ old('medico_nombre') }}"
+                    <input type="text" name="medico_nombre" id="medico_nombre"
+                        value="{{ old('medico_nombre') }}"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                         placeholder="Nombre del Médico">
                 </div>
@@ -322,8 +324,8 @@
                 onchange="actualizarDiluentesYVias(this, ${idMezcla}, ${contadorFilasGlobal}); actualizarOpcionesMedicamentos(${idMezcla})">
                 <option value="">Seleccione el medicamento</option>
                 ${medicamentos.map(m => `<option value="${m.id}" ${m.id == (med.medicamento_id ?? '') ? 'selected' : ''}>
-                        ${m.denominacion}
-                    </option>`).join('')}
+                            ${m.denominacion}
+                        </option>`).join('')}
             </select>
         </td>
         <td class="border">
@@ -552,7 +554,7 @@
                 let viaRef = null;
 
                 mezclaDiv.querySelectorAll(`#medicamentos_mezcla_${idInterno} tr`).forEach((fila,
-                index) => {
+                    index) => {
                     const medicamentoSelect = fila.querySelector('[data-name="medicamento"]');
                     const dosisInput = fila.querySelector('[data-name="dosis"]');
                     const diluyenteSelect = fila.querySelector('[data-name="diluyente"]');

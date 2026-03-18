@@ -10,7 +10,7 @@ class Cliente extends Model
 
     protected $fillable = [
         'nombre',
-        'apellido',
+        'razon_social',
     ];
 
     public function hospitals()

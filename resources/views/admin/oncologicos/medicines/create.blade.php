@@ -28,6 +28,21 @@
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200">
             </div>
 
+            {{-- Hospital --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Hospital *</label>
+                <select name="hospital_id" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200">
+                    <option value="">Seleccione un hospital...</option>
+                    @foreach ($hospitals as $h)
+                        <option value="{{ $h->id }}" @selected(old('hospital_id') == $h->id)>
+                            {{ $h->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+
             {{-- Descripción --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Descripción:</label>
@@ -77,8 +92,9 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h2 class="text-sm font-semibold text-gray-800">Distribuidor</h2>
-                        <p class="text-xs text-gray-500">Opcional. Estos datos se usarán para la segunda hoja de
-                            remisión.</p>
+                        <p class="text-xs text-gray-500">
+                            Opcional. Estos datos se usarán para la segunda hoja de remisión.
+                        </p>
                     </div>
 
                     <button type="button" id="btn-toggle-distributor"
@@ -139,10 +155,9 @@
                     <thead class="text-xs uppercase bg-gray-100">
                         <tr>
                             <th class="px-4 py-2 w-1/12 text-center">#</th>
-                            <th class="px-4 py-2 w-3/12">Medicamento (genérico)</th>
+                            <th class="px-4 py-2 w-4/12">Medicamento (genérico)</th>
                             <th class="px-4 py-2 w-3/12">Presentación</th>
-                            <th class="px-4 py-2 w-1/12 text-center">Cobro</th>
-                            <th class="px-4 py-2 w-2/12 text-center">Precio (mg o frasco)</th>
+                            <th class="px-4 py-2 w-2/12 text-center">Precio (según cobro global)</th>
                             <th class="px-4 py-2 w-2/12 text-center">Acción</th>
                         </tr>
                     </thead>
@@ -162,9 +177,10 @@
                 <table class="hidden">
                     <tbody>
                         <tr id="tpl-grupo-header">
-                            <td class="px-4 py-2 text-center font-bold bg-gray-50 border-t" colspan="6">
+                            <td class="px-4 py-2 text-center font-bold bg-gray-50 border-t" colspan="5">
                                 <div class="flex items-center gap-3">
                                     <span class="text-xs uppercase text-gray-500 mr-2">Medicamento genérico:</span>
+
                                     <select class="select-generico border-gray-300 rounded text-sm"
                                         data-role="generico">
                                         <option value="">Seleccione un medicamento...</option>
@@ -209,20 +225,10 @@
                                 <input type="hidden" data-role="input-catalog-id">
                             </td>
 
-                            {{-- ✅ Cobro solo visual (NO editable) --}}
-                            <td class="px-4 py-2 text-center align-top">
-                                <select class="border-gray-300 rounded text-sm" data-role="charge-by" disabled>
-                                    <option value="mg">mg</option>
-                                    <option value="frasco">frasco</option>
-                                </select>
-                                {{-- ✅ este hidden es el que se envía --}}
-                                <input type="hidden" data-role="charge-by-hidden">
-                            </td>
-
                             <td class="px-4 py-2 text-center align-top">
                                 <input type="number" step="0.0001" min="0"
-                                    class="w-full border-gray-300 rounded text-sm text-right" placeholder="Precio"
-                                    data-role="precio">
+                                    class="w-full border border-gray-300 rounded text-sm text-right"
+                                    placeholder="Precio" data-role="precio">
                             </td>
 
                             <td class="px-4 py-2 text-center align-top">
@@ -237,18 +243,22 @@
                 </table>
 
                 @php
-                    $presentacionesPorCatalogo = $catalogos->mapWithKeys(
-                        fn($c) => [
-                            $c->id => $c->presentations
-                                ->map(
-                                    fn($p) => [
+                    $presentacionesPorCatalogo = $catalogos->mapWithKeys(function ($c) {
+                        return [
+                            (string) $c->id => $c->presentations
+                                ->map(function ($p) {
+                                    $marca = trim((string) ($p->marca ?? ''));
+                                    $pres = trim((string) ($p->presentacion ?? ''));
+                                    $text = $marca !== '' ? "{$marca} - {$pres}" : $pres;
+
+                                    return [
                                         'id' => $p->id,
-                                        'text' => $p->presentacion,
-                                    ],
-                                )
+                                        'text' => $text,
+                                    ];
+                                })
                                 ->values(),
-                        ],
-                    );
+                        ];
+                    });
                 @endphp
 
                 <script>
@@ -270,6 +280,72 @@
         <script>
             document.addEventListener('DOMContentLoaded', function() {
 
+                // ======================
+                // Distribuidor (UI)
+                // ======================
+                const btnToggleDist = document.getElementById('btn-toggle-distributor');
+                const distForm = document.getElementById('distributor-form');
+                const btnClearDist = document.getElementById('btn-clear-distributor');
+
+                const distName = document.getElementById('distributor_name');
+                const distAddress = document.getElementById('distributor_address');
+                const distLogo = document.getElementById('distributor_logo');
+
+                const logoWrap = document.getElementById('distributor-logo-preview-wrap');
+                const logoImg = document.getElementById('distributor-logo-preview');
+
+                function showDistForm() {
+                    distForm?.classList.remove('hidden');
+                    if (btnToggleDist) btnToggleDist.textContent = 'Ocultar distribuidor';
+                }
+
+                function hideDistForm() {
+                    distForm?.classList.add('hidden');
+                    if (btnToggleDist) btnToggleDist.textContent = '+ Agregar distribuidor';
+                }
+
+                function clearDistForm() {
+                    if (distName) distName.value = '';
+                    if (distAddress) distAddress.value = '';
+                    if (distLogo) distLogo.value = '';
+                    if (logoWrap) logoWrap.classList.add('hidden');
+                    if (logoImg) logoImg.src = '';
+                    hideDistForm();
+                }
+
+                if (btnToggleDist && distForm) {
+                    btnToggleDist.addEventListener('click', () => {
+                        const isHidden = distForm.classList.contains('hidden');
+                        if (isHidden) showDistForm();
+                        else hideDistForm();
+                    });
+                }
+
+                btnClearDist?.addEventListener('click', clearDistForm);
+
+                distLogo?.addEventListener('change', function() {
+                    const file = this.files && this.files[0];
+                    if (!file) {
+                        logoWrap?.classList.add('hidden');
+                        if (logoImg) logoImg.src = '';
+                        return;
+                    }
+                    const url = URL.createObjectURL(file);
+                    if (logoImg) logoImg.src = url;
+                    logoWrap?.classList.remove('hidden');
+                });
+
+                // Si viene old() de distribuidor, lo mostramos
+                const hasOldDist =
+                    (distName && distName.value.trim() !== '') ||
+                    (distAddress && distAddress.value.trim() !== '') ||
+                    (distLogo && distLogo.value);
+
+                if (hasOldDist) showDistForm();
+
+                // ======================
+                // Tabla dinámica
+                // ======================
                 const tbody = document.getElementById('tbody-medicamentos');
                 const tplGrupoHeader = document.getElementById('tpl-grupo-header');
                 const tplPresentacionRow = document.getElementById('tpl-presentacion-row');
@@ -284,115 +360,27 @@
                 const PRESENT = window.PRESENTACIONES_POR_CATALOGO || {};
                 const OLD_MEDS = window.OLD_MEDICAMENTOS || {};
 
-                function getGlobalChargeBy() {
-                    return (chargeByHidden && chargeByHidden.value) ? chargeByHidden.value : 'mg';
-                }
-
-                // ======================
-                // 1) SWITCH GLOBAL (manda a hidden y a todas las filas)
-                // ======================
-                function syncChargeByLabel() {
+                // ===== Switch global
+                function syncChargeGlobalLabel() {
                     if (!chargeByHidden || !chargeSwitch || !chargeLabel) return;
-
                     const value = chargeSwitch.checked ? 'frasco' : 'mg';
                     chargeByHidden.value = value;
                     chargeLabel.textContent = value;
-
-                    tbody.querySelectorAll('tr.fila-presentacion').forEach(row => {
-                        const sel = row.querySelector('[data-role="charge-by"]');
-                        const hid = row.querySelector('[data-role="charge-by-hidden"]');
-                        if (sel) sel.value = value;
-                        if (hid) hid.value = value;
-                    });
                 }
 
                 if (chargeSwitch && chargeByHidden && chargeLabel) {
-                    chargeSwitch.addEventListener('change', () => {
-                        syncChargeByLabel();
-                    });
-                    syncChargeByLabel();
+                    chargeSwitch.addEventListener('change', syncChargeGlobalLabel);
+                    syncChargeGlobalLabel();
                 }
 
-                // ======================
-                // 2) GENÉRICOS: ocultar opciones ya usadas
-                // ======================
-                function getSelectedCatalogIds(exceptSelect = null) {
-                    const ids = [];
-                    tbody.querySelectorAll('select[data-role="generico"]').forEach(sel => {
-                        if (exceptSelect && sel === exceptSelect) return;
-                        if (sel.value) ids.push(String(sel.value));
-                    });
-                    return ids;
-                }
-
-                function refreshGenericosOptions() {
-                    const allSelected = getSelectedCatalogIds(null);
-
-                    tbody.querySelectorAll('select[data-role="generico"]').forEach(sel => {
-                        const current = sel.value ? String(sel.value) : '';
-                        const usedByOthers = allSelected.filter(v => v !== current);
-
-                        // Recorremos options y ocultamos las usadas
-                        Array.from(sel.options).forEach(opt => {
-                            const val = String(opt.value || '');
-                            if (!val) {
-                                opt.hidden = false; // opción "Seleccione..."
-                                return;
-                            }
-
-                            // si este option está usado en otro grupo y no es el actual => ocultar
-                            opt.hidden = usedByOthers.includes(val);
-                        });
-                    });
-                }
-
-                // ======================
-                // 3) PRESENTACIONES: ocultar opciones ya usadas dentro del MISMO grupo
-                // ======================
-                function getUsedPresentationIds(groupId, exceptSelect = null) {
-                    const ids = [];
-                    tbody.querySelectorAll(`tr.fila-presentacion[data-group="${groupId}"] [data-role="presentacion"]`)
-                        .forEach(sel => {
-                            if (exceptSelect && sel === exceptSelect) return;
-                            if (sel.value) ids.push(String(sel.value));
-                        });
-                    return ids;
-                }
-
-                function cargarPresentacionesEnSelect(selectEl, catalogId, groupId) {
-                    const currentValue = selectEl.value ? String(selectEl.value) : '';
-                    const used = getUsedPresentationIds(groupId, selectEl); // usadas por otras filas del grupo
-
-                    // reconstruir options
-                    selectEl.innerHTML = '<option value="">Seleccione presentación...</option>';
-
-                    if (!catalogId) {
-                        selectEl.disabled = true;
-                        return;
-                    }
-
-                    const lista = PRESENT[catalogId] || [];
-                    lista.forEach(p => {
-                        const val = String(p.id);
-                        // si ya está usada y no es la actual => NO LA AGREGAMOS (no aparece)
-                        if (used.includes(val) && val !== currentValue) return;
-
-                        const opt = document.createElement('option');
-                        opt.value = p.id;
-                        opt.textContent = p.text;
-                        if (val === currentValue) opt.selected = true;
-                        selectEl.appendChild(opt);
-                    });
-
-                    selectEl.disabled = false;
-                }
-
-                function refreshPresentacionesGroup(groupId, catalogId) {
-                    tbody.querySelectorAll(`tr.fila-presentacion[data-group="${groupId}"] [data-role="presentacion"]`)
-                        .forEach(sel => {
-                            cargarPresentacionesEnSelect(sel, catalogId, groupId);
-                        });
-                }
+                // ===== Catálogo master de genéricos
+                const MASTER_GENERIC = (() => {
+                    const tmp = tplGrupoHeader.querySelector('[data-role="generico"]');
+                    return Array.from(tmp.options).map(o => ({
+                        value: o.value,
+                        text: o.text
+                    }));
+                })();
 
                 function renumerarFilas() {
                     let n = 1;
@@ -402,107 +390,144 @@
                     });
                 }
 
-                // ======================
-                // 4) Crear fila
-                // ======================
-                function addPresentacionRow(groupId, selectGenerico) {
-                    const row = tplPresentacionRow.cloneNode(true);
-                    row.id = '';
-                    row.dataset.group = groupId;
+                // --- Genéricos usados (en otros grupos)
+                function getSelectedCatalogIds(exceptGroupId = null) {
+                    const used = [];
+                    tbody.querySelectorAll('tr[data-group]').forEach(headerRow => {
+                        if (headerRow.classList.contains('fila-presentacion')) return;
 
-                    const labelGenerico = row.querySelector('[data-role="generico-label"]');
-                    const selectPresent = row.querySelector('[data-role="presentacion"]');
-                    const inputCatalog = row.querySelector('[data-role="input-catalog-id"]');
+                        const groupId = headerRow.dataset.group;
+                        if (exceptGroupId && String(groupId) === String(exceptGroupId)) return;
 
-                    const selectChargeBy = row.querySelector('[data-role="charge-by"]');
-                    const inputChargeHidden = row.querySelector('[data-role="charge-by-hidden"]');
-
-                    const inputPrecio = row.querySelector('[data-role="precio"]');
-                    const btnRemoveRow = row.querySelector('[data-role="remove-row"]');
-
-                    // insertar al final del grupo
-                    let insertAfter = tbody.querySelector(`tr.fila-presentacion[data-group="${groupId}"]:last-of-type`);
-                    if (!insertAfter) insertAfter = tbody.querySelector(`tr[data-group="${groupId}"]`);
-                    if (insertAfter) insertAfter.insertAdjacentElement('afterend', row);
-                    else tbody.appendChild(row);
-
-                    const catalogId = selectGenerico.value;
-
-                    labelGenerico.textContent = selectGenerico.options[selectGenerico.selectedIndex]?.text || '';
-                    inputCatalog.name = `medicamentos[${globalIndex}][catalog_id]`;
-                    inputCatalog.value = catalogId;
-
-                    selectPresent.name = `medicamentos[${globalIndex}][presentation_id]`;
-
-                    // select cobro solo visual
-                    selectChargeBy.name = '';
-                    const gCharge = getGlobalChargeBy();
-                    selectChargeBy.value = gCharge;
-
-                    inputChargeHidden.name = `medicamentos[${globalIndex}][charge_by]`;
-                    inputChargeHidden.value = gCharge;
-
-                    inputPrecio.name = `medicamentos[${globalIndex}][precio]`;
-                    globalIndex++;
-
-                    // cargar presentaciones ocultando usadas
-                    cargarPresentacionesEnSelect(selectPresent, catalogId, groupId);
-
-                    selectPresent.addEventListener('change', function() {
-                        // al cambiar una presentación, refrescar todo el grupo para que no aparezcan repetidas
-                        refreshPresentacionesGroup(groupId, catalogId);
+                        const sel = headerRow.querySelector('[data-role="generico"]');
+                        if (sel && sel.value) used.push(String(sel.value));
                     });
-
-                    btnRemoveRow.addEventListener('click', function() {
-                        row.remove();
-                        renumerarFilas();
-                        // al borrar, refrescar presentaciones del grupo
-                        refreshPresentacionesGroup(groupId, catalogId);
-                    });
-
-                    renumerarFilas();
-                    return row;
+                    return used;
                 }
 
-                // ======================
-                // 5) Crear grupo
-                // ======================
-                function addGrupo() {
+                function refreshGenericSelect(selectEl, groupId, currentValue = '') {
+                    const used = getSelectedCatalogIds(groupId);
+                    const cur = String(currentValue || '');
+
+                    selectEl.innerHTML = '';
+                    MASTER_GENERIC.forEach(optData => {
+                        if (!optData.value) {
+                            const opt = document.createElement('option');
+                            opt.value = '';
+                            opt.textContent = optData.text || 'Seleccione un medicamento...';
+                            selectEl.appendChild(opt);
+                            return;
+                        }
+
+                        const val = String(optData.value);
+                        if (used.includes(val) && val !== cur) return;
+
+                        const opt = document.createElement('option');
+                        opt.value = optData.value;
+                        opt.textContent = optData.text;
+                        if (val === cur) opt.selected = true;
+                        selectEl.appendChild(opt);
+                    });
+                }
+
+                function refreshAllGenericSelects() {
+                    tbody.querySelectorAll('tr[data-group]').forEach(headerRow => {
+                        if (headerRow.classList.contains('fila-presentacion')) return;
+                        const groupId = headerRow.dataset.group;
+                        const sel = headerRow.querySelector('[data-role="generico"]');
+                        if (!sel) return;
+                        refreshGenericSelect(sel, groupId, sel.value || '');
+                    });
+                }
+
+                // --- Presentaciones usadas por catálogo (global)
+                function getSelectedPresentationIdsByCatalog(catalogId, exceptSelectEl = null) {
+                    const used = [];
+                    tbody.querySelectorAll('tr.fila-presentacion').forEach(row => {
+                        const inputCatalog = row.querySelector('[data-role="input-catalog-id"]');
+                        const selPres = row.querySelector('[data-role="presentacion"]');
+                        if (!inputCatalog || !selPres) return;
+
+                        if (String(inputCatalog.value) !== String(catalogId)) return;
+                        if (!selPres.value) return;
+                        if (exceptSelectEl && selPres === exceptSelectEl) return;
+
+                        used.push(String(selPres.value));
+                    });
+                    return used;
+                }
+
+                function cargarPresentacionesEnSelect(selectEl, catalogId, keepValue = null) {
+                    const currentValue = keepValue ? String(keepValue) : (selectEl.value ? String(selectEl.value) : '');
+                    selectEl.innerHTML = '<option value="">Seleccione presentación...</option>';
+
+                    if (!catalogId) {
+                        selectEl.disabled = true;
+                        return;
+                    }
+
+                    const usados = getSelectedPresentationIdsByCatalog(catalogId, selectEl);
+                    const lista = PRESENT[String(catalogId)] || [];
+
+                    lista.forEach(p => {
+                        const idStr = String(p.id);
+                        if (usados.includes(idStr) && idStr !== currentValue) return;
+
+                        const opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = p.text;
+                        if (idStr === currentValue) opt.selected = true;
+                        selectEl.appendChild(opt);
+                    });
+
+                    selectEl.disabled = false;
+                }
+
+                function refreshAllPresentationsForCatalog(catalogId) {
+                    tbody.querySelectorAll('tr.fila-presentacion').forEach(row => {
+                        const inputCatalog = row.querySelector('[data-role="input-catalog-id"]');
+                        const selPres = row.querySelector('[data-role="presentacion"]');
+                        if (!inputCatalog || !selPres) return;
+                        if (String(inputCatalog.value) !== String(catalogId)) return;
+
+                        const cur = selPres.value || null;
+                        cargarPresentacionesEnSelect(selPres, catalogId, cur);
+                    });
+                }
+
+                // ===== Grupos / Filas
+                function addGrupo(initialCatalogId = null) {
                     const groupId = 'g' + (groupCounter++);
 
                     const header = tplGrupoHeader.cloneNode(true);
                     header.id = '';
                     header.dataset.group = groupId;
-
                     tbody.appendChild(header);
 
                     const selectGenerico = header.querySelector('[data-role="generico"]');
                     const btnAddPres = header.querySelector('[data-role="add-presentacion"]');
                     const btnRemoveGrupo = header.querySelector('[data-role="remove-grupo"]');
 
-                    // refrescar options de genéricos (ocultar usados)
-                    refreshGenericosOptions();
+                    refreshGenericSelect(selectGenerico, groupId, initialCatalogId ? String(initialCatalogId) : '');
+                    if (initialCatalogId) selectGenerico.value = String(initialCatalogId);
 
                     selectGenerico.addEventListener('change', function() {
                         const catalogId = this.value;
-                        const labelText = this.options[this.selectedIndex]?.text || '';
 
-                        // cambiar label + catalog_id en filas del grupo, y resetear presentaciones
-                        tbody.querySelectorAll(`tr.fila-presentacion[data-group="${groupId}"]`).forEach(r => {
-                            const label = r.querySelector('[data-role="generico-label"]');
-                            const inputCatalog = r.querySelector('[data-role="input-catalog-id"]');
-                            const selPres = r.querySelector('[data-role="presentacion"]');
+                        tbody.querySelectorAll('tr.fila-presentacion[data-group="' + groupId + '"]').forEach(
+                            row => {
+                                const label = row.querySelector('[data-role="generico-label"]');
+                                const inputCatalog = row.querySelector('[data-role="input-catalog-id"]');
+                                const selPres = row.querySelector('[data-role="presentacion"]');
 
-                            if (label) label.textContent = labelText;
-                            if (inputCatalog) inputCatalog.value = catalogId;
-                            if (selPres) selPres.value = '';
-                        });
+                                label.textContent = this.options[this.selectedIndex]?.text || '';
+                                inputCatalog.value = catalogId;
 
-                        // refrescar genéricos en todos (ocultar usados)
-                        refreshGenericosOptions();
+                                selPres.value = '';
+                                cargarPresentacionesEnSelect(selPres, catalogId, null);
+                            });
 
-                        // refrescar presentaciones del grupo (ocultar usadas)
-                        refreshPresentacionesGroup(groupId, catalogId);
+                        refreshAllGenericSelects();
                     });
 
                     btnAddPres.addEventListener('click', function() {
@@ -510,117 +535,130 @@
                             alert('Selecciona primero el medicamento genérico.');
                             return;
                         }
-                        addPresentacionRow(groupId, selectGenerico);
-                        // cada vez que agregas fila, refresca presentaciones
-                        refreshPresentacionesGroup(groupId, selectGenerico.value);
+                        addPresentacionRow(groupId, selectGenerico, null);
                     });
 
                     btnRemoveGrupo.addEventListener('click', function() {
-                        // borrar filas del grupo + header
-                        tbody.querySelectorAll(`[data-group="${groupId}"]`).forEach(el => el.remove());
+                        const oldCatalogId = selectGenerico.value;
+
+                        tbody.querySelectorAll('tr.fila-presentacion[data-group="' + groupId + '"]').forEach(
+                            r => r.remove());
                         header.remove();
                         renumerarFilas();
-                        // al eliminar grupo, refresca genéricos en todos
-                        refreshGenericosOptions();
+
+                        refreshAllGenericSelects();
+                        if (oldCatalogId) refreshAllPresentationsForCatalog(oldCatalogId);
                     });
 
-                    return {
-                        groupId,
-                        header,
-                        selectGenerico
-                    };
+                    refreshAllGenericSelects();
+                    return groupId;
                 }
 
-                document.getElementById('btn-add-grupo')?.addEventListener('click', function() {
-                    addGrupo();
-                    refreshGenericosOptions();
-                });
+                function addPresentacionRow(groupId, selectGenerico, presetItem = null) {
+                    const row = tplPresentacionRow.cloneNode(true);
+                    row.id = '';
+                    row.dataset.group = groupId;
 
-                // ======================
-                // 6) Reconstrucción desde old()
-                // ======================
-                function buildFromOld(oldItems) {
-                    const rows = Object.values(oldItems || {});
-                    if (!rows.length) {
-                        addGrupo();
-                        refreshGenericosOptions();
-                        return;
+                    const labelGenerico = row.querySelector('[data-role="generico-label"]');
+                    const selectPresent = row.querySelector('[data-role="presentacion"]');
+                    const inputCatalog = row.querySelector('[data-role="input-catalog-id"]');
+                    const inputPrecio = row.querySelector('[data-role="precio"]');
+                    const btnRemoveRow = row.querySelector('[data-role="remove-row"]');
+
+                    const catalogId = selectGenerico.value;
+
+                    // insertar debajo del último renglón del grupo
+                    let lastRowOfGroup = null;
+                    tbody.querySelectorAll('tr.fila-presentacion').forEach(r => {
+                        if (r.dataset.group === groupId) lastRowOfGroup = r;
+                    });
+
+                    if (lastRowOfGroup) lastRowOfGroup.insertAdjacentElement('afterend', row);
+                    else {
+                        const header = tbody.querySelector('tr[data-group="' + groupId + '"]');
+                        header.insertAdjacentElement('afterend', row);
                     }
 
-                    tbody.innerHTML = '';
-                    globalIndex = 0;
-                    groupCounter = 0;
+                    const idx = globalIndex++;
+                    labelGenerico.textContent = selectGenerico.options[selectGenerico.selectedIndex]?.text || '';
+                    inputCatalog.value = catalogId;
 
-                    // agrupar por catalog_id (con orden)
+                    inputCatalog.name = `medicamentos[${idx}][catalog_id]`;
+                    selectPresent.name = `medicamentos[${idx}][presentation_id]`;
+                    inputPrecio.name = `medicamentos[${idx}][precio]`;
+
+                    const presetPresentationId = presetItem?.presentation_id ? String(presetItem.presentation_id) :
+                    null;
+                    inputPrecio.value = (presetItem && presetItem.precio !== undefined && presetItem.precio !== null) ?
+                        presetItem.precio : '';
+
+                    cargarPresentacionesEnSelect(selectPresent, catalogId, presetPresentationId);
+                    if (presetPresentationId) selectPresent.value = presetPresentationId;
+
+                    selectPresent.addEventListener('change', function() {
+                        refreshAllPresentationsForCatalog(catalogId);
+                    });
+
+                    btnRemoveRow.addEventListener('click', function() {
+                        const oldCatalogId = inputCatalog.value;
+                        row.remove();
+                        renumerarFilas();
+                        if (oldCatalogId) refreshAllPresentationsForCatalog(oldCatalogId);
+                    });
+
+                    renumerarFilas();
+                }
+
+                // ===== Inicialización / old()
+                document.getElementById('btn-add-grupo')?.addEventListener('click', function() {
+                    addGrupo();
+                });
+
+                const SOURCE_ITEMS = (OLD_MEDS && Object.keys(OLD_MEDS).length) ? Object.values(OLD_MEDS) : [];
+
+                if (SOURCE_ITEMS.length === 0) {
+                    addGrupo();
+                } else {
+                    const groupsByCatalog = {};
                     const order = [];
-                    const grouped = {};
-                    rows.forEach(item => {
-                        const catalogId = item?.catalog_id ? String(item.catalog_id) : '';
-                        if (!catalogId) return;
 
-                        if (!grouped[catalogId]) {
-                            grouped[catalogId] = [];
-                            order.push(catalogId);
+                    SOURCE_ITEMS.forEach(item => {
+                        const cid = String(item.catalog_id || '');
+                        if (!cid) return;
+
+                        if (!groupsByCatalog[cid]) {
+                            groupsByCatalog[cid] = [];
+                            order.push(cid);
                         }
-                        grouped[catalogId].push(item);
+
+                        groupsByCatalog[cid].push({
+                            catalog_id: cid,
+                            presentation_id: item.presentation_id ? String(item.presentation_id) : '',
+                            precio: item.precio ?? '',
+                        });
                     });
 
                     if (!order.length) {
                         addGrupo();
-                        refreshGenericosOptions();
                         return;
                     }
 
-                    order.forEach(catalogId => {
-                        const {
-                            groupId,
-                            selectGenerico
-                        } = addGrupo();
+                    order.forEach((catalogId) => {
+                        const groupId = addGrupo(catalogId);
 
-                        // set catalog
+                        const header = tbody.querySelector('tr[data-group="' + groupId + '"]');
+                        const selectGenerico = header.querySelector('[data-role="generico"]');
+
+                        refreshGenericSelect(selectGenerico, groupId, catalogId);
                         selectGenerico.value = catalogId;
 
-                        // refresca genéricos (ocultar usados) ya con ese valor
-                        refreshGenericosOptions();
-
-                        grouped[catalogId].forEach(item => {
-                            const row = addPresentacionRow(groupId, selectGenerico);
-
-                            const selPresent = row.querySelector('[data-role="presentacion"]');
-                            const selCharge = row.querySelector('[data-role="charge-by"]');
-                            const hidCharge = row.querySelector('[data-role="charge-by-hidden"]');
-                            const inpPrecio = row.querySelector('[data-role="precio"]');
-
-                            // refrescar presentaciones antes de set value
-                            refreshPresentacionesGroup(groupId, catalogId);
-
-                            if (item.presentation_id) selPresent.value = String(item.presentation_id);
-
-                            const gCharge = getGlobalChargeBy();
-                            if (selCharge) selCharge.value = gCharge;
-                            if (hidCharge) hidCharge.value = gCharge;
-
-                            if (item.precio !== undefined && item.precio !== null) inpPrecio.value =
-                                item.precio;
-
-                            // refrescar presentaciones para ocultar las ya elegidas
-                            refreshPresentacionesGroup(groupId, catalogId);
+                        groupsByCatalog[catalogId].forEach(item => {
+                            addPresentacionRow(groupId, selectGenerico, item);
                         });
 
-                        // labels correctos
-                        selectGenerico.dispatchEvent(new Event('change'));
+                        refreshAllGenericSelects();
+                        refreshAllPresentationsForCatalog(catalogId);
                     });
-
-                    renumerarFilas();
-                    syncChargeByLabel();
-                    refreshGenericosOptions();
-                }
-
-                buildFromOld(OLD_MEDS);
-
-                if (!tbody.querySelector('tr')) {
-                    addGrupo();
-                    refreshGenericosOptions();
                 }
             });
         </script>

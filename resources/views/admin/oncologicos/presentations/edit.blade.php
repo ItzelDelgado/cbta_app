@@ -115,23 +115,22 @@
                         placeholder="Ej. Refrigerar. Proteger de la luz. No agitar.">{{ old('legend', $presentation->legend) }}</textarea>
                 </div>
 
-                <!-- =========================
-             LOTE / CADUCIDAD (VIGENTE)
-        ========================== -->
-                <div class="col-span-12 md:col-span-3">
-                    <label class="text-sm">Lote vigente</label>
-                    <input class="w-full border rounded p-2" name="batch[lote]"
-                        value="{{ old('batch.lote', $currentBatch->lote ?? '') }}" required>
-                </div>
 
-                <div class="col-span-12 md:col-span-3">
-                    <label class="text-sm">Caducidad vigente</label>
-                    <input class="w-full border rounded p-2" type="date" name="batch[caducidad]"
-                        value="{{ old(
-                            'batch.caducidad',
-                            isset($currentBatch->caducidad) ? \Carbon\Carbon::parse($currentBatch->caducidad)->format('Y-m-d') : '',
-                        ) }}"
-                        required>
+                <div class="mb-4">
+                    <div class="p-3 rounded bg-blue-50 border border-blue-200 text-blue-800 text-sm">
+                        <div class="font-semibold">Lotes y caducidades</div>
+                        <div class="text-xs mt-1">
+                            Los lotes/caducidades se administran por laboratorio desde <b>Oncológicos → Inventario</b>.
+                            Aquí solo editas los datos fijos de la presentación.
+                        </div>
+
+                        <div class="mt-3">
+                            <a href="{{ route('admin.oncologicos.inventory.selectLaboratory') }}"
+                                class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                Ir a Inventario
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- =========================

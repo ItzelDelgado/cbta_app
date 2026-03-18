@@ -48,11 +48,6 @@ class MedicinePresentationController extends Controller
             'presentations.*.temp_max_c'                      => 'nullable|integer|min:0|max:99',
             'presentations.*.stability_hours'                 => 'nullable|integer|min:0|max:2000',
 
-            // Batch vigente
-            'presentations.*.batch.lote'                      => 'required|string|max:255',
-            'presentations.*.batch.caducidad'                 => 'required|date',
-            'presentations.*.batch.is_current'                => 'required|in:0,1',
-
             // disponibilidad
             'presentations.*.is_available'                    => 'required|in:0,1',
         ]);
@@ -96,13 +91,6 @@ class MedicinePresentationController extends Controller
 
                     'is_available'          => $p['is_available'],
                 ]);
-
-                // 2) Crear lote vigente
-                $presentation->batches()->create([
-                    'lote'          => $p['batch']['lote'],
-                    'caducidad'     => $p['batch']['caducidad'],
-                    'is_current'    => true, // o (bool) $p['batch']['is_current']
-                ]);
             }
 
             DB::commit();
@@ -123,17 +111,9 @@ class MedicinePresentationController extends Controller
 
     public function edit(MedicinesCatalog $catalog, MedicinePresentation $presentation)
     {
-        // Cargamos lotes para obtener el vigente
-        $presentation->load('batches');
-
-        $currentBatch = $presentation->batches
-            ->firstWhere('is_current', true)
-            ?? $presentation->batches->sortByDesc('caducidad')->first();
-
         return view('admin.oncologicos.presentations.edit', [
             'catalog'      => $catalog,
             'presentation' => $presentation,
-            'currentBatch' => $currentBatch,
         ]);
     }
 
@@ -157,8 +137,6 @@ class MedicinePresentationController extends Controller
 
             'is_available'         => 'required|in:0,1',
 
-            'batch.lote'           => 'required|string|max:255',
-            'batch.caducidad'      => 'required|date',
         ]);
 
         // Validación extra: temp_max_c >= temp_min_c (cuando ambos vienen)
@@ -193,32 +171,6 @@ class MedicinePresentationController extends Controller
 
                 'is_available'         => $data['is_available'],
             ]);
-
-            // 2) Actualizar / crear lote vigente
-            $batchData = $data['batch'];
-
-            $currentBatch = $presentation->batches()
-                ->where('is_current', true)
-                ->first();
-
-            if ($currentBatch) {
-                $currentBatch->update([
-                    'lote'       => $batchData['lote'],
-                    'caducidad'  => $batchData['caducidad'],
-                    'is_current' => true,
-                ]);
-            } else {
-                $currentBatch = $presentation->batches()->create([
-                    'lote'       => $batchData['lote'],
-                    'caducidad'  => $batchData['caducidad'],
-                    'is_current' => true,
-                ]);
-            }
-
-            // (Opcional) aseguras que solo ese sea el vigente
-            $presentation->batches()
-                ->where('id', '!=', $currentBatch->id)
-                ->update(['is_current' => false]);
 
             DB::commit();
 

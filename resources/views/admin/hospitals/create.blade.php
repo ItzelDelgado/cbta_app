@@ -9,6 +9,19 @@
         <x-validation-errors class="mb-4" />
 
         <div class="mb-4">
+            <x-label class="mb-2">Laboratorio de mezclas</x-label>
+
+            <select name="laboratory_id" class="w-full rounded border-gray-300">
+                <option value="">-- Selecciona un laboratorio --</option>
+                @foreach ($laboratories as $lab)
+                    <option value="{{ $lab->id }}" {{ old('laboratory_id') == $lab->id ? 'selected' : '' }}>
+                        {{ $lab->nombre }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="mb-4">
             <x-label class="mb-2">
                 Nombre
             </x-label>
@@ -35,7 +48,8 @@
                 {{-- Disponibles --}}
                 <div class="border rounded-lg p-3">
                     <div class="mb-2">
-                        <x-input x-model="search" class="w-full" placeholder="Buscar cliente por nombre o apellido..." />
+                        <x-input x-model="search" class="w-full"
+                            placeholder="Buscar cliente por nombre o apellido..." />
                     </div>
 
                     <div class="h-64 overflow-auto divide-y">
@@ -69,8 +83,7 @@
 
                         <button type="button"
                             class="text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-sm px-4 py-2"
-                            x-show="selected.length > 0"
-                            @click="clearAll()">
+                            x-show="selected.length > 0" @click="clearAll()">
                             Limpiar
                         </button>
                     </div>
@@ -97,7 +110,7 @@
                     </div>
 
                     {{-- inputs hidden que se envían como clientes[] --}}
-                    <template x-for="id in selectedIds()" :key="'hid_'+id">
+                    <template x-for="id in selectedIds()" :key="'hid_' + id">
                         <input type="hidden" name="clientes[]" :value="id">
                     </template>
                 </div>

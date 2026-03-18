@@ -1,3 +1,16 @@
+@php
+    function ajustarUnidad($unidad, $npt)
+    {
+        if ($npt === 'ADULT') {
+            if ($unidad === 'g/Kg') {
+                return 'g/día';
+            } elseif ($unidad === 'mEq/Kg') {
+                return 'mEq/día';
+            }
+        }
+        return $unidad; // Devuelve la unidad original si no se cumplen las condiciones.
+    }
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -247,7 +260,7 @@
 
                             <td style="text-align: center">
                                 {{ $valor_formateado }}
-                                {{ explode('/', $input_completo->input->unidad)[0] }}
+                                {{ ajustarUnidad($input_completo->input->unidad, $solicitud_detalles->solicitud_detail['npt']) }}
                             </td>
 
 
@@ -621,7 +634,7 @@
 
                             <td style="text-align: center">
                                 {{ $valor_formateado }}
-                                {{ explode('/', $input_completo->input->unidad)[0] }}
+                                {{ ajustarUnidad($input_completo->input->unidad, $solicitud_detalles->solicitud_detail['npt']) }}
                             </td>
 
 

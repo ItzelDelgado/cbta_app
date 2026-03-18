@@ -3,50 +3,71 @@
 namespace App\Http\Controllers\Admin\Oncologicos;
 
 use App\Exports\Oncologicos\MedicineListExport;
-use App\Exports\Oncologicos\MedicineListPricesByHospitalExport;
 use App\Http\Controllers\Controller;
+use App\Models\Hospital;
 use App\Models\Oncologicos\Distributor;
 use App\Models\Oncologicos\MedicineList;
-use App\Models\Oncologicos\MedicineOnco;
-use App\Models\Oncologicos\MedicinePresentation;
 use App\Models\Oncologicos\MedicinesCatalog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 
 class MedicineController extends Controller
 {
+    private function currentHospitalId(): int
+    {
+        $hospitalId = Auth::user()?->hospital_id;
+        abort_unless($hospitalId, 422, 'Tu usuario no tiene hospital asignado.');
+        return (int) $hospitalId;
+    }
+
+    private function listForCurrentHospital(): ?MedicineList
+    {
+        return MedicineList::where('hospital_id', $this->currentHospitalId())
+            ->with(['presentations.catalog', 'distributor'])
+            ->first();
+    }
 
     public function index()
     {
-        $listas = MedicineList::with([
-            'presentations.catalog' // presentaciones ligadas a la lista + su genérico
-        ])->get();
-
-        return view('admin.oncologicos.medicines.index', compact('listas'));
+        return view('admin.oncologicos.medicines.index');
     }
 
 
     public function create()
     {
-        $catalogos = MedicinesCatalog::with('presentations')
+        $catalogos = MedicinesCatalog::with([
+            'presentations' => function ($q) {
+                $q->where('is_available', 1)
+                    ->orderBy('presentacion');
+            }
+        ])
             ->orderBy('denominacion')
             ->get();
 
-        // 👇 para que la vista pueda usar $distributor sin truene
+        // 👉 Hospitales para el select del formulario
+        $hospitals = Hospital::orderBy('name')->get(['id', 'name']);
+
         $distributor = null;
 
-        return view('admin.oncologicos.medicines.create', compact('catalogos', 'distributor'));
+        return view(
+            'admin.oncologicos.medicines.create',
+            compact('catalogos', 'hospitals', 'distributor')
+        );
     }
-
-
 
 
     public function store(Request $request)
     {
+        // ✅ Ahora el hospital viene del formulario
         $request->validate([
-            'name'          => 'required|string|max:255|unique:medicine_lists,name',
+            'hospital_id'   => 'required|exists:hospitals,id',
+
+            // ⚠️ ya no unique global; si quieres unique por hospital, lo validamos manual
+            'name'          => 'required|string|max:255',
             'description'   => 'nullable|string',
             'active_brands' => 'nullable|boolean',
             'charge_by'     => 'required|in:mg,frasco',
@@ -55,22 +76,27 @@ class MedicineController extends Controller
             'medicamentos.*.presentation_id' => 'required|exists:medicine_presentations,id',
             'medicamentos.*.precio'          => 'required|numeric|min:0',
 
-            // Distributor (opcional)
             'distributor_name'    => 'nullable|string|max:255|required_with:distributor_address,distributor_logo',
             'distributor_address' => 'nullable|string|max:500|required_with:distributor_name,distributor_logo',
             'distributor_logo'    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ], [
             'distributor_name.required_with'    => 'Indica el nombre del distribuidor.',
             'distributor_address.required_with' => 'Indica la dirección del distribuidor.',
+            'hospital_id.required'              => 'Selecciona un hospital.',
+            'hospital_id.exists'                => 'El hospital seleccionado no existe.',
         ]);
 
+        $hospitalId = (int) $request->input('hospital_id');
+
+        // ✅ Regla 1:1 por hospital (con el hospital elegido)
+        if (MedicineList::where('hospital_id', $hospitalId)->exists()) {
+            return back()->withInput()->withErrors([
+                'hospital_id' => 'Este hospital ya tiene una lista de medicamentos configurada.',
+            ]);
+        }
+
         $items = collect($request->input('medicamentos', []))
-            ->filter(
-                fn($m) =>
-                !empty($m['presentation_id']) &&
-                    $m['precio'] !== null &&
-                    $m['precio'] !== ''
-            )
+            ->filter(fn($m) => !empty($m['presentation_id']) && $m['precio'] !== null && $m['precio'] !== '')
             ->values();
 
         if ($items->isEmpty()) {
@@ -79,7 +105,6 @@ class MedicineController extends Controller
             ]);
         }
 
-        // ✅ no permitir duplicados (en vez de “colapsarlos”)
         if ($items->pluck('presentation_id')->duplicates()->isNotEmpty()) {
             return back()->withInput()->withErrors([
                 'medicamentos' => 'No puedes repetir la misma presentación más de una vez en la lista.',
@@ -89,9 +114,10 @@ class MedicineController extends Controller
         try {
             DB::beginTransaction();
 
-            $chargeBy = $request->input('charge_by', 'mg'); // ✅ SOLO MANDA EL SWITCH GLOBAL
+            $chargeBy = $request->input('charge_by', 'mg');
 
             $lista = MedicineList::create([
+                'hospital_id'   => $hospitalId, // ✅ VIENE DEL FORM
                 'name'          => $request->name,
                 'description'   => $request->description,
                 'active_brands' => $request->boolean('active_brands', false),
@@ -117,9 +143,7 @@ class MedicineController extends Controller
                 ]);
             }
 
-            // ✅ Pivot: SOLO manda el switch global
             $pivotData = [];
-
             foreach ($items as $item) {
                 $presentationId  = (int) $item['presentation_id'];
                 $precioCapturado = (float) $item['precio'];
@@ -157,10 +181,19 @@ class MedicineController extends Controller
 
     public function edit(string $id)
     {
+        // ✅ Cargar la lista por ID (ya NO por hospital del usuario)
         $lista = MedicineList::with([
+            'hospital',
             'presentations.catalog',
-            'distributor', // ✅ NUEVO
-        ])->findOrFail($id);
+            'distributor'
+        ])
+            ->findOrFail($id);
+
+        // ✅ Para el select de hospital (si quieres permitir cambiarlo)
+        $hospitals = DB::table('hospitals')
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
 
         $catalogos = MedicinesCatalog::with('presentations')
             ->orderBy('denominacion')
@@ -171,7 +204,9 @@ class MedicineController extends Controller
                 'catalog_id'      => $pres->catalog_id,
                 'presentation_id' => $pres->id,
                 'charge_by'       => $pres->pivot->charge_by ?? 'mg',
-                'precio'          => $pres->pivot->precio,
+                'precio'          => $pres->pivot->charge_by === 'frasco'
+                    ? ($pres->pivot->precio ?? null)
+                    : ($pres->pivot->precio_mg_override ?? null),
             ];
         })->values();
 
@@ -179,7 +214,8 @@ class MedicineController extends Controller
             'lista'        => $lista,
             'catalogos'    => $catalogos,
             'listaItems'   => $listaItems,
-            'distributor'  => $lista->distributor, // ✅ NUEVO (puede ser null)
+            'distributor'  => $lista->distributor,
+            'hospitals'    => $hospitals, // ✅ para el select
         ]);
     }
 
@@ -187,12 +223,18 @@ class MedicineController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'name'           => 'required|string|max:255|unique:medicine_lists,name,' . $id,
+            // ✅ ahora el hospital viene del formulario
+            'hospital_id' => [
+                'required',
+                'exists:hospitals,id',
+                Rule::unique('medicine_lists', 'hospital_id')->ignore($id), // 1 hospital = 1 lista
+            ],
+
+            'name'           => 'required|string|max:255',
             'description'    => 'nullable|string',
             'active_brands'  => 'nullable|boolean',
             'charge_by'      => 'required|in:mg,frasco',
 
-            // Distributor
             'distributor_nombre'    => 'nullable|string|max:255',
             'distributor_direccion' => 'nullable|string|max:500',
             'distributor_logo'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -202,17 +244,10 @@ class MedicineController extends Controller
             'medicamentos.*.catalog_id'      => 'required|exists:medicines_catalog,id',
             'medicamentos.*.presentation_id' => 'required|exists:medicine_presentations,id',
             'medicamentos.*.precio'          => 'required|numeric|min:0',
-
-            // ❌ ya NO validamos charge_by por fila
-            // 'medicamentos.*.charge_by'    => 'nullable|in:mg,frasco',
         ], [
-            'medicamentos.required'                => 'Debes agregar al menos una presentación.',
-            'medicamentos.*.catalog_id.*'          => 'Selecciona un medicamento válido.',
-            'medicamentos.*.presentation_id.*'     => 'Selecciona una presentación válida.',
-            'medicamentos.*.precio.required'       => 'Indica el precio para cada presentación.',
+            'hospital_id.unique' => 'Ese hospital ya tiene una lista de medicamentos configurada.',
         ]);
 
-        // Normalizar filas válidas
         $rows = collect($request->input('medicamentos', []))
             ->filter(
                 fn($m) =>
@@ -238,20 +273,20 @@ class MedicineController extends Controller
         try {
             DB::beginTransaction();
 
-            /** @var \App\Models\Oncologicos\MedicineList $lista */
+            // ✅ ya NO filtramos por hospital del usuario
             $lista = MedicineList::with('distributor')->findOrFail($id);
 
             $chargeByGlobal = $request->input('charge_by', 'mg');
 
-            // 1) Actualizar lista
             $lista->update([
+                'hospital_id'   => (int) $request->hospital_id,  // ✅ CLAVE
                 'name'          => $request->name,
                 'description'   => $request->description,
                 'active_brands' => $request->boolean('active_brands', false),
                 'charge_by'     => $chargeByGlobal,
             ]);
 
-            // 1.1) Distributor delete
+            // ===== Distributor =====
             if ($request->boolean('distributor_delete')) {
                 if ($lista->distributor) {
                     if (!empty($lista->distributor->logo_path)) {
@@ -260,7 +295,6 @@ class MedicineController extends Controller
                     $lista->distributor->delete();
                 }
             } else {
-                // 1.2) Distributor upsert si mandan algo
                 $distNombre    = trim((string) $request->input('distributor_nombre', ''));
                 $distDireccion = trim((string) $request->input('distributor_direccion', ''));
 
@@ -287,9 +321,8 @@ class MedicineController extends Controller
                 }
             }
 
-            // 2) Pivot: ✅ SIEMPRE manda el switch global (ignora cualquier charge_by por fila)
+            // ===== Pivot sync =====
             $pivotData = [];
-
             foreach ($rows as $row) {
                 $presentationId = (int) $row['presentation_id'];
                 $precio         = (float) $row['precio'];
@@ -308,7 +341,6 @@ class MedicineController extends Controller
                 ]);
             }
 
-            // 3) Sync
             $lista->presentations()->sync($pivotData);
 
             DB::commit();
@@ -325,19 +357,17 @@ class MedicineController extends Controller
         }
     }
 
-
-
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         try {
             DB::beginTransaction();
 
-            $lista = MedicineList::findOrFail($id);
-            $lista->medicines()->detach();
+            $hospitalId = $this->currentHospitalId();
+
+            $lista = MedicineList::where('hospital_id', $hospitalId)->findOrFail($id);
+
+            // OJO: tú usas presentations() en el resto del controller, aquí estabas usando medicines()
+            $lista->presentations()->detach();
             $lista->delete();
 
             DB::commit();
@@ -352,9 +382,10 @@ class MedicineController extends Controller
         }
     }
 
-
     public function exportarExcel(MedicineList $medicineList)
     {
+        $hospitalId = $this->currentHospitalId();
+
         $filename = 'lista_precios_' . $medicineList->id . '.xlsx';
         return Excel::download(new MedicineListExport($medicineList->id), $filename);
     }

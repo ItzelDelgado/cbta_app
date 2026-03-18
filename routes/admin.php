@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\ClienteController;
 use App\Http\Controllers\Admin\Oncologicos\DiluentController;
 use App\Http\Controllers\Admin\Oncologicos\DiluentPresentationController;
 use App\Http\Controllers\Admin\Oncologicos\InfusorController;
+use App\Http\Controllers\Admin\Oncologicos\InventoryController;
+use App\Http\Controllers\Admin\Oncologicos\LaboratoryController;
 use App\Http\Controllers\Admin\Oncologicos\MedicineCatalogController;
 use App\Http\Controllers\Admin\Oncologicos\MedicineController as OncologicosMedicineController;
 use App\Http\Controllers\Admin\Oncologicos\MedicinePresentationController;
@@ -271,3 +273,71 @@ Route::resource('/clientes', ClienteController::class)
 Route::get('clientes/{cliente}/exportar-mezclas-onco', [ClienteController::class, 'exportarMezclasOnco'])
     ->name('clientes.exportarMezclasOnco')
     ->middleware(['can:clientes']);
+
+
+// ===============================
+// INVENTARIO GLOBAL ONCOLÓGICO
+// ===============================
+
+Route::prefix('oncologicos/inventory')
+    ->name('oncologicos.inventory.')
+    ->middleware(['can:medicamentos_oncologicos']) // puedes cambiar permiso si quieres uno más específico
+    ->group(function () {
+
+        // Pantalla principal (listado global catálogo + presentaciones + lote vigente)
+        Route::get('/', [InventoryController::class, 'index'])
+            ->name('index');
+
+        // Guardado masivo de lotes y caducidades
+        Route::post('/batches/bulk-update', [InventoryController::class, 'bulkUpdate'])
+            ->name('batches.bulkUpdate');
+
+        // Crear nuevo lote para una presentación específica
+        Route::post('/presentations/{presentation}/batches', [InventoryController::class, 'storeBatch'])
+            ->name('presentations.batches.store');
+
+        // Marcar un batch como vigente (is_current = 1)
+        Route::post('/batches/{batch}/set-current', [InventoryController::class, 'setCurrent'])
+            ->name('batches.setCurrent');
+
+        // Seleccionar laboratorio antes de entrar al inventario
+        Route::get('/select-laboratory', [InventoryController::class, 'selectLaboratory'])
+            ->name('selectLaboratory');
+
+        Route::post('/select-laboratory', [InventoryController::class, 'setLaboratory'])
+            ->name('setLaboratory');
+    });
+
+
+
+// ===============================
+// LABORATORIOS (SUCURSALES)
+// ===============================
+
+// Listado
+Route::get('/oncologicos/laboratory', [LaboratoryController::class, 'index'])
+    ->name('oncologicos.laboratory.index')
+    ->middleware(['can:oncologicos_laboratory_index']);
+
+// Crear
+Route::get('/oncologicos/laboratory/crear', [LaboratoryController::class, 'create'])
+    ->name('oncologicos.laboratory.create')
+    ->middleware(['can:oncologicos_laboratory_create']);
+
+Route::post('/oncologicos/laboratory', [LaboratoryController::class, 'store'])
+    ->name('oncologicos.laboratory.store')
+    ->middleware(['can:oncologicos_laboratory_store']);
+
+// Editar
+Route::get('/oncologicos/laboratory/{laboratory}/editar', [LaboratoryController::class, 'edit'])
+    ->name('oncologicos.laboratory.edit')
+    ->middleware(['can:oncologicos_laboratory_edit']);
+
+Route::put('/oncologicos/laboratory/{laboratory}', [LaboratoryController::class, 'update'])
+    ->name('oncologicos.laboratory.update')
+    ->middleware(['can:oncologicos_laboratory_update']);
+
+// Eliminar
+Route::delete('/oncologicos/laboratory/{laboratory}', [LaboratoryController::class, 'destroy'])
+    ->name('oncologicos.laboratory.destroy')
+    ->middleware(['can:oncologicos_laboratory_destroy']);

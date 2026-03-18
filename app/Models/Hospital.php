@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Oncologicos\Laboratory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,6 +13,7 @@ class Hospital extends Model
     protected $fillable = [
         'name',
         'adress',
+        'laboratory_id', // ✅ NUEVO
         'is_active',
     ];
 
@@ -23,5 +25,15 @@ class Hospital extends Model
     public function clientes()
     {
         return $this->belongsToMany(\App\Models\Cliente::class, 'cliente_hospital');
+    }
+
+    public function medicineList()
+    {
+        return $this->hasOne(\App\Models\Oncologicos\MedicineList::class, 'hospital_id');
+    }
+
+    public function laboratory()
+    {
+        return $this->belongsTo(Laboratory::class);
     }
 }

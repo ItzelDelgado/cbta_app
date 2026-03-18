@@ -166,7 +166,7 @@
 
             </tbody>
         </table>
-        @livewire('oncologicas.inspeccion-mezcla')
+        @livewire('oncologicos.inspeccion-mezcla')
     </div>
 
     <div class="mt-6">

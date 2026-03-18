@@ -29,7 +29,7 @@ class ClienteController extends Controller
     {
         $data = $request->validate([
             'nombre'   => ['required', 'string', 'max:255'],
-            'apellido' => ['required', 'string', 'max:255'],
+            'razon_social' => ['required', 'string', 'max:255'],
         ]);
 
         Cliente::create($data);
@@ -56,7 +56,7 @@ class ClienteController extends Controller
     {
         $data = $request->validate([
             'nombre'   => ['required', 'string', 'max:255'],
-            'apellido' => ['required', 'string', 'max:255'],
+            'razon_social' => ['required', 'string', 'max:255'],
         ]);
 
         $cliente->update($data);

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Oncologicas;
+namespace App\Livewire\Oncologicos;
 
 use App\Models\Oncologicos\InspeccionMezcla as OncologicosInspeccionMezcla;
 use App\Models\Oncologicos\Mezcla;
@@ -201,6 +201,6 @@ class InspeccionMezcla extends Component
 
     public function render()
     {
-        return view('livewire.oncologicas.inspeccion-mezcla');
+        return view('livewire.oncologicos.inspeccion-mezcla');
     }
 }

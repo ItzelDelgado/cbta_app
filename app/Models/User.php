@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Nutricionales\Solicitud;
+use App\Models\Oncologicos\MedicineList;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -48,4 +49,8 @@ class User extends Authenticatable
         return $this->hasOne(Solicitud::class);
     }
 
+    public function medicineList()
+    {
+        return $this->belongsTo(MedicineList::class, 'medicine_list_id', 'id');
+    }
 }

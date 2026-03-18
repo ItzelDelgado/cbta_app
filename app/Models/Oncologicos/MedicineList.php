@@ -2,6 +2,7 @@
 
 namespace App\Models\Oncologicos;
 
+use App\Models\Hospital;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -9,6 +10,7 @@ class MedicineList extends Model
 {
     protected $fillable = [
         'user_id',
+        'hospital_id',
         'name',
         'description',
         'active_brands',
@@ -64,8 +66,15 @@ class MedicineList extends Model
         ])->withTimestamps();
     }
 
+    // App\Models\MedicineList.php
     public function distributor()
     {
-        return $this->hasOne(Distributor::class, 'medicine_list_id');
+        return $this->hasOne(Distributor::class, 'medicine_list_id', 'id');
+    }
+
+
+    public function hospital()
+    {
+        return $this->belongsTo(Hospital::class, 'hospital_id');
     }
 }

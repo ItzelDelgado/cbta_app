@@ -19,14 +19,13 @@ class MedicineListExport implements FromCollection, WithHeadings, WithMapping, S
     public function collection(): Collection
     {
         $this->lista = MedicineList::with([
+            'hospital:id,name',      // ✅
             'distributor',
-            // ✅ Trae también el catálogo del genérico para evitar N+1
             'presentations' => function ($q) {
                 $q->with('catalog:id,denominacion');
             },
         ])->findOrFail($this->medicineListId);
 
-        // Exporta una fila por presentación configurada en la lista
         return $this->lista->presentations;
     }
 
@@ -56,39 +55,22 @@ class MedicineListExport implements FromCollection, WithHeadings, WithMapping, S
     {
         $lista = $this->lista;
 
-        // ===== Hospitales asignados a esta lista (por usuarios) =====
-        $hospitales = User::query()
-            ->where('medicine_list_id', $lista->id)
-            ->with('hospital:id,name')
-            ->get()
-            ->pluck('hospital.name')
-            ->filter()
-            ->unique()
-            ->values()
-            ->implode(', ');
+        // ✅ Hospital directo (ya no por usuarios)
+        $hospitales = $lista->hospital?->name ?? '—';
 
-        // ===== Distribuidor =====
         $dist = $lista->distributor;
         $distNombre    = $dist->nombre ?? ($dist->name ?? '');
         $distDireccion = $dist->direccion ?? ($dist->address ?? '');
 
-        // ===== Genérico (desde medicines_catalog) =====
         $medGenerico = $presentation->catalog->denominacion ?? '—';
-
-        // ===== Comercial (marca, está en medicine_presentations.marca) =====
         $marca = trim((string) ($presentation->marca ?? ''));
-
-        // ===== Presentación =====
         $presTxt = trim((string) ($presentation->presentacion ?? $presentation->name ?? ''));
 
-        // ✅ Marca — Presentación (tal cual lo querías)
         $marcaPres = ($marca !== '' && $presTxt !== '')
             ? "{$marca} — {$presTxt}"
             : ($presTxt !== '' ? $presTxt : '—');
 
-        // ===== Pivot configuración por lista =====
         $cobro = $presentation->pivot->charge_by ?? $lista->charge_by ?? '—';
-
         $precioFrasco = (float) ($presentation->pivot->precio ?? 0);
         $precioMg     = (float) ($presentation->pivot->precio_mg_override ?? 0);
 
@@ -97,7 +79,7 @@ class MedicineListExport implements FromCollection, WithHeadings, WithMapping, S
             $lista->name,
             $lista->charge_by,
             $lista->active_brands ? 'Sí' : 'No',
-            $hospitales ?: '—',
+            $hospitales, // ✅
 
             $distNombre ?: '—',
             $distDireccion ?: '—',

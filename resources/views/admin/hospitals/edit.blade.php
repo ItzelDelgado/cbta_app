@@ -18,6 +18,16 @@
 
         <x-validation-errors class="mb-4" />
 
+        <select name="laboratory_id" class="w-full rounded border-gray-300">
+            <option value="">-- Selecciona un laboratorio --</option>
+            @foreach ($laboratories as $lab)
+                <option value="{{ $lab->id }}"
+                    {{ old('laboratory_id', $hospital->laboratory_id) == $lab->id ? 'selected' : '' }}>
+                    {{ $lab->nombre }}
+                </option>
+            @endforeach
+        </select>
+
         <div class="mb-4">
             <x-label class="mb-2">
                 Nombre
@@ -30,17 +40,15 @@
             <x-label class="mb-2">
                 Dirección
             </x-label>
-            <x-input name="adress" class="w-full"
-                placeholder="Tlacotalpan 59, Col. Roma Sur , Cuauhtemoc, CDMX, 06760"
+            <x-input name="adress" class="w-full" placeholder="Tlacotalpan 59, Col. Roma Sur , Cuauhtemoc, CDMX, 06760"
                 value="{{ old('adress', $hospital->adress) }}" />
         </div>
 
         {{-- ASIGNAR CLIENTES (buscador + dual list) --}}
-        <div class="mb-4"
-            x-data="clientesPicker(
-                @js($clientes),
-                @js(old('clientes', $selectedClientesIds ?? []))
-            )">
+        <div class="mb-4" x-data="clientesPicker(
+            @js($clientes),
+            @js(old('clientes', $selectedClientesIds ?? []))
+        )">
             <x-label class="mb-2">
                 Clientes asociados
             </x-label>
@@ -50,7 +58,8 @@
                 {{-- Disponibles --}}
                 <div class="border rounded-lg p-3">
                     <div class="mb-2">
-                        <x-input x-model="search" class="w-full" placeholder="Buscar cliente por nombre o apellido..." />
+                        <x-input x-model="search" class="w-full"
+                            placeholder="Buscar cliente por nombre o razón social..." />
                     </div>
 
                     <div class="h-64 overflow-auto divide-y">
@@ -58,7 +67,7 @@
                             <div class="flex items-center justify-between py-2">
                                 <div class="text-gray-800">
                                     <span class="font-medium" x-text="c.nombre"></span>
-                                    <span x-text="c.apellido"></span>
+                                    <span x-text="c.razon_social"></span>
                                 </div>
 
                                 <button type="button"
@@ -84,8 +93,7 @@
 
                         <button type="button"
                             class="text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300 font-medium rounded-full text-sm px-4 py-2"
-                            x-show="selected.length > 0"
-                            @click="clearAll()">
+                            x-show="selected.length > 0" @click="clearAll()">
                             Limpiar
                         </button>
                     </div>
@@ -95,7 +103,7 @@
                             <div class="flex items-center justify-between py-2">
                                 <div class="text-gray-800">
                                     <span class="font-medium" x-text="c.nombre"></span>
-                                    <span x-text="c.apellido"></span>
+                                    <span x-text="c.razon_social"></span>
                                 </div>
 
                                 <button type="button"
@@ -112,7 +120,7 @@
                     </div>
 
                     {{-- inputs hidden que se envían como clientes[] --}}
-                    <template x-for="id in selectedIds()" :key="'hid_'+id">
+                    <template x-for="id in selectedIds()" :key="'hid_' + id">
                         <input type="hidden" name="clientes[]" :value="id">
                     </template>
                 </div>
@@ -153,7 +161,7 @@
             const byId = new Map((clientes || []).map(c => [Number(c.id), {
                 id: Number(c.id),
                 nombre: c.nombre ?? '',
-                apellido: c.apellido ?? ''
+                razon_social: c.razon_social ?? ''
             }]));
 
             const selectedInitial = oldIds
@@ -181,7 +189,7 @@
                     if (!q) return list;
 
                     return list.filter(c => {
-                        const full = `${c.nombre} ${c.apellido}`.toLowerCase();
+                        const full = `${c.nombre} ${c.razon_social}`.toLowerCase();
                         return full.includes(q);
                     });
                 },

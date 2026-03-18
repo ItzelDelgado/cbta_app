@@ -6,6 +6,7 @@ use App\Exports\Hospital\MezclasOncoPorHospitalExport;
 use App\Http\Controllers\Controller;
 use App\Models\Cliente;
 use App\Models\Hospital;
+use App\Models\Oncologicos\Laboratory;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -20,16 +21,17 @@ class HospitalController extends Controller
         return view('admin.hospitals.index', compact('hospitals'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        $clientes = Cliente::orderBy('apellido')
+        $clientes = Cliente::orderBy('razon_social|')
             ->orderBy('nombre')
             ->get();
 
-        return view('admin.hospitals.create', compact('clientes'));
+        $laboratories = Laboratory::where('activo', 1)
+            ->orderBy('nombre')
+            ->get();
+
+        return view('admin.hospitals.create', compact('clientes', 'laboratories'));
     }
 
     /**
@@ -40,20 +42,18 @@ class HospitalController extends Controller
         $request->validate([
             'name_hp' => 'required|string|max:255',
             'adress'  => 'required|string|max:400',
+            'laboratory_id' => 'nullable|integer|exists:laboratories,id',
             'clientes'   => 'nullable|array',
             'clientes.*' => 'integer|exists:clientes,id',
         ]);
 
-        // Para la solicitud
         $datos = $request->all();
         $datos['name'] = $datos['name_hp'];
         unset($datos['name_hp']);
-        unset($datos['clientes']); // evitamos que intente guardarlo como columna
+        unset($datos['clientes']);
 
-        // Crear hospital
         $hospital = Hospital::create($datos);
 
-        // Guardar relación en pivote (si vienen clientes)
         $clientesIds = $request->input('clientes', []);
         $hospital->clientes()->sync($clientesIds);
 
@@ -66,26 +66,27 @@ class HospitalController extends Controller
         return redirect()->route('admin.hospitals.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    // public function show(Hospital $hospital)
-    // {
-    //     return view('admin.hospitals.show');
-    // }
-
     public function edit(Hospital $hospital)
     {
-        $clientes = Cliente::orderBy('apellido')
+        $clientes = Cliente::orderBy('razon_social')
             ->orderBy('nombre')
             ->get();
 
-        // ids ya asignados al hospital (para precargar seleccionados)
+        $laboratories = Laboratory::where('activo', 1)
+            ->orderBy('nombre')
+            ->get();
+
         $selectedClientesIds = $hospital->clientes()
             ->pluck('clientes.id')
             ->toArray();
 
-        return view('admin.hospitals.edit', compact('hospital', 'clientes', 'selectedClientesIds'));
+        return view('admin.hospitals.edit', compact(
+            'hospital',
+            'clientes',
+            'selectedClientesIds',
+            'laboratories'
+        ));
+
     }
 
     public function update(Request $request, Hospital $hospital)
@@ -94,14 +95,14 @@ class HospitalController extends Controller
             'name'      => 'required|string|max:255',
             'adress'    => 'required|string|max:400',
             'is_active' => 'required|boolean',
+            'laboratory_id' => 'nullable|integer|exists:laboratories,id',
 
             // clientes (pivot)
             'clientes'   => 'nullable|array',
             'clientes.*' => 'integer|exists:clientes,id',
         ]);
 
-        // Actualiza campos del hospital (sin clientes)
-        $data = $request->only(['name', 'adress', 'is_active']);
+        $data = $request->only(['name', 'adress', 'is_active', 'laboratory_id']);
         $hospital->update($data);
 
         // Actualiza relación pivot (si no mandas nada, queda vacío)

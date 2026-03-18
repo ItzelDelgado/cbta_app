@@ -16,7 +16,7 @@
                 <tr>
                     <th scope="col" class="px-6 py-3">Id</th>
                     <th scope="col" class="px-6 py-3">Nombre</th>
-                    <th scope="col" class="px-6 py-3">Apellido</th>
+                    <th scope="col" class="px-6 py-3">Razón social</th>
                     <th scope="col" class="px-6 py-3"></th>
                 </tr>
             </thead>
@@ -34,7 +34,7 @@
                         </td>
 
                         <td class="px-6 py-4">
-                            {{ $cliente->apellido }}
+                            {{ $cliente->razon_social }}
                         </td>
 
                         <td class="px-6 py-4">

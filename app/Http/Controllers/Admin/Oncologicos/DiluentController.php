@@ -10,10 +10,9 @@ class DiluentController extends Controller
 {
     public function index()
     {
-        $diluents = Diluent::orderBy('denominacion_generica')->paginate(15);
-
-        return view('admin.oncologicos.diluents.index', compact('diluents'));
+        return view('admin.oncologicos.diluents.index');
     }
+
 
     public function create()
     {

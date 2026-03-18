@@ -46,7 +46,7 @@
                     @can('nutricionales_solicitudes_index')
                         <li>
                             <a href="{{ route('admin.oncologicos.solicitudes.index') }}"
-                                class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group {{ request()->routeIs('admin.nutricionales.solicitudes.*') ? 'bg-gray-100' : '' }}">
+                                class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group {{ request()->routeIs('admin.oncologicos.solicitudes.*') ? 'bg-gray-100' : '' }}">
                                 <i class="fa-solid fa-file-import text-gray-500"></i>
                                 <span class="ms-3">Solicitudes</span>
                             </a>
@@ -81,6 +81,19 @@
                             </a>
                         </li>
                     @endcan
+
+                    @can('medicamentos_oncologicos')
+                        <li>
+                            <a href="{{ route('admin.oncologicos.inventory.index') }}"
+                                class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group {{ request()->routeIs('admin.oncologicos.inventory.*') ? 'bg-gray-100' : '' }}">
+                                <i class="fa-solid fa-boxes-stacked text-gray-500"></i>
+                                <span class="ms-3">Inventario</span>
+                            </a>
+                        </li>
+                    @endcan
+
+
+
                 </ul>
             </li>
 
@@ -138,6 +151,17 @@
                     </a>
                 </li>
             @endcan
+
+            @can('laboratorios')
+                <li>
+                    <a href="{{ route('admin.oncologicos.laboratory.index') }}"
+                        class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group {{ request()->routeIs('admin.oncologicos.laboratory.*') ? 'bg-gray-100' : '' }}">
+                        <i class="fa-solid fa-boxes-stacked text-gray-500"></i>
+                        <span class="ms-3">Laboratorio</span>
+                    </a>
+                </li>
+            @endcan
+
         </ul>
     </div>
 </aside>

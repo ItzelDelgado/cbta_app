@@ -18,10 +18,10 @@
 
         <div class="mb-4">
             <x-label class="mb-2">
-                Apellido
+                Razón social
             </x-label>
-            <x-input value="{{ old('apellido') }}" name="apellido" class="w-full"
-                placeholder="Escriba el apellido del cliente" />
+            <x-input value="{{ old('razon_social') }}" name="razon_social" class="w-full"
+                placeholder="Escriba la razón social del cliente" />
         </div>
 
         <div class="flex justify-end">

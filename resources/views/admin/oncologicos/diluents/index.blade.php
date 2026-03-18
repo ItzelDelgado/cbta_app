@@ -15,53 +15,36 @@
         @endif
 
         <div class="bg-white rounded shadow overflow-x-auto">
-            <table class="min-w-full text-sm">
-                <thead class="bg-gray-100 text-gray-600">
-                    <tr>
-                        <th class="px-4 py-3 text-left">Denominación genérica</th>
-                        <th class="px-4 py-3 text-right">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y">
-                    @forelse ($diluents as $d)
-                        <tr>
-                            <td class="px-4 py-3">{{ $d->denominacion_generica }}</td>
-                            <td class="px-4 py-3 text-right">
-                                <a href="{{ route('admin.oncologicos.diluent_presentations.index', $d) }}"
-                                    class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-                                    Presentaciones
-                                </a>
-
-                                <a href="{{ route('admin.oncologicos.diluents.edit', $d) }}"
-                                    class="px-3 py-1 bg-amber-500 text-white rounded hover:bg-amber-600">
-                                    Editar
-                                </a>
-
-                                <form action="{{ route('admin.oncologicos.diluents.destroy', $d) }}" method="POST"
-                                    class="inline-block" onsubmit="return confirm('¿Eliminar este diluyente?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                        class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">
-                                        Eliminar
-                                    </button>
-                                </form>
-                            </td>
-
-                        </tr>
-                    @empty
-                        <tr>
-                            <td class="px-4 py-6 text-center text-gray-500" colspan="2">
-                                No hay diluyentes.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+            <livewire:oncologicos.diluents-table />
         </div>
 
-        <div class="mt-4">
-            {{ $diluents->links() }}
-        </div>
+        @push('js')
+            <script>
+                // ✅ Delegación para que funcione con Livewire al paginar/buscar
+                document.addEventListener('submit', function(e) {
+                    const form = e.target;
+                    if (!form.classList.contains('form-eliminar-diluent')) return;
+
+                    e.preventDefault();
+
+                    Swal.fire({
+                        title: '¿Eliminar este diluyente?',
+                        text: "Esta acción no se puede deshacer.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        customClass: {
+                            confirmButton: 'swal-button-confirm',
+                            cancelButton: 'swal-button-cancel'
+                        },
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                }, true);
+            </script>
+        @endpush
     </div>
 </x-admin-layout>

@@ -11,13 +11,9 @@ use Illuminate\Http\Request;
 
 class MedicineCatalogController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $medicamentos = MedicinesCatalog::where('state', true)->get();
-        return view('admin.oncologicos.catalog.index', compact('medicamentos'));
+        return view('admin.oncologicos.catalog.index');
     }
 
     public function create()

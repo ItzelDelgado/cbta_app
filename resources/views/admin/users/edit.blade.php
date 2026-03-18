@@ -67,19 +67,6 @@
                 @endforeach
             </ul>
         </div>
-        <div class="mb-4">
-            <x-label class="mb-2">
-                Lista de medicamentos asignada
-            </x-label>
-            <x-select class="w-full" name="medicine_list_id">
-                <option value="">-- Sin asignar --</option>
-                @foreach ($medicineLists as $list)
-                    <option value="{{ $list->id }}" @selected(old('medicine_list_id', $user->medicine_list_id) == $list->id)>
-                        {{ $list->name }}
-                    </option>
-                @endforeach
-            </x-select>
-        </div>
         <div class="flex justify-end">
             <x-button>
                 Editar usuario

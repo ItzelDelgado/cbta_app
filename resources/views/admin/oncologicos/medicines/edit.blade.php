@@ -3,6 +3,7 @@
         <h1 class="text-3xl font-bold text-gray-800 mb-6">
             Editar Lista de Medicamentos: {{ $lista->name }}
         </h1>
+
         @if ($errors->any())
             <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                 <strong class="font-bold">¡Oops! Algo salió mal:</strong>
@@ -17,6 +18,7 @@
                 @endif
             </div>
         @endif
+
         <form action="{{ route('admin.oncologicos.medicines.update', $lista->id) }}" method="POST"
             enctype="multipart/form-data" class="space-y-6">
             @csrf
@@ -27,6 +29,23 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de la lista:</label>
                 <input type="text" name="name" value="{{ old('name', $lista->name) }}" required
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200">
+            </div>
+            {{-- Hospital (requerido) --}}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Hospital *</label>
+                <select name="hospital_id" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200">
+                    <option value="">Seleccione un hospital...</option>
+
+                    @foreach ($hospitals as $h)
+                        <option value="{{ $h->id }}" @selected((int) old('hospital_id', $lista->hospital_id) === (int) $h->id)>
+                            {{ $h->name }}
+                        </option>
+                    @endforeach
+                </select>
+                <p class="text-xs text-gray-500 mt-1">
+                    Si cambias el hospital, la lista quedará asignada al hospital seleccionado.
+                </p>
             </div>
 
             <div>
@@ -150,10 +169,9 @@
                     <thead class="text-xs uppercase bg-gray-100">
                         <tr>
                             <th class="px-4 py-2 w-1/12 text-center">#</th>
-                            <th class="px-4 py-2 w-3/12">Medicamento (genérico)</th>
+                            <th class="px-4 py-2 w-4/12">Medicamento (genérico)</th>
                             <th class="px-4 py-2 w-3/12">Presentación</th>
-                            <th class="px-4 py-2 w-1/12 text-center">Cobro</th>
-                            <th class="px-4 py-2 w-2/12 text-center">Precio (mg o frasco)</th>
+                            <th class="px-4 py-2 w-2/12 text-center">Precio (según cobro global)</th>
                             <th class="px-4 py-2 w-2/12 text-center">Acción</th>
                         </tr>
                     </thead>
@@ -173,7 +191,7 @@
                 <table class="hidden">
                     <tbody>
                         <tr id="tpl-grupo-header">
-                            <td class="px-4 py-2 text-center font-bold bg-gray-50 border-t" colspan="6">
+                            <td class="px-4 py-2 text-center font-bold bg-gray-50 border-t" colspan="5">
                                 <div class="flex items-center gap-3">
                                     <span class="text-xs uppercase text-gray-500 mr-2">Medicamento genérico:</span>
 
@@ -186,11 +204,13 @@
                                             </option>
                                         @endforeach
                                     </select>
+
                                     <button type="button"
                                         class="btn-add-presentacion ml-auto bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded"
                                         data-role="add-presentacion">
                                         + Agregar presentación
                                     </button>
+
                                     <button type="button"
                                         class="btn-remove-grupo bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded"
                                         data-role="remove-grupo">
@@ -217,16 +237,6 @@
                                 </select>
 
                                 <input type="hidden" data-role="input-catalog-id">
-                            </td>
-
-                            {{-- ✅ Cobro: SOLO visual y BLOQUEADO --}}
-                            <td class="px-4 py-2 text-center align-top">
-                                <select class="border-gray-300 rounded text-sm" data-role="charge-by" disabled>
-                                    <option value="mg">mg</option>
-                                    <option value="frasco">frasco</option>
-                                </select>
-                                {{-- ✅ el que se envía --}}
-                                <input type="hidden" data-role="charge-by-hidden">
                             </td>
 
                             <td class="px-4 py-2 text-center align-top">
@@ -264,8 +274,6 @@
                     ->map(function ($p) {
                         $marca = trim((string) ($p->marca ?? ''));
                         $pres = trim((string) ($p->presentacion ?? ''));
-
-                        // Texto EXACTO: "Marca — Presentación"
                         $text = $marca !== '' ? "{$marca} - {$pres}" : $pres;
 
                         return [
@@ -277,6 +285,7 @@
             ];
         });
     @endphp
+
     @push('js')
         <script>
             // ===== Datos globales =====
@@ -332,28 +341,16 @@
                 const chargeSwitch = document.getElementById('charge_by_switch');
                 const chargeLabel = document.getElementById('charge_by_label');
 
-                function getGlobalChargeBy() {
-                    return (chargeByHidden && chargeByHidden.value) ? chargeByHidden.value : 'mg';
-                }
-
-                function syncChargeVisualToAllRows() {
+                function syncChargeGlobalLabel() {
                     if (!chargeByHidden || !chargeSwitch || !chargeLabel) return;
-
                     const value = chargeSwitch.checked ? 'frasco' : 'mg';
                     chargeByHidden.value = value;
                     chargeLabel.textContent = value;
-
-                    tbody.querySelectorAll('tr.fila-presentacion').forEach(row => {
-                        const sel = row.querySelector('[data-role="charge-by"]'); // visual disabled
-                        const hid = row.querySelector('[data-role="charge-by-hidden"]'); // enviado
-                        if (sel) sel.value = value;
-                        if (hid) hid.value = value;
-                    });
                 }
 
                 if (chargeSwitch && chargeByHidden && chargeLabel) {
-                    chargeSwitch.addEventListener('change', syncChargeVisualToAllRows);
-                    syncChargeVisualToAllRows();
+                    chargeSwitch.addEventListener('change', syncChargeGlobalLabel);
+                    syncChargeGlobalLabel();
                 }
 
                 // ===== Helpers =====
@@ -369,7 +366,6 @@
                 function getSelectedCatalogIds(exceptGroupId = null) {
                     const used = [];
                     tbody.querySelectorAll('tr[data-group]').forEach(headerRow => {
-                        // headers tienen data-group y NO son fila-presentacion
                         if (headerRow.classList.contains('fila-presentacion')) return;
 
                         const groupId = headerRow.dataset.group;
@@ -396,7 +392,7 @@
                         }
 
                         const val = String(optData.value);
-                        if (used.includes(val) && val !== cur) return; // ✅ NO agregar usados
+                        if (used.includes(val) && val !== cur) return;
 
                         const opt = document.createElement('option');
                         opt.value = optData.value;
@@ -448,7 +444,7 @@
 
                     lista.forEach(p => {
                         const idStr = String(p.id);
-                        if (usados.includes(idStr) && idStr !== currentValue) return; // ✅ NO agregar usados
+                        if (usados.includes(idStr) && idStr !== currentValue) return;
 
                         const opt = document.createElement('option');
                         opt.value = p.id;
@@ -485,7 +481,6 @@
                     const btnAddPres = header.querySelector('[data-role="add-presentacion"]');
                     const btnRemoveGrupo = header.querySelector('[data-role="remove-grupo"]');
 
-                    // ✅ construir opciones quitando las usadas
                     refreshGenericSelect(selectGenerico, groupId, initialCatalogId ? String(initialCatalogId) : '');
 
                     if (initialCatalogId) selectGenerico.value = String(initialCatalogId);
@@ -493,7 +488,6 @@
                     selectGenerico.addEventListener('change', function() {
                         const catalogId = this.value;
 
-                        // actualizar labels + hidden catalog en filas del grupo y recargar presentaciones
                         tbody.querySelectorAll('tr.fila-presentacion[data-group="' + groupId + '"]').forEach(
                             row => {
                                 const label = row.querySelector('[data-role="generico-label"]');
@@ -503,12 +497,10 @@
                                 label.textContent = this.options[this.selectedIndex]?.text || '';
                                 inputCatalog.value = catalogId;
 
-                                // reset presentación
                                 selPres.value = '';
                                 cargarPresentacionesEnSelect(selPres, catalogId, null);
                             });
 
-                        // ✅ refrescar genéricos para quitar el seleccionado en otros selects
                         refreshAllGenericSelects();
                     });
 
@@ -521,7 +513,6 @@
                     });
 
                     btnRemoveGrupo.addEventListener('click', function() {
-                        // liberar presentaciones usadas por ese catálogo
                         const oldCatalogId = selectGenerico.value;
 
                         tbody.querySelectorAll('tr.fila-presentacion[data-group="' + groupId + '"]').forEach(
@@ -529,14 +520,11 @@
                         header.remove();
                         renumerarFilas();
 
-                        // refrescar genéricos y presentaciones
                         refreshAllGenericSelects();
                         if (oldCatalogId) refreshAllPresentationsForCatalog(oldCatalogId);
                     });
 
-                    // al crear grupo, refrescar genéricos para que todos vean el cambio
                     refreshAllGenericSelects();
-
                     return groupId;
                 }
 
@@ -548,8 +536,6 @@
                     const labelGenerico = row.querySelector('[data-role="generico-label"]');
                     const selectPresent = row.querySelector('[data-role="presentacion"]');
                     const inputCatalog = row.querySelector('[data-role="input-catalog-id"]');
-                    const selectChargeBy = row.querySelector('[data-role="charge-by"]'); // disabled
-                    const hiddenChargeBy = row.querySelector('[data-role="charge-by-hidden"]');
                     const inputPrecio = row.querySelector('[data-role="precio"]');
                     const btnRemoveRow = row.querySelector('[data-role="remove-row"]');
 
@@ -575,29 +561,19 @@
                     selectPresent.name = `medicamentos[${idx}][presentation_id]`;
                     inputPrecio.name = `medicamentos[${idx}][precio]`;
 
-                    // ✅ cobro: solo global
-                    selectChargeBy.name = ''; // no se envía
-                    hiddenChargeBy.name =
-                        `medicamentos[${idx}][charge_by]`; // aunque el backend lo ignora, sirve para old()
-                    hiddenChargeBy.value = getGlobalChargeBy();
-                    selectChargeBy.value = hiddenChargeBy.value;
-
-                    // preset desde DB/old
                     const presetPresentationId = presetItem?.presentation_id ? String(presetItem.presentation_id) :
-                        null;
+                    null;
+
                     if (presetItem && presetItem.precio !== undefined && presetItem.precio !== null) {
                         inputPrecio.value = presetItem.precio;
                     } else {
                         inputPrecio.value = '';
                     }
 
-                    // ✅ cargar opciones de presentación (removiendo usadas)
                     cargarPresentacionesEnSelect(selectPresent, catalogId, presetPresentationId);
 
-                    // ✅ si traía preset, asegurar selección
                     if (presetPresentationId) selectPresent.value = presetPresentationId;
 
-                    // al cambiar presentación, refrescar TODAS del mismo catálogo (para remover/volver a mostrar)
                     selectPresent.addEventListener('change', function() {
                         refreshAllPresentationsForCatalog(catalogId);
                     });
@@ -610,8 +586,6 @@
                     });
 
                     renumerarFilas();
-                    // asegurar switch global aplicado
-                    syncChargeVisualToAllRows();
                 }
 
                 // ===== Inicialización: old() tiene prioridad =====
@@ -655,7 +629,7 @@
 
                         const header = tbody.querySelector('tr[data-group="' + groupId + '"]');
                         const selectGenerico = header.querySelector('[data-role="generico"]');
-                        // reconstruir opciones (para que no desaparezca el actual)
+
                         refreshGenericSelect(selectGenerico, groupId, catalogId);
                         selectGenerico.value = catalogId;
 
@@ -663,7 +637,6 @@
                             addPresentacionRow(groupId, selectGenerico, item);
                         });
 
-                        // asegurar que el catálogo elegido “quite” opciones en otros selects
                         refreshAllGenericSelects();
                         refreshAllPresentationsForCatalog(catalogId);
                     });

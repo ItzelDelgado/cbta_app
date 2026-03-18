@@ -11,10 +11,10 @@ return new class extends Migration
         Schema::create('clientes', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
-            $table->string('apellido');
+            $table->string('razon_social')->nullable();
             $table->timestamps();
 
-            $table->index(['apellido', 'nombre']);
+            $table->index(['razon_social', 'nombre']);
         });
     }
 
