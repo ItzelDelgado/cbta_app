@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Nutricionales\Input;
 use Carbon\Carbon;
 
 /**
@@ -9,150 +8,160 @@ use Carbon\Carbon;
  * - Soporta notación científica.
  * - null, vacío o no numérico => 0.0
  */
-function toFloat($value): float {
-    if ($value === null) return 0.0;
-    $v = preg_replace('/[^\d\.\-eE]/', '', (string)$value); // deja solo dígitos, punto y signo
-    if ($v === '' || $v === '.' || $v === '-') return 0.0;
-    return (float)$v;
+function toFloat($value): float
+{
+    if ($value === null) {
+        return 0.0;
+    }
+
+    $v = preg_replace('/[^\d\.\-eE]/', '', (string) $value);
+
+    if ($v === '' || $v === '.' || $v === '-') {
+        return 0.0;
+    }
+
+    return (float) $v;
 }
 
 /**
- * Formatea cualquier valor a 3 decimales (para mostrar en la vista).
+ * Formatea cualquier valor a 3 decimales.
  */
-function fmt3($value): string {
+function fmt3($value): string
+{
     return number_format(toFloat($value), 3, '.', '');
 }
 
 /**
- * Devuelve el valor crudo del input (texto). Úsalo con toFloat() si lo necesitas numérico.
+ * Valor crudo del input.
  */
-function renderInputSection($id, $inputs_solicitud) {
+function renderInputSection($id, $inputs_solicitud)
+{
     $inputValue = '';
+
     foreach ($inputs_solicitud as $inputItem) {
         if ($inputItem->input_id == $id) {
             $inputValue = $inputItem->valor;
             break;
         }
     }
+
     return $inputValue;
 }
 
 /**
- * Devuelve el valor en ML como float (limpio). No formatea; eso se hace en la vista.
+ * Valor ML limpio.
  */
-function renderInputMLSection($id, $inputs_solicitud): float {
+function renderInputMLSection($id, $inputs_solicitud): float
+{
     $value = null;
+
     foreach ($inputs_solicitud as $inputItem) {
         if ($inputItem->input_id == $id) {
-            $value = $inputItem->valor_ml; // puede venir string o null
+            $value = $inputItem->valor_ml;
             break;
         }
     }
+
     return toFloat($value);
 }
 
 /**
- * Devuelve el valor de sobrellenado en ML como float (limpio).
+ * Valor sobrellenado limpio.
  */
-function renderInputMLSobrellenadoSection($id, $inputs_solicitud): float {
+function renderInputMLSobrellenadoSection($id, $inputs_solicitud): float
+{
     $value = null;
+
     foreach ($inputs_solicitud as $inputItem) {
         if ($inputItem->input_id == $id) {
-            $value = $inputItem->valor_sobrellenado; // puede venir string o null
+            $value = $inputItem->valor_sobrellenado;
             break;
         }
     }
+
     return toFloat($value);
 }
 
 /**
- * Lote: primero del registro de la solicitud, si no, del medicamento relacionado.
- * Tolera distintos namespaces del modelo Input.
+ * Lote del input.
  */
-function renderLoteSection($id, $inputs_solicitud) {
+function renderLoteSection($id, $inputs_solicitud)
+{
     foreach ($inputs_solicitud as $inputItem) {
         if ($inputItem->input_id == $id && !empty($inputItem->lote)) {
             return $inputItem->lote;
         }
     }
 
-    // Fallback: intenta cargar el medicamento si la clase Input existe
-    $input = null;
-    if (class_exists(Input::class)) {
-        $input = Input::with('medicine')->find($id);
-    } elseif (class_exists(Input::class)) {
-        $input = Input::with('medicine')->find($id);
-    }
-
-    return $input->medicine->lote ?? '';
+    return '';
 }
 
 /**
- * Caducidad: primero del registro de la solicitud, si no, del medicamento relacionado.
- * Devuelve 'Y-m-d' o cadena vacía. Tolera distintos namespaces del modelo Input.
+ * Caducidad del input.
  */
-function renderCaducidadSection($id, $inputs_solicitud) {
+function renderCaducidadSection($id, $inputs_solicitud)
+{
     foreach ($inputs_solicitud as $inputItem) {
         if ($inputItem->input_id == $id && !empty($inputItem->caducidad)) {
             return Carbon::parse($inputItem->caducidad)->format('Y-m-d');
         }
     }
 
-    // Fallback: intenta cargar el medicamento si la clase Input existe
-    $input = null;
-    if (class_exists(Input::class)) {
-        $input = Input::with('medicine')->find($id);
-    } elseif (class_exists(Input::class)) {
-        $input = Input::with('medicine')->find($id);
-    }
-
-    if (!empty($input?->medicine?->caducidad)) {
-        return Carbon::parse($input->medicine->caducidad)->format('Y-m-d');
-    }
     return '';
 }
 
 /**
- * Guarda/retorna la bolsa EVA seleccionada dentro del ciclo (usa variable global como en tu código).
+ * Guarda/retorna la bolsa EVA seleccionada.
  */
-function renderBolsaEvaInputSection($id, $inputs_solicitud) {
+function renderBolsaEvaInputSection($id, $inputs_solicitud)
+{
     global $inputBolsaEva;
 
     foreach ($inputs_solicitud as $inputItem) {
         if ($inputItem->input_id == $id) {
             $inputBolsaEva = $inputItem->input_id;
+
             return $inputItem->input_id;
         }
     }
+
     return null;
 }
 
 /**
- * Lote de la bolsa EVA seleccionada (global).
+ * Lote bolsa EVA.
  */
-function renderLoteBolsaEvaSection($inputs_solicitud) {
+function renderLoteBolsaEvaSection($inputs_solicitud)
+{
     global $inputBolsaEva;
+
     $inputLote = '';
+
     foreach ($inputs_solicitud as $inputItem) {
         if ($inputItem->input_id == $inputBolsaEva) {
             $inputLote = $inputItem->lote;
             break;
         }
     }
+
     return $inputLote;
 }
 
 /**
- * Caducidad de la bolsa EVA seleccionada (global).
+ * Caducidad bolsa EVA.
  */
-function renderCaducidadBolsaEvaSection($inputs_solicitud) {
+function renderCaducidadBolsaEvaSection($inputs_solicitud)
+{
     global $inputBolsaEva;
+
     $inputCaducidad = '';
+
     foreach ($inputs_solicitud as $inputItem) {
         if ($inputItem->input_id == $inputBolsaEva) {
             $inputCaducidad = $inputItem->caducidad;
             break;
         }
     }
+
     return $inputCaducidad;
 }

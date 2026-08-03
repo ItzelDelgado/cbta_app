@@ -307,7 +307,7 @@
                             : now()->format('d/m/Y H:i') }}
                     </strong>
                 </td>
-                <td class="px-1 text-right">DOMICILIO CLIENTE RECEPTOR:
+                <td class="px-1 text-right">DOMICILIO INSTITUCION RECEPTORA:
                     <strong>{{ $domicilioHospital }}</strong>
                 </td>
             </tr>
@@ -427,6 +427,14 @@
                         <td class="border-1 px-1 text-center">{{ $prepFmt }}</td>
                         <td class="border-1 border-r-0 px-1 text-center">{{ $limiteFmt }}</td>
                     </tr>
+
+                    <tr>
+                        <td class="border-1 border-l-0 px-1" colspan="5">
+                            <strong>Leyenda de protección:</strong>
+                            {{ $med->legend_proteccion_doc !== '' ? $med->legend_proteccion_doc : '—' }}
+                        </td>
+                        <td class="border-1 border-r-0 px-1" colspan="4">&nbsp;</td>
+                    </tr>
                 @empty
                     <tr>
                         <td class="border-1 border-l-0 px-1 text-center" colspan="9">
@@ -447,7 +455,7 @@
 
         <table class="mt-4">
             <tr>
-                <td class="text-center">Recepción Cliente</td>
+                <td class="text-center">Recepcion Institucion</td>
             </tr>
         </table>
 
@@ -477,3 +485,4 @@
 
 
 </html>
+

@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\Hospital\MezclasOncoPorHospitalExport;
 use App\Http\Controllers\Controller;
-use App\Models\Cliente;
 use App\Models\Hospital;
+use App\Models\Nutricionales\NutriMedicineList;
 use App\Models\Oncologicos\Laboratory;
+use App\Models\Oncologicos\MedicineList;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -17,21 +18,23 @@ class HospitalController extends Controller
      */
     public function index()
     {
-        $hospitals = Hospital::latest()->get();
+        $hospitals = Hospital::with('instituciones')->latest()->get();
         return view('admin.hospitals.index', compact('hospitals'));
     }
 
     public function create()
     {
-        $clientes = Cliente::orderBy('razon_social|')
-            ->orderBy('nombre')
-            ->get();
-
         $laboratories = Laboratory::where('activo', 1)
             ->orderBy('nombre')
             ->get();
 
-        return view('admin.hospitals.create', compact('clientes', 'laboratories'));
+        $nutriMedicineLists = NutriMedicineList::where('is_active', 1)
+            ->orderBy('name')
+            ->get();
+
+        $oncoMedicineLists = MedicineList::orderBy('name')->get();
+
+        return view('admin.hospitals.create', compact('laboratories', 'nutriMedicineLists', 'oncoMedicineLists'));
     }
 
     /**
@@ -43,19 +46,16 @@ class HospitalController extends Controller
             'name_hp' => 'required|string|max:255',
             'adress'  => 'required|string|max:400',
             'laboratory_id' => 'nullable|integer|exists:laboratories,id',
-            'clientes'   => 'nullable|array',
-            'clientes.*' => 'integer|exists:clientes,id',
+            'nutri_medicine_list_id' => 'nullable|integer|exists:nutri_medicine_lists,id',
+            'onco_medicine_list_id' => 'nullable|integer|exists:medicine_lists,id',
         ]);
 
         $datos = $request->all();
         $datos['name'] = $datos['name_hp'];
+
         unset($datos['name_hp']);
-        unset($datos['clientes']);
 
-        $hospital = Hospital::create($datos);
-
-        $clientesIds = $request->input('clientes', []);
-        $hospital->clientes()->sync($clientesIds);
+        Hospital::create($datos);
 
         session()->flash('swal', [
             'title' => "¡Bien hecho!",
@@ -68,46 +68,42 @@ class HospitalController extends Controller
 
     public function edit(Hospital $hospital)
     {
-        $clientes = Cliente::orderBy('razon_social')
-            ->orderBy('nombre')
-            ->get();
-
         $laboratories = Laboratory::where('activo', 1)
             ->orderBy('nombre')
             ->get();
 
-        $selectedClientesIds = $hospital->clientes()
-            ->pluck('clientes.id')
-            ->toArray();
+        $nutriMedicineLists = NutriMedicineList::where('is_active', 1)
+            ->orderBy('name')
+            ->get();
 
-        return view('admin.hospitals.edit', compact(
-            'hospital',
-            'clientes',
-            'selectedClientesIds',
-            'laboratories'
-        ));
+        $oncoMedicineLists = MedicineList::orderBy('name')->get();
 
+        return view('admin.hospitals.edit', compact('hospital', 'laboratories', 'nutriMedicineLists', 'oncoMedicineLists'));
     }
+
 
     public function update(Request $request, Hospital $hospital)
     {
+
         $request->validate([
             'name'      => 'required|string|max:255',
             'adress'    => 'required|string|max:400',
             'is_active' => 'required|boolean',
             'laboratory_id' => 'nullable|integer|exists:laboratories,id',
-
-            // clientes (pivot)
-            'clientes'   => 'nullable|array',
-            'clientes.*' => 'integer|exists:clientes,id',
+            'nutri_medicine_list_id' => 'nullable|integer|exists:nutri_medicine_lists,id',
+            'onco_medicine_list_id' => 'nullable|integer|exists:medicine_lists,id',
         ]);
 
-        $data = $request->only(['name', 'adress', 'is_active', 'laboratory_id']);
-        $hospital->update($data);
+        $data = $request->only([
+            'name',
+            'adress',
+            'is_active',
+            'laboratory_id',
+            'nutri_medicine_list_id',
+            'onco_medicine_list_id'
+        ]);
 
-        // Actualiza relación pivot (si no mandas nada, queda vacío)
-        $clientesIds = $request->input('clientes', []);
-        $hospital->clientes()->sync($clientesIds);
+        $hospital->update($data);
 
         session()->flash('swal', [
             'title' => "¡Bien hecho!",

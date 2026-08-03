@@ -3,16 +3,16 @@
 namespace App\Livewire\Nutricionales;
 
 use App\Models\Nutricionales\Solicitud as NutricionalesSolicitud;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\Auth;
 
 class SolicitudesTable extends Component
 {
     use WithPagination;
 
-    public $buscar = ''; // input del usuario
-    public $search = ''; // filtro aplicado realmente
+    public $buscar = '';
+    public $search = '';
 
     public $sortField = 'id';
     public $sortDirection = 'desc';
@@ -40,60 +40,73 @@ class SolicitudesTable extends Component
     public function render()
     {
         $user = Auth::user();
-        $role = $user->roles[0]->name;
+        $role = $user->roles[0]->name ?? null;
 
-        $query = NutricionalesSolicitud::with([
-            'user.hospital',
-            'solicitud_detail',
-            'solicitud_patient',
-            'solicitud_aprobada'
-        ]);
+        $query = NutricionalesSolicitud::query()
+            ->with([
+                'user.hospital',
+                'solicitud_detail',
+                'solicitud_patient',
+            ]);
 
-        if ($role === 'Cliente') {
-            $query->where('user_id', $user->id);
+        if (in_array($role, ['Cliente', 'Institucion'], true)) {
+            $query->where('solicituds.user_id', $user->id);
         }
 
         if ($this->search !== '') {
             $query->where(function ($query) {
                 $query->where('solicituds.id', 'like', "%{$this->search}%")
-                    ->orWhere('solicituds.is_aprobada', 'like', "%{$this->search}%")
+                    ->orWhere('solicituds.estado', 'like', "%{$this->search}%")
+                    ->orWhere('solicituds.lote', 'like', "%{$this->search}%")
+                    ->orWhere('solicituds.remision', 'like', "%{$this->search}%")
                     ->orWhereDate('solicituds.created_at', $this->search)
+                    ->orWhereDate('solicituds.fecha_hora_preparacion', $this->search)
+                    ->orWhereDate('solicituds.fecha_hora_limite_uso', $this->search)
+                    ->orWhereHas('solicitud_detail', function ($q) {
+                        $q->whereDate('fecha_hora_entrega', $this->search);
+                    })
                     ->orWhereHas('user.hospital', function ($q) {
                         $q->where('name', 'like', "%{$this->search}%");
                     })
                     ->orWhereHas('solicitud_patient', function ($q) {
                         $q->where('nombre_paciente', 'like', "%{$this->search}%")
-                          ->orWhere('apellidos_paciente', 'like', "%{$this->search}%");
-                    })
-                    ->orWhereHas('solicitud_aprobada', function ($q) {
-                        $q->where('id', 'like', "%{$this->search}%")
-                          ->orWhere('lote', 'like', "%{$this->search}%");
+                            ->orWhere('apellidos_paciente', 'like', "%{$this->search}%");
                     });
             });
         }
 
-        // Ordenamientos especiales
-        if ($this->sortField === 'solicitud_aprobadas.lote') {
-            // Ordena por fecha del lote (ddmmaa) y luego por consecutivo (NNN).
-            // Empuja los NULL al final.
-            $dir = $this->sortDirection; // 'asc' | 'desc'
-
+        if ($this->sortField === 'solicitud_details.fecha_hora_entrega') {
             $query = $query
-                ->leftJoin('solicitud_aprobadas as sa', 'solicituds.id', '=', 'sa.solicitud_id')
+                ->leftJoin('solicitud_details as sd', 'solicituds.solicitud_detail_id', '=', 'sd.id')
                 ->select('solicituds.*')
-                // NULLs al final
-                ->orderByRaw("CASE WHEN sa.lote IS NULL THEN 1 ELSE 0 END ASC")
-                // Fecha del lote: SUBSTRING(lote,2,6) => ddmmaa
-                ->orderByRaw("STR_TO_DATE(SUBSTRING(sa.lote, 2, 6), '%d%m%y') {$dir}")
-                // Consecutivo: SUBSTRING(lote,8,3) => NNN
-                ->orderByRaw("CAST(SUBSTRING(sa.lote, 8, 3) AS UNSIGNED) {$dir}");
-        } elseif ($this->sortField === 'is_aprobada') {
-            // Estado + más recientes primero
-            $query->orderBy('is_aprobada', $this->sortDirection)
-                  ->orderBy('created_at', 'desc');
+                ->orderByRaw('CASE WHEN sd.fecha_hora_entrega IS NULL THEN 1 ELSE 0 END ASC')
+                ->orderBy('sd.fecha_hora_entrega', $this->sortDirection);
+        } elseif ($this->sortField === 'lote') {
+            $dir = $this->sortDirection;
+
+            $query->orderByRaw('CASE WHEN solicituds.lote IS NULL THEN 1 ELSE 0 END ASC')
+                ->orderByRaw("STR_TO_DATE(SUBSTRING(solicituds.lote, 2, 6), '%d%m%y') {$dir}")
+                ->orderByRaw("CAST(SUBSTRING(solicituds.lote, 8, 3) AS UNSIGNED) {$dir}");
+        } elseif ($this->sortField === 'estado') {
+            $query->orderBy('solicituds.estado', $this->sortDirection)
+                ->orderBy('solicituds.created_at', 'desc');
         } else {
-            // Default
-            $query->orderBy($this->sortField, $this->sortDirection);
+            $allowedSorts = [
+                'id',
+                'user_id',
+                'created_at',
+                'estado',
+                'lote',
+                'remision',
+                'fecha_hora_preparacion',
+                'fecha_hora_limite_uso',
+            ];
+
+            if (in_array($this->sortField, $allowedSorts, true)) {
+                $query->orderBy("solicituds.{$this->sortField}", $this->sortDirection);
+            } else {
+                $query->orderBy('solicituds.id', 'desc');
+            }
         }
 
         $solicitudes = $query->paginate(50);
@@ -101,3 +114,4 @@ class SolicitudesTable extends Component
         return view('livewire.nutricionales.solicitudes-table', compact('solicitudes'));
     }
 }
+

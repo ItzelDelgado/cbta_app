@@ -50,7 +50,7 @@ class SolicitudesTable extends Component
 
         // ✅ Igual que Nutricionales: si es Cliente, limita lo que ve
         // Ajusta este filtro si en tu sistema el Cliente se relaciona distinto.
-        if ($role === 'Cliente') {
+        if (in_array($role, ['Cliente', 'Institucion'], true)) {
             $query->where('hospital_id', $user->hospital_id);
         }
 

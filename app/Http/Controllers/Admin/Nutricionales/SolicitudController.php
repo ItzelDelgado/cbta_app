@@ -7,7 +7,6 @@ use App\Models\Hospital;
 use App\Models\Nutricionales\Input;
 use App\Models\Nutricionales\Medicine;
 use App\Models\Nutricionales\Solicitud;
-use App\Models\Nutricionales\SolicitudAprobada;
 use App\Models\Nutricionales\SolicitudDetail;
 use App\Models\Nutricionales\SolicitudInput;
 use App\Models\Nutricionales\SolicitudPatient;
@@ -28,28 +27,33 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Notification;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SolicitudesExport;
-
+use App\Models\Nutricionales\NutriMedicineListItem;
+use App\Models\Nutricionales\MedicineLaboratoryStock;
+use App\Models\Nutricionales\MedicineStockMovement;
+use App\Models\Nutricionales\InspeccionNutricional;
+use App\Models\Nutricionales\NutritionMedicinePresentation;
 
 class SolicitudController extends Controller
 {
+
 
     /**
      * Display a listing of the resource.
      */ public function index()
     {
 
-        
+
         $user = Auth::user(); // Obtener el usuario actual
         $role = $user->roles[0]->name;
         if ($role === 'Admin' or $role === 'Super Admin') {
             // Si el usuario es un administrador, cargar todas las solicitudes
-            $solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
+            $solicitudes = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
                 ->latest()
                 ->paginate(30);
-        } elseif ($role === 'Cliente') {
+        } elseif (in_array($role, ['Cliente', 'Institucion'], true)) {
             // Si el usuario es un cliente, cargar solo sus propias solicitudes
             $solicitudes = Solicitud::where('user_id', $user->id)
-                ->with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
+                ->with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
                 ->latest()
                 ->paginate(10);
             //return $solicitudes;
@@ -97,959 +101,1518 @@ class SolicitudController extends Controller
         return $edad;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    private function nombreUsuarioActual(): string
     {
-
-        $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
-            ->where('inputs.is_active', 1)
-            ->orderBy('orden_enum', 'asc')
-            ->select('inputs.*', 'inputs.id AS input_id') // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
-            ->get();
-
-        return view('admin.nutricionales.solicitudes.create', compact('inputs'));
+        return $this->nombreUsuario(auth()->user());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    private function nombreUsuario(?User $user): string
     {
+        $nombreCompleto = trim(($user?->name ?? '') . ' ' . ($user?->lastname ?? ''));
 
-        $fecha_nacimiento = $request->input('fecha_nacimiento');
-        //Calculamos la edad del paciente
-        $edad = $this->calcularEdad($fecha_nacimiento);
-        //return $filtered_inputs;
-        // ]));
-        $request->validate([
-            'nombre_paciente' => 'required|string|max:255',
-            'apellidos_paciente' => 'required|string|max:255',
-            'servicio' => 'required|string|max:100',
-            'cama' => 'nullable|string|max:50',
-            'piso' => 'nullable|string|max:50',
-            'registro' => 'nullable|string|max:50',
-            'diagnostico' => 'nullable|string|max:255',
-            'peso' => 'required|numeric',
-            'fecha_nacimiento' => 'required|date',
-            'edad' => 'nullable',
-            'sexo' => 'nullable',
-            'via_administracion' => 'required',
-            'tiempo_infusion_min' => 'nullable|numeric',
-            'sobrellenado_ml' => 'nullable|numeric',
-            'volumen_total' => 'nullable|numeric',
-            'npt' => 'required',
-            'observaciones' => 'nullable|string|max:500',
-            'fecha_hora_entrega' => 'required|date_format:Y-m-d\TH:i',
-            'nombre_medico' => 'required|string|max:255',
-            'cedula' => 'required|string|max:50',
-            'velocidad_infusion' => 'nullable|numeric',
-            'hospital_destino' => 'nullable|string|max:255'
-        ]);
+        return $user?->username
+            ?: ($nombreCompleto !== '' ? $nombreCompleto : ($user?->email ?? 'Usuario'));
+    }
 
-        // Validar que la fecha de entrega sea al menos 3:30 horas después de ahora
-        $fechaHoraEntrega = \Carbon\Carbon::createFromFormat('Y-m-d\TH:i', $request->input('fecha_hora_entrega'));
-        $horaMinima = \Carbon\Carbon::now()->addMinutes(210);
+    private function nombreUsuarioDesdeTexto(?string $nombre): ?string
+    {
+        $nombre = trim((string) $nombre);
 
-        if ($fechaHoraEntrega->lt($horaMinima)) {
-            return redirect()->back()->withErrors([
-                'fecha_hora_entrega' => 'La fecha y hora de entrega debe ser al menos 3 horas y 30 minutos después de la hora actual.'
-            ])->withInput();
+        if ($nombre === '') {
+            return null;
         }
 
-        // $validator = Validator::make($request->all(), [
-        //     'i_28_mL' => 'nullable|numeric|mvi_mayor_que_peso:' . $request->input('peso'),
-        //     'i_4_g/Kg' => 'nullable|numeric|aminoacidos_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
-        //     'i_5_g/Kg' => 'nullable|numeric|aminoacidos_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
-        //     'i_6_g/Kg' => 'nullable|numeric|aminoacidos_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
-        //     'i_7_g/Kg' => 'nullable|numeric|aminoacidos_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
-        //     'i_8_g/Kg' => 'nullable|numeric|dextrosa_validaciones:' . $request->input('peso'),
-        //     'i_9_g/Kg' => 'nullable|numeric|lipidos_validaciones:' . $request->input('peso'),
-        //     'i_10_g/Kg' => 'nullable|numeric|lipidos_validaciones:' . $request->input('peso'),
-        //     'i_11_mEq/Kg' => 'nullable|numeric|sodio_validaciones:' . $request->input('peso') . ',' . $request->input('npt')
-        //         . ',' . $request->input('i_11') . ',' . $request->input('i_12') . ',' . $request->input('i_13'),
-        //     'i_12_mEq/Kg' => 'nullable|numeric|sodio_validaciones:' . $request->input('peso') . ',' . $request->input('npt')
-        //         . ',' . $request->input('i_11') . ',' . $request->input('i_12') . ',' . $request->input('i_13'),
-        //     'i_13_mEq/Kg' => 'nullable|numeric|sodio_validaciones:' . $request->input('peso') . ',' . $request->input('npt')
-        //         . ',' . $request->input('i_11') . ',' . $request->input('i_12') . ',' . $request->input('i_13'),
-        //     'i_14_mEq/Kg' => 'nullable|numeric|magnesio_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
-        //     'i_15_mEq/Kg' => 'nullable|numeric|potasio_validaciones:' . $request->input('peso') . ',' . $request->input('npt')
-        //         . ',' . $request->input('i_15') . ',' . $request->input('i_16') . ',' . $request->input('i_17'),
-        //     'i_16_mEq/Kg' => 'nullable|numeric|potasio_validaciones:' . $request->input('peso') . ',' . $request->input('npt')
-        //         . ',' . $request->input('i_15') . ',' . $request->input('i_16') . ',' . $request->input('i_17'),
-        //     'i_17_mEq/Kg' => 'nullable|numeric|potasio_validaciones:' . $request->input('peso') . ',' . $request->input('npt')
-        //         . ',' . $request->input('i_15') . ',' . $request->input('i_16') . ',' . $request->input('i_17'),
-        //     'i_18_mEq/Kg' => 'nullable|numeric|calcio_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
-        //     'i_20_g' => 'nullable|numeric|albumina_validaciones:' . $request->input('peso') . ',' . (100 * $request->input('i_20') / 20),
-        //     'i_21_g' => 'nullable|numeric|albumina_validaciones:' . $request->input('peso') . ',' . (100 * $request->input('i_21') / 25),
-        //     'i_22_g' => 'nullable|numeric|glutamina_validaciones:' . $request->input('peso') . ',' . (100 * $request->input('i_22') / 20),
-        //     'i_23_mcg' => 'nullable|numeric|cromo_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
-        //     'i_24_UI' => 'nullable|numeric|heparina_validaciones:',
-        //     'i_25_mg' => 'nullable|numeric|carnitina_validaciones:' . $request->input('peso') . ',' . ($request->input('i_25') / 200),
-        //     'i_26_UI' => 'nullable|numeric|insulina_validaciones:',
-        //     'i_27_mcg' => 'nullable|numeric|manganeso_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
-        //     'i_28_mL' => 'nullable|numeric|multivitaminico_validaciones:' . $request->input('peso') . ',' . ($request->input('i_28')),
-        //     'i_29_mL' => 'nullable|numeric|oligoelementos_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
-        //     'i_31_mcg' => 'nullable|numeric|selenio_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
-        //     'i_34_mg' => 'nullable|numeric|zinc_validaciones:' . $request->input('peso') . ',' . $request->input('npt'),
+        $usuario = User::query()
+            ->select('username')
+            ->where('username', $nombre)
+            ->orWhere('name', $nombre)
+            ->orWhereRaw("TRIM(CONCAT(COALESCE(name, ''), ' ', COALESCE(lastname, ''))) = ?", [$nombre])
+            ->first();
 
-        // ]);
+        return $usuario?->username ?: $nombre;
+    }
 
-        // if ($validator->fails()) {
-        //     return redirect('/admin/solicitudes/create')
-        //         ->withErrors($validator)
-        //         ->withInput();
-        // }
+    private function obtenerOCrearInspeccionNutricional(Solicitud $solicitud): InspeccionNutricional
+    {
+        return InspeccionNutricional::firstOrCreate(
+            ['solicitud_id' => $solicitud->id],
+            [
+                'fecha_inspeccion' => now()->toDateString(),
+                'hora_inspeccion' => now()->format('H:i:s'),
+                'aprobo_nombre' => null,
+                'preparo_nombre' => null,
+                'reviso_nombre' => null,
+                'libero_nombre' => null,
+            ]
+        );
+    }
 
+    private function generarLoteNutricional(Solicitud $solicitud): void
+    {
+        if (!empty($solicitud->lote)) {
+            return;
+        }
 
-        //El sobrellenado y tiempo 0 y 24
-        //Llenamos los datos del paciente
-        $solicitud_paciente = $request->only(['nombre_paciente', 'apellidos_paciente', 'servicio', 'cama', 'piso', 'registro', 'diagnostico', 'peso', 'fecha_nacimiento', 'sexo']);
-        //Llenamos los detalles de la solicitud
-        $solicitud_detalles = $request->only(['via_administracion', 'tiempo_infusion_min', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula', 'velocidad_infusion', 'hospital_destino']);
-        //A los datos del paciente le asignamos la edad
-        $solicitud_paciente['edad'] = $edad;
-        //Creamos las instancias en la base de datos
-        $solicitud_paciente_resp = SolicitudPatient::create($solicitud_paciente);
-        $solicitud_detalles_resp = SolicitudDetail::create($solicitud_detalles);
-        $peso_paciente =  $solicitud_paciente_resp->peso;
-        //Para saber quien hizo la solicitud
+        $conteoHoy = Solicitud::whereDate('created_at', today())
+            ->whereNotNull('lote')
+            ->lockForUpdate()
+            ->count();
+
+        $numeroFormateado = str_pad($conteoHoy + 1, 3, '0', STR_PAD_LEFT);
+
+        $solicitud->lote = 'L' . now()->format('dmy') . $numeroFormateado;
+    }
+
+    private function generarRemisionNutricional(Solicitud $solicitud): void
+    {
+        if (!empty($solicitud->remision)) {
+            return;
+        }
+
+        $maxRemision = Solicitud::whereNotNull('remision')
+            ->lockForUpdate()
+            ->max(DB::raw('CAST(remision AS UNSIGNED)'));
+
+        $solicitud->remision = (string) (((int) $maxRemision) + 1);
+    }
+
+    private function devolverStockSolicitud(Solicitud $solicitud): void
+    {
+        $movimientosSalida = MedicineStockMovement::where('reference_type', 'Solicitud')
+            ->where('reference_id', $solicitud->id)
+            ->where('tipo', 'salida')
+            ->get();
+
+        foreach ($movimientosSalida as $movimiento) {
+            $stock = MedicineLaboratoryStock::where('id', $movimiento->medicine_laboratory_stock_id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$stock) {
+                continue;
+            }
+
+            $stockAntes = (float) $stock->stock_ml_actual;
+            $frascosAntes = (float) $stock->frascos_actuales;
+
+            $cantidadMl = (float) $movimiento->cantidad_ml;
+            $cantidadFrascos = (float) ($movimiento->cantidad_frascos ?? 0);
+
+            $stockDespues = $stockAntes + $cantidadMl;
+            $frascosDespues = $frascosAntes + $cantidadFrascos;
+
+            $stock->update([
+                'stock_ml_actual' => $stockDespues,
+                'frascos_actuales' => $frascosDespues,
+                'is_active' => true,
+            ]);
+
+            MedicineStockMovement::create([
+                'medicine_laboratory_stock_id' => $stock->id,
+                'user_id' => auth()->id(),
+                'tipo' => 'entrada',
+                'cantidad_ml' => $cantidadMl,
+                'cantidad_frascos' => $cantidadFrascos,
+                'stock_antes' => $stockAntes,
+                'stock_despues' => $stockDespues,
+                'frascos_antes' => $frascosAntes,
+                'frascos_despues' => $frascosDespues,
+                'reference_type' => 'SolicitudCancelada',
+                'reference_id' => $solicitud->id,
+                'notes' => 'Devolución automática de inventario por cancelación de solicitud nutricional',
+            ]);
+        }
+    }
+
+    private function solicitudYaTieneDevolucionInventario(Solicitud $solicitud): bool
+    {
+        return MedicineStockMovement::where('reference_type', 'SolicitudCancelada')
+            ->where('reference_id', $solicitud->id)
+            ->exists();
+    }
+
+    public function cancelar(Solicitud $solicitud)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            $solicitud->loadMissing('user.hospital');
+
+            if (
+                $solicitud->estado === 'aprobada' ||
+                $solicitud->estado === 'preparada' ||
+                $solicitud->estado === 'revisada'
+            ) {
+
+                if (!$this->solicitudYaTieneDevolucionInventario($solicitud)) {
+                    $this->devolverStockSolicitud($solicitud);
+                }
+            }
+
+            // CLIENTE
+            if (auth()->user()->hasAnyRole(['Cliente', 'Institucion'])) {
+
+                if ($solicitud->estado !== 'pendiente') {
+                    throw new \Exception('Solo puedes cancelar solicitudes pendientes.');
+                }
+
+                $solicitud->estado = 'cancelada';
+            }
+
+            // ADMIN / SUPER ADMIN
+            else {
+
+                $solicitud->estado = 'no_aprobada';
+            }
+
+            $solicitud->save();
+
+            DB::commit();
+
+            session()->flash('swal', [
+                'title' => 'Solicitud actualizada',
+                'text' => 'La solicitud fue actualizada correctamente.',
+                'icon' => 'success',
+            ]);
+
+            return redirect()->route('admin.nutricionales.solicitudes.index');
+        } catch (\Throwable $e) {
+
+            DB::rollBack();
+
+            return redirect()->back()->withErrors([
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+    public function preparar(Solicitud $solicitud)
+    {
+        DB::beginTransaction();
+
+        try {
+            if ($solicitud->estado !== 'aprobada') {
+                throw new \Exception('Solo una solicitud aprobada puede marcarse como preparada.');
+            }
+
+            $inspeccion = $this->obtenerOCrearInspeccionNutricional($solicitud);
+            $inspeccion->preparo_nombre = $this->nombreUsuarioActual();
+            $inspeccion->save();
+
+            $fechaPreparada = now();
+
+            $solicitud->estado = 'preparada';
+            $solicitud->fecha_hora_preparacion = $fechaPreparada;
+            $solicitud->fecha_hora_limite_uso = $fechaPreparada->copy()->addHours(48);
+            $solicitud->save();
+
+            DB::commit();
+
+            session()->flash('swal', [
+                'title' => 'Solicitud preparada',
+                'text' => 'La solicitud fue marcada como preparada.',
+                'icon' => 'success',
+            ]);
+
+            return redirect()->route('admin.nutricionales.solicitudes.index');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()->back()->withErrors([
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+    public function revisar(Solicitud $solicitud)
+    {
+        DB::beginTransaction();
+
+        try {
+            if ($solicitud->estado !== 'preparada') {
+                throw new \Exception('Solo una solicitud preparada puede marcarse como revisada.');
+            }
+
+            $inspeccion = $this->obtenerOCrearInspeccionNutricional($solicitud);
+            $inspeccion->reviso_nombre = $this->nombreUsuarioActual();
+            $inspeccion->save();
+
+            $solicitud->estado = 'revisada';
+            $solicitud->save();
+
+            DB::commit();
+
+            session()->flash('swal', [
+                'title' => 'Solicitud revisada',
+                'text' => 'La solicitud fue marcada como revisada.',
+                'icon' => 'success',
+            ]);
+
+            return redirect()->route('admin.nutricionales.solicitudes.index');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()->back()->withErrors([
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+    public function entregar(Solicitud $solicitud)
+    {
+        DB::beginTransaction();
+
+        try {
+            if ($solicitud->estado !== 'revisada') {
+                throw new \Exception('Solo una solicitud revisada puede marcarse como entregada.');
+            }
+
+            $inspeccion = $this->obtenerOCrearInspeccionNutricional($solicitud);
+            $inspeccion->libero_nombre = $this->nombreUsuarioActual();
+            $inspeccion->save();
+
+            $solicitud->estado = 'entregada';
+            $solicitud->save();
+
+            DB::commit();
+
+            session()->flash('swal', [
+                'title' => 'Solicitud entregada',
+                'text' => 'La solicitud fue marcada como entregada.',
+                'icon' => 'success',
+            ]);
+
+            return redirect()->route('admin.nutricionales.solicitudes.index');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()->back()->withErrors([
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+    public function create()
+    {
         $user = Auth::user();
-        //$solicitud_paciente_resp->id;}
-        $solicitud['user_id'] = $user->id;
-        //Hacemos la relación de lo insertado anteriormente a la solicitud principal
-        $solicitud['solicitud_detail_id'] = $solicitud_detalles_resp->id;
-        $solicitud['solicitud_patient_id'] = $solicitud_paciente_resp->id;
-        //Se crea el registro de la solicitud en la base de datos
-        $solicitud_nueva = Solicitud::create($solicitud);
-        //Cargamos los valores de los campos excepto los que ya se usaron para crear solicitud_paciente y solicitud detalles.
-        $only_inputs = $request->except(['nombre_paciente', 'apellidos_paciente', 'servicio', 'cama', 'piso', 'registro', 'diagnostico', 'peso', 'fecha_nacimiento', 'sexo', 'via_administracion', 'tiempo_infusion_min', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula', 'hospital_destino']);
+        $user->loadMissing('hospital');
 
-        //Filtramos los inputs que traen un valor, solo nos interesan los que fueron llenados
-        $filtered_inputs = array_filter($only_inputs, function ($value) {
-            return $value !== null;
+        $hospital = $user->hospital;
+
+        if (!$hospital) {
+            return redirect()->route('admin.nutricionales.solicitudes.index')
+                ->withErrors(['error' => 'Tu usuario no tiene hospital asignado.']);
+        }
+
+        if (!$hospital->nutri_medicine_list_id) {
+            return redirect()->route('admin.nutricionales.solicitudes.index')
+                ->withErrors(['error' => 'Tu hospital no tiene lista nutricional asignada.']);
+        }
+
+        if (!$hospital->laboratory_id) {
+            return redirect()->route('admin.nutricionales.solicitudes.index')
+                ->withErrors(['error' => 'Tu hospital no tiene centro de mezclas asignado.']);
+        }
+
+        $inputs = Input::join('categories', 'inputs.category_id', '=', 'categories.id')
+            ->where('inputs.is_active', 1)
+            ->orderBy('orden_enum', 'asc')
+            ->select(
+                'inputs.*',
+                'inputs.id AS input_id'
+            )
+            ->get();
+
+        $listItems = \App\Models\Nutricionales\NutriMedicineListItem::with([
+            'presentation.catalog',
+            'presentation.stocks' => function ($query) use ($hospital) {
+                $query->where('laboratory_id', $hospital->laboratory_id)
+                    ->where('is_active', 1)
+                    ->where('stock_ml_actual', '>', 0)
+                    ->orderByRaw('CASE WHEN caducidad IS NULL THEN 1 ELSE 0 END')
+                    ->orderBy('caducidad')
+                    ->orderBy('id');
+            }
+        ])
+            ->where('nutri_medicine_list_id', $hospital->nutri_medicine_list_id)
+            ->get();
+
+        $presentationsByInput = $listItems
+            ->filter(function ($item) {
+                return $item->presentation && $item->presentation->catalog;
+            })
+            ->groupBy(function ($item) {
+                return $item->presentation->catalog->input_id;
+            });
+
+        $activeSelections = \App\Models\Nutricionales\NutritionLaboratoryActivePresentation::with('presentation.catalog')
+            ->where('laboratory_id', $hospital->laboratory_id)
+            ->whereDate('selected_date', now()->toDateString())
+            ->get()
+            ->keyBy('nutrition_medicine_catalog_id');
+
+        $inputs = $inputs->map(function ($input) use ($presentationsByInput, $activeSelections) {
+            $items = $presentationsByInput->get($input->input_id, collect());
+
+            $input->presentations_disponibles = $items
+                ->map(function ($item) {
+                    return $item->presentation;
+                })
+                ->filter()
+                ->values();
+
+            $input->presentation_activa_id = null;
+            $input->presentation_precargada_id = null;
+
+            $catalogId = optional(optional($items->first())->presentation)->nutrition_medicine_catalog_id;
+
+            if ($catalogId && isset($activeSelections[$catalogId])) {
+                $input->presentation_activa_id = $activeSelections[$catalogId]->nutrition_medicine_presentation_id;
+                $input->presentation_precargada_id = $activeSelections[$catalogId]->nutrition_medicine_presentation_id;
+            }
+
+            return $input;
         });
 
-        // Recuperamos los detalles de la solicitud, como ya se había insertado al inicio, buscamos el registro con el id
-        $registro = SolicitudDetail::find($solicitud_detalles_resp->id);
 
-        //Variable para insertar el volumen total
-        $suma_volumen_ml = 0;
+        return view('admin.nutricionales.solicitudes.create', compact(
+            'inputs',
+            'presentationsByInput',
+            'activeSelections'
+        ));
+    }
 
-        //Los inputs con datos vienen con clave valor, es necesario recorrerlos
-        //Vamos a insertar los inputs y calcular el valor en ml
-        foreach ($filtered_inputs as $key => $value) {
+    public function store(Request $request)
+    {
+        DB::beginTransaction();
 
-            //La clave tiene una estructura, hay que saber a que id de input corresponde
-            preg_match('/_(\d+)_/', $key, $matches);
-            if (isset($matches[1])) {
-                // El número extraído se encuentra en $matches[1], este numero es el id del input correspondiente
-                // en la base de datos.
-                $numero = $matches[1];
-                //El input con id 40 es el set de infusión.
-                if ($numero == 40) {
-                    //Validamos si se selecciono un set de infusión
-                    if ($value == 1) {
-                        // Realizar acciones con el número extraído
-                        // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                        //Tenemos que obtener los datos del input correspondiente al set de infusión.
-                        $resultado = Input::select('id', 'description', 'mult', 'div')->where('id', $numero)->first();
-                        //El valor del set de infusión no es como tal un medicamento, pero multiplicamos por uno y dividimos entre uno
-                        //al final solo se le va a insertar el mismo 1, por eso se almacena este mismo valor en ml.
-                        $valor_ml = 1;
-                        $suma_volumen_ml = $suma_volumen_ml + 0;
-                        $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
-                        $solicitud_inputs['valor'] = $value;
-                        $solicitud_inputs['valor_ml'] = $valor_ml;
-                        $solicitud_inputs['input_id'] = $numero;
-                        SolicitudInput::create($solicitud_inputs);
-                        // echo "El valor en mililitros de " . $resultado->description . " es: " . $valor_ml;
-                    }
-                } else {
+        try {
+            $fecha_nacimiento = $request->input('fecha_nacimiento');
+            $edad = $this->calcularEdad($fecha_nacimiento);
 
-                    //Aplicamos la validación por que si es infante es necesario multiplicar por el peso
-                    if ($registro->npt == 'ADULT') {
-                        // Realizar acciones con el número extraído
-                        // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                        //Tenemos que obtener los datos del input correspondiente a cada elemento
-                        $resultado = Input::select('id', 'description', 'mult', 'div')->where('id', $numero)->first();
-                        //Formula para pasar a ml
-                        $valor_ml = ($value) * $resultado->mult / $resultado->div;
-                        $suma_volumen_ml = $suma_volumen_ml + $valor_ml;
-                        $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
-                        $solicitud_inputs['valor'] = $value;
-                        $solicitud_inputs['valor_ml'] = $valor_ml;
-                        $solicitud_inputs['input_id'] = $numero;
-                        SolicitudInput::create($solicitud_inputs);
-                        // echo "El valor en mililitros de " . $resultado->description . " es: " . $valor_ml;
-                    } else {
-                        // Realizar acciones con el número extraído
-                        // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                        //Tenemos que obtener los datos del input correspondiente a cada elemento
-                        $resultado = Input::select('id', 'description', 'category_id', 'mult', 'div')->where('id', $numero)->first();
-                        //Formula para pasar a ml
-                        //Hay que agregar validación para revisar los macronutrientes y los electrolitos
-                        if (in_array($resultado->category_id, [1, 8, 2, 3, 4])) {
-                            $valor_ml = ($value) * $peso_paciente * $resultado->mult / $resultado->div;
-                            $suma_volumen_ml = $suma_volumen_ml + $valor_ml;
+            $request->validate([
+                'nombre_paciente' => 'required|string|max:255',
+                'apellidos_paciente' => 'required|string|max:255',
+                'servicio' => 'required|string|max:100',
+                'cama' => 'nullable|string|max:50',
+                'piso' => 'nullable|string|max:50',
+                'registro' => 'nullable|string|max:50',
+                'diagnostico' => 'nullable|string|max:255',
+                'peso' => 'required|numeric',
+                'fecha_nacimiento' => 'required|date',
+                'edad' => 'nullable',
+                'sexo' => 'nullable',
+                'via_administracion' => 'required',
+                'tiempo_infusion_min' => 'nullable|numeric',
+                'sobrellenado_ml' => 'nullable|numeric',
+                'volumen_total' => 'nullable|numeric',
+                'npt' => 'required',
+                'observaciones' => 'nullable|string|max:500',
+                'fecha_hora_entrega' => 'required|date_format:Y-m-d\TH:i',
+                'nombre_medico' => 'required|string|max:255',
+                'cedula' => 'required|string|max:50',
+                'velocidad_infusion' => 'nullable|numeric',
+                'hospital_destino' => 'nullable|string|max:255'
+            ]);
+
+            $fechaHoraEntrega = \Carbon\Carbon::createFromFormat('Y-m-d\TH:i', $request->input('fecha_hora_entrega'));
+            $horaMinima = \Carbon\Carbon::now()->addMinutes(210);
+
+            if ($fechaHoraEntrega->lt($horaMinima)) {
+                return redirect()->back()->withErrors([
+                    'fecha_hora_entrega' => 'La fecha y hora de entrega debe ser al menos 3 horas y 30 minutos después de la hora actual.'
+                ])->withInput();
+            }
+
+            $solicitud_paciente = $request->only([
+                'nombre_paciente',
+                'apellidos_paciente',
+                'servicio',
+                'cama',
+                'piso',
+                'registro',
+                'diagnostico',
+                'peso',
+                'fecha_nacimiento',
+                'sexo'
+            ]);
+
+            $solicitud_detalles = $request->only([
+                'via_administracion',
+                'tiempo_infusion_min',
+                'sobrellenado_ml',
+                'volumen_total',
+                'npt',
+                'observaciones',
+                'fecha_hora_entrega',
+                'nombre_medico',
+                'cedula',
+                'velocidad_infusion',
+                'hospital_destino'
+            ]);
+
+            $solicitud_paciente['edad'] = $edad;
+
+            $solicitud_paciente_resp = SolicitudPatient::create($solicitud_paciente);
+            $solicitud_detalles_resp = SolicitudDetail::create($solicitud_detalles);
+
+            $peso_paciente = $solicitud_paciente_resp->peso;
+
+            $user = Auth::user();
+            $user->loadMissing('hospital');
+            $hospital = $user->hospital;
+
+            if (!$hospital) {
+                throw new \Exception('Tu usuario no tiene hospital asignado.');
+            }
+
+            if (!$hospital->nutri_medicine_list_id) {
+                throw new \Exception('Tu hospital no tiene lista nutricional asignada.');
+            }
+
+            if (!$hospital->laboratory_id) {
+                throw new \Exception('Tu hospital no tiene centro de mezclas asignado.');
+            }
+
+            $solicitud = [];
+            $solicitud['user_id'] = $user->id;
+            $solicitud['solicitud_detail_id'] = $solicitud_detalles_resp->id;
+            $solicitud['solicitud_patient_id'] = $solicitud_paciente_resp->id;
+
+            $solicitud_nueva = Solicitud::create($solicitud);
+
+            $only_inputs = $request->except([
+                'nombre_paciente',
+                'apellidos_paciente',
+                'servicio',
+                'cama',
+                'piso',
+                'registro',
+                'diagnostico',
+                'peso',
+                'fecha_nacimiento',
+                'sexo',
+                'via_administracion',
+                'tiempo_infusion_min',
+                'sobrellenado_ml',
+                'volumen_total',
+                'npt',
+                'observaciones',
+                'fecha_hora_entrega',
+                'nombre_medico',
+                'cedula',
+                'hospital_destino',
+                'velocidad_infusion'
+            ]);
+
+            $filtered_inputs = array_filter($only_inputs, function ($value) {
+                return $value !== null && $value !== '';
+            });
+
+            $registro = SolicitudDetail::find($solicitud_detalles_resp->id);
+            $suma_volumen_ml = 0;
+
+            foreach ($filtered_inputs as $key => $value) {
+                preg_match('/_(\d+)_/', $key, $matches);
+
+                if (isset($matches[1])) {
+                    $numero = (int) $matches[1];
+
+                    if ($numero == 40) {
+                        if ($value == 1) {
+                            $resultado = Input::select('id', 'description', 'mult', 'div')
+                                ->where('id', $numero)
+                                ->first();
+
+                            $valor_ml = 1;
+                            $suma_volumen_ml += 0;
+
+                            $presentation = $this->obtenerPresentacionActivaPorInput($hospital, $numero);
+                            $precioMlUnitario = $presentation
+                                ? $this->obtenerPrecioMlHospitalPorPresentacion($hospital, $presentation)
+                                : 0;
+
+                            $solicitud_inputs = [];
                             $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
                             $solicitud_inputs['valor'] = $value;
                             $solicitud_inputs['valor_ml'] = $valor_ml;
                             $solicitud_inputs['input_id'] = $numero;
+                            $solicitud_inputs['nutrition_medicine_presentation_id'] = $presentation?->id;
+                            $solicitud_inputs['precio_ml'] = $valor_ml * $precioMlUnitario;
+
                             SolicitudInput::create($solicitud_inputs);
-                            // echo "El valor en mililitros de " . $resultado->description . " es: " . $valor_ml;
-                        } else {
-                            // Realizar acciones con el número extraído
-                            // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                            //Tenemos que obtener los datos del input correspondiente a cada elemento
-                            $resultado = Input::select('id', 'description', 'mult', 'div')->where('id', $numero)->first();
-                            //Formula para pasar a ml
+                        }
+                    } else {
+                        if ($registro->npt == 'ADULT') {
+                            $resultado = Input::select('id', 'description', 'mult', 'div')
+                                ->where('id', $numero)
+                                ->first();
+
+                            if (!$resultado) {
+                                continue;
+                            }
+
                             $valor_ml = ($value) * $resultado->mult / $resultado->div;
-                            $suma_volumen_ml = $suma_volumen_ml + $valor_ml;
+                            $suma_volumen_ml += $valor_ml;
+
+                            $presentation = $this->obtenerPresentacionActivaPorInput($hospital, $numero);
+                            $precioMlUnitario = $presentation
+                                ? $this->obtenerPrecioMlHospitalPorPresentacion($hospital, $presentation)
+                                : 0;
+
+                            $solicitud_inputs = [];
                             $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
                             $solicitud_inputs['valor'] = $value;
                             $solicitud_inputs['valor_ml'] = $valor_ml;
                             $solicitud_inputs['input_id'] = $numero;
+                            $solicitud_inputs['nutrition_medicine_presentation_id'] = $presentation?->id;
+                            $solicitud_inputs['precio_ml'] = $valor_ml * $precioMlUnitario;
+
+                            SolicitudInput::create($solicitud_inputs);
+                        } else {
+                            $resultado = Input::select('id', 'description', 'category_id', 'mult', 'div')
+                                ->where('id', $numero)
+                                ->first();
+
+                            if (!$resultado) {
+                                continue;
+                            }
+
+                            if (in_array($resultado->category_id, [1, 8, 2, 3, 4])) {
+                                $valor_ml = ($value) * $peso_paciente * $resultado->mult / $resultado->div;
+                            } else {
+                                $valor_ml = ($value) * $resultado->mult / $resultado->div;
+                            }
+
+                            $suma_volumen_ml += $valor_ml;
+
+                            $presentation = $this->obtenerPresentacionActivaPorInput($hospital, $numero);
+                            $precioMlUnitario = $presentation
+                                ? $this->obtenerPrecioMlHospitalPorPresentacion($hospital, $presentation)
+                                : 0;
+
+                            $solicitud_inputs = [];
+                            $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
+                            $solicitud_inputs['valor'] = $value;
+                            $solicitud_inputs['valor_ml'] = $valor_ml;
+                            $solicitud_inputs['input_id'] = $numero;
+                            $solicitud_inputs['nutrition_medicine_presentation_id'] = $presentation?->id;
+                            $solicitud_inputs['precio_ml'] = $valor_ml * $precioMlUnitario;
+
                             SolicitudInput::create($solicitud_inputs);
                         }
                     }
                 }
             }
-        }
 
-        //dump($suma_volumen_ml);
-        //dump("Imprimi antes la suma de los valores");
-        //El usuario ingreso un valor en el sobrellenado
-        if ($registro->sobrellenado_ml != null) {
-            // && $registro->volumen_total != null){
-            //El usuario no ingreso un volumen_total entonces se calcula con la suma de los valores con sobrellenado
-            if ($registro->volumen_total == null || $registro->volumen_total == 0) {
-                $porcentaje_sobrellenado = ($registro->sobrellenado_ml * 100) / $suma_volumen_ml;
-                //dump($porcentaje_sobrellenado);
-                //dump("Algoooo");
-                //var_dump($porcentaje_sobrellenado);
-                // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                $inputs_valores = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado')
-                    ->where('solicitud_id', $solicitud_nueva->id)
-                    ->get();
+            if ($registro->sobrellenado_ml != null) {
+                if ($registro->volumen_total == null || $registro->volumen_total == 0) {
+                    $porcentaje_sobrellenado = ($registro->sobrellenado_ml * 100) / $suma_volumen_ml;
 
-                $suma_volumen_sobrellenado_ml = 0;
-                //dump($inputs_valores);
-                foreach ($inputs_valores as $input_val) {
-                    //dump($input_val);
-                    //Obtenemos el valor en ml calculado anteriormente para el input
-                    $valor_en_ml = $input_val->valor_ml;
-                    //dump($valor_en_ml);
-                    //Le calculamos su valor con sobrellenado
-                    $valor_sobrellenado_ml = (($valor_en_ml * $porcentaje_sobrellenado) / 100) + $valor_en_ml;
-                    //dump($valor_sobrellenado_ml);
-                    // Realizar acciones con el número extraído
-                    // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                    //Sumamos los valores en ml con sobrellenado
-                    $suma_volumen_sobrellenado_ml = $suma_volumen_sobrellenado_ml + $valor_sobrellenado_ml;
-                    //Encontramos el solicitud input correspondiente
-                    $registro_input = SolicitudInput::find($input_val->id);
-                    //dump("Valor de suma hasta el momento");
-                    //dump($suma_volumen_sobrellenado_ml);
-                    //dump("Imprimimos el registro de la bd");
-                    //dump($registro_input);
-                    //Le asignamos su valor con sobrellenado en la base de datos
-                    $registro_input->valor_sobrellenado = $valor_sobrellenado_ml;
-                    //lo guardamos en la base de datos
-                    $registro_input->save();
-                    //dump("Imprimimos el registro guardado");
-                    //dump($registro_input);
+                    $inputs_valores = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado', 'input_id', 'nutrition_medicine_presentation_id')
+                        ->where('solicitud_id', $solicitud_nueva->id)
+                        ->get();
+
+                    $suma_volumen_sobrellenado_ml = 0;
+
+                    foreach ($inputs_valores as $input_val) {
+                        $valor_en_ml = $input_val->valor_ml;
+                        $valor_sobrellenado_ml = (($valor_en_ml * $porcentaje_sobrellenado) / 100) + $valor_en_ml;
+                        $suma_volumen_sobrellenado_ml += $valor_sobrellenado_ml;
+
+                        $registro_input = SolicitudInput::find($input_val->id);
+                        $registro_input->valor_sobrellenado = $valor_sobrellenado_ml;
+
+                        if ($input_val->nutrition_medicine_presentation_id) {
+                            $presentation = \App\Models\Nutricionales\NutritionMedicinePresentation::find($input_val->nutrition_medicine_presentation_id);
+                            if ($presentation) {
+                                $precioMlUnitario = $this->obtenerPrecioMlHospitalPorPresentacion($hospital, $presentation);
+                                $registro_input->precio_ml = $valor_sobrellenado_ml * $precioMlUnitario;
+                            }
+                        }
+
+                        $registro_input->save();
+                    }
+
+                    $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_ml;
+                    $registro->volumen_total_final = $suma_volumen_sobrellenado_ml;
+                } else {
+                    $porcentaje_sobrellenado = ($registro->sobrellenado_ml * 100) / $registro->volumen_total;
+
+                    $inputs_valores = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado', 'input_id', 'nutrition_medicine_presentation_id')
+                        ->where('solicitud_id', $solicitud_nueva->id)
+                        ->get();
+
+                    $suma_volumen_sobrellenado_ml = 0;
+
+                    foreach ($inputs_valores as $input_val) {
+                        $valor_en_ml = $input_val->valor_ml;
+                        $valor_sobrellenado_ml = (($valor_en_ml * $porcentaje_sobrellenado) / 100) + $valor_en_ml;
+                        $suma_volumen_sobrellenado_ml += $valor_sobrellenado_ml;
+
+                        $registro_input = SolicitudInput::find($input_val->id);
+                        $registro_input->valor_sobrellenado = $valor_sobrellenado_ml;
+
+                        if ($input_val->nutrition_medicine_presentation_id) {
+                            $presentation = \App\Models\Nutricionales\NutritionMedicinePresentation::find($input_val->nutrition_medicine_presentation_id);
+                            if ($presentation) {
+                                $precioMlUnitario = $this->obtenerPrecioMlHospitalPorPresentacion($hospital, $presentation);
+                                $registro_input->precio_ml = $valor_sobrellenado_ml * $precioMlUnitario;
+                            }
+                        }
+
+                        $registro_input->save();
+                    }
+
+                    $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_ml;
+
+                    $agua_inyectable_ml = $registro->volumen_total - $suma_volumen_ml;
+                    $registro->volumen_total_final = $suma_volumen_ml + $agua_inyectable_ml + $registro->sobrellenado_ml;
+
+                    $presentationAgua = $this->obtenerPresentacionActivaPorInput($hospital, 37);
+                    $agua_valor_sobrellenado = (($agua_inyectable_ml * $porcentaje_sobrellenado) / 100) + $agua_inyectable_ml;
+
+                    $solicitud_inputs = [];
+                    $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
+                    $solicitud_inputs['valor'] = $agua_inyectable_ml;
+                    $solicitud_inputs['valor_ml'] = $agua_inyectable_ml;
+                    $solicitud_inputs['input_id'] = 37;
+                    $solicitud_inputs['nutrition_medicine_presentation_id'] = $presentationAgua?->id;
+                    $solicitud_inputs['valor_sobrellenado'] = $agua_valor_sobrellenado;
+
+                    if ($presentationAgua) {
+                        $precioMlAgua = $this->obtenerPrecioMlHospitalPorPresentacion($hospital, $presentationAgua);
+                        $solicitud_inputs['precio_ml'] = $agua_valor_sobrellenado * $precioMlAgua;
+                    } else {
+                        $solicitud_inputs['precio_ml'] = 0;
+                    }
+
+                    SolicitudInput::create($solicitud_inputs);
                 }
-                //dump("Imprimimos la suma total");
-                //dump($suma_volumen_sobrellenado_ml);
-                //Sera el volumen total final por que no tiene un volumen total asignado por el usuario
-                $suma_volumen_sobrellenado_red_ml = $suma_volumen_sobrellenado_ml;
-                $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_red_ml;
-                $registro->volumen_total_final = $suma_volumen_sobrellenado_red_ml;
-                //$registro->volumen_total = $suma_volumen_sobrellenado_red_ml;
-                //$registro->volumen_total = $suma_volumen_ml;
             } else {
+                if ($registro->volumen_total != null && $registro->volumen_total != 0) {
+                    $agua_inyectable_ml = ($registro->volumen_total) - $suma_volumen_ml;
 
-                //dump("ingresaron un valor en el volumen total");
-                //Si llenaron el input de volumen total
-                //Calculamos el porcentaje de sobrellenado que debe tener sobre el volumen total cada registro
-                $porcentaje_sobrellenado = ($registro->sobrellenado_ml * 100) / $registro->volumen_total;
-                //dump($porcentaje_sobrellenado);
+                    $presentationAgua = $this->obtenerPresentacionActivaPorInput($hospital, 37);
 
-                //Obtenemos los inputs almacenados de la solicitud
-                // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                $inputs_valores = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado')
-                    ->where('solicitud_id', $solicitud_nueva->id)
-                    ->get();
+                    $solicitud_inputs = [];
+                    $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
+                    $solicitud_inputs['valor'] = $agua_inyectable_ml;
+                    $solicitud_inputs['valor_ml'] = $agua_inyectable_ml;
+                    $solicitud_inputs['input_id'] = 37;
+                    $solicitud_inputs['nutrition_medicine_presentation_id'] = $presentationAgua?->id;
 
-                //Para calcular la suma de los valores con sobrellenado
-                $suma_volumen_sobrellenado_ml = 0;
+                    if ($presentationAgua) {
+                        $precioMlAgua = $this->obtenerPrecioMlHospitalPorPresentacion($hospital, $presentationAgua);
+                        $solicitud_inputs['precio_ml'] = $agua_inyectable_ml * $precioMlAgua;
+                    } else {
+                        $solicitud_inputs['precio_ml'] = 0;
+                    }
 
-                foreach ($inputs_valores as $input_val) {
-                    // dump("Input valorrr----");
-                    // dump($input_val);
-                    //traemos el valor en ml calculado para el input
-                    $valor_en_ml = $input_val->valor_ml;
-                    //dump($valor_en_ml);
-                    //calculamos el valor con el sobrellenado
-                    $valor_sobrellenado_ml = (($valor_en_ml * $porcentaje_sobrellenado) / 100) + $valor_en_ml;
-                    // dump("Valor de sobrellenado del input");
-                    // dump($valor_sobrellenado_ml);
-                    // Realizar acciones con el número extraído
-                    // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                    //Hacemos el acumulado de los sobrellenados
-                    $suma_volumen_sobrellenado_ml = $suma_volumen_sobrellenado_ml + $valor_sobrellenado_ml;
-                    //Actualizamos el input de la base de datos
-                    $registro_input = SolicitudInput::find($input_val->id);
-                    $registro_input->valor_sobrellenado = $valor_sobrellenado_ml;
-                    $registro_input->save();
-                    //dump("Imprimimos el registro guardado");
-                    //dump($registro_input);
+                    $registro->volumen_total_final = $agua_inyectable_ml + $suma_volumen_ml;
+
+                    SolicitudInput::create($solicitud_inputs);
+                } else {
+                    $registro->volumen_total_final = $suma_volumen_ml;
                 }
-                //dump("Imprimimos la suma total");
-                //dump($suma_volumen_sobrellenado_ml);
-
-                $suma_volumen_sobrellenado_red_ml = $suma_volumen_sobrellenado_ml;
-                $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_red_ml;
-                //Como ingresaron volumen total debemos calcular la cantidad de agua que se debe agregar
-                // $agua_inyectable_ml = $registro->volumen_total - $suma_volumen_sobrellenado_red_ml;
-                $agua_inyectable_ml = $registro->volumen_total - $suma_volumen_ml;
-                // dump("Imprimimos el valor de agua");
-                // dump($agua_inyectable_ml);
-                //Guardamos el volumen total final que es
-                $registro->volumen_total_final = $suma_volumen_ml + $agua_inyectable_ml + $registro->sobrellenado_ml;
-                $agua_valor_sobrellenado = (($agua_inyectable_ml * $porcentaje_sobrellenado) / 100) + $agua_inyectable_ml;
-                $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
-                $solicitud_inputs['valor'] = $agua_inyectable_ml;
-                $solicitud_inputs['valor_ml'] = $agua_inyectable_ml;
-                $solicitud_inputs['input_id'] = 37;
-                $solicitud_inputs['valor_sobrellenado'] = $agua_valor_sobrellenado;
-                SolicitudInput::create($solicitud_inputs);
             }
-            //HACEMOS ALGO
 
-        } else {
-            //Si me ponen volumen total pero no sobrellenado
-            if ($registro->volumen_total != null || $registro->volumen_total != 0) {
-                $agua_inyectable_ml = ($registro->volumen_total) - $suma_volumen_ml;
-                //dump("Imprimimos el valor de agua");
-                //dump($agua_inyectable_ml);
-                $solicitud_inputs['solicitud_id'] = $solicitud_nueva->id;
-                $solicitud_inputs['valor'] = $agua_inyectable_ml;
-                $solicitud_inputs['valor_ml'] = $agua_inyectable_ml;
-                $solicitud_inputs['input_id'] = 37;
-                $registro->volumen_total_final = $agua_inyectable_ml + $suma_volumen_ml;
-                SolicitudInput::create($solicitud_inputs);
-            } else {
-                //$registro->volumen_total = $suma_volumen_ml;
-                $registro->volumen_total_final = $suma_volumen_ml;
-            }
+            $registro->suma_volumen = $suma_volumen_ml;
+            $registro->save();
+
+            $solicitudes = Solicitud::where('user_id', $user->id)
+                ->with('user', 'user.hospital')
+                ->latest()
+                ->first();
+
+            $nombreHospital = $solicitudes?->user?->hospital?->name ?? 'Sin hospital asignado';
+
+            $message = Message::create([
+                'sender_id' => auth()->id(),
+                'subject' => 'Hay una nueva solicitud',
+                'body' => $nombreHospital
+            ]);
+
+            $administradores = User::role('Admin')->get();
+            $notification = new MessageSent($message);
+
+            // Notification::send($administradores, $notification);
+
+            DB::commit();
+
+            session()->flash(
+                'swal',
+                [
+                    'title' => "¡Bien hecho!",
+                    'text' => "La solicitud se ha creado con éxito.",
+                    'icon' => "success"
+                ]
+            );
+
+            return redirect()->route('admin.nutricionales.solicitudes.index');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()->withErrors([
+                'store' => $e->getMessage()
+            ])->withInput();
         }
-        // Modificar los atributos del modelo
-        $suma_valores_red_ml = $suma_volumen_ml;
-        $registro->suma_volumen = $suma_valores_red_ml;
-
-        // Guardar el modelo actualizado
-        $registro->save();
-
-        $user = Auth::user(); // Obtener el usuario actual
-
-        $solicitudes = Solicitud::where('user_id', $user->id)
-            ->with('user', 'user.hospital')
-            ->latest()
-            ->first();
-
-        $message = Message::create([
-            'sender_id' => auth()->id(),
-            'subject' => 'Hay una nueva solicitud',
-            'body' => $solicitudes->user->hospital->name
-        ]);
-
-        // Notification::route('mail', 'angelrojas@ciencias.unam.mx')->notify(new MessageSent($message));
-
-        $administradores = User::role('Admin')->get();
-        $notification = new MessageSent($message);
-
-        Notification::send($administradores, $notification);
-
-        session()->flash(
-            'swal',
-            [
-                'title' => "¡Bien hecho!",
-                'text' => "La solicitud se ha creado con éxito.",
-                'icon' => "success"
-
-            ]
-        );
-
-
-        return redirect()->route('admin.nutricionales.solicitudes.index');
     }
 
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Solicitud $solicitud)
     {
-        $user = Auth::user(); // Obtener el usuario actual
-        $role = $user->roles[0]->name;
+        $user = Auth::user();
+        $role = $user->roles[0]->name ?? null;
 
-        // Solo se bloquea la edición a usuarios que NO sean Admin ni Super Admin
-        if ($solicitud->is_aprobada === 'Aprobada' && !in_array($role, ['Admin', 'Super Admin'])) {
+        if ($solicitud->estado !== 'pendiente' && !in_array($role, ['Admin', 'Super Admin'])) {
             abort(Response::HTTP_FORBIDDEN, 'No tienes permisos para editar esta solicitud.');
         }
 
-        $solicitud = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
-            ->findOrFail($solicitud->id);
+        $solicitud = Solicitud::with([
+            'user.hospital',
+            'solicitud_detail',
+            'solicitud_patient',
+            'input',
+        ])->findOrFail($solicitud->id);
 
         $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud->id)->get();
 
+        $hospital = $solicitud->user?->hospital;
+
+        if (!$hospital) {
+            return redirect()->route('admin.nutricionales.solicitudes.index')
+                ->withErrors(['error' => 'La solicitud no tiene hospital asociado.']);
+        }
+
+        if (!$hospital->nutri_medicine_list_id) {
+            return redirect()->route('admin.nutricionales.solicitudes.index')
+                ->withErrors(['error' => 'El hospital no tiene lista nutricional asignada.']);
+        }
+
+        if (!$hospital->laboratory_id) {
+            return redirect()->route('admin.nutricionales.solicitudes.index')
+                ->withErrors(['error' => 'El hospital no tiene centro de mezclas asignado.']);
+        }
+
         $inputs = Input::join('categories', 'inputs.category_id', '=', 'categories.id')
-            ->leftJoin('medicines', 'medicines.input_id', '=', 'inputs.id')
             ->where('inputs.is_active', 1)
             ->orderBy('orden_enum', 'asc')
             ->select(
                 'inputs.*',
-                'inputs.id AS input_id',
-                'medicines.lote AS lote',
-                'medicines.caducidad AS caducidad',
-                'medicines.presentacion_ml'
+                'inputs.id AS input_id'
             )
             ->get();
 
-        return view('admin.nutricionales.solicitudes.edit', compact('solicitud', 'inputs', 'inputs_solicitud'));
+        $listItems = \App\Models\Nutricionales\NutriMedicineListItem::with([
+            'presentation.catalog',
+            'presentation.stocks' => function ($query) use ($hospital) {
+                $query->where('laboratory_id', $hospital->laboratory_id)
+                    ->where('is_active', 1)
+                    ->where('stock_ml_actual', '>', 0)
+                    ->orderByRaw('CASE WHEN caducidad IS NULL THEN 1 ELSE 0 END')
+                    ->orderBy('caducidad')
+                    ->orderBy('id');
+            },
+        ])
+            ->where('nutri_medicine_list_id', $hospital->nutri_medicine_list_id)
+            ->get();
+
+        $presentationsByInput = $listItems
+            ->filter(fn($item) => $item->presentation && $item->presentation->catalog)
+            ->groupBy(fn($item) => $item->presentation->catalog->input_id);
+
+        $activeSelections = \App\Models\Nutricionales\NutritionLaboratoryActivePresentation::with('presentation.catalog')
+            ->where('laboratory_id', $hospital->laboratory_id)
+            ->whereDate('selected_date', now()->toDateString())
+            ->get()
+            ->keyBy('nutrition_medicine_catalog_id');
+
+        $inputs = $inputs->map(function ($input) use ($inputs_solicitud, $presentationsByInput, $activeSelections) {
+            $solicitudInput = $inputs_solicitud->firstWhere('input_id', $input->input_id);
+
+            $tieneValor = $solicitudInput && (
+                (!is_null($solicitudInput->valor) && $solicitudInput->valor !== '') ||
+                (!is_null($solicitudInput->valor_ml) && $solicitudInput->valor_ml !== '')
+            );
+
+            $presentationsForInput = $presentationsByInput->get($input->input_id, collect());
+
+            $input->presentations_disponibles = $presentationsForInput
+                ->map(function ($item) {
+                    $presentation = $item->presentation;
+
+                    if (!$presentation) {
+                        return null;
+                    }
+
+                    $presentation->precio_ml_lista = $item->precio_ml;
+
+                    $presentation->stocks_disponibles = $presentation->stocks
+                        ->map(function ($stock) {
+                            return [
+                                'id' => $stock->id,
+                                'lote' => $stock->lote,
+                                'caducidad' => $stock->caducidad
+                                    ? \Carbon\Carbon::parse($stock->caducidad)->format('Y-m-d')
+                                    : null,
+                                'stock_ml_actual' => (float) $stock->stock_ml_actual,
+                                'frascos_actuales' => (float) ($stock->frascos_actuales ?? 0),
+                            ];
+                        })
+                        ->values();
+
+                    return $presentation;
+                })
+                ->filter()
+                ->values();
+
+            $input->presentation_activa_id = null;
+            $input->presentation_precargada_id = $solicitudInput?->nutrition_medicine_presentation_id ?: null;
+
+            $input->lote_precargado = $solicitudInput?->lote ?: null;
+
+            $input->caducidad_precargada = $solicitudInput?->caducidad
+                ? \Carbon\Carbon::parse($solicitudInput->caducidad)->format('Y-m-d')
+                : null;
+
+            $catalogId = optional(optional($presentationsForInput->first())->presentation)->nutrition_medicine_catalog_id;
+
+            if ($catalogId && isset($activeSelections[$catalogId])) {
+                $input->presentation_activa_id = $activeSelections[$catalogId]->nutrition_medicine_presentation_id;
+            }
+
+            if (!$input->presentation_precargada_id && $input->presentation_activa_id) {
+                $input->presentation_precargada_id = $input->presentation_activa_id;
+            }
+
+            if (!$input->presentation_precargada_id && $input->presentations_disponibles->count() > 0) {
+                $input->presentation_precargada_id = $input->presentations_disponibles->first()->id;
+            }
+
+            if ($tieneValor && $input->presentation_precargada_id) {
+                $presentationSeleccionada = $input->presentations_disponibles
+                    ->firstWhere('id', $input->presentation_precargada_id);
+
+                if ($presentationSeleccionada) {
+                    $stock = $presentationSeleccionada->stocks->first();
+
+                    if ($stock) {
+                        if (!$input->lote_precargado) {
+                            $input->lote_precargado = $stock->lote;
+                        }
+
+                        if (!$input->caducidad_precargada && $stock->caducidad) {
+                            $input->caducidad_precargada = \Carbon\Carbon::parse($stock->caducidad)->format('Y-m-d');
+                        }
+                    }
+                }
+            }
+
+            return $input;
+        });
+
+        $inventarioPorInput = $inputs->mapWithKeys(function ($input) {
+            return [
+                $input->input_id => [
+                    'input_id' => $input->input_id,
+                    'presentations' => ($input->presentations_disponibles ?? collect())->map(function ($presentation) {
+                        return [
+                            'id' => $presentation->id,
+                            'denominacion_comercial' => $presentation->denominacion_comercial,
+                            'presentacion' => $presentation->presentacion,
+                            'presentacion_ml' => (float) $presentation->presentacion_ml,
+                            'precio_ml_lista' => (float) ($presentation->precio_ml_lista ?? 0),
+                            'stocks' => $presentation->stocks_disponibles ?? [],
+                        ];
+                    })->values(),
+                ],
+            ];
+        });
+
+        return view('admin.nutricionales.solicitudes.edit', compact(
+            'solicitud',
+            'inputs',
+            'inputs_solicitud',
+            'presentationsByInput',
+            'activeSelections',
+            'inventarioPorInput'
+        ));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Solicitud $solicitud)
     {
+        DB::beginTransaction();
 
-        // Valido desde un inicio si la solicitud fue cancelada, esto para que no tengan que validarse los campos de
-        // entrada obligatorios.
-        $is_aprobada_value = $request->only(['is_aprobada']); // Obtiene un arreglo con el valor de 'is_aprobada'
-        $is_aprobada = $is_aprobada_value['is_aprobada'] ?? null; // Extrae el valor o asigna null si no existe
+        try {
+            $estadoAnterior = $solicitud->estado ?? 'pendiente';
 
-        $solicitud['is_aprobada'] = $is_aprobada;
+            $accion = $request->input('accion', 'actualizar');
 
-        if ($is_aprobada === 'No Aprobada') {
-            $solicitud->update(['is_aprobada' => $is_aprobada]); // Asegúrate de usar el formato correcto para update
-            session()->flash(
-                'swal',
-                [
-                    'title' => "Solicitud Rechazada",
-                    'text' => "La solicitud se ha rechazado.",
-                    'icon' => "warning"
-                ]
-            );
+            if ($accion === 'cancelar') {
+                if (in_array($solicitud->estado, ['aprobada', 'preparada', 'revisada'], true)) {
+                    if (!$this->solicitudYaTieneDevolucionInventario($solicitud)) {
+                        $this->devolverStockSolicitud($solicitud);
+                    }
+                }
+
+                $solicitud->update([
+                    'estado' => 'cancelada',
+                ]);
+
+                DB::commit();
+
+                session()->flash('swal', [
+                    'title' => 'Solicitud cancelada',
+                    'text' => 'La solicitud se ha cancelado y el inventario fue devuelto si ya había sido descontado.',
+                    'icon' => 'warning',
+                ]);
+
+                return redirect()->route('admin.nutricionales.solicitudes.index');
+            }
+
+            $fecha_nacimiento = $request->input('fecha_nacimiento');
+            $edad = $this->calcularEdad($fecha_nacimiento);
+
+            $request->validate([
+                'nombre_paciente' => 'required|string|max:255',
+                'apellidos_paciente' => 'required|string|max:255',
+                'servicio' => 'required|string|max:100',
+                'cama' => 'nullable|string|max:50',
+                'piso' => 'nullable|string|max:50',
+                'registro' => 'nullable|string|max:50',
+                'diagnostico' => 'nullable|string|max:255',
+                'peso' => 'required|numeric',
+                'fecha_nacimiento' => 'required|date',
+                'sexo' => 'nullable',
+                'via_administracion' => 'required',
+                'tiempo_infusion_min' => 'nullable|numeric',
+                'sobrellenado_ml' => 'nullable|numeric',
+                'volumen_total' => 'nullable|numeric',
+                'npt' => 'required',
+                'observaciones' => 'nullable|string|max:500',
+                'fecha_hora_entrega' => 'required|date_format:Y-m-d\TH:i',
+                'nombre_medico' => 'required|string|max:255',
+                'cedula' => 'required|string|max:50',
+                'bolsa_eva' => 'required',
+                'velocidad_infusion' => 'nullable|numeric',
+                'hospital_destino' => 'nullable|string|max:255',
+            ]);
+
+            $solicitud->loadMissing('user.hospital');
+            $hospital = $solicitud->user?->hospital;
+
+            if (!$hospital) {
+                throw new \Exception('La solicitud no tiene hospital asociado.');
+            }
+
+            if (!$hospital->nutri_medicine_list_id) {
+                throw new \Exception('El hospital no tiene lista nutricional asignada.');
+            }
+
+            if (!$hospital->laboratory_id) {
+                throw new \Exception('El hospital no tiene centro de mezclas asignado.');
+            }
+
+            $bolsa_eva = (int) $request->input('bolsa_eva');
+
+            $tiempo_infusion_min = $request->input('tiempo_infusion_min');
+
+            if ($tiempo_infusion_min === null || $tiempo_infusion_min === '') {
+                $tiempo_infusion_min = 24;
+            }
+
+            $solicitud_paciente = $request->only([
+                'nombre_paciente',
+                'apellidos_paciente',
+                'servicio',
+                'cama',
+                'piso',
+                'registro',
+                'diagnostico',
+                'peso',
+                'fecha_nacimiento',
+                'sexo',
+            ]);
+
+            $solicitud_detalles = $request->only([
+                'via_administracion',
+                'sobrellenado_ml',
+                'volumen_total',
+                'npt',
+                'observaciones',
+                'fecha_hora_entrega',
+                'nombre_medico',
+                'cedula',
+                'velocidad_infusion',
+                'hospital_destino',
+            ]);
+
+            $solicitud_paciente['edad'] = $edad;
+            $solicitud_detalles['tiempo_infusion_min'] = $tiempo_infusion_min;
+
+            $solicitud_patient_u = SolicitudPatient::findOrFail($solicitud->solicitud_patient_id);
+            $solicitud_detail_u = SolicitudDetail::findOrFail($solicitud->solicitud_detail_id);
+
+            $solicitud_patient_u->update($solicitud_paciente);
+            $solicitud_detail_u->update($solicitud_detalles);
+
+            $peso_paciente = (float) $solicitud_patient_u->peso;
+
+            SolicitudInput::where('solicitud_id', $solicitud->id)->delete();
+
+            $requestData = $request->all();
+            $tripletas = [];
+
+            foreach ($requestData as $key => $value) {
+                if (preg_match('/^i_[0-9]+$/', $key) && $value !== null && $value !== '') {
+                    $numero = (int) explode('_', $key)[1];
+
+                    if ($numero === 40 && (int) $value !== 1) {
+                        continue;
+                    }
+
+                    $tripletas[$numero] = [
+                        "i_{$numero}" => $value,
+                        "p_{$numero}" => $requestData["p_{$numero}"] ?? null,
+                        "l_{$numero}" => $requestData["l_{$numero}"] ?? null,
+                        "c_{$numero}" => $requestData["c_{$numero}"] ?? null,
+                    ];
+                }
+            }
+
+            $registro = SolicitudDetail::findOrFail($solicitud->solicitud_detail_id);
+            $suma_volumen_ml = 0;
+
+            $setInfusionActivo = isset($tripletas[40]) && (int) ($tripletas[40]['i_40'] ?? 0) === 1;
+
+            foreach ($tripletas as $numero => $tripleta) {
+                $numero = (int) $numero;
+
+                $resultado = Input::select('description', 'category_id', 'mult', 'div')
+                    ->where('id', $numero)
+                    ->first();
+
+                if (!$resultado) {
+                    continue;
+                }
+
+                $valor_unidad = $tripleta["i_{$numero}"];
+
+                if ($numero === 40) {
+                    $valor_ml = 1;
+                } else {
+                    if ($registro->npt === 'ADULT') {
+                        $valor_ml = ((float) $valor_unidad) * (float) $resultado->mult / (float) $resultado->div;
+                    } else {
+                        if (in_array((int) $resultado->category_id, [1, 8, 2, 3, 4], true)) {
+                            $valor_ml = ((float) $valor_unidad) * $peso_paciente * (float) $resultado->mult / (float) $resultado->div;
+                        } else {
+                            $valor_ml = ((float) $valor_unidad) * (float) $resultado->mult / (float) $resultado->div;
+                        }
+                    }
+
+                    $suma_volumen_ml += $valor_ml;
+                }
+
+                $presentationId = $tripleta["p_{$numero}"] ?? null;
+                $presentation = null;
+                $precioMlUnitario = 0;
+
+                if ($presentationId) {
+                    $presentation = \App\Models\Nutricionales\NutritionMedicinePresentation::find($presentationId);
+
+                    if ($presentation) {
+                        $precioMlUnitario = $this->obtenerPrecioMlHospitalPorPresentacion($hospital, $presentation);
+                    }
+                }
+
+                SolicitudInput::create([
+                    'solicitud_id' => $solicitud->id,
+                    'valor' => $valor_unidad,
+                    'valor_ml' => $valor_ml,
+                    'input_id' => $numero,
+                    'nutrition_medicine_presentation_id' => $presentation?->id,
+                    'precio_ml' => $precioMlUnitario,
+                    'lote' => $tripleta["l_{$numero}"] ?? null,
+                    'caducidad' => $tripleta["c_{$numero}"] ?? null,
+                ]);
+            }
+
+            if ($registro->sobrellenado_ml != null) {
+                if ($registro->volumen_total == null || $registro->volumen_total == 0) {
+                    $porcentaje_sobrellenado = $suma_volumen_ml > 0
+                        ? ((float) $registro->sobrellenado_ml * 100) / $suma_volumen_ml
+                        : 0;
+
+                    $inputs_valores = SolicitudInput::where('solicitud_id', $solicitud->id)
+                        ->whereNotIn('input_id', [40])
+                        ->get();
+
+                    $suma_volumen_sobrellenado_ml = 0;
+
+                    foreach ($inputs_valores as $input_val) {
+                        $valor_en_ml = (float) $input_val->valor_ml;
+                        $valor_sobrellenado_ml = (($valor_en_ml * $porcentaje_sobrellenado) / 100) + $valor_en_ml;
+
+                        $suma_volumen_sobrellenado_ml += $valor_sobrellenado_ml;
+
+                        $input_val->valor_sobrellenado = $valor_sobrellenado_ml;
+                        $input_val->save();
+                    }
+
+                    $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_ml;
+                    $registro->volumen_total_final = $suma_volumen_sobrellenado_ml;
+                } else {
+                    $porcentaje_sobrellenado = ((float) $registro->sobrellenado_ml * 100) / (float) $registro->volumen_total;
+
+                    $inputs_valores = SolicitudInput::where('solicitud_id', $solicitud->id)
+                        ->whereNotIn('input_id', [40])
+                        ->get();
+
+                    $suma_volumen_sobrellenado_ml = 0;
+                    $sumaVolumenBaseSinAgua = 0;
+
+                    foreach ($inputs_valores as $input_val) {
+                        $valor_en_ml = (float) $input_val->valor_ml;
+                        $sumaVolumenBaseSinAgua += $valor_en_ml;
+
+                        $valor_sobrellenado_ml = (($valor_en_ml * $porcentaje_sobrellenado) / 100) + $valor_en_ml;
+                        $suma_volumen_sobrellenado_ml += $valor_sobrellenado_ml;
+
+                        $input_val->valor_sobrellenado = $valor_sobrellenado_ml;
+                        $input_val->save();
+                    }
+
+                    $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_ml;
+
+                    $agua_inyectable_ml = (float) $registro->volumen_total - $sumaVolumenBaseSinAgua;
+                    $agua_valor_sobrellenado = (($agua_inyectable_ml * $porcentaje_sobrellenado) / 100) + $agua_inyectable_ml;
+
+                    $registro->volumen_total_final = $sumaVolumenBaseSinAgua + $agua_inyectable_ml + (float) $registro->sobrellenado_ml;
+
+                    $presentationAguaId = $request->input('p_37');
+                    $presentationAgua = $presentationAguaId
+                        ? \App\Models\Nutricionales\NutritionMedicinePresentation::find($presentationAguaId)
+                        : $this->obtenerPresentacionActivaPorInput($hospital, 37);
+
+                    $precioMlAgua = $presentationAgua
+                        ? $this->obtenerPrecioMlHospitalPorPresentacion($hospital, $presentationAgua)
+                        : 0;
+
+                    SolicitudInput::create([
+                        'solicitud_id' => $solicitud->id,
+                        'valor' => $agua_inyectable_ml,
+                        'valor_ml' => $agua_inyectable_ml,
+                        'input_id' => 37,
+                        'nutrition_medicine_presentation_id' => $presentationAgua?->id,
+                        'valor_sobrellenado' => $agua_valor_sobrellenado,
+                        'precio_ml' => $precioMlAgua,
+                        'lote' => $request->input('l_37'),
+                        'caducidad' => $request->input('c_37'),
+                    ]);
+                }
+            } else {
+                if ($registro->volumen_total != null && $registro->volumen_total != 0) {
+                    $agua_inyectable_ml = $setInfusionActivo
+                        ? ((float) $registro->volumen_total - $suma_volumen_ml) + 1
+                        : (float) $registro->volumen_total - $suma_volumen_ml;
+
+                    $presentationAguaId = $request->input('p_37');
+                    $presentationAgua = $presentationAguaId
+                        ? \App\Models\Nutricionales\NutritionMedicinePresentation::find($presentationAguaId)
+                        : $this->obtenerPresentacionActivaPorInput($hospital, 37);
+
+                    $precioMlAgua = $presentationAgua
+                        ? $this->obtenerPrecioMlHospitalPorPresentacion($hospital, $presentationAgua)
+                        : 0;
+
+                    SolicitudInput::create([
+                        'solicitud_id' => $solicitud->id,
+                        'valor' => $agua_inyectable_ml,
+                        'valor_ml' => $agua_inyectable_ml,
+                        'input_id' => 37,
+                        'nutrition_medicine_presentation_id' => $presentationAgua?->id,
+                        'precio_ml' => $precioMlAgua,
+                        'lote' => $request->input('l_37'),
+                        'caducidad' => $request->input('c_37'),
+                    ]);
+
+                    $registro->volumen_total_final = $agua_inyectable_ml + $suma_volumen_ml;
+                } else {
+                    $registro->volumen_total_final = $suma_volumen_ml;
+                }
+            }
+
+            $registro->suma_volumen = $suma_volumen_ml;
+
+            $presentationBolsaEvaId = $request->input('p_' . $bolsa_eva);
+            $presentationBolsaEva = $presentationBolsaEvaId
+                ? \App\Models\Nutricionales\NutritionMedicinePresentation::find($presentationBolsaEvaId)
+                : null;
+
+            $precioBolsaEva = $presentationBolsaEva
+                ? $this->obtenerPrecioMlHospitalPorPresentacion($hospital, $presentationBolsaEva)
+                : 0;
+
+            SolicitudInput::create([
+                'solicitud_id' => $solicitud->id,
+                'valor' => 0,
+                'valor_ml' => 0,
+                'input_id' => $bolsa_eva,
+                'nutrition_medicine_presentation_id' => $presentationBolsaEva?->id,
+                'lote' => $request->input('l_' . $bolsa_eva),
+                'caducidad' => $request->input('c_' . $bolsa_eva),
+                'precio_ml' => $precioBolsaEva,
+            ]);
+
+            if ($accion === 'aprobar' && $estadoAnterior === 'pendiente') {
+                $inputsFinales = SolicitudInput::where('solicitud_id', $solicitud->id)
+                    ->whereNotIn('input_id', function ($query) {
+                        $query->select('id')
+                            ->from('inputs')
+                            ->where('category_id', '=', 6);
+                    })
+                    ->whereNotIn('input_id', [40])
+                    ->get();
+
+                foreach ($inputsFinales as $inputFinal) {
+                    $presentationId = $inputFinal->nutrition_medicine_presentation_id;
+
+                    if (!$presentationId) {
+                        continue;
+                    }
+
+                    $presentation = \App\Models\Nutricionales\NutritionMedicinePresentation::find($presentationId);
+
+                    if (!$presentation) {
+                        continue;
+                    }
+
+                    $cantidadMlADescontar = $inputFinal->valor_sobrellenado ?? $inputFinal->valor_ml ?? 0;
+
+                    if ((float) $cantidadMlADescontar > 0) {
+                        $stockUsado = $this->descontarStockPresentacion(
+                            $hospital,
+                            $presentation,
+                            (float) $cantidadMlADescontar,
+                            (int) $solicitud->id
+                        );
+
+                        $inputFinal->lote = $stockUsado->lote;
+                        $inputFinal->caducidad = $stockUsado->caducidad;
+                        $inputFinal->save();
+                    }
+                }
+            }
+
+            $registro->save();
+
+            if ($accion === 'aprobar' && $estadoAnterior === 'pendiente') {
+                $solicitud->estado = 'aprobada';
+
+                $this->generarLoteNutricional($solicitud);
+                $this->generarRemisionNutricional($solicitud);
+
+                $inspeccion = $this->obtenerOCrearInspeccionNutricional($solicitud);
+                $inspeccion->aprobo_nombre = $this->nombreUsuarioActual();
+                $inspeccion->fecha_inspeccion = $inspeccion->fecha_inspeccion ?: now()->toDateString();
+                $inspeccion->hora_inspeccion = $inspeccion->hora_inspeccion ?: now()->format('H:i:s');
+                $inspeccion->save();
+            }
+
+            $solicitud->save();
+
+            if ($accion === 'aprobar') {
+                session()->flash('swal', [
+                    'title' => 'Solicitud Aprobada',
+                    'text' => 'La solicitud se ha aprobado con éxito.',
+                    'icon' => 'success',
+                ]);
+            } else {
+                session()->flash('swal', [
+                    'title' => 'Solicitud Actualizada',
+                    'text' => 'La solicitud se ha editado con éxito.',
+                    'icon' => 'success',
+                ]);
+            }
+
+            DB::commit();
+
             return redirect()->route('admin.nutricionales.solicitudes.index');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()->withErrors([
+                'stock' => $e->getMessage(),
+            ])->withInput();
+        }
+    }
+
+    private function obtenerPresentacionActivaPorInput($hospital, int $inputId): ?NutritionMedicinePresentation
+    {
+        if (!$hospital || !$hospital->laboratory_id) {
+            return null;
         }
 
-        //return $request->all();
-        $fecha_nacimiento = $request->input('fecha_nacimiento');
-        // $fecha_hora_preparacion = $request->input('fecha_hora_preparacion');
-        $fecha_hora_preparacion = now();
-        // Crear un objeto Carbon a partir de la fecha y hora proporcionadas
-        // $carbonFechaHora = Carbon::parse($fecha_hora_preparacion);
-        // // Sumar 48 horas al objeto Carbon
-        // $fecha_hora_limite = $carbonFechaHora->addHours(48);
-        // Se calcula la edad del paciente
-        $edad = $this->calcularEdad($fecha_nacimiento);
-        //return $request->all();
-        $request->validate([
-            'nombre_paciente' => 'required|string|max:255',
-            'apellidos_paciente' => 'required|string|max:255',
-            'servicio' => 'required|string|max:100',
-            'cama' => 'nullable|string|max:50',
-            'piso' => 'nullable|string|max:50',
-            'registro' => 'nullable|string|max:50',
-            'diagnostico' => 'nullable|string|max:255',
-            'peso' => 'required|numeric',
-            'fecha_nacimiento' => 'required|date',
-            'sexo' => 'nullable',
-            'via_administracion' => 'required',
-            'tiempo_infusion_min' => 'nullable|numeric',
-            'sobrellenado_ml' => 'nullable|numeric',
-            'volumen_total' => 'nullable|numeric',
-            'npt' => 'required',
-            'observaciones' => 'nullable|string|max:500',
-            'fecha_hora_entrega' => 'required|date_format:Y-m-d\TH:i',
-            'nombre_medico' => 'required|string|max:255',
-            'cedula' => 'required|string|max:50',
-            // 'fecha_hora_preparacion' => 'required|date_format:Y-m-d\TH:i',
-            'bolsa_eva' => 'required',
-            'lote_bolsa_eva' => 'required',
-            'caducidad_bolsa_eva' => 'required',
-            'velocidad_infusion' => 'nullable|numeric',
-            'hospital_destino' => 'nullable|string|max:255'
+        $active = \App\Models\Nutricionales\NutritionLaboratoryActivePresentation::with('presentation.catalog')
+            ->where('laboratory_id', $hospital->laboratory_id)
+            ->whereDate('selected_date', now()->toDateString())
+            ->get()
+            ->first(function ($item) use ($inputId) {
+                return optional(optional($item->presentation)->catalog)->input_id == $inputId;
+            });
+
+        return $active?->presentation;
+    }
+
+    private function obtenerPrecioMlHospitalPorPresentacion($hospital, NutritionMedicinePresentation $presentation): float
+    {
+        if (!$hospital || !$hospital->nutri_medicine_list_id) {
+            throw new \Exception('El hospital no tiene lista nutricional asignada.');
+        }
+
+        $itemLista = NutriMedicineListItem::where('nutri_medicine_list_id', $hospital->nutri_medicine_list_id)
+            ->where('nutrition_medicine_presentation_id', $presentation->id)
+            ->first();
+
+        if (!$itemLista) {
+            throw new \Exception("La presentación {$presentation->denominacion_comercial} no existe en la lista nutricional del hospital.");
+        }
+
+        return (float) $itemLista->precio_ml;
+    }
+    private function descontarStockPresentacion(
+        ?Hospital $hospital,
+        NutritionMedicinePresentation $presentation,
+        float $cantidadMl,
+        int $solicitudId
+    ): MedicineLaboratoryStock {
+        if (!$hospital || !$hospital->laboratory_id) {
+            throw new \Exception('El hospital no tiene laboratorio asignado.');
+        }
+
+        if ($cantidadMl <= 0) {
+            throw new \Exception('La cantidad a descontar debe ser mayor a 0.');
+        }
+
+        $stock = MedicineLaboratoryStock::where('nutrition_medicine_presentation_id', $presentation->id)
+            ->where('laboratory_id', $hospital->laboratory_id)
+            ->where('is_active', 1)
+            ->where('stock_ml_actual', '>=', $cantidadMl)
+            ->where(function ($q) {
+                $q->whereNull('caducidad')
+                    ->orWhereDate('caducidad', '>=', now()->toDateString());
+            })
+            ->orderByRaw('CASE WHEN caducidad IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('caducidad')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->first();
+
+        if (!$stock) {
+            throw new \Exception("No hay stock suficiente para la presentación {$presentation->denominacion_comercial} en el laboratorio del hospital.");
+        }
+
+        $presentacionMl = (float) ($presentation->presentacion_ml ?? 0);
+
+        if ($presentacionMl <= 0) {
+            throw new \Exception("La presentación {$presentation->denominacion_comercial} no tiene presentacion_ml configurado.");
+        }
+
+        $cantidadFrascos = $cantidadMl / $presentacionMl;
+
+        $stockAntes = (float) $stock->stock_ml_actual;
+        $stockDespues = $stockAntes - $cantidadMl;
+
+        $frascosAntes = (float) $stock->frascos_actuales;
+        $frascosDespues = max(0, $frascosAntes - $cantidadFrascos);
+
+        $stock->update([
+            'stock_ml_actual' => $stockDespues,
+            'frascos_actuales' => $frascosDespues,
+            'is_active' => $stockDespues > 0,
         ]);
 
-        $bolsa_eva = $request->input('bolsa_eva');
-        $lote_bolsa_eva = $request->input('lote_bolsa_eva');
-        $caducidad_bolsa_eva = $request->input('caducidad_bolsa_eva');
-        $tiempo_infusion_min = $request->input('tiempo_infusion_min');
-        //return $tiempo_infusion_min;
-        if ($tiempo_infusion_min == '') {
-            $tiempo_infusion_min = 24;
-            //return 'hola';
-        }
+        \App\Models\Nutricionales\MedicineStockMovement::create([
+            'medicine_laboratory_stock_id' => $stock->id,
+            'user_id' => auth()->id(),
+            'tipo' => 'salida',
+            'cantidad_ml' => $cantidadMl,
+            'cantidad_frascos' => $cantidadFrascos,
+            'stock_antes' => $stockAntes,
+            'stock_despues' => $stockDespues,
+            'frascos_antes' => $frascosAntes,
+            'frascos_despues' => $frascosDespues,
+            'reference_type' => 'Solicitud',
+            'reference_id' => $solicitudId,
+            'notes' => 'Descuento automático por aprobación de solicitud nutricional',
+        ]);
 
-        $solicitud_paciente = $request->only(['nombre_paciente', 'apellidos_paciente', 'servicio', 'cama', 'piso', 'registro', 'diagnostico', 'peso', 'fecha_nacimiento', 'sexo']);
-        $solicitud_detalles = $request->only(['via_administracion', 'sobrellenado_ml', 'volumen_total', 'npt', 'observaciones', 'fecha_hora_entrega', 'nombre_medico', 'cedula', 'velocidad_infusion', 'hospital_destino']);
-
-        $set_infusion = $request->only(['i_40']);
-        $solicitud_paciente['edad'] = $edad;
-        $solicitud_detalles['tiempo_infusion_min'] = $tiempo_infusion_min;
-        $solicitud_patient_u = SolicitudPatient::find($solicitud['solicitud_patient_id']);
-        $solicitud_detail_u = SolicitudDetail::find($solicitud['solicitud_detail_id']);
-        $solicitud_patient_u->update($solicitud_paciente);
-        $solicitud_detail_u->update($solicitud_detalles);
-        $peso_paciente =  $solicitud_patient_u->peso;
-        // Eliminar todos los elementos de SolicitudInput que corresponden a la solicitud_id proporcionada
-        // $solicitudesInput = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-        // print_r($solicitudesInput);
-        SolicitudInput::where('solicitud_id', $solicitud['id'])->delete();
-        $request2 = $request->all();
-
-        $tripletas = [];
-
-        foreach ($request2 as $key => $value) {
-            // Verificar si la clave sigue el patrón 'i_numero' y si el valor no es null
-            if (preg_match('/^i_[0-9]+$/', $key) && $value !== null) {
-                $numero = explode('_', $key)[1]; // Obtener el número después del primer guion bajo
-                if ($numero == 40) {
-                    if ($value == 1) {
-                        $tripletas[$numero]["i_$numero"] = $value;
-
-                        // Verificar si existen los valores de 'l_numero' y 'c_numero' correspondientes y guardarlos si no son null
-                        $l_key = "l_$numero";
-                        $c_key = "c_$numero";
-
-                        // Establecer 'l_numero' como null si no existe o es null
-                        $tripletas[$numero][$l_key] = isset($request2[$l_key]) ? $request2[$l_key] : null;
-
-                        // Establecer 'c_numero' como null si no existe o es null
-                        $tripletas[$numero][$c_key] = isset($request2[$c_key]) ? $request2[$c_key] : null;
-                    }
-                } else {
-                    $tripletas[$numero]["i_$numero"] = $value;
-
-                    // Verificar si existen los valores de 'l_numero' y 'c_numero' correspondientes y guardarlos si no son null
-                    $l_key = "l_$numero";
-                    $c_key = "c_$numero";
-
-                    // Establecer 'l_numero' como null si no existe o es null
-                    $tripletas[$numero][$l_key] = isset($request2[$l_key]) ? $request2[$l_key] : null;
-
-                    // Establecer 'c_numero' como null si no existe o es null
-                    $tripletas[$numero][$c_key] = isset($request2[$c_key]) ? $request2[$c_key] : null;
-                }
-            }
-        }
-
-
-        $registro = SolicitudDetail::find($solicitud['solicitud_detail_id']);
-
-
-        $suma_volumen_ml = 0;
-
-        foreach ($tripletas as $numero => $tripleta) {
-
-            if ($numero == 40) {
-                $valor_unidad = $tripleta["i_{$numero}"];
-                if ($valor_unidad == 1) {
-                    $valor_ml = 1;
-                    $suma_volumen_ml = $suma_volumen_ml + 0;
-                    $medicina = Medicine::select('id', 'precio_ml')->where('input_id', $numero)->first();
-                    $solicitud_inputs['solicitud_id'] = $solicitud['id'];
-                    $solicitud_inputs['valor'] = $valor_unidad;
-                    $solicitud_inputs['valor_ml'] = $valor_ml;
-                    $solicitud_inputs['input_id'] = $numero;
-                    $solicitud_inputs['precio_ml'] = $valor_ml * $medicina['precio_ml'];
-                    $solicitud_inputs['lote'] = $tripleta["l_{$numero}"];
-                    $solicitud_inputs['caducidad'] = $tripleta["c_{$numero}"];
-
-                    SolicitudInput::create($solicitud_inputs);
-                }
-            } else {
-                $resultado = Input::select('description', 'category_id', 'mult', 'div')->where('id', $numero)->first();
-                //Aplicamos la validación por que si es infante es necesario multiplicar por el peso
-                if ($registro->npt == 'ADULT') {
-                    // Realizar acciones con el número extraído
-                    // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-
-                    $valor_unidad = $tripleta["i_{$numero}"];
-
-
-                    $valor_ml = ($valor_unidad) * $resultado->mult / $resultado->div;
-                    $suma_volumen_ml = $suma_volumen_ml + $valor_ml;
-
-                    $medicina = Medicine::select('id', 'precio_ml')->where('input_id', $numero)->first();
-                    $solicitud_inputs['solicitud_id'] = $solicitud['id'];
-                    $solicitud_inputs['valor'] = $valor_unidad;
-                    $solicitud_inputs['valor_ml'] = $valor_ml;
-                    $solicitud_inputs['input_id'] = $numero;
-                    $solicitud_inputs['precio_ml'] = $valor_ml * $medicina['precio_ml'];
-                    $solicitud_inputs['lote'] = $tripleta["l_{$numero}"];
-                    $solicitud_inputs['caducidad'] = $tripleta["c_{$numero}"];
-
-                    SolicitudInput::create($solicitud_inputs);
-                } else {
-                    if (in_array($resultado->category_id, [1, 8, 2, 3, 4])) {
-                        $valor_unidad = $tripleta["i_{$numero}"];
-
-
-                        $valor_ml = ($valor_unidad) * $peso_paciente * $resultado->mult / $resultado->div;
-                        $suma_volumen_ml = $suma_volumen_ml + $valor_ml;
-
-                        $medicina = Medicine::select('id', 'precio_ml')->where('input_id', $numero)->first();
-                        $solicitud_inputs['solicitud_id'] = $solicitud['id'];
-                        $solicitud_inputs['valor'] = $valor_unidad;
-                        $solicitud_inputs['valor_ml'] = $valor_ml;
-                        $solicitud_inputs['input_id'] = $numero;
-                        $solicitud_inputs['precio_ml'] = $valor_ml * $medicina['precio_ml'];
-                        $solicitud_inputs['lote'] = $tripleta["l_{$numero}"];
-                        $solicitud_inputs['caducidad'] = $tripleta["c_{$numero}"];
-
-                        SolicitudInput::create($solicitud_inputs);
-                    } else {
-                        $valor_unidad = $tripleta["i_{$numero}"];
-                        $valor_ml = ($valor_unidad) * $resultado->mult / $resultado->div;
-                        // if($numero == 40){
-                        //     if($valor_unidad == 1){
-                        //         $suma_volumen_ml = $suma_volumen_ml + $valor_ml + 1;
-                        //     }
-                        // }
-                        $suma_volumen_ml = $suma_volumen_ml + $valor_ml;
-
-                        $medicina = Medicine::select('id', 'precio_ml')->where('input_id', $numero)->first();
-                        $solicitud_inputs['solicitud_id'] = $solicitud['id'];
-                        $solicitud_inputs['valor'] = $valor_unidad;
-                        $solicitud_inputs['valor_ml'] = $valor_ml;
-                        $solicitud_inputs['input_id'] = $numero;
-                        $solicitud_inputs['precio_ml'] = $valor_ml * $medicina['precio_ml'];
-                        $solicitud_inputs['lote'] = $tripleta["l_{$numero}"];
-                        $solicitud_inputs['caducidad'] = $tripleta["c_{$numero}"];
-
-                        SolicitudInput::create($solicitud_inputs);
-                    }
-                }
-            }
-        }
-        //dump($suma_volumen_ml);
-        //dump("Imprimi antes la suma de los valores");
-        if ($registro->sobrellenado_ml != null) {
-            // && $registro->volumen_total != null){
-            if ($registro->volumen_total == null || $registro->volumen_total == 0) {
-                $porcentaje_sobrellenado = ($registro->sobrellenado_ml * 100) / $suma_volumen_ml;
-                //dump($porcentaje_sobrellenado);
-                //dump("Algoooo");
-                //var_dump($porcentaje_sobrellenado);
-                // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                // $inputs_valores = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado', 'input_id')
-                //     ->where('solicitud_id', $solicitud->id)
-                //     ->get();
-
-                $inputs_valores = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado', 'input_id')
-                    ->where('solicitud_id', $solicitud->id)
-                    ->whereNotIn('input_id', [40]) // Excluir input_id 37 y 40
-                    ->get();
-                // $inputs_valores = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado', 'input_id')
-                // ->where('solicitud_id', $solicitud->id)
-                // ->whereNotIn('input_id', [37, 40]) // Excluir input_id 37 y 40
-                // ->get();
-                $suma_volumen_sobrellenado_ml = 0;
-                //dump($inputs_valores);
-                foreach ($inputs_valores as $input_val) {
-                    //dump($input_val);
-                    $valor_en_ml = $input_val->valor_ml;
-                    //dump($valor_en_ml);
-                    $valor_sobrellenado_ml = (($valor_en_ml * $porcentaje_sobrellenado) / 100) + $valor_en_ml;
-                    //dump($valor_sobrellenado_ml);
-                    // Realizar acciones con el número extraído
-                    // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                    $suma_volumen_sobrellenado_ml = $suma_volumen_sobrellenado_ml + $valor_sobrellenado_ml;
-                    $registro_input = SolicitudInput::find($input_val->id);
-                    //dump("Valor de suma hasta el momento");
-                    //dump($suma_volumen_sobrellenado_ml);
-                    //dump("Imprimimos el registro de la bd");
-                    //dump($registro_input);
-
-                    $registro_input->valor_sobrellenado = $valor_sobrellenado_ml;
-                    $medicina = Medicine::select('id', 'precio_ml')->where('input_id', $input_val->input_id)->first();
-                    $registro_input->precio_ml = $valor_sobrellenado_ml * $medicina['precio_ml'];
-                    $registro_input->save();
-                    //dump("Imprimimos el registro guardado");
-                    //dump($registro_input);
-                }
-                //dump("Imprimimos la suma total");
-                //dump($suma_volumen_sobrellenado_ml);
-                // $input_agua_ml = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado', 'input_id')
-                // ->where('solicitud_id', $solicitud->id)
-                // ->where('input_id', 37) // Obtener solo los registros con input_id igual a 37
-                // ->get();
-                $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_ml;
-                $registro->volumen_total_final = $suma_volumen_sobrellenado_ml;
-                // $registro->volumen_total_final = $suma_volumen_sobrellenado_ml + $input_agua_ml->valor_ml;
-                //$registro->volumen_total = $suma_volumen_ml;
-            } else { //Si tiene sobrellenado y volumen total
-                //dump("ingresaron un valor en el volumen total");
-                $porcentaje_sobrellenado = ($registro->sobrellenado_ml * 100) / $registro->volumen_total;
-                //dump($porcentaje_sobrellenado);
-
-                // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                $inputs_valores = SolicitudInput::select('id', 'valor_ml', 'valor_sobrellenado', 'input_id')
-                    ->where('solicitud_id', $solicitud->id)
-                    ->whereNotIn('input_id', [40]) // Excluir input_id 37 y 40
-                    ->get();
-
-                $suma_volumen_sobrellenado_ml = 0;
-                $suma_volumen_mls = 0;
-
-                foreach ($inputs_valores as $input_val) {
-                    // dump("Input valorrr----");
-                    // dump($input_val);
-                    $valor_en_ml = $input_val->valor_ml;
-                    $suma_volumen_mls = $suma_volumen_mls + $input_val->valor_ml;
-                    //dump($valor_en_ml);
-                    $valor_sobrellenado_ml = (($valor_en_ml * $porcentaje_sobrellenado) / 100) + $valor_en_ml;
-                    // dump("Valor de sobrellenado del input");
-                    // dump($valor_sobrellenado_ml);
-                    // Realizar acciones con el número extraído
-                    // Realizar la consulta para obtener el nombre, div y mult relacionados al ID
-                    $suma_volumen_sobrellenado_ml = $suma_volumen_sobrellenado_ml + $valor_sobrellenado_ml;
-                    $registro_input = SolicitudInput::find($input_val->id);
-                    // dump("Valor de suma hasta el momento");
-                    // dump($suma_volumen_sobrellenado_ml);
-                    // dump("Imprimimos el registro de la bd");
-                    // dump($registro_input);
-                    $registro_input->valor_sobrellenado = $valor_sobrellenado_ml;
-                    $medicina = Medicine::select('id', 'precio_ml')->where('input_id', $input_val->input_id)->first();
-                    $registro_input->precio_ml = $valor_sobrellenado_ml * $medicina['precio_ml'];
-
-                    $registro_input->save();
-                    //dump("Imprimimos el registro guardado");
-                    //dump($registro_input);
-                }
-                //dump("Imprimimos la suma total");
-                //dump($suma_volumen_sobrellenado_ml);
-
-                $registro->suma_volumen_sobrellenado = $suma_volumen_sobrellenado_ml;
-
-                $agua_inyectable_ml = $registro->volumen_total  - $suma_volumen_mls;
-                // dump("Imprimimos el valor de agua");
-                // dump($agua_inyectable_ml);
-                $registro->volumen_total_final = $suma_volumen_mls + $agua_inyectable_ml + $registro->sobrellenado_ml;
-                $medicina_agua = Medicine::select('id', 'precio_ml')
-                    ->where('input_id', 37) // Condición para input_id igual a 37
-                    ->first();
-                $agua_valor_sobrellenado = (($agua_inyectable_ml * $porcentaje_sobrellenado) / 100) + $agua_inyectable_ml;
-                $solicitud_inputs['solicitud_id'] = $solicitud->id;
-                $solicitud_inputs['valor'] = $agua_inyectable_ml;
-                $solicitud_inputs['valor_ml'] = $agua_inyectable_ml;
-                $solicitud_inputs['input_id'] = 37;
-                $solicitud_inputs['valor_sobrellenado'] = $agua_valor_sobrellenado;
-                $solicitud_inputs['precio_ml'] = $agua_valor_sobrellenado * $medicina_agua['precio_ml'];
-                SolicitudInput::create($solicitud_inputs);
-            }
-            //HACEMOS ALGO
-
-        } else {
-            //Si me ponen volumen total pero no sobrellenado
-            if ($registro->volumen_total != null || $registro->volumen_total != 0) {
-                //dump($set_infusion);
-                if ($set_infusion['i_40'] == "1") {
-                    $agua_inyectable_ml = (($registro->volumen_total) - $suma_volumen_ml) + 1;
-
-                    //dump("Entramos al if");
-                } else {
-                    $agua_inyectable_ml = ($registro->volumen_total) - $suma_volumen_ml;
-                }
-
-
-                //dump("Imprimimos el valor de agua");
-                //dump($agua_inyectable_ml);
-                $medicina_agua = Medicine::select('id', 'precio_ml')
-                    ->where('input_id', 37) // Condición para input_id igual a 37
-                    ->first();
-
-                $solicitud_inputs['solicitud_id'] = $solicitud->id;
-                $solicitud_inputs['valor'] = $agua_inyectable_ml;
-                $solicitud_inputs['valor_ml'] = $agua_inyectable_ml;
-                $solicitud_inputs['input_id'] = 37;
-                $solicitud_inputs['precio_ml'] = $agua_inyectable_ml * $medicina_agua['precio_ml'];
-                $registro->volumen_total_final = $agua_inyectable_ml + $suma_volumen_ml;
-                SolicitudInput::create($solicitud_inputs);
-            } else {
-                //$registro->volumen_total = $suma_volumen_ml;
-                $registro->volumen_total_final = $suma_volumen_ml;
-            }
-        }
-        // Modificar los atributos del modelo
-        $suma_valores_red_ml = $suma_volumen_ml;
-        $registro->suma_volumen = $suma_valores_red_ml;
-        //$solicitud['is_aprobada'] = $is_aprobada_value;
-
-        $medicina_bolsa_eva = Medicine::select('id', 'precio_ml')
-            ->where('input_id', $bolsa_eva) // Condición para input_id igual a 37
-            ->first();
-        $solicitud_inputs_be['solicitud_id'] = $solicitud->id;
-        $solicitud_inputs_be['valor'] = 0;
-        $solicitud_inputs_be['valor_ml'] = 0;
-        $solicitud_inputs_be['input_id'] = $bolsa_eva;
-        $solicitud_inputs_be['lote'] = $lote_bolsa_eva;
-        $solicitud_inputs_be['caducidad'] = $caducidad_bolsa_eva;
-        $solicitud_inputs_be['precio_ml'] = $medicina_bolsa_eva['precio_ml'];
-        SolicitudInput::create($solicitud_inputs_be);
-
-
-        // Guardar el modelo actualizado
-        $registro->save();
-        // $solicitud->update($solicitud['is_aprobada']);
-        $solicitud->update(['is_aprobada' => $is_aprobada]);
-
-        if ($solicitud['is_aprobada'] == 'Pendiente') {
-            session()->flash(
-                'swal',
-                [
-                    'title' => "Solicitud Actualizada",
-                    'text' => "La solicitud se ha editado con éxito.",
-                    'icon' => "success"
-
-                ]
-            );
-        } elseif ($solicitud['is_aprobada'] == 'Aprobada') {
-
-            $fecha_hora_preparacion = now()->addMinutes(45); // Hora exacta del momento de aprobación + 45 minutos
-            $fecha_hora_limite = $fecha_hora_preparacion->copy()->addHours(48);
-
-            $solicitud_aprobadas['solicitud_id'] = $solicitud->id;
-            $solicitud_aprobadas['fecha_hora_preparacion'] = $fecha_hora_preparacion;
-            $solicitud_aprobadas['fecha_hora_limite_uso'] = $fecha_hora_limite;
-
-            $solicitudes = SolicitudAprobada::whereDate('created_at', today())
-                ->orderBy('id')
-                ->get();
-
-            $count = $solicitudes->count();
-            $fechaDeHoy = Carbon::today();
-
-            $numeroFormateado = str_pad($count + 1, 3, '00', STR_PAD_LEFT);
-            $fechaFormateada = 'L' . $fechaDeHoy->format('dmy') . $numeroFormateado;
-
-            $solicitud_aprobadas['lote'] = $fechaFormateada;
-
-            SolicitudAprobada::create($solicitud_aprobadas);
-
-            session()->flash(
-                'swal',
-                [
-                    'title' => "Solicitud Aprobada",
-                    'text' => "La solicitud se ha aprobado con éxito.",
-                    'icon' => "success"
-
-                ]
-            );
-        }
-        // } elseif ($solicitud['is_aprobada'] == 'No Aprobada') {
-        //     session()->flash(
-        //         'swal',
-        //         [
-        //             'title' => "Solicitud Rechazada",
-        //             'text' => "La solicitud se ha rechazado.",
-        //             'icon' => "warning"
-
-        //         ]
-        //     );
-        // }
-
-        //METER TODO DENTRO DE ESTOS IF PARA MANEJAR QUE PASA
-
-
-        return redirect()->route('admin.nutricionales.solicitudes.index');
-        // print_r($solicitud['id']);
-        // print_r($solicitud['solicitud_detail_id']);
-        // print_r($solicitud['solicitud_patient_id']);
-        //print_r($solicitud_patient_u);
-        //print_r($solicitud_detail_u);
-
+        return $stock;
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Solicitud $solicitud)
     {
-        $user = Auth::user(); // Obtener el usuario actual
+        $user = Auth::user();
         $role = $user->roles[0]->name;
-        if ($role === 'Admin' or $role === 'Super Admin') {
-            $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
-                ->where('user_id', $user->id) // Filtrar por el ID del usuario autenticado actual
-                ->find($solicitud->id);
 
-
-            // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
-            //$inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-            $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
-                ->leftJoin('medicines', 'medicines.input_id', '=', 'inputs.id')
-                ->where('inputs.is_active', 1)
-                ->orderBy('orden_enum', 'asc')
-                ->select(
-                    'inputs.*',
-                    'inputs.id AS input_id', // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
-                    'medicines.lote AS lote', // Obtener el lote de la medicina
-                    'medicines.caducidad AS caducidad',
-                    'medicines.presentacion_ml'
-                )
-                ->get();
-
-            // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
-            $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-            return view('admin.nutricionales.solicitudes.show', compact('solicitud', 'inputs_solicitud', 'solicitud_detalles', 'inputs'));
-        } else {
-            if ($solicitud->user_id == $user->id) {
-                $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital', 'solicitud_aprobada')
-                    ->where('user_id', $user->id) // Filtrar por el ID del usuario autenticado actual
-                    ->find($solicitud->id);
-
-
-                // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
-                //$inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-                $inputs = Input::Join('categories', 'inputs.category_id', '=', 'categories.id')
-                    ->leftJoin('medicines', 'medicines.input_id', '=', 'inputs.id')
-                    ->where('inputs.is_active', 1)
-                    ->orderBy('orden_enum', 'asc')
-                    ->select(
-                        'inputs.*',
-                        'inputs.id AS input_id', // Renombramos 'nombre' de 'categories' a 'nombre_categoria'
-                        'medicines.lote AS lote', // Obtener el lote de la medicina
-                        'medicines.caducidad AS caducidad',
-                        'medicines.presentacion_ml'
-                    )
-                    ->get();
-
-                // $inputs_solicitud = Solicitud::with('input')->get()->pluck('input')->flatten();
-                $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])->get();
-                return view('admin.nutricionales.solicitudes.show', compact('solicitud', 'inputs_solicitud', 'solicitud_detalles', 'inputs'));
-            } else {
-                abort(Response::HTTP_NOT_FOUND, 'Página no encontrada');
-            }
+        if (!in_array($role, ['Admin', 'Super Admin']) && $solicitud->user_id != $user->id) {
+            abort(Response::HTTP_NOT_FOUND, 'Página no encontrada');
         }
-    }
 
+        $solicitud_detalles = Solicitud::with(
+            'user',
+            'solicitud_detail',
+            'solicitud_patient',
+            'input',
+            'user.hospital'
+        )->findOrFail($solicitud->id);
+
+        $inputs = Input::join('categories', 'inputs.category_id', '=', 'categories.id')
+            ->where('inputs.is_active', 1)
+            ->orderBy('orden_enum', 'asc')
+            ->select(
+                'inputs.*',
+                'inputs.id AS input_id'
+            )
+            ->get();
+
+        $inputs_solicitud = SolicitudInput::with([
+            'input',
+            'presentation.catalog'
+        ])
+            ->where('solicitud_id', $solicitud->id)
+            ->get();
+
+        $inputs = $inputs->map(function ($input) use ($inputs_solicitud) {
+            $solicitudInput = $inputs_solicitud->firstWhere('input_id', $input->input_id);
+
+            $input->presentation_ml = optional(optional($solicitudInput)->presentation)->presentacion_ml;
+            $input->denominacion_comercial = optional(optional($solicitudInput)->presentation)->denominacion_comercial;
+            $input->denominacion_generica = optional(optional(optional($solicitudInput)->presentation)->catalog)->denominacion_generica;
+            $input->lote = $solicitudInput?->lote;
+            $input->caducidad = $solicitudInput?->caducidad;
+
+            return $input;
+        });
+
+        return view('admin.nutricionales.solicitudes.show', compact(
+            'solicitud',
+            'inputs_solicitud',
+            'solicitud_detalles',
+            'inputs'
+        ));
+    }
     public function solicitud(Solicitud $solicitud)
     {
-        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
+        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud->id)
             ->whereNotIn('input_id', function ($query) {
                 $query->select('id')
                     ->from('inputs')
-                    ->where('category_id', '=', 6); // Ajusta el nombre de la columna si es diferente
+                    ->where('category_id', '=', 6);
             })
-            ->whereNotIn('input_id', [40]) // Excluir input_id 40
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->whereNotIn('input_id', [40])
+            ->with([
+                'input',
+                'presentation.catalog',
+            ])
             ->get();
 
         $arreglo_resultado = [];
@@ -1066,14 +1629,17 @@ class SolicitudController extends Controller
         }
 
 
-        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
+        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud->id)
             ->whereNotIn('input_id', function ($query) {
                 $query->select('id')
                     ->from('inputs')
-                    ->where('category_id', '=', 6); // Ajusta el nombre de la columna si es diferente
+                    ->where('category_id', '=', 6);
             })
-            ->whereNotIn('input_id', [40]) // Excluir input_id 40
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->whereNotIn('input_id', [40])
+            ->with([
+                'input.nutritionMedicineCatalog.presentations',
+                'presentation.catalog',
+            ])
             ->get();
 
         // return $arreglo_resultado;
@@ -1083,7 +1649,7 @@ class SolicitudController extends Controller
             ->find($solicitud->id);
         $set_infusion = SolicitudInput::where('solicitud_id', $solicitud['id'])
             ->where('input_id', 40) // Filtrar por input_id igual a 40
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->with(['input', 'presentation.catalog'])
             ->first();
 
         //return $solicitud_detalles;
@@ -1093,177 +1659,389 @@ class SolicitudController extends Controller
     }
 
 
-    // public function destroy(Solicitud $solicitud)
-    // {
-    //     $solicitud->is_aprobada = 'No Aprobada';
-    //     $solicitud->save();
-
-    //     return redirect()->back()->with('success', 'La solicitud fue cancelada correctamente.');
-    // }
-
-
     public function ordenPreparacion(Solicitud $solicitud)
     {
-        // $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
-        //     ->whereNotIn('input_id', [40]) // Excluir input_id 40
-        //     ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-        //     ->get();
 
-        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
-            ->whereNotIn('input_id', function ($query) {
-                $query->select('id')
-                    ->from('inputs')
-                    ->where('category_id', '=', 6); // Ajusta el nombre de la columna si es diferente
-            })
-            ->whereNotIn('input_id', [40]) // Excluir input_id 40
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-            ->get();
-        //print_r($inputs_solicitud);
-        //return $inputs_solicitud;
-        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
-            ->find($solicitud->id);
+        $solicitud->load('user.hospital.nutriMedicineList', 'inspeccionNutricional');
+        $hospital = $solicitud->user?->hospital;
+        $imprimirMarcas = (bool) optional($hospital?->nutriMedicineList)->active_brands;
+        $inspeccion = $solicitud->inspeccionNutricional;
+        $elaboroNombre = $this->nombreUsuario($solicitud->user);
+        $validoNombre = $this->nombreUsuarioDesdeTexto($inspeccion?->aprobo_nombre);
+        $preparoNombre = $this->nombreUsuarioDesdeTexto($inspeccion?->preparo_nombre);
 
-        $bolsa_eva = SolicitudInput::where('solicitud_id', $solicitud['id'])
-            ->whereIn('input_id', function ($query) {
-                $query->select('id')
-                    ->from('inputs')
-                    ->where('category_id', '=', 6); // Solo incluir input_id asociados con category_id igual a 6
-            })
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-            ->first();
-        $set_infusion = SolicitudInput::where('solicitud_id', $solicitud['id'])
-            ->where('input_id', 40) // Filtrar por input_id igual a 40
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-            ->first();
-
-
-        // return [
-        //     'solicitud_detalles' => $solicitud_detalles,
-        //     'inputs_solicitud' => $inputs_solicitud,
-        //     'bolsa_eva' => $bolsa_eva,
-        //     'set_infusion' => $set_infusion
-        // ];
-
-        //return $solicitud_detalles;
-        $pdf = Pdf::loadView('pdfs.nutricionales.orden-de-preparacion', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion'));
-
-        return $pdf->stream();
-    }
-
-    public function remision(Solicitud $solicitud)
-    {
-        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
-            ->whereNotIn('input_id', function ($query) {
-                $query->select('id')
-                    ->from('inputs')
-                    ->where('category_id', '=', 6); // Ajusta el nombre de la columna si es diferente
-            })
-            ->whereNotIn('input_id', [40]) // Excluir input_id 40
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-            ->get();
-        //print_r($inputs_solicitud);
-        //return $inputs_solicitud;
-        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
-            ->find($solicitud->id);
-
-        $bolsa_eva = SolicitudInput::where('solicitud_id', $solicitud['id'])
-            ->whereIn('input_id', function ($query) {
-                $query->select('id')
-                    ->from('inputs')
-                    ->where('category_id', '=', 6); // Solo incluir input_id asociados con category_id igual a 6
-            })
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-            ->first();
-        $set_infusion = SolicitudInput::where('solicitud_id', $solicitud['id'])
-            ->where('input_id', 40) // Filtrar por input_id igual a 40
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
-            ->first();
-
-        $servicio_preparacion = Medicine::where('id', 38)->first();
-        $pdf = Pdf::loadView('pdfs.nutricionales.remision', \compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion', 'servicio_preparacion'));
-
-        // return [
-        //     'solicitud_detalles' => $solicitud_detalles,
-        //     'inputs_solicitud' => $inputs_solicitud,
-        //     'bolsa_eva' => $bolsa_eva,
-        //     'set_infusion' => $set_infusion,
-        //     'servicio_preparacion' => $servicio_preparacion
-        // ];
-
-        return $pdf->stream();
-    }
-
-    public function envio(Solicitud $solicitud)
-    {
-        // Ítems de medicamento (excluye bolsa EVA category_id=6 y set de infusión id=40)
-        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
+        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud->id)
             ->whereNotIn('input_id', function ($query) {
                 $query->select('id')
                     ->from('inputs')
                     ->where('category_id', '=', 6);
             })
             ->whereNotIn('input_id', [40])
-            ->with('input.medicine')
+            ->with([
+                'input.nutritionMedicineCatalog.presentations.stocks' => function ($query) use ($solicitud) {
+                    $query->where('laboratory_id', $solicitud->user->hospital->laboratory_id)
+                        ->where('is_active', 1)
+                        ->orderBy('caducidad')
+                        ->orderBy('id');
+                },
+                'presentation.stocks' => function ($query) use ($solicitud) {
+                    $query->where('laboratory_id', $solicitud->user->hospital->laboratory_id)
+                        ->where('is_active', 1)
+                        ->orderBy('caducidad')
+                        ->orderBy('id');
+                },
+                'presentation.catalog',
+            ])
             ->get();
 
-        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'user.hospital')
-            ->find($solicitud->id);
+        $solicitud_detalles = Solicitud::with([
+            'user.hospital',
+            'solicitud_detail',
+            'solicitud_patient',
+            'input.input.nutritionMedicineCatalog.presentations',
+            'input.presentation.catalog',
+        ])->findOrFail($solicitud->id);
 
-        // Bolsa EVA (category_id = 6)
-        $bolsa_eva = SolicitudInput::where('solicitud_id', $solicitud['id'])
+        $bolsa_eva = SolicitudInput::where('solicitud_id', $solicitud->id)
             ->whereIn('input_id', function ($query) {
                 $query->select('id')
                     ->from('inputs')
                     ->where('category_id', '=', 6);
             })
-            ->with('input.medicine')
+            ->with([
+                'input.nutritionMedicineCatalog.presentations',
+                'presentation.catalog',
+            ])
             ->first();
 
-        // Set de infusión (id = 40) — opcional
-        $set_infusion = SolicitudInput::where('solicitud_id', $solicitud['id'])
+        $set_infusion = SolicitudInput::where('solicitud_id', $solicitud->id)
             ->where('input_id', 40)
-            ->with('input.medicine')
+            ->with([
+                'input.nutritionMedicineCatalog.presentations',
+                'presentation.catalog',
+            ])
             ->first();
 
-        // Servicio de preparación (Medicine id = 38)
+        $presentationIds = $inputs_solicitud
+            ->concat([$bolsa_eva, $set_infusion])
+            ->filter()
+            ->pluck('nutrition_medicine_presentation_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $lotesPorPresentacion = collect();
+
+        if ($presentationIds->isNotEmpty() && $hospital?->laboratory_id) {
+            $lotesPorPresentacion = MedicineLaboratoryStock::whereIn('nutrition_medicine_presentation_id', $presentationIds)
+                ->where('laboratory_id', $hospital->laboratory_id)
+                ->orderByRaw('CASE WHEN caducidad IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('caducidad')
+                ->orderBy('id')
+                ->get()
+                ->groupBy('nutrition_medicine_presentation_id')
+                ->map(fn($stocks) => $stocks->first());
+
+            $lotesUsados = MedicineStockMovement::query()
+                ->join('medicine_laboratory_stocks as mls', 'mls.id', '=', 'medicine_stock_movements.medicine_laboratory_stock_id')
+                ->where('medicine_stock_movements.reference_type', 'Solicitud')
+                ->where('medicine_stock_movements.reference_id', $solicitud->id)
+                ->where('medicine_stock_movements.tipo', 'salida')
+                ->whereIn('mls.nutrition_medicine_presentation_id', $presentationIds)
+                ->select(
+                    'mls.nutrition_medicine_presentation_id',
+                    'mls.lote',
+                    'mls.caducidad'
+                )
+                ->get()
+                ->keyBy('nutrition_medicine_presentation_id');
+
+            $lotesUsados->each(function ($lote, $presentationId) use ($lotesPorPresentacion) {
+                $lotesPorPresentacion->put($presentationId, $lote);
+            });
+        }
+
+        $pdf = Pdf::loadView('pdfs.nutricionales.orden-de-preparacion', compact(
+            'solicitud_detalles',
+            'inputs_solicitud',
+            'bolsa_eva',
+            'set_infusion',
+            'imprimirMarcas',
+            'lotesPorPresentacion',
+            'inspeccion',
+            'elaboroNombre',
+            'validoNombre',
+            'preparoNombre'
+        ));
+
+        return $pdf->stream();
+    }
+
+    public function remision(Solicitud $solicitud)
+    {
+        $solicitud->load('user.hospital.nutriMedicineList.distributor');
+
+        $hospital = $solicitud->user?->hospital;
+        $nutriMedicineListId = $hospital?->nutri_medicine_list_id;
+        $imprimirMarcas = (bool) optional($hospital?->nutriMedicineList)->active_brands;
+        $distributor = $hospital?->nutriMedicineList?->distributor;
+
+        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud->id)
+            ->whereNotIn('input_id', function ($query) {
+                $query->select('id')
+                    ->from('inputs')
+                    ->where('category_id', '=', 6);
+            })
+            ->whereNotIn('input_id', [40])
+            ->with([
+                'input.nutritionMedicineCatalog.presentations' => function ($query) use ($nutriMedicineListId) {
+                    $query->with([
+                        'listItems' => function ($q) use ($nutriMedicineListId) {
+                            if ($nutriMedicineListId) {
+                                $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                            }
+                        },
+                    ]);
+                },
+                'presentation.catalog',
+                'presentation.listItems' => function ($q) use ($nutriMedicineListId) {
+                    if ($nutriMedicineListId) {
+                        $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                    }
+                },
+            ])
+            ->get();
+
+        $solicitud_detalles = Solicitud::with([
+            'user.hospital',
+            'solicitud_detail',
+            'solicitud_patient',
+
+            'input.input.nutritionMedicineCatalog.presentations' => function ($query) use ($nutriMedicineListId) {
+                $query->with([
+                    'listItems' => function ($q) use ($nutriMedicineListId) {
+                        if ($nutriMedicineListId) {
+                            $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                        }
+                    },
+                ]);
+            },
+            'input.presentation.catalog',
+            'input.presentation.listItems' => function ($q) use ($nutriMedicineListId) {
+                if ($nutriMedicineListId) {
+                    $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                }
+            },
+        ])->findOrFail($solicitud->id);
+
+        $bolsa_eva = SolicitudInput::where('solicitud_id', $solicitud->id)
+            ->whereIn('input_id', function ($query) {
+                $query->select('id')
+                    ->from('inputs')
+                    ->where('category_id', '=', 6);
+            })
+            ->with([
+                'input.nutritionMedicineCatalog.presentations' => function ($query) use ($nutriMedicineListId) {
+                    $query->with([
+                        'listItems' => function ($q) use ($nutriMedicineListId) {
+                            if ($nutriMedicineListId) {
+                                $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                            }
+                        },
+                    ]);
+                },
+                'presentation.catalog',
+                'presentation.listItems' => function ($q) use ($nutriMedicineListId) {
+                    if ($nutriMedicineListId) {
+                        $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                    }
+                },
+            ])
+            ->first();
+
+        $set_infusion = SolicitudInput::where('solicitud_id', $solicitud->id)
+            ->where('input_id', 40)
+            ->with([
+                'input.nutritionMedicineCatalog.presentations' => function ($query) use ($nutriMedicineListId) {
+                    $query->with([
+                        'listItems' => function ($q) use ($nutriMedicineListId) {
+                            if ($nutriMedicineListId) {
+                                $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                            }
+                        },
+                    ]);
+                },
+                'presentation.catalog',
+                'presentation.listItems' => function ($q) use ($nutriMedicineListId) {
+                    if ($nutriMedicineListId) {
+                        $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                    }
+                },
+            ])
+            ->first();
+
         $servicio_preparacion = Medicine::where('id', 38)->first();
 
-        // Enviar TODO al Blade de envío
+        $pdf = Pdf::loadView('pdfs.nutricionales.remision', compact(
+            'solicitud_detalles',
+            'inputs_solicitud',
+            'bolsa_eva',
+            'set_infusion',
+            'servicio_preparacion',
+            'imprimirMarcas',
+            'distributor'
+        ));
+
+        return $pdf->stream();
+    }
+
+    public function envio(Solicitud $solicitud)
+    {
+        $solicitud->load('user.hospital.nutriMedicineList');
+
+        $hospital = $solicitud->user?->hospital;
+        $nutriMedicineListId = $hospital?->nutri_medicine_list_id;
+        $imprimirMarcas = (bool) optional($hospital?->nutriMedicineList)->active_brands;
+
+        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud->id)
+            ->whereNotIn('input_id', function ($query) {
+                $query->select('id')
+                    ->from('inputs')
+                    ->where('category_id', '=', 6);
+            })
+            ->whereNotIn('input_id', [40])
+            ->with([
+                'input.nutritionMedicineCatalog.presentations' => function ($query) use ($nutriMedicineListId) {
+                    $query->with([
+                        'listItems' => function ($q) use ($nutriMedicineListId) {
+                            if ($nutriMedicineListId) {
+                                $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                            }
+                        },
+                    ]);
+                },
+                'presentation.catalog',
+                'presentation.listItems' => function ($q) use ($nutriMedicineListId) {
+                    if ($nutriMedicineListId) {
+                        $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                    }
+                },
+            ])
+            ->get();
+
+        $solicitud_detalles = Solicitud::with([
+            'user.hospital',
+            'solicitud_detail',
+            'solicitud_patient',
+
+            'input.input.nutritionMedicineCatalog.presentations' => function ($query) use ($nutriMedicineListId) {
+                $query->with([
+                    'listItems' => function ($q) use ($nutriMedicineListId) {
+                        if ($nutriMedicineListId) {
+                            $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                        }
+                    },
+                ]);
+            },
+            'input.presentation.catalog',
+            'input.presentation.listItems' => function ($q) use ($nutriMedicineListId) {
+                if ($nutriMedicineListId) {
+                    $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                }
+            },
+        ])->findOrFail($solicitud->id);
+
+        $bolsa_eva = SolicitudInput::where('solicitud_id', $solicitud->id)
+            ->whereIn('input_id', function ($query) {
+                $query->select('id')
+                    ->from('inputs')
+                    ->where('category_id', '=', 6);
+            })
+            ->with([
+                'input.nutritionMedicineCatalog.presentations' => function ($query) use ($nutriMedicineListId) {
+                    $query->with([
+                        'listItems' => function ($q) use ($nutriMedicineListId) {
+                            if ($nutriMedicineListId) {
+                                $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                            }
+                        },
+                    ]);
+                },
+                'presentation.catalog',
+                'presentation.listItems' => function ($q) use ($nutriMedicineListId) {
+                    if ($nutriMedicineListId) {
+                        $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                    }
+                },
+            ])
+            ->first();
+
+        $set_infusion = SolicitudInput::where('solicitud_id', $solicitud->id)
+            ->where('input_id', 40)
+            ->with([
+                'input.nutritionMedicineCatalog.presentations' => function ($query) use ($nutriMedicineListId) {
+                    $query->with([
+                        'listItems' => function ($q) use ($nutriMedicineListId) {
+                            if ($nutriMedicineListId) {
+                                $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                            }
+                        },
+                    ]);
+                },
+                'presentation.catalog',
+                'presentation.listItems' => function ($q) use ($nutriMedicineListId) {
+                    if ($nutriMedicineListId) {
+                        $q->where('nutri_medicine_list_id', $nutriMedicineListId);
+                    }
+                },
+            ])
+            ->first();
+
+        $servicio_preparacion = Medicine::where('id', 38)->first();
+
         $pdf = Pdf::loadView(
             'pdfs.nutricionales.envio',
-            compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion', 'servicio_preparacion')
+            compact(
+                'solicitud_detalles',
+                'inputs_solicitud',
+                'bolsa_eva',
+                'set_infusion',
+                'servicio_preparacion',
+                'imprimirMarcas'
+            )
         );
 
-        // ⚠️ Evita hacer un return antes del stream si quieres generar el PDF:
         return $pdf->stream();
-
-        // Si estás depurando y quieres ver los datos en JSON, comenta la línea anterior y usa:
-        // return compact('solicitud_detalles', 'inputs_solicitud', 'bolsa_eva', 'set_infusion', 'servicio_preparacion');
     }
 
 
     public function etiqueta(Solicitud $solicitud)
     {
-
-        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud['id'])
+        $inputs_solicitud = SolicitudInput::where('solicitud_id', $solicitud->id)
             ->whereNotIn('input_id', function ($query) {
                 $query->select('id')
                     ->from('inputs')
-                    ->where('category_id', '=', 6); // Ajusta el nombre de la columna si es diferente
+                    ->where('category_id', '=', 6);
             })
-            ->whereNotIn('input_id', [40]) // Excluir input_id 40
-            ->with('input.medicine') // Cargar la relación 'medicine' a través de 'input'
+            ->whereNotIn('input_id', [40])
+            ->with([
+                'input',
+                'presentation.catalog',
+            ])
             ->get();
 
-        //return $inputs_solicitud;
-        $solicitud_detalles = Solicitud::with('user', 'solicitud_detail', 'solicitud_patient', 'input', 'input.medicine', 'user.hospital')
-            ->find($solicitud->id);
+        $solicitud_detalles = Solicitud::with([
+            'user.hospital',
+            'solicitud_detail',
+            'solicitud_patient'
+        ])->findOrFail($solicitud->id);
 
-        //  return $solicitud_detalles;
-        $customPaper = [0, 0, 368.50, 255.12]; // 9cm x 13cm en puntos
-        $pdf = Pdf::loadView('pdfs.nutricionales.etiqueta', \compact('solicitud_detalles', 'inputs_solicitud'))
-            ->setPaper($customPaper, 'landscape');
+        $customPaper = [0, 0, 368.50, 255.12];
 
+        $pdf = Pdf::loadView('pdfs.nutricionales.etiqueta', compact(
+            'solicitud_detalles',
+            'inputs_solicitud'
+        ))->setPaper($customPaper, 'landscape');
 
         return $pdf->stream();
     }
@@ -1274,3 +2052,4 @@ class SolicitudController extends Controller
         return Excel::download(new SolicitudesExport, 'solicitudes.xlsx');
     }
 }
+

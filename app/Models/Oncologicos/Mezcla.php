@@ -9,6 +9,7 @@ use App\Models\Oncologicos\MezclaMedicamento;
 use App\Models\Oncologicos\InspeccionMezcla;
 use App\Models\Oncologicos\Infusor;
 use App\Models\Oncologicos\DiluentPresentation;
+use App\Models\InstitutionBilling;
 
 class Mezcla extends Model
 {
@@ -59,5 +60,11 @@ class Mezcla extends Model
     public function diluentPresentation()
     {
         return $this->belongsTo(DiluentPresentation::class, 'diluent_presentation_id');
+    }
+
+    public function billing()
+    {
+        return $this->hasOne(InstitutionBilling::class, 'origen_id')
+            ->where('origen_tipo', 'oncologica_mezcla');
     }
 }

@@ -104,8 +104,14 @@
 
                                 <input type="number"
                                     step="0.01"
+                                    min="0.01"
                                     wire:model.defer="dosis_volumen"
+                                    required
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200">
+
+                                @error('dosis_volumen')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
 
 
@@ -116,8 +122,14 @@
 
                                 <input type="number"
                                     step="0.01"
+                                    min="0.01"
                                     wire:model.defer="peso_mezcla"
+                                    required
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-200">
+
+                                @error('peso_mezcla')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
 
 

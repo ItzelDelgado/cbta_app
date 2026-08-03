@@ -1,58 +1,118 @@
 <x-admin-layout>
     <div class="mt-2">
-        <h1 class="text-2xl font-medium text-gray-800">Lista de Medicamentos</h1>
+        <h1 class="text-2xl font-medium text-gray-800">Catálogo de Medicamentos</h1>
     </div>
 
     <div class="flex justify-end mb-4">
-        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-            href="{{ route('admin.nutricionales.medicines.create') }}"><i class="fa-solid fa-plus pr-1"></i> Agregar</a>
+        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2"
+            href="{{ route('admin.nutricionales.medicines.create') }}">
+            <i class="fa-solid fa-plus pr-1"></i> Agregar
+        </a>
     </div>
 
+    @if ($errors->any())
+        <div class="bg-red-50 border border-red-200 text-red-800 rounded p-3 mb-4">
+            <ul class="list-disc list-inside">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="relative overflow-x-auto">
-        <table id="medicinesTable" class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+        <table id="medicinesTable" class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                 <tr>
                     <th scope="col" class="px-6 py-3">ID</th>
-                    <th scope="col" class="px-6 py-3">Denominación Genérica</th>
-                    <th scope="col" class="px-6 py-3">Denominación Comercial</th>
-                    {{-- <th scope="col" class="px-6 py-3">Descripción</th> --}}
-                    <th scope="col" class="px-6 py-3">Presentación</th>
-                    <th scope="col" class="px-6 py-3">Precio/ml</th>
-                    <th scope="col" class="px-6 py-3">Lote</th>
-                    <th scope="col" class="px-6 py-3">Caducidad</th>
-                    {{-- <th scope="col" class="px-6 py-3">Osmolaridad</th> --}}
-                    {{-- <th scope="col" class="px-6 py-3">Categoría</th> --}}
-                    <th scope="col" class="px-6 py-3"></th>
+                    <th scope="col" class="px-6 py-3">Medicamento / Presentaciones</th>
+                    <th scope="col" class="px-6 py-3">Input</th>
+                    <th scope="col" class="px-6 py-3">Categoría</th>
+                    <th scope="col" class="px-6 py-3">Osmolaridad</th>
+                    <th scope="col" class="px-6 py-3 text-center">Activo</th>
+                    <th scope="col" class="px-6 py-3 text-center">Acciones</th>
                 </tr>
             </thead>
+
             <tbody>
                 @foreach ($medicines as $medicine)
-                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                        <th scope="row"
-                            class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    <tr class="bg-white border-b">
+                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap align-top">
                             {{ $medicine->id }}
                         </th>
-                        <td class="px-6 py-4">{{ $medicine->denominacion_generica }}</td>
-                        <td class="px-6 py-4">{{ $medicine->denominacion_comercial }}</td>
-                        {{-- <td class="px-6 py-4">{{ $medicine->input['description'] }}</td> --}}
-                        <td class="px-6 py-4">{{ $medicine->presentacion }}</td>
-                        <td class="px-6 py-4">{{ $medicine->precio_ml }}</td>
-                        <td class="px-6 py-4">{{ $medicine->lote }}</td>
-                        <td class="px-6 py-4">
-                            @if ($medicine->caducidad)
-                                {{ \Carbon\Carbon::parse($medicine->caducidad)->format('d-m-Y') }}
+
+                        <td class="px-6 py-4 align-top">
+                            <div class="font-semibold text-gray-800">
+                                {{ $medicine->denominacion_generica }}
+                            </div>
+
+                            @if ($medicine->presentations->isNotEmpty())
+                                <div class="flex flex-wrap gap-2 mt-3">
+                                    @foreach ($medicine->presentations as $presentation)
+                                        <div class="border rounded-lg px-3 py-2 bg-gray-50 min-w-[220px]">
+                                            <div class="font-medium text-gray-800">
+                                                {{ $presentation->denominacion_comercial }}
+                                            </div>
+
+                                            <div class="text-xs text-gray-600">
+                                                {{ $presentation->presentacion ?? '—' }}
+                                            </div>
+
+                                            <div class="text-xs text-gray-500">
+                                                {{ $presentation->presentacion_ml ?? '—' }} ml
+                                            </div>
+
+                                            <div class="mt-1">
+                                                @if ($presentation->is_available)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs">
+                                                        Disponible
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded bg-red-100 text-red-800 text-xs">
+                                                        No disponible
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             @else
-                                &nbsp; <!-- Muestra un espacio vacío si caducidad es null -->
+                                <div class="text-sm text-gray-400 mt-2">
+                                    Sin presentaciones registradas
+                                </div>
                             @endif
                         </td>
-                        {{-- <td class="px-6 py-4">{{ $medicine->osmolaridad }}</td>
-                        <td class="px-6 py-4">{{ $medicine->category['name'] }}</td> --}}
-                        <td class="px-6 py-4">
-                            <div class="flex items-center">
-                                <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                                    href="{{ route('admin.nutricionales.medicines.edit', $medicine) }}"><i
-                                        class="fa-solid fa-pen pr-1"></i> Editar</a>
-                            </div>
+
+                        <td class="px-6 py-4 align-top">
+                            {{ $medicine->input->description ?? '—' }}
+                        </td>
+
+                        <td class="px-6 py-4 align-top">
+                            {{ $medicine->category->name ?? '—' }}
+                        </td>
+
+                        <td class="px-6 py-4 align-top">
+                            {{ $medicine->osmolaridad ?? '—' }}
+                        </td>
+
+                        <td class="px-6 py-4 text-center align-top">
+                            @if ($medicine->is_active)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800">
+                                    Sí
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2 py-0.5 rounded bg-red-100 text-red-800">
+                                    No
+                                </span>
+                            @endif
+                        </td>
+
+                        <td class="px-6 py-4 text-center align-top">
+                            <x-row-actions>
+                                <a href="{{ route('admin.nutricionales.medicines.edit', $medicine) }}">
+                                    Editar
+                                </a>
+                            </x-row-actions>
                         </td>
                     </tr>
                 @endforeach
@@ -63,7 +123,11 @@
     @push('js')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                let table = new DataTable('#medicinesTable', {
+                new DataTable('#medicinesTable', {
+                    order: [[1, 'asc']],
+                    columnDefs: [
+                        { orderable: false, searchable: false, targets: -1 }
+                    ],
                     language: {
                         lengthMenu: "Mostrar _MENU_ registros por página",
                         zeroRecords: "Nada encontrado - lo siento",

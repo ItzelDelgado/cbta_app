@@ -21,16 +21,28 @@ class Medicine extends Model
         'input_id',
         'lote', // Agregar lote
         'caducidad', // Agregar caducidad
+
     ];
 
     //Relacion uno a muchos inversa
-    public function category(){
+    public function category()
+    {
         return $this->belongsTo(Category::class);
     }
 
     //Relacion uno a muchos inversa
-    public function input(){
+    public function input()
+    {
         return $this->belongsTo(Input::class);
     }
 
+    public function nutriListItems()
+    {
+        return $this->hasMany(NutriMedicineListItem::class, 'medicine_id');
+    }
+
+    public function laboratoryStocks()
+    {
+        return $this->hasMany(MedicineLaboratoryStock::class, 'medicine_id');
+    }
 }

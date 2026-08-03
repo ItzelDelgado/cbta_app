@@ -272,7 +272,7 @@
             <table>
                 <tr>
                     <td style="width: 5%">Fecha: </td>
-                    <td style="width: 15%" class="border-b-1">{{ $fmtDateSmart($val($ins, 'fecha')) }}</td>
+                    <td style="width: 15%" class="border-b-1">{{ $fmtDateSmart($val($ins, 'fecha_inspeccion')) }}</td>
                     <td style="width: 35%"></td>
                     <td style="width: 20%" class="text-right">Hora de inspección:</td>
                     <td style="width: 30%" class="border-b-1">{{ $fmtTime($val($ins, 'hora_inspeccion')) }}</td>

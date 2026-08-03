@@ -2,6 +2,7 @@
 
 namespace App\Models\Nutricionales;
 
+use App\Models\InstitutionBilling;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,9 +16,18 @@ class Solicitud extends Model
         'solicitud_detail_id',
         'solicitud_patient_id',
         'is_active',
-        'is_aprobada'
+        'fecha_hora_preparacion',
+        'fecha_hora_limite_uso',
+        'estado',
+        'lote',
+        'remision',
     ];
 
+
+    protected $casts = [
+
+        'fecha_hora_preparacion' => 'datetime',
+    ];
 
     public function user()
     {
@@ -41,9 +51,16 @@ class Solicitud extends Model
         return $this->hasMany(SolicitudInput::class);
     }
 
-    public function solicitud_aprobada()
+
+    public function inspeccionNutricional()
     {
-        return $this->hasOne(SolicitudAprobada::class);
+        return $this->hasOne(InspeccionNutricional::class, 'solicitud_id');
     }
 
+    public function billing()
+    {
+        return $this->hasOne(InstitutionBilling::class, 'origen_id')
+            ->where('origen_tipo', 'nutricional_solicitud');
+    }
 }
+

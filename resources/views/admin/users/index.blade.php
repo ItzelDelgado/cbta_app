@@ -38,7 +38,7 @@
                 @foreach ($users as $user)
                     @foreach ($user->roles as $role)
                         @hasanyrole('Admin')
-                            @if ($role->name == 'Cliente')
+                            @if (in_array($role->name, ['Cliente', 'Institucion'], true))
                                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                                     <th scope="row"
                                         class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
@@ -55,16 +55,16 @@
                                     </td>
                                     <td>
                                         @foreach ($user->roles as $role)
-                                            {{ $role->name }}
-                                        @endforeach
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center">
-                                            <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                                                href="{{ route('admin.users.edit', $user) }}"> <i
+                                            {{ $role->name === 'Cliente' ? 'Institucion' : $role->name }}
+                                    @endforeach
+                                </td>
+                                <td class="px-6 py-4">
+                                    <x-row-actions>
+                                        <a class=""
+                                            href="{{ route('admin.users.edit', $user) }}"> <i
                                                     class="fa-solid fa-pen pr-1"></i> Editar</a>
-                                        </div>
-                                    </td>
+                                    </x-row-actions>
+                                </td>
                                 </tr>
                             @endif
                         @endhasanyrole
@@ -85,15 +85,15 @@
                                 </td>
                                 <td>
                                     @foreach ($user->roles as $role)
-                                        {{ $role->name }}
+                                        {{ $role->name === 'Cliente' ? 'Institucion' : $role->name }}
                                     @endforeach
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="flex items-center">
-                                        <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                                    <x-row-actions>
+                                        <a class=""
                                             href="{{ route('admin.users.edit', $user) }}"> <i
                                                 class="fa-solid fa-pen pr-1"></i> Editar</a>
-                                    </div>
+                                    </x-row-actions>
                                 </td>
                             </tr>
                         @endhasanyrole

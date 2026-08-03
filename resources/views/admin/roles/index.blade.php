@@ -30,10 +30,10 @@
                             {{ $rol->name }}
                         </td>
                         <td class="px-6 py-4">
-                            <div class="flex items-center">
-                                <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
+                            <x-row-actions>
+                                <a class=""
                                 href="{{ route('admin.roles.edit', $rol) }}"> <i class="fa-solid fa-pen pr-1"></i> Editar</a>
-                            </div>
+                            </x-row-actions>
                         </td>
                     </tr>
                 @endforeach
@@ -44,4 +44,3 @@
 
 
 </x-admin-layout>
-

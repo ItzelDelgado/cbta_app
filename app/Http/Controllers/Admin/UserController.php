@@ -34,9 +34,9 @@ class UserController extends Controller
     {
         $request->validate([
             'name'       => 'required|string|max:255',
-            'lastname'   => 'required|string|max:255',
+            'lastname'   => 'string|max:255',
             'username'   => 'required|string|max:255|unique:users,username',
-            'password'   => 'required|string|max:12|confirmed',
+            'password'   => 'required|string|confirmed',
             'hospital_id'=> 'required|exists:hospitals,id',
             'roles'      => 'nullable|array',
         ]);

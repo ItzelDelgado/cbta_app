@@ -61,7 +61,7 @@ class MedicineListsTable extends Component
 
         // ✅ Sort especial por hospital
         if ($this->sortField === 'hospital_name') {
-            $query->leftJoin('hospitals as h', 'medicine_lists.hospital_id', '=', 'h.id')
+            $query->leftJoin('hospitals as h', 'h.onco_medicine_list_id', '=', 'medicine_lists.id')
                 ->select('medicine_lists.*')
                 ->orderBy('h.name', $this->sortDirection);
         } else {

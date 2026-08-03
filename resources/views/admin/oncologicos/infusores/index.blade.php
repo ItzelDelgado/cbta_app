@@ -45,10 +45,11 @@
                                     <span class="px-2 py-1 text-xs rounded bg-red-100 text-red-700">Inactivo</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-2 text-center space-x-2">
+                            <td class="px-4 py-2 text-center">
+                                <x-row-actions>
                                 {{-- Editar --}}
                                 <a href="{{ route('admin.oncologicos.infusores.edit', $infusor) }}"
-                                   class="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 text-xs">
+                                   class="">
                                     Editar
                                 </a>
                                 {{-- Eliminar --}}
@@ -57,11 +58,11 @@
                                       onsubmit="return confirm('¿Seguro que deseas eliminar este infusor?');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit"
-                                            class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs">
+                                    <button type="submit" class="action-danger">
                                         Eliminar
                                     </button>
                                 </form>
+                                </x-row-actions>
                             </td>
                         </tr>
                     @empty

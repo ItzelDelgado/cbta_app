@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers\Admin\Oncologicos;
 
+use App\Exports\Oncologicos\OncologicosInventoryExport;
 use App\Http\Controllers\Controller;
 use App\Models\Oncologicos\Laboratory;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class InventoryController extends Controller
 {
-    /**
-     * Pantalla previa: seleccionar laboratorio
-     */
+
     public function selectLaboratory(Request $request)
     {
         $laboratories = Laboratory::query()
@@ -26,9 +26,7 @@ class InventoryController extends Controller
         ]);
     }
 
-    /**
-     * Recibe laboratorio seleccionado y redirige al index
-     */
+
     public function setLaboratory(Request $request)
     {
         $data = $request->validate([
@@ -40,19 +38,185 @@ class InventoryController extends Controller
         ]);
     }
 
-    /**
-     * Inventario por laboratorio:
-     * - catálogo
-     * - presentaciones
-     * - batch vigente del laboratorio
-     *
-     * Esta pantalla ya no expone:
-     * - stock_reservado
-     * - stock_disponible
-     * - costo_unitario
-     * - is_active
-     * - is_current
-     */
+    private function validarLoteNoUsadoEnOtraPresentacion(
+        int $laboratoryId,
+        string $lote,
+        int $presentationId
+    ): void {
+        $batch = DB::table('medicine_batches as mb')
+            ->join('medicine_presentations as mp', 'mp.id', '=', 'mb.medicine_presentation_id')
+            ->join('medicines_catalog as mc', 'mc.id', '=', 'mp.catalog_id')
+            ->where('mb.laboratory_id', $laboratoryId)
+            ->where('mb.lote', trim($lote))
+            ->where('mb.medicine_presentation_id', '!=', $presentationId)
+            ->select(
+                'mb.lote',
+                'mp.presentacion',
+                'mp.marca',
+                'mc.denominacion'
+            )
+            ->first();
+
+        if ($batch) {
+            throw new \Exception(
+                "El lote {$lote} ya está registrado en otro medicamento/presentación: {$batch->denominacion} - {$batch->presentacion} {$batch->marca}."
+            );
+        }
+    }
+
+    public function ingresoForm(Request $request)
+    {
+        $laboratoryId = (int) $request->get('laboratory_id');
+
+        if ($laboratoryId <= 0) {
+            return redirect()->route('admin.oncologicos.inventory.selectLaboratory');
+        }
+
+        $laboratory = Laboratory::where('activo', 1)->findOrFail($laboratoryId);
+
+        $catalogs = DB::table('medicines_catalog as mc')
+            ->join('medicine_presentations as mp', 'mp.catalog_id', '=', 'mc.id')
+            ->leftJoin('medicine_batches as mb', function ($join) use ($laboratoryId) {
+                $join->on('mb.medicine_presentation_id', '=', 'mp.id')
+                    ->where('mb.laboratory_id', '=', $laboratoryId)
+                    ->where('mb.is_active', '=', 1);
+            })
+            ->select([
+                'mc.id as catalog_id',
+                'mc.denominacion',
+                'mp.id as presentation_id',
+                'mp.presentacion',
+                'mp.contenido_valor',
+                'mp.contenido_unidad',
+                'mp.marca',
+                'mp.fabricante',
+                'mp.precio_frasco',
+                'mb.id as batch_id',
+                'mb.lote',
+                'mb.caducidad',
+                'mb.stock_actual',
+            ])
+            ->orderBy('mc.denominacion')
+            ->orderBy('mp.presentacion')
+            ->orderBy('mb.caducidad')
+            ->get()
+            ->groupBy('catalog_id');
+
+        return view('admin.oncologicos.inventory.ingreso', compact(
+            'laboratory',
+            'laboratoryId',
+            'catalogs'
+        ));
+    }
+    public function registrarIngreso(Request $request)
+    {
+        $request->validate([
+            'laboratory_id' => 'required|exists:laboratories,id',
+            'medicine_presentation_id' => 'required|exists:medicine_presentations,id',
+            'lote' => 'required|string|max:255',
+            'caducidad' => 'required|date',
+            'fecha_ingreso' => 'nullable|date',
+            'frascos_ingresados' => 'required|numeric|min:1',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $laboratoryId = (int) $request->laboratory_id;
+            $presentationId = (int) $request->medicine_presentation_id;
+            $lote = trim($request->lote);
+            $frascosIngresados = (float) $request->frascos_ingresados;
+            $fechaIngreso = $request->fecha_ingreso ?: now()->toDateString();
+
+            $this->validarLoteNoUsadoEnOtraPresentacion(
+                $laboratoryId,
+                $lote,
+                $presentationId
+            );
+
+            $batch = DB::table('medicine_batches')
+                ->where('laboratory_id', $laboratoryId)
+                ->where('medicine_presentation_id', $presentationId)
+                ->where('lote', $lote)
+                ->lockForUpdate()
+                ->first();
+
+            if ($batch) {
+                $stockAntes = (float) $batch->stock_actual;
+                $stockDespues = $stockAntes + $frascosIngresados;
+
+                DB::table('medicine_batches')
+                    ->where('id', $batch->id)
+                    ->update([
+                        'stock_inicial' => (float) $batch->stock_inicial + $frascosIngresados,
+                        'stock_actual' => $stockDespues,
+                        'caducidad' => $request->caducidad,
+                        'fecha_ingreso' => $fechaIngreso,
+                        'is_active' => 1,
+                        'updated_at' => now(),
+                    ]);
+
+                $batchId = $batch->id;
+                $mensaje = 'El lote ya existía para esta presentación. Se sumó al inventario existente.';
+            } else {
+                $stockAntes = 0;
+                $stockDespues = $frascosIngresados;
+
+                $batchId = DB::table('medicine_batches')->insertGetId([
+                    'laboratory_id' => $laboratoryId,
+                    'medicine_presentation_id' => $presentationId,
+                    'lote' => $lote,
+                    'caducidad' => $request->caducidad,
+                    'fecha_ingreso' => $fechaIngreso,
+                    'stock_inicial' => $frascosIngresados,
+                    'stock_actual' => $frascosIngresados,
+                    'stock_reservado' => 0,
+                    'costo_unitario' => null,
+                    'is_current' => 1,
+                    'is_active' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                $mensaje = 'Lote creado correctamente.';
+            }
+
+            $this->insertMovement([
+                'medicine_batch_id' => $batchId,
+                'laboratory_id' => $laboratoryId,
+                'user_id' => Auth::id(),
+                'movement_type' => 'entrada',
+                'quantity' => $frascosIngresados,
+                'stock_actual_before' => $stockAntes,
+                'stock_actual_after' => $stockDespues,
+                'stock_reservado_before' => 0,
+                'stock_reservado_after' => 0,
+                'reference_type' => 'IngresoInventarioOncologico',
+                'reference_id' => $batchId,
+                'notes' => $request->notes ?: 'Ingreso de inventario oncológico',
+            ]);
+
+            DB::commit();
+
+            session()->flash('swal', [
+                'title' => 'Ingreso registrado',
+                'text' => $mensaje,
+                'icon' => 'success',
+            ]);
+
+            return redirect()->route('admin.oncologicos.inventory.index', [
+                'laboratory_id' => $laboratoryId,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()->back()
+                ->withErrors(['error' => $e->getMessage()])
+                ->withInput();
+        }
+    }
+
     public function index(Request $request)
     {
         $stock = (string) $request->get('stock', '');
@@ -77,8 +241,8 @@ class InventoryController extends Controller
             ->join('medicine_presentations as mp', 'mp.catalog_id', '=', 'mc.id')
             ->leftJoin('medicine_batches as mb', function ($join) use ($laboratoryId) {
                 $join->on('mb.medicine_presentation_id', '=', 'mp.id')
-                    ->where('mb.is_current', '=', 1)
-                    ->where('mb.laboratory_id', '=', $laboratoryId);
+                    ->where('mb.laboratory_id', '=', $laboratoryId)
+                    ->where('mb.is_active', '=', 1);
             })
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($w) use ($q) {
@@ -112,6 +276,7 @@ class InventoryController extends Controller
                 'mp.contenido_valor',
                 'mp.contenido_unidad',
                 'mp.marca',
+                'mp.fabricante',
                 'mp.volumen_diluyente',
                 'mp.precio_frasco',
                 'mp.legend',
@@ -121,18 +286,74 @@ class InventoryController extends Controller
                 'mp.is_available',
 
                 'mb.id as batch_id',
-                'mb.lote as lote_current',
-                'mb.caducidad as caducidad_current',
+                'mb.lote',
+                'mb.caducidad',
                 'mb.fecha_ingreso',
                 'mb.stock_inicial',
                 'mb.stock_actual',
+                'mb.stock_reservado',
+                'mb.is_active',
             ])
             ->orderBy('mc.denominacion')
             ->orderBy('mp.presentacion')
+            ->orderByRaw('CASE WHEN mb.caducidad IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('mb.caducidad')
+            ->orderBy('mb.id')
             ->get();
+
+        $groupedRows = $rows
+            ->groupBy('catalog_id')
+            ->map(function ($catalogRows) {
+                $firstCatalog = $catalogRows->first();
+
+                return [
+                    'catalog_id' => $firstCatalog->catalog_id,
+                    'denominacion' => $firstCatalog->denominacion,
+                    'state' => $firstCatalog->state,
+                    'requires_infusor' => $firstCatalog->requires_infusor,
+                    'conc_min' => $firstCatalog->conc_min,
+                    'conc_max' => $firstCatalog->conc_max,
+
+                    'presentations' => $catalogRows
+                        ->groupBy('presentation_id')
+                        ->map(function ($presentationRows) {
+                            $firstPresentation = $presentationRows->first();
+
+                            $batches = $presentationRows
+                                ->filter(fn($row) => !is_null($row->batch_id))
+                                ->values();
+
+                            return [
+                                'presentation_id' => $firstPresentation->presentation_id,
+                                'presentacion' => $firstPresentation->presentacion,
+                                'contenido_valor' => $firstPresentation->contenido_valor,
+                                'contenido_unidad' => $firstPresentation->contenido_unidad,
+                                'marca' => $firstPresentation->marca,
+                                'fabricante' => $firstPresentation->fabricante ?? null,
+                                'volumen_diluyente' => $firstPresentation->volumen_diluyente,
+                                'precio_frasco' => $firstPresentation->precio_frasco,
+                                'legend' => $firstPresentation->legend,
+                                'temp_min_c' => $firstPresentation->temp_min_c,
+                                'temp_max_c' => $firstPresentation->temp_max_c,
+                                'stability_hours' => $firstPresentation->stability_hours,
+                                'is_available' => $firstPresentation->is_available,
+
+                                'stock_total' => $batches->sum(fn($batch) => (float) ($batch->stock_actual ?? 0)),
+                                'stock_reservado_total' => $batches->sum(fn($batch) => (float) ($batch->stock_reservado ?? 0)),
+                                'batches' => $batches,
+                                'batch_fefo' => $batches->first(),
+                            ];
+                        })
+                        ->values(),
+                ];
+            })
+            ->values();
+
+
 
         return view('admin.oncologicos.inventory.index', [
             'rows' => $rows,
+            'groupedRows' => $groupedRows,
             'q' => $q,
             'stock' => $stock,
             'laboratoryId' => $laboratoryId,
@@ -140,22 +361,7 @@ class InventoryController extends Controller
         ]);
     }
 
-    /**
-     * Guardado masivo desde inventario
-     *
-     * Esta pantalla solo permite:
-     * - crear lote
-     * - editar lote
-     * - editar fecha_ingreso
-     * - ajustar stock_inicial
-     * - ajustar stock_actual
-     *
-     * Ya NO recibe:
-     * - stock_reservado
-     * - costo_unitario
-     * - is_current
-     * - is_active
-     */
+
     public function bulkUpdate(Request $request)
     {
         $laboratoryId = (int) $request->input('laboratory_id');
@@ -409,9 +615,6 @@ class InventoryController extends Controller
         }
     }
 
-    /**
-     * Crear lote para una presentación específica
-     */
     public function storeBatch(Request $request, $presentation)
     {
         $presentationId = (int) $presentation;
@@ -425,87 +628,117 @@ class InventoryController extends Controller
             'lote' => 'required|string|max:100',
             'caducidad' => 'required|date|after_or_equal:today',
             'fecha_ingreso' => 'nullable|date',
-            'stock_inicial' => 'nullable|integer|min:0',
-            'stock_actual' => 'nullable|integer|min:0',
+            'stock_inicial' => 'required|integer|min:1',
         ], [
             'caducidad.after_or_equal' => 'La caducidad no puede ser anterior a hoy.',
+            'stock_inicial.required' => 'Debes ingresar la cantidad de frascos.',
+            'stock_inicial.min' => 'La cantidad debe ser mayor a 0.',
         ]);
 
         DB::beginTransaction();
 
         try {
-            $labExists = DB::table('laboratories')->where('id', $laboratoryId)->exists();
+            $labExists = DB::table('laboratories')
+                ->where('id', $laboratoryId)
+                ->exists();
+
             if (!$labExists) {
-                throw new \Exception("Laboratorio inválido.");
+                throw new \Exception('Laboratorio inválido.');
             }
 
-            $presExists = DB::table('medicine_presentations')->where('id', $presentationId)->exists();
-            if (!$presExists) {
+            $presentationExists = DB::table('medicine_presentations')
+                ->where('id', $presentationId)
+                ->exists();
+
+            if (!$presentationExists) {
                 throw new \Exception("No existe la presentación con ID {$presentationId}.");
             }
 
             $lote = trim((string) $request->lote);
-            $cad = $request->caducidad;
-            $fechaIngreso = $request->filled('fecha_ingreso') ? $request->fecha_ingreso : null;
-            $stockInicial = (int) $request->input('stock_inicial', 0);
-            $stockActual = $request->filled('stock_actual')
-                ? (int) $request->input('stock_actual')
-                : $stockInicial;
+            $caducidad = $request->caducidad;
+            $fechaIngreso = $request->filled('fecha_ingreso') ? $request->fecha_ingreso : now()->toDateString();
+            $cantidadIngresada = (int) $request->stock_inicial;
 
-            $duplicate = DB::table('medicine_batches')
+            $this->validarLoteNoUsadoEnOtraPresentacion(
+                $laboratoryId,
+                $lote,
+                $presentationId
+            );
+
+            $batch = DB::table('medicine_batches')
                 ->where('laboratory_id', $laboratoryId)
                 ->where('medicine_presentation_id', $presentationId)
                 ->where('lote', $lote)
-                ->exists();
+                ->lockForUpdate()
+                ->first();
 
-            if ($duplicate) {
-                throw new \Exception("Ya existe el lote '{$lote}' para esa presentación en este laboratorio.");
+            if ($batch) {
+                $stockAntes = (int) $batch->stock_actual;
+                $stockInicialAntes = (int) $batch->stock_inicial;
+                $stockDespues = $stockAntes + $cantidadIngresada;
+
+                DB::table('medicine_batches')
+                    ->where('id', $batch->id)
+                    ->update([
+                        'stock_inicial' => $stockInicialAntes + $cantidadIngresada,
+                        'stock_actual' => $stockDespues,
+                        'caducidad' => $caducidad,
+                        'fecha_ingreso' => $fechaIngreso,
+                        'is_active' => 1,
+                        'updated_at' => now(),
+                    ]);
+
+                $batchId = $batch->id;
+                $mensaje = 'El lote ya existía para esta presentación. Se sumó al inventario existente.';
+            } else {
+                $batchId = DB::table('medicine_batches')->insertGetId([
+                    'laboratory_id' => $laboratoryId,
+                    'medicine_presentation_id' => $presentationId,
+                    'lote' => $lote,
+                    'caducidad' => $caducidad,
+                    'fecha_ingreso' => $fechaIngreso,
+                    'stock_inicial' => $cantidadIngresada,
+                    'stock_actual' => $cantidadIngresada,
+                    'stock_reservado' => 0,
+                    'costo_unitario' => null,
+                    'is_current' => 1,
+                    'is_active' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                $stockAntes = 0;
+                $stockDespues = $cantidadIngresada;
+                $mensaje = 'Lote creado correctamente.';
             }
 
-            $batchId = DB::table('medicine_batches')->insertGetId([
+            $this->insertMovement([
+                'medicine_batch_id' => $batchId,
                 'laboratory_id' => $laboratoryId,
-                'medicine_presentation_id' => $presentationId,
-                'lote' => $lote,
-                'caducidad' => $cad,
-                'fecha_ingreso' => $fechaIngreso,
-                'stock_inicial' => $stockInicial,
-                'stock_actual' => $stockActual,
-                'stock_reservado' => 0,
-                'costo_unitario' => null,
-                'is_current' => 1,
-                'is_active' => $stockActual > 0 ? 1 : 0,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'user_id' => Auth::id(),
+                'movement_type' => 'entrada',
+                'quantity' => $cantidadIngresada,
+                'stock_actual_before' => $stockAntes,
+                'stock_actual_after' => $stockDespues,
+                'stock_reservado_before' => 0,
+                'stock_reservado_after' => 0,
+                'reference_type' => 'inventory_create_batch',
+                'reference_id' => $batchId,
+                'notes' => $mensaje,
             ]);
 
-            if ($stockActual > 0) {
-                $this->insertMovement([
-                    'medicine_batch_id' => $batchId,
-                    'laboratory_id' => $laboratoryId,
-                    'user_id' => Auth::id(),
-                    'movement_type' => 'entrada',
-                    'quantity' => $stockActual,
-                    'stock_actual_before' => 0,
-                    'stock_actual_after' => $stockActual,
-                    'stock_reservado_before' => 0,
-                    'stock_reservado_after' => 0,
-                    'reference_type' => 'inventory_create_batch',
-                    'reference_id' => $batchId,
-                    'notes' => 'Alta inicial de lote.',
-                ]);
-            }
-
             DB::commit();
-            return back()->with('success', 'Lote creado correctamente.');
+
+            return back()->with('success', $mensaje);
         } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Error al crear lote: ' . $e->getMessage()]);
+
+            return back()->withErrors([
+                'error' => 'Error al registrar lote: ' . $e->getMessage(),
+            ]);
         }
     }
 
-    /**
-     * Helper: insertar movimiento de inventario
-     */
     private function insertMovement(array $data): void
     {
         DB::table('medicine_batch_movements')->insert([
@@ -526,9 +759,7 @@ class InventoryController extends Controller
         ]);
     }
 
-    /**
-     * Helper: entero nullable
-     */
+
     private function toIntOrNull($value): ?int
     {
         if ($value === null || $value === '') {
@@ -536,5 +767,34 @@ class InventoryController extends Controller
         }
 
         return (int) $value;
+    }
+
+
+    public function exportarExcel(Request $request)
+    {
+        $laboratoryId = (int) $request->get('laboratory_id');
+
+        if ($laboratoryId <= 0) {
+            return redirect()
+                ->route('admin.oncologicos.inventory.selectLaboratory')
+                ->withErrors(['error' => 'Debes seleccionar un laboratorio para exportar el inventario.']);
+        }
+
+        $laboratory = Laboratory::find($laboratoryId);
+
+        if (!$laboratory) {
+            return back()->withErrors(['error' => 'Laboratorio inválido.']);
+        }
+
+        $fileName = 'inventario_oncologico_' . str_replace(' ', '_', strtolower($laboratory->nombre)) . '.xlsx';
+
+        return Excel::download(
+            new OncologicosInventoryExport(
+                $laboratoryId,
+                (string) $request->get('q', ''),
+                (string) $request->get('stock', '')
+            ),
+            $fileName
+        );
     }
 }

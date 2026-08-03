@@ -10,11 +10,16 @@ class Category extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name'
+        'name',
     ];
 
-    //Relacion uno a muchos, por que una category puede ser asignado a varias medicinas
-    public function medicines(){
-        return $this->hasMany(Medicine::class);
+    public function nutritionMedicineCatalogs()
+    {
+        return $this->hasMany(NutritionMedicineCatalog::class, 'category_id');
+    }
+
+    public function inputs()
+    {
+        return $this->hasMany(Input::class, 'category_id');
     }
 }

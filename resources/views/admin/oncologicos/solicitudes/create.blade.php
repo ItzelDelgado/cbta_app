@@ -66,7 +66,7 @@
                 </div>
                 <div class="w-1/5">
                     <label for="peso">Peso*</label>
-                    <input type="number" name="peso" id="peso" value="{{ old('peso') }}"
+                    <input type="text" name="peso" id="peso" value="{{ old('peso') }}"
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                         placeholder="Peso">
                 </div>
@@ -161,7 +161,7 @@
         function agregarMezcla() {
             idInternoMezcla++;
             const mezclaDiv = document.createElement('div');
-            mezclaDiv.classList.add("border", "border-black", "p-4", "relative");
+            mezclaDiv.classList.add("oncology-mixture", "border", "border-slate-300", "p-4", "relative");
             mezclaDiv.dataset.idInterno = idInternoMezcla;
 
             mezclaDiv.innerHTML = `
@@ -172,7 +172,8 @@
             </button>
         </div>
 
-        <table class="table-auto w-full border text-center">
+        <div class="oncology-medicine-table-wrap">
+        <table class="oncology-medicine-table table-auto w-full border text-center">
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-4 py-2 text-xs">MEDICAMENTO</th>
@@ -184,6 +185,7 @@
             </thead>
             <tbody id="medicamentos_mezcla_${idInternoMezcla}"></tbody>
         </table>
+        </div>
 
         <div class="my-2">
             <button type="button" onclick="agregarFilaMedicamento(${idInternoMezcla})" class="bg-green-500 text-white px-4 py-2 rounded text-sm">
@@ -191,10 +193,10 @@
             </button>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
                 <label>Volumen total de dilución (ml)*</label>
-                <input type="number" data-name="volumen_dilucion" class="w-full border rounded px-2 py-1 text-sm">
+                <input type="number" step="0.01" data-name="volumen_dilucion" class="w-full border rounded px-2 py-1 text-sm">
             </div>
             <div>
                 <label>Tiempo de infusión (min)*</label>
@@ -202,7 +204,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div class="flex items-center gap-2">
                 <input type="checkbox" data-name="set_infusion" class="w-4 h-4"
                        onchange="toggleSetInfusion(this, ${idInternoMezcla})">
@@ -233,7 +235,7 @@
         function agregarMezclaDesdeOld(mezclaData) {
             idInternoMezcla++;
             const mezclaDiv = document.createElement('div');
-            mezclaDiv.classList.add("border", "border-black", "p-4", "relative");
+            mezclaDiv.classList.add("oncology-mixture", "border", "border-slate-300", "p-4", "relative");
             mezclaDiv.dataset.idInterno = idInternoMezcla;
 
             mezclaDiv.innerHTML = `
@@ -244,7 +246,8 @@
             </button>
         </div>
 
-        <table class="table-auto w-full border text-center">
+        <div class="oncology-medicine-table-wrap">
+        <table class="oncology-medicine-table table-auto w-full border text-center">
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-4 py-2 text-xs">MEDICAMENTO</th>
@@ -256,6 +259,7 @@
             </thead>
             <tbody id="medicamentos_mezcla_${idInternoMezcla}"></tbody>
         </table>
+        </div>
 
         <div class="my-2">
             <button type="button" onclick="agregarFilaMedicamento(${idInternoMezcla})" class="bg-green-500 text-white px-4 py-2 rounded text-sm">
@@ -263,10 +267,10 @@
             </button>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
                 <label>Volumen total de dilución (ml)*</label>
-                <input type="number" data-name="volumen_dilucion" value="${mezclaData.volumen_dilucion ?? ''}" class="w-full border rounded px-2 py-1 text-sm">
+                <input type="number" step="0.01" data-name="volumen_dilucion" value="${mezclaData.volumen_dilucion ?? ''}" class="w-full border rounded px-2 py-1 text-sm">
             </div>
             <div>
                 <label>Tiempo de infusión (min)*</label>
@@ -274,7 +278,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div class="flex items-center gap-2">
                 <input type="checkbox" data-name="set_infusion" class="w-4 h-4"
                        ${mezclaData.set_infusion ? 'checked' : ''}
@@ -320,7 +324,7 @@
 
             fila.innerHTML = `
         <td class="border">
-            <select data-name="medicamento" class="w-full border rounded px-2 py-1 text-sm"
+            <select data-name="medicamento" class="min-w-52 w-full border rounded px-2 py-1 text-sm"
                 onchange="actualizarDiluentesYVias(this, ${idMezcla}, ${contadorFilasGlobal}); actualizarOpcionesMedicamentos(${idMezcla})">
                 <option value="">Seleccione el medicamento</option>
                 ${medicamentos.map(m => `<option value="${m.id}" ${m.id == (med.medicamento_id ?? '') ? 'selected' : ''}>
@@ -329,17 +333,20 @@
             </select>
         </td>
         <td class="border">
-            <input type="number" data-name="dosis" value="${med.dosis ?? ''}" class="w-full border-none px-2 py-1 text-sm">
+            <input type="number" data-name="dosis" value="${med.dosis ?? ''}" class="min-w-28 w-full border-none px-2 py-1 text-sm">
         </td>
         <td class="border">
-            <select data-name="diluyente" class="w-full border rounded px-2 py-1 text-sm"></select>
+            <select data-name="diluyente" class="min-w-44 w-full border rounded px-2 py-1 text-sm"></select>
         </td>
         <td class="border">
-            <select data-name="via_administracion" class="w-full border rounded px-2 py-1 text-sm"></select>
+            <select data-name="via_administracion" class="min-w-44 w-full border rounded px-2 py-1 text-sm"></select>
         </td>
         <td class="border">
-            <button type="button" onclick="eliminarFila('${fila.id}'); actualizarOpcionesMedicamentos(${idMezcla})" class="bg-red-500 text-white px-2 py-1 rounded">
-                <i class="fas fa-trash"></i>
+            <button type="button" onclick="eliminarFila('${fila.id}'); actualizarOpcionesMedicamentos(${idMezcla})" class="inline-flex items-center justify-center bg-red-500 text-white px-2 py-1 rounded" title="Eliminar medicamento" aria-label="Eliminar medicamento">
+                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M8.5 2a1.5 1.5 0 0 0-1.415 1H4.75a.75.75 0 0 0 0 1.5h10.5a.75.75 0 0 0 0-1.5h-2.335A1.5 1.5 0 0 0 11.5 2h-3ZM6.28 6.22a.75.75 0 0 1 .78.72l.35 7.5a.75.75 0 0 1-1.5.07l-.35-7.5a.75.75 0 0 1 .72-.79Zm7.44 0a.75.75 0 0 1 .72.79l-.35 7.5a.75.75 0 1 1-1.5-.07l.35-7.5a.75.75 0 0 1 .78-.72ZM9.25 7a.75.75 0 0 1 1.5 0v7.5a.75.75 0 0 1-1.5 0V7Z" clip-rule="evenodd" />
+                    <path d="M5.25 5.5h9.5l-.52 10.35A2.25 2.25 0 0 1 11.98 18H8.02a2.25 2.25 0 0 1-2.25-2.15L5.25 5.5Z" />
+                </svg>
             </button>
         </td>
         `;

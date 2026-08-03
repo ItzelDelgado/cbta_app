@@ -31,14 +31,15 @@
                 <tr>
                     <td class="px-4 py-3">{{ $d->denominacion_generica }}</td>
 
-                    <td class="px-4 py-3 text-right space-x-2">
+                    <td class="px-4 py-3 text-right">
+                        <x-row-actions>
                         <a href="{{ route('admin.oncologicos.diluent_presentations.index', $d) }}"
-                            class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                            class="">
                             Presentaciones
                         </a>
 
                         <a href="{{ route('admin.oncologicos.diluents.edit', $d) }}"
-                            class="px-3 py-1 bg-amber-500 text-white rounded hover:bg-amber-600">
+                            class="">
                             Editar
                         </a>
 
@@ -46,11 +47,11 @@
                             method="POST" class="inline-block form-eliminar-diluent">
                             @csrf
                             @method('DELETE')
-                            <button type="submit"
-                                class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">
+                            <button type="submit" class="action-danger">
                                 Eliminar
                             </button>
                         </form>
+                        </x-row-actions>
                     </td>
                 </tr>
             @empty

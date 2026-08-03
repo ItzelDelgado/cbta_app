@@ -133,9 +133,9 @@
             <table>
                 <tr class="border-top">
                     <td style="width: 50%; border-right: 1px solid #000;">
-                        Cliente/hospital: <span>{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}
+                        Institucion/hospital: <span>{{ $solicitud_detalles->solicitud_detail->hospital_destino ? $solicitud_detalles->solicitud_detail->hospital_destino : $solicitud_detalles->user->hospital->name }}
                         </span></td>
-                        {{-- {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h --}}
+
                     <td style="width: 50%">Fecha de la solicitud: <span>{{ date('d-m-Y H:i', strtotime( $solicitud_detalles->created_at)) }}h</span></td>
                 </tr>
             </table>
@@ -341,3 +341,4 @@
 </body>
 
 </html>
+

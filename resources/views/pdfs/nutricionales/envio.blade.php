@@ -103,7 +103,7 @@
                 </tr>
                 <tr>
                     <td style="border: none; font-weight: bold">
-                        No. {{ str_pad($solicitud_detalles->solicitud_aprobada['id'], 6, '0', STR_PAD_LEFT) }}
+                        No. {{ str_pad($solicitud_detalles->id, 6, '0', STR_PAD_LEFT) }}
                     </td>
                     <td style="text-align: right; border: none">{{ $solicitud_detalles->user->hospital->adress }}</td>
                 </tr>
@@ -193,7 +193,7 @@
                         } else {
                             $vol_total = (float) ($solicitud_detalles->solicitud_detail['volumen_total'] ?? 0);
                         }
-                        $lote = $solicitud_detalles->solicitud_aprobada['lote'] ?? '';
+                        $lote = $solicitud_detalles->lote ?? '';
 
                         // Acumulador de totales de costo
                         $total = 0.0;
@@ -219,31 +219,45 @@
                             // Cantidad final a cobrar (usa sobrellenado si existe, igual que en Remisión)
                             $cantidadFinalMl = $vol_over > 0 ? $vol_over : $vol_ml;
 
-                            // Precio por ml desde el catálogo (si existe)
                             $precioMl = 0.0;
-                            if (isset($input_completo->input->medicine)) {
-                                $precioMl = (float) ($input_completo->input->medicine->precio_ml ?? 0);
-                            }
 
-                            // Subtotal: respeta $input_completo->precio_ml si ya viene precalculado, si no lo calcula
-                            if (isset($input_completo->precio_ml)) {
-                                $subtotal = (float) $input_completo->precio_ml;
+                            if ((float) ($input_completo?->precio_ml ?? 0) > 0) {
+                                $precioMl = (float) $input_completo->precio_ml;
+                            } elseif (
+                                (float) ($input_completo?->presentation?->listItems?->first()?->precio_ml ?? 0) > 0
+                            ) {
+                                $precioMl = (float) $input_completo->presentation->listItems->first()->precio_ml;
                             } else {
-                                $subtotal = $cantidadFinalMl * $precioMl;
+                                $precioMl =
+                                    (float) ($input_completo?->input?->nutritionMedicineCatalog?->presentations
+                                        ?->first()
+                                        ?->listItems?->first()?->precio_ml ?? 0);
                             }
 
+                            $subtotal = $cantidadFinalMl * $precioMl;
                             $total += $subtotal;
+
+                            $nombreGenericoDoc =
+                                $input_completo?->presentation?->catalog?->denominacion_generica ??
+                                ($input_completo?->input?->nutritionMedicineCatalog?->denominacion_generica ??
+                                    ($input_completo?->input?->description ?? 'Medicamento no disponible'));
+
+                            $nombreComercialDoc =
+                                $input_completo?->presentation?->denominacion_comercial ??
+                                ($input_completo?->input?->nutritionMedicineCatalog?->presentations?->first()?->denominacion_comercial ?? null);
+
+                            $nombreMedicamentoDoc = $nombreGenericoDoc;
+
+                            if (($imprimirMarcas ?? false) && !empty(trim((string) $nombreComercialDoc)) && strcasecmp($nombreGenericoDoc, $nombreComercialDoc) !== 0) {
+                                $nombreMedicamentoDoc = "{$nombreGenericoDoc} ({$nombreComercialDoc})";
+                            }
                         @endphp
 
                         <tr>
                             <td class="text-center">{{ $loop->iteration }}</td>
 
                             <td>
-                                @isset($input_completo->input->medicine)
-                                    {{ $input_completo->input->medicine->denominacion_generica }}
-                                @else
-                                    Medicamento no disponible
-                                @endisset
+                                {{ $nombreMedicamentoDoc }}
                             </td>
 
                             <td class="text-center">
@@ -269,11 +283,7 @@
                             </td>
 
                             <td class="text-center">
-                                @isset($input_completo->input->medicine)
-                                    ${{ number_format($precioMl, 3, '.', '') }}
-                                @else
-                                    N/D
-                                @endisset
+                                ${{ number_format($precioMl, 3, '.', '') }}
                             </td>
 
                             <td class="text-center">
@@ -346,20 +356,27 @@
             <table>
                 <tr>
                     <td style="padding-left: 5px">
-                        <strong>FECHA\HORA DE PREPARACIÓN:
-                            {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_preparacion'])) }}h
+                        <strong>FECHA/HORA DE PREPARACIÓN:
+
+                            @if ($solicitud_detalles->fecha_hora_preparacion)
+                                {{ \Carbon\Carbon::parse($solicitud_detalles->fecha_hora_preparacion)->format('d-m-Y H:i') }}h
+                            @else
+                                â€”
+                            @endif
+
                         </strong>
                     </td>
+
                     <td style="padding-left: 5px">
-                        <strong>FECHA\HORA DE LIMITE DE USO:
-                            {{ date('d-m-Y H:i', strtotime($solicitud_detalles->solicitud_aprobada['fecha_hora_limite_uso'])) }}h
+                        <strong>FECHA/HORA LÍMITE DE USO:
+
+                            @if ($solicitud_detalles->fecha_hora_limite_uso)
+                                {{ \Carbon\Carbon::parse($solicitud_detalles->fecha_hora_limite_uso)->format('d-m-Y H:i') }}h
+                            @else
+                                â€”
+                            @endif
+
                         </strong>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="border-top: none; border-right: none"></td>
-                    <td style="text-align: right; border-top: none; border-left: none">
-                        <strong>Cantidad total de mezclas 1</strong>
                     </td>
                 </tr>
             </table>
@@ -376,7 +393,7 @@
 
             <table style="margin: 0 9rem; margin-bottom: 1rem;">
                 <tr>
-                    <td style="border: none; font-size: 11px"><strong>Recepción Cliente</strong></td>
+                    <td style="border: none; font-size: 11px"><strong>Recepcion Institucion</strong></td>
                 </tr>
                 <tr>
                     <td style="border: none; font-size: 11px">
@@ -400,7 +417,7 @@
                 <tr>
                     <td style="text-align: left; border: none; padding-top: 2rem; font-size: 8px;">
                         <strong>NOTA IMPORTANTE:</strong>
-                        El cliente reconoce que la mezcla estéril entregada debe ser mantenida bajo condiciones
+                        La institucion reconoce que la mezcla estéril entregada debe ser mantenida bajo condiciones
                         adecuadas de almacenamiento, asegurando la conservación de la red fría en todo momento.
                         <br>
                         El centro de mezcla no asume ninguna responsabilidad por el deterioro o pérdida de eficacia del
@@ -413,3 +430,5 @@
 </body>
 
 </html>
+
+

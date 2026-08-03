@@ -11,29 +11,32 @@ class SolicitudInput extends Model
 
     protected $fillable = [
         'input_id',
+        'nutrition_medicine_presentation_id',
         'lote',
         'caducidad',
         'valor',
         'valor_sobrellenado',
         'valor_ml',
         'solicitud_id',
-        'precio_ml'
+        'precio_ml',
     ];
 
-    //Relacion uno a muchos inversa
+    protected $casts = [
+        'caducidad' => 'date',
+    ];
+
     public function solicitud()
     {
         return $this->belongsTo(Solicitud::class);
     }
 
-    //Relacion uno a uno inversa
     public function input()
     {
         return $this->belongsTo(Input::class);
     }
 
-    public function medicine()
+    public function presentation()
     {
-        return $this->hasOne(Medicine::class, 'input_id', 'input_id');
+        return $this->belongsTo(NutritionMedicinePresentation::class, 'nutrition_medicine_presentation_id');
     }
 }

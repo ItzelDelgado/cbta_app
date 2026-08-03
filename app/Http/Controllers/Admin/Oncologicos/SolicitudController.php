@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SolicitudController extends Controller
@@ -28,6 +29,26 @@ class SolicitudController extends Controller
         return (int) (auth()->user()?->hospital_id ?? 0);
     }
 
+
+    private function currentMedicineListId(): ?int
+    {
+        $user = auth()->user();
+        $hospitalId = (int) ($user?->hospital_id ?? 0);
+
+        if ($hospitalId <= 0) {
+            return null;
+        }
+
+        if (!Schema::hasColumn('hospitals', 'onco_medicine_list_id')) {
+            return null;
+        }
+
+        $listaId = DB::table('hospitals')
+            ->where('id', $hospitalId)
+            ->value('onco_medicine_list_id');
+
+        return $listaId ? (int) $listaId : null;
+    }
 
     private function consumeBatchForMix(
         int $batchId,
@@ -208,18 +229,7 @@ class SolicitudController extends Controller
         ];
     }
 
-    private function currentMedicineListId(): ?int
-    {
-        $user = auth()->user();
-        $hospitalId = (int) ($user?->hospital_id ?? 0);
-        if ($hospitalId <= 0) return null;
 
-        $listaId = DB::table('medicine_lists')
-            ->where('hospital_id', $hospitalId)
-            ->value('id');
-
-        return $listaId ? (int) $listaId : null;
-    }
 
     /**
      * ✅ Laboratorio desde hospital (fuente de verdad)
@@ -347,11 +357,9 @@ class SolicitudController extends Controller
         ]);
     }
 
-    // =========================================================
-    // STORE
-    // =========================================================
     public function store(Request $request)
     {
+
         $request->validate([
             'paciente_nombre'  => 'required|string|max:255',
             'servicio'         => 'required|string|max:255',
@@ -393,12 +401,12 @@ class SolicitudController extends Controller
             return back()->withErrors(['error' => 'Tu hospital no tiene laboratorio asignado. Configúralo desde Hospitales.'])->withInput();
         }
 
-        $listaId = DB::table('medicine_lists')
-            ->where('hospital_id', $hospitalId)
-            ->value('id');
+        $listaId = $this->currentMedicineListId();
 
         if (!$listaId) {
-            return back()->withErrors(['error' => 'Tu hospital no tiene una lista de medicamentos configurada.'])->withInput();
+            return back()->withErrors([
+                'error' => 'Tu hospital no tiene una lista de medicamentos configurada.'
+            ])->withInput();
         }
 
         $mezclas = json_decode($request->mezclas, true);
@@ -649,29 +657,41 @@ class SolicitudController extends Controller
             'mezclas.infusor',
         ])->findOrFail($id);
 
-        $esAdmin = false;
+        $esAdmin = $user->hasAnyRole(['Admin', 'Super Admin']);
+
         if (
             !$esAdmin &&
             $user->hospital_id &&
             $solicitud->hospital_id &&
-            (int)$user->hospital_id !== (int)$solicitud->hospital_id
+            (int) $user->hospital_id !== (int) $solicitud->hospital_id
         ) {
             abort(403, 'No autorizado para editar solicitudes de otro hospital.');
         }
 
-        $listaId = $this->currentMedicineListId();
+        $solicitud->loadMissing('user.hospital');
+
+        $hospitalSolicitud = $solicitud->hospital ?? $solicitud->user?->hospital;
+
+        if (!$hospitalSolicitud) {
+            return redirect()
+                ->route('admin.oncologicos.solicitudes.index')
+                ->withErrors(['error' => 'La solicitud no tiene hospital asociado.']);
+        }
+
+        $listaId = $hospitalSolicitud->onco_medicine_list_id;
+
         if (!$listaId) {
             return redirect()
                 ->route('admin.oncologicos.solicitudes.index')
-                ->withErrors(['error' => 'Tu hospital no tiene una lista de medicamentos configurada.']);
+                ->withErrors(['error' => 'El hospital de esta solicitud no tiene una lista de medicamentos oncológicos configurada.']);
         }
 
-        // ✅ Validar que el hospital tenga laboratorio asignado (aunque ya no se edite)
-        $laboratoryId = $this->currentLaboratoryId();
+        $laboratoryId = $hospitalSolicitud->laboratory_id ?? null;
+
         if (!$laboratoryId) {
             return redirect()
                 ->route('admin.oncologicos.solicitudes.index')
-                ->withErrors(['error' => 'Tu hospital no tiene laboratorio asignado. Configúralo desde Hospitales.']);
+                ->withErrors(['error' => 'El hospital de esta solicitud no tiene laboratorio asignado.']);
         }
 
         $catalogIdsPermitidos = DB::table('medicine_list_presentation as mlp')
@@ -763,6 +783,28 @@ class SolicitudController extends Controller
                 ];
             });
 
+        $solicitud->mezclas->each(function ($mezcla) {
+            $mezcla->medicamentos->each(function ($mm) {
+                $catalogId = optional($mm->medicamentoOnco)->catalog_id;
+                $snapshot = trim((string) ($mm->denominacion_snapshot ?? ''));
+                $relacionDenominacion = trim((string) (optional(optional($mm->medicamentoOnco)->catalog)->denominacion ?? ''));
+
+                if ($snapshot !== '' && strcasecmp($snapshot, $relacionDenominacion) !== 0) {
+                    $catalogIdPorSnapshot = DB::table('medicines_catalog')
+                        ->whereRaw('LOWER(TRIM(denominacion)) = ?', [mb_strtolower($snapshot)])
+                        ->value('id');
+
+                    if ($catalogIdPorSnapshot) {
+                        $catalogId = (int) $catalogIdPorSnapshot;
+                    }
+                }
+
+                if ($catalogId) {
+                    $mm->setAttribute('medicamento_id', (int) $catalogId);
+                }
+            });
+        });
+
         return view('admin.oncologicos.solicitudes.edit', [
             'solicitud'                 => $solicitud,
             'medicamentos'              => $catalogos,
@@ -831,7 +873,10 @@ class SolicitudController extends Controller
             // =====================================================
             // Seguridad por hospital
             // =====================================================
+            $esAdmin = $user->hasAnyRole(['Admin', 'Super Admin']);
+
             if (
+                !$esAdmin &&
                 $user->hospital_id &&
                 $solicitud->hospital_id &&
                 (int) $user->hospital_id !== (int) $solicitud->hospital_id
@@ -1127,6 +1172,49 @@ class SolicitudController extends Controller
         }
     }
 
+    public function cancelar(SolicitudOnco $solicitud)
+    {
+        DB::beginTransaction();
+
+        try {
+            $user = auth()->user();
+
+            if ($user->hasAnyRole(['Cliente', 'Institucion'])) {
+                if ($solicitud->estado !== 'pendiente') {
+                    throw new \Exception('Solo puedes cancelar solicitudes que aún estén pendientes.');
+                }
+
+                $solicitud->estado = 'cancelada';
+            } else {
+                if ($solicitud->estado === 'finalizada') {
+                    throw new \Exception('No se puede rechazar una solicitud finalizada.');
+                }
+
+                $solicitud->estado = 'no_aprobada';
+            }
+
+            $solicitud->save();
+
+            DB::commit();
+
+            session()->flash('swal', [
+                'title' => 'Solicitud actualizada',
+                'text' => $solicitud->estado === 'cancelada'
+                    ? 'La solicitud fue cancelada correctamente.'
+                    : 'La solicitud fue marcada como no aprobada.',
+                'icon' => 'success',
+            ]);
+
+            return redirect()->route('admin.oncologicos.solicitudes.index');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()->back()->withErrors([
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     public function solicitud(SolicitudOnco $solicitud)
     {
         $solicitud = SolicitudOnco::with([
@@ -1179,6 +1267,7 @@ class SolicitudController extends Controller
             'user.hospital',
             'mezclas',
             'mezclas.medicamentos',
+            'mezclas.medicamentos.presentacionesUsadas.batch.presentation',
             'mezclas.medicamentos.medicamentoOnco.catalog',
             'mezclas.medicamentos.diluyente',
             'mezclas.medicamentos.viaAdministracion',
@@ -1202,6 +1291,10 @@ class SolicitudController extends Controller
 
                 $mm->conc_max_doc = $mm->conc_max_snapshot
                     ?? optional(optional($mm->medicamentoOnco)->catalog)->conc_max;
+
+                $firstUsed = $mm->presentacionesUsadas->first();
+                $presentation = optional(optional($firstUsed)->batch)->presentation;
+                $mm->legend_proteccion_doc = trim((string) (optional($presentation)->legend ?? ''));
             });
         });
 
@@ -1252,10 +1345,13 @@ class SolicitudController extends Controller
         $listaCharge = 'frasco';
 
         if ($hospitalId > 0) {
-            // medicine_lists tiene hospital_id
-            $lista = DB::table('medicine_lists')
-                ->where('hospital_id', $hospitalId)
-                ->first();
+            $listaId = DB::table('hospitals')
+                ->where('id', $hospitalId)
+                ->value('onco_medicine_list_id');
+
+            $lista = $listaId
+                ? DB::table('medicine_lists')->where('id', $listaId)->first()
+                : null;
 
             if ($lista) {
                 $listaCharge = $lista->charge_by ?? 'frasco';

@@ -1,7 +1,7 @@
 <x-admin-layout>
     <div class="mt-2 max-w-3xl">
         <h1 class="text-2xl font-semibold text-gray-800 mb-4">
-            Editar presentación — {{ $diluent->denominacion_generica ?? '—' }}
+            Editar presentacion - {{ $diluent->denominacion_generica ?? '-' }}
         </h1>
 
         @if ($errors->any())
@@ -21,7 +21,20 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Presentación</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Laboratorio</label>
+                    <select name="laboratory_id"
+                        class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
+                        <option value="">General / sin laboratorio</option>
+                        @foreach ($laboratories as $laboratory)
+                            <option value="{{ $laboratory->id }}" @selected(old('laboratory_id', $presentation->laboratory_id) == $laboratory->id)>
+                                {{ $laboratory->nombre }}{{ $laboratory->estado ? ' - ' . $laboratory->estado : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Presentacion</label>
                     <input type="text" name="presentacion"
                         value="{{ old('presentacion', $presentation->presentacion) }}" required
                         class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
@@ -35,9 +48,15 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Denominación comercial</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Denominacion comercial</label>
                     <input type="text" name="denominacion_comercial"
                         value="{{ old('denominacion_comercial', $presentation->denominacion_comercial) }}"
+                        class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Fabricante</label>
+                    <input type="text" name="fabricante" value="{{ old('fabricante', $presentation->fabricante) }}"
                         class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
                 </div>
 
@@ -54,6 +73,20 @@
                         class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
                 </div>
 
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de ingreso</label>
+                    <input type="date" name="fecha_ingreso"
+                        value="{{ old('fecha_ingreso', optional($presentation->fecha_ingreso)->format('Y-m-d')) }}"
+                        class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Stock actual</label>
+                    <input type="number" step="1" min="0" name="stock_actual"
+                        value="{{ old('stock_actual', $presentation->stock_actual ?? 0) }}"
+                        class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
+                    <p class="text-xs text-gray-500 mt-1">Si cambia, se registra un ajuste en movimientos.</p>
+                </div>
 
                 <div class="flex items-center gap-3 mt-6">
                     <input type="checkbox" id="is_active" name="is_active" value="1" class="h-4 w-4"

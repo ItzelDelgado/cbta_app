@@ -47,10 +47,19 @@ class InspeccionMezcla extends Component
     public $reviso_nombre = '';
     public $aprobo_nombre = '';
 
+    private function nombreUsuarioActual(): string
+    {
+        $user = Auth::user();
+        $nombreCompleto = trim(($user?->name ?? '') . ' ' . ($user?->lastname ?? ''));
+
+        return $user?->username
+            ?: ($nombreCompleto !== '' ? $nombreCompleto : '');
+    }
+
     public function mount()
     {
-        $this->reviso_nombre = Auth::user()->name ?? '';
-        $this->aprobo_nombre = 'QFB Gabriela Cortes Martinez';
+        $this->reviso_nombre = $this->nombreUsuarioActual();
+        $this->aprobo_nombre = $this->nombreUsuarioActual();
         $this->observaciones = 'N.A.';
     }
 
@@ -100,15 +109,15 @@ class InspeccionMezcla extends Component
             $this->observaciones = $ins->observaciones ?? 'N.A.';
 
             // No pisar si ya existen en BD
-            $this->reviso_nombre = $ins->reviso_nombre ?: ($this->reviso_nombre ?: (Auth::user()->name ?? ''));
-            $this->aprobo_nombre = $ins->aprobo_nombre ?: ($this->aprobo_nombre ?: 'QFB Gabriela Cortes Martinez');
+            $this->reviso_nombre = $ins->reviso_nombre ?: ($this->reviso_nombre ?: $this->nombreUsuarioActual());
+            $this->aprobo_nombre = $ins->aprobo_nombre ?: ($this->aprobo_nombre ?: $this->nombreUsuarioActual());
         } else {
             // Defaults si por alguna razón aún no existe
             if (blank($this->reviso_nombre)) {
-                $this->reviso_nombre = Auth::user()->name ?? '';
+                $this->reviso_nombre = $this->nombreUsuarioActual();
             }
             if (blank($this->aprobo_nombre)) {
-                $this->aprobo_nombre = 'QFB Gabriela Cortes Martinez';
+                $this->aprobo_nombre = $this->nombreUsuarioActual();
             }
         }
     }
@@ -116,8 +125,8 @@ class InspeccionMezcla extends Component
     public function guardarInspeccion()
     {
         // Refuerza valores de nombres visibles (sin tocar preparo/libero)
-        $this->reviso_nombre = $this->reviso_nombre ?: (Auth::user()->name ?? '');
-        $this->aprobo_nombre = $this->aprobo_nombre ?: 'QFB Gabriela Cortes Martinez';
+        $this->reviso_nombre = $this->reviso_nombre ?: $this->nombreUsuarioActual();
+        $this->aprobo_nombre = $this->aprobo_nombre ?: $this->nombreUsuarioActual();
 
         $this->validate([
             'es_limpia' => 'required|boolean',
@@ -141,11 +150,18 @@ class InspeccionMezcla extends Component
             'aprueba_contenido' => 'required|boolean',
             'aprueba_contenedor' => 'required|boolean',
             'mezcla_aprobada' => 'required|boolean',
-            'dosis_volumen' => 'required|numeric|min:0',
-            'peso_mezcla' => 'required|numeric|min:0',
+            'dosis_volumen' => 'required|numeric|gt:0',
+            'peso_mezcla' => 'required|numeric|gt:0',
             'observaciones' => 'nullable|string',
             'reviso_nombre' => 'required|string|max:255',
             'aprobo_nombre' => 'required|string|max:255',
+        ], [
+            'dosis_volumen.required' => 'El campo dosis / volumen total es obligatorio.',
+            'dosis_volumen.numeric' => 'El campo dosis / volumen total debe ser numerico.',
+            'dosis_volumen.gt' => 'El campo dosis / volumen total debe ser mayor a 0.',
+            'peso_mezcla.required' => 'El campo peso de la mezcla es obligatorio.',
+            'peso_mezcla.numeric' => 'El campo peso de la mezcla debe ser numerico.',
+            'peso_mezcla.gt' => 'El campo peso de la mezcla debe ser mayor a 0.',
         ]);
 
         // Cargar existente o crear en memoria; SIEMPRE refrescamos fecha/hora

@@ -73,7 +73,7 @@
             </div>
             <div class="w-1/5">
                 <label for="peso">Peso*</label>
-                <input type="number" name="peso" id="peso" value="{{ old('peso', $solicitud->peso) }}"
+                <input type="text" name="peso" id="peso" value="{{ old('peso', $solicitud->peso) }}"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                     placeholder="Peso">
             </div>
@@ -202,18 +202,57 @@
             return getChargeBy(catalogIdOrOncoId) === 'mg';
         }
 
+        function getPrecioMgDefault(catalogIdOrOncoId) {
+            const catalogId = toCatalogId(catalogIdOrOncoId);
+            if (!catalogId) return 0;
+
+            const lista = presentacionesPorCatalogo?.[catalogId] || [];
+            const item = lista.find(p =>
+                p.precio_mg_override !== null &&
+                typeof p.precio_mg_override !== 'undefined' &&
+                p.precio_mg_override !== ''
+            );
+
+            return Number(item?.precio_mg_override || 0);
+        }
+
+        function getPrecioFrascoDefault(presentation) {
+            return Number(presentation?.precio ?? presentation?.precio_frasco ?? 0);
+        }
+
+        function formatPrice(value, decimals = 4) {
+            const number = Number(value || 0);
+            return Number.isFinite(number) ? number.toFixed(decimals) : Number(0).toFixed(decimals);
+        }
+
         function toggleUIByChargeBy(filaId, catalogIdOrOncoId) {
             const fila = document.getElementById(`fila_${filaId}`);
             if (!fila) return;
 
             const btnConfig = fila.querySelector('[data-action="toggle-presentaciones"]');
             const wrap = document.getElementById(`presentaciones_wrap_${filaId}`);
+            const precioMgInput = fila.querySelector('[data-name="precio_mg"]');
+            const precioHelp = fila.querySelector('[data-name="precio_help"]');
 
             if (isCobroPorMg(catalogIdOrOncoId)) {
                 if (btnConfig) btnConfig.classList.add('hidden');
                 if (wrap) wrap.classList.add('hidden');
+                if (precioMgInput) {
+                    precioMgInput.disabled = false;
+                    precioMgInput.classList.remove('bg-gray-100', 'text-gray-400');
+                    if (precioMgInput.value === '') {
+                        precioMgInput.value = formatPrice(getPrecioMgDefault(catalogIdOrOncoId));
+                    }
+                }
+                if (precioHelp) precioHelp.textContent = 'Precio por mg editable para esta mezcla.';
             } else {
                 if (btnConfig) btnConfig.classList.remove('hidden');
+                if (precioMgInput) {
+                    precioMgInput.value = '';
+                    precioMgInput.disabled = true;
+                    precioMgInput.classList.add('bg-gray-100', 'text-gray-400');
+                }
+                if (precioHelp) precioHelp.textContent = 'El precio se edita por frasco en presentaciones.';
             }
         }
 
@@ -340,44 +379,117 @@
             tbody.innerHTML = "";
 
             lista.forEach(p => {
-                const tr = document.createElement('tr');
-                tr.classList.add('presentacion-row');
-                tr.dataset.presentationId = p.id;
-                tr.dataset.cantidadMg = p.cantidad_medicamento || 0;
-                tr.dataset.batchId = p.batch_id || '';
+                const batches = p.batches || [];
+                const hasStock = batches.length > 0;
 
-                // ✅ Determinar stock
-                const hasStock = presentacionTieneStock(p);
-                tr.dataset.hasStock = hasStock ? '1' : '0';
+                const guardada = (presentacionesGuardadas || []).find(g =>
+                    Number(g.medicine_presentation_id) === Number(p.id) ||
+                    Number(g.batch?.medicine_presentation_id) === Number(p.id)
+                );
 
-                const guardada = (presentacionesGuardadas || []).find(g => Number(g.medicine_batch_id) === Number(p
-                    .batch_id));
-                const frascosValue = (hasStock && guardada) ? Number(guardada.unidades_usadas) : 0;
+                const selectedBatchId = guardada?.medicine_batch_id || batches[0]?.id || '';
+                const frascosValue = guardada ? Number(guardada.unidades_usadas || 0) : 0;
+                const precioFrascoValue = guardada ?
+                    Number(guardada.precio_frasco_snapshot || 0) :
+                    getPrecioFrascoDefault(p);
 
-                const cadTxt = p.caducidad ? (new Date(p.caducidad)).toLocaleDateString() : '—';
+                const batchOptions = batches.map(b => {
+                    const selected = Number(b.id) === Number(selectedBatchId) ? 'selected' : '';
+                    const cad = b.caducidad ? new Date(b.caducidad).toLocaleDateString() : '—';
+
+                    return `
+                <option value="${b.id}"
+                    ${selected}
+                    data-lote="${b.lote ?? ''}"
+                    data-caducidad="${b.caducidad ?? ''}"
+                    data-caducidad-text="${cad}"
+                    data-stock="${b.stock_actual ?? 0}">
+                    ${b.lote ?? 'Sin lote'} · Cad. ${cad} · Stock ${b.stock_actual ?? 0}
+                </option>
+            `;
+                }).join('');
+
+                const selectedBatch = batches.find(b => Number(b.id) === Number(selectedBatchId)) || batches[0] ||
+                    null;
+                const cadTxt = selectedBatch?.caducidad ? new Date(selectedBatch.caducidad).toLocaleDateString() :
+                    '—';
+
                 const stockBadge = hasStock ?
                     `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-green-100 text-green-800">Con stock</span>` :
                     `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-800">Sin stock</span>`;
 
+                const tr = document.createElement('tr');
+                tr.classList.add('presentacion-row');
+                tr.dataset.presentationId = p.id;
+                tr.dataset.cantidadMg = p.cantidad_medicamento || 0;
+                tr.dataset.marca = p.marca || '';
+                tr.dataset.batchId = selectedBatch?.id || selectedBatchId || '';
+                tr.dataset.hasStock = hasStock ? '1' : '0';
+
                 tr.innerHTML = `
-                <td class="border px-1 py-1">${p.presentacion}</td>
-                <td class="border px-1 py-1 text-right">${p.cantidad_medicamento ?? '—'}</td>
-                <td class="border px-1 py-1 text-right">${p.volumen_diluyente ?? '—'}</td>
-                <td class="border px-1 py-1">${p.lote ?? '—'}</td>
-                <td class="border px-1 py-1">${cadTxt}</td>
-                <td class="border px-1 py-1 text-center">${stockBadge}</td>
-                <td class="border px-1 py-1">
-                    <input type="number" min="0" step="1"
-                        class="w-16 border rounded px-1 py-0.5 text-right input-frascos ${hasStock ? '' : 'bg-gray-100 text-gray-400'}"
-                        value="${frascosValue}"
-                        ${hasStock ? '' : 'disabled'}
-                        title="${hasStock ? 'Disponible' : 'Sin stock: requiere lote y caducidad en inventario'}"
-                        oninput="recalcularResumenPresentaciones(${filaId})">
-                </td>
-            `;
+            <td class="border px-1 py-1">${p.presentacion ?? '—'}</td>
+            <td class="border px-1 py-1">${p.marca ?? '—'}</td>
+            <td class="border px-1 py-1 text-right">${p.cantidad_medicamento ?? '—'}</td>
+            <td class="border px-1 py-1 text-right">${p.volumen_diluyente ?? '—'}</td>
+            <td class="border px-1 py-1">
+                <input type="number" min="0" step="0.0001"
+                    class="w-24 border rounded px-1 py-0.5 text-right input-precio-frasco ${hasStock ? '' : 'bg-gray-100 text-gray-400'}"
+                    value="${hasStock ? formatPrice(precioFrascoValue) : formatPrice(0)}"
+                    ${hasStock ? '' : 'disabled'}
+                    title="${hasStock ? 'Precio por frasco' : 'Sin stock'}">
+            </td>
+            <td class="border px-1 py-1">
+                ${
+                    hasStock
+                        ? `<select class="batch-select w-full border rounded px-1 py-0.5 text-[11px]"
+                                                        onchange="actualizarBatchPresentacion(this, ${filaId})">
+                                                        ${batchOptions}
+                                                   </select>`
+                        : '—'
+                }
+            </td>
+            <td class="border px-1 py-1 batch-caducidad">${cadTxt}</td>
+            <td class="border px-1 py-1 text-center">
+                ${stockBadge}
+                <div class="text-[10px] text-gray-500 batch-stock">
+                    ${selectedBatch?.stock_actual ?? 0} frascos
+                </div>
+            </td>
+            <td class="border px-1 py-1">
+                <input type="number" min="0" step="1"
+                    class="w-16 border rounded px-1 py-0.5 text-right input-frascos ${hasStock ? '' : 'bg-gray-100 text-gray-400'}"
+                    value="${hasStock ? frascosValue : 0}"
+                    ${hasStock ? '' : 'disabled'}
+                    title="${hasStock ? 'Disponible' : 'Sin stock'}"
+                    oninput="recalcularResumenPresentaciones(${filaId})">
+            </td>
+        `;
 
                 tbody.appendChild(tr);
             });
+
+            recalcularResumenPresentaciones(filaId);
+        }
+
+
+        function actualizarBatchPresentacion(select, filaId) {
+            const row = select.closest('.presentacion-row');
+            const option = select.selectedOptions[0];
+
+            if (!row || !option) return;
+
+            row.dataset.batchId = option.value;
+
+            const caducidad = row.querySelector('.batch-caducidad');
+            const stock = row.querySelector('.batch-stock');
+
+            if (caducidad) {
+                caducidad.textContent = option.dataset.caducidadText || '—';
+            }
+
+            if (stock) {
+                stock.textContent = `${option.dataset.stock || 0} frascos`;
+            }
 
             recalcularResumenPresentaciones(filaId);
         }
@@ -501,12 +613,22 @@
             const vol = parseFloat(volumenInput.value || '0');
             if (!vol || vol <= 0) return;
 
+            const sortedByBestFit = [...lista].sort((a, b) => {
+                const aVolume = parseFloat(a.volume_ml || '0');
+                const bVolume = parseFloat(b.volume_ml || '0');
+                if (aVolume !== bVolume) return aVolume - bVolume;
+
+                const aCad = a.caducidad ? new Date(a.caducidad).getTime() : Number.MAX_SAFE_INTEGER;
+                const bCad = b.caducidad ? new Date(b.caducidad).getTime() : Number.MAX_SAFE_INTEGER;
+                return aCad - bCad;
+            });
+
             let elegida = null;
 
-            lista.forEach(p => {
+            sortedByBestFit.forEach(p => {
                 const v = parseFloat(p.volume_ml || '0');
                 if (!v || v <= 0) return;
-                if (v >= vol && (!elegida || v < elegida.volume_ml)) {
+                if (v >= vol && !elegida) {
                     elegida = {
                         ...p,
                         volume_ml: v
@@ -515,10 +637,10 @@
             });
 
             if (!elegida) {
-                lista.forEach(p => {
+                sortedByBestFit.forEach(p => {
                     const v = parseFloat(p.volume_ml || '0');
                     if (!v || v <= 0) return;
-                    if (!elegida || v > elegida.volume_ml) {
+                    if (!elegida) {
                         elegida = {
                             ...p,
                             volume_ml: v
@@ -585,7 +707,7 @@
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                     <label>Volumen de dilución (ml)*</label>
-                    <input type="number" data-name="volumen_dilucion"
+                    <input type="number" step="0.01" data-name="volumen_dilucion"
                         class="w-full border rounded px-2 py-1 text-sm"
                         value="${mezclaData.volumen_dilucion ?? ''}">
                 </div>
@@ -624,11 +746,11 @@
                         onchange="toggleInfusorSelect(this)">
                         <option value="">Selecciona infusor</option>
                         ${(infusors || []).map(i => `
-                                <option value="${i.id}"
-                                    ${Number(mezclaData.infusor_id || '') === Number(i.id) ? 'selected' : ''}>
-                                    ${i.nombre_generico ?? i.nombre_comercial ?? ('Infusor #'+i.id)}
-                                </option>
-                            `).join('')}
+                                                        <option value="${i.id}"
+                                                            ${Number(mezclaData.infusor_id || '') === Number(i.id) ? 'selected' : ''}>
+                                                            ${i.nombre_generico ?? i.nombre_comercial ?? ('Infusor #'+i.id)}
+                                                        </option>
+                                                    `).join('')}
                     </select>
                     <p class="text-xs text-gray-500">
                         Se habilita si la mezcla contiene medicamento(s) que admiten infusor.
@@ -672,6 +794,7 @@
                 ).join('');
 
                 const chargeBy = (med.charge_by || med.chargeBy || getChargeBy(catalogId));
+                const precioMgValue = med.precio_mg_snapshot ?? getPrecioMgDefault(catalogId);
                 const presentacionesGuardadas = med.presentaciones_usadas || med.presentacionesUsadas || [];
 
                 fila.innerHTML = `
@@ -682,8 +805,8 @@
                         onchange="actualizarDiluentesYVias(this, ${contadorFilas}); onMedicamentoChange(this)">
                         ${medicamentos.map(m =>
                             `<option value="${m.id}" ${String(m.id) === String(catalogId) ? 'selected' : ''}>
-                                    ${m.denominacion}
-                                 </option>`
+                                                            ${m.denominacion}
+                                                         </option>`
                         ).join('')}
                     </select>
 
@@ -712,12 +835,16 @@
                         Dosis objetivo: ${Number(med.dosis || 0).toFixed(2)} mg<br>
                         Dosis aportada: 0 mg
                     </div>
+                    <input type="hidden"
+                        data-name="precio_mg"
+                        value="${String(chargeBy).toLowerCase() === 'mg' ? formatPrice(precioMgValue) : ''}">
                 </td>
 
                 <td class="border align-top">
                     <select name="diluyente_existente[]"
                         data-name="diluyente"
-                        class="w-full border px-2 py-1 text-sm">
+                        class="w-full border px-2 py-1 text-sm"
+                        onchange="onDiluyenteChange(this)">
                         <option value="">Diluyentes</option>
                         ${diluyenteOptions}
                     </select>
@@ -739,8 +866,10 @@
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="border px-1 py-1">Presentación</th>
+                                        <th class="border px-1 py-1">Marca</th>
                                         <th class="border px-1 py-1">Cant. (mg)</th>
                                         <th class="border px-1 py-1">Vol (mL)</th>
+                                        <th class="border px-1 py-1">Precio frasco</th>
                                         <th class="border px-1 py-1">Lote</th>
                                         <th class="border px-1 py-1">Caducidad</th>
                                         <th class="border px-1 py-1">Stock</th>
@@ -823,6 +952,11 @@
             autoSelectDiluentPresentationForVolume();
         }
 
+        function onDiluyenteChange() {
+            updateDiluentPresentationSelector();
+            autoSelectDiluentPresentationForVolume();
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             renderMezcla(mezcla);
         });
@@ -863,12 +997,14 @@
                         Dosis objetivo: 0 mg<br>
                         Dosis aportada: 0 mg
                     </div>
+                    <input type="hidden" data-name="precio_mg" value="">
                 </td>
 
                 <td class="border align-top">
                     <select name="nuevo_diluyente[]"
                         data-name="diluyente"
-                        class="w-full border px-2 py-1 text-sm">
+                        class="w-full border px-2 py-1 text-sm"
+                        onchange="onDiluyenteChange(this)">
                         <option value="">Diluyentes</option>
                     </select>
                 </td>
@@ -888,8 +1024,10 @@
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="border px-1 py-1">Presentación</th>
+                                        <th class="border px-1 py-1">Marca</th>
                                         <th class="border px-1 py-1">Cant. (mg)</th>
                                         <th class="border px-1 py-1">Vol (mL)</th>
+                                        <th class="border px-1 py-1">Precio frasco</th>
                                         <th class="border px-1 py-1">Lote</th>
                                         <th class="border px-1 py-1">Caducidad</th>
                                         <th class="border px-1 py-1">Stock</th>
@@ -939,7 +1077,9 @@
                 presRows.forEach(r => {
                     const hasStock = String(r.dataset.hasStock || '0') === '1';
                     const frascos = parseFloat(r.querySelector('.input-frascos')?.value || "0");
-                    const batchId = r.dataset.batchId || null;
+                    const precioFrasco = r.querySelector('.input-precio-frasco')?.value || '';
+                    const batchSelect = r.querySelector('.batch-select');
+                    const batchId = batchSelect?.value || r.dataset.batchId || null;
 
                     // ✅ si no hay stock, forzar 0 (por seguridad)
                     if (!hasStock) {
@@ -951,7 +1091,9 @@
                         arr.push({
                             batch_id: batchId,
                             presentation_id: r.dataset.presentationId,
-                            frascos: frascos
+                            marca: r.dataset.marca || '',
+                            frascos: frascos,
+                            precio_frasco: precioFrasco
                         });
                     }
                 });
@@ -977,6 +1119,7 @@
                     catalogId,
                     nombre: selMed.options[selMed.selectedIndex]?.text || '',
                     dosis: dosis,
+                    precio_mg: tr.querySelector('[data-name="precio_mg"]')?.value || '',
                     diluyente_id: selDil?.value || null,
                     via_administracion_id: selVia?.value || null,
                 });
@@ -990,6 +1133,7 @@
                     medicamento_id: row.catalogId,
                     nombre: row.nombre,
                     dosis: row.dosis,
+                    precio_mg: row.precio_mg,
                     diluyente_id: row.diluyente_id,
                     via_administracion_id: row.via_administracion_id,
                     charge_by: chargeBy,
@@ -1033,6 +1177,25 @@
                 }
             }
 
+
+            for (const med of mezclaPayload.medicamentos) {
+                if (!med.presentaciones || med.presentaciones.length === 0) continue;
+
+                const marcas = [...new Set(
+                    med.presentaciones
+                    .map(p => String(p.marca || '').trim().toLowerCase())
+                    .filter(Boolean)
+                )];
+
+                if (marcas.length > 1) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Marcas diferentes',
+                        text: `Para "${med.nombre}" solo puedes seleccionar frascos de la misma marca.`
+                    });
+                    return;
+                }
+            }
             document.getElementById("mezcla_json").value = JSON.stringify(mezclaPayload);
 
             Swal.fire({

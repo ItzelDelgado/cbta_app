@@ -29,7 +29,7 @@
             <th>Cloruro de Sodio (3 mEq/mL Na)</th>
             <th>Acetato de Sodio (4 mEq/mL)</th>
             <th>Fosfato de Sodio (4 mEq/mL)</th>
-            <th>Sulfato de Magnesio (0.81 mEq/mL)	</th>
+            <th>Sulfato de Magnesio (0.81 mEq/mL) </th>
             <th>Cloruro de Potasio (4 mEq/mL)</th>
             <th>Acetato de Potasio (2 mEq/mL)</th>
             <th>Fosfato de Potasio (2 mEq/mL)</th>
@@ -40,7 +40,7 @@
             <th>Glutamina 20%</th>
             <th>Cromo (4 mcg/mL)</th>
             <th>Heparina (1000 UI/mL)</th>
-            <th>L-Carnitina (200 mg/mL)	Insulina (100 UI/mL)	</th>
+            <th>L-Carnitina (200 mg/mL) Insulina (100 UI/mL) </th>
             <th>Manganeso (100 mcg/mL)</th>
             <th>MVI pediátrico</th>
             <th>Oligoelementos Nulanza</th>
@@ -57,19 +57,15 @@
         @foreach ($solicitudes as $solicitud)
             <tr>
                 <td>{{ $solicitud->id }}</td>
+
                 {{-- Remisión --}}
                 <td class="px-6 py-4" style="text-align: center">
-                    @isset($solicitud->solicitud_aprobada)
-                        {{ $solicitud->solicitud_aprobada->id }}
-                    @else
-                    @endisset
+                    {{ $solicitud->remision ?? '' }}
                 </td>
-                {{-- lote --}}
+
+                {{-- Lote --}}
                 <td class="px-6 py-4">
-                    @isset($solicitud->solicitud_aprobada)
-                        {{ $solicitud->solicitud_aprobada->lote }}
-                    @else
-                    @endisset
+                    {{ $solicitud->lote ?? '' }}
                 </td>
                 <td>{{ $solicitud->user->hospital->name ?? '' }}</td>
                 <td>{{ $solicitud->solicitud_patient->nombre_paciente ?? '' }}
@@ -83,20 +79,29 @@
                 <td>{{ $solicitud->solicitud_detail->sobrellenado_ml ?? '' }}</td>
                 <td>{{ $solicitud->solicitud_detail->volumen_total ?? '' }}</td>
                 <td>{{ $solicitud->solicitud_detail->npt ?? '' }}</td>
-                <td>{{ $solicitud->created_at ? $solicitud->created_at->translatedFormat('d \d\e F \d\e Y') : '' }}</td>
+                <td>{{ $solicitud->created_at ? $solicitud->created_at->translatedFormat('d \d\e F \d\e Y') : '' }}
+                </td>
                 <td>{{ $solicitud->solicitud_detail->nombre_medico ?? '' }}</td>
                 <td>{{ $solicitud->solicitud_detail->cedula ?? '' }}</td>
                 <td>{{ $solicitud->solicitud_detail->observaciones ?? '' }}</td>
                 <td class="px-6 py-4">
-                    @if ($solicitud->is_aprobada == 'Aprobada')
+                    @if ($solicitud->estado == 'aprobada')
                         <div>
                             Aprobada
                         </div>
-                    @elseif ($solicitud->is_aprobada == 'No Aprobada')
+                    @elseif ($solicitud->estado == 'preparada')
                         <div>
-                            No Aprobada
+                            Preparada
                         </div>
-                    @elseif ($solicitud->is_aprobada == 'Pendiente')
+                    @elseif ($solicitud->estado == 'revisada')
+                        <div>
+                            Revisada
+                        </div>
+                    @elseif ($solicitud->estado == 'cancelada')
+                        <div>
+                            Cancelada
+                        </div>
+                    @elseif ($solicitud->estado == 'pendiente')
                         <div>
                             Pendiente
                         </div>

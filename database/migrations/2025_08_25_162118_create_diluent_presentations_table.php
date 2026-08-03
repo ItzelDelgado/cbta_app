@@ -12,9 +12,11 @@ return new class extends Migration {
             $table->foreignId('diluent_id')->constrained('diluents')->onDelete('cascade');
 
             // Campos explícitos solicitados 👇
-            $table->string('presentacion');                      // Ej: "Bolsa 500 mL"
-            $table->decimal('volume_ml', 10, 2);                 // Ej: 500.00
-            $table->string('denominacion_comercial')->nullable();// Ej: "NaCl 0.9% B. Braun"
+            $table->string('presentacion');
+            $table->decimal('volume_ml', 10, 2);
+            $table->string('denominacion_comercial')->nullable();
+            $table->string('fabricante', 255)->nullable();
+
 
             // Lote y caducidad a nivel de presentación
             $table->string('lote', 100)->nullable();

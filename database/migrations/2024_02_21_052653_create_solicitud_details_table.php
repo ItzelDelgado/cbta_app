@@ -20,7 +20,7 @@ return new class extends Migration
             $table->double('suma_volumen')->nullable();
             $table->double('volumen_total_final')->nullable();
             $table->double('suma_volumen_final')->nullable();
-            $table->enum('npt', ['RNPT', 'LACT', 'INF', 'ADOL', 'ADUL']);
+            $table->enum('npt', ['RNPT', 'LACT', 'INF', 'ADOL', 'ADULT']);
             $table->string('nombre_medico');
             $table->string('cedula');
             $table->dateTime('fecha_hora_entrega');

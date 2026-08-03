@@ -86,10 +86,10 @@
                         </td>
 
                         <td class="px-6 py-3 text-right">
-                            <div class="inline-flex items-center gap-2">
+                            <x-row-actions>
                                 <a href="{{ route('admin.oncologicos.laboratory.edit', $lab) }}"
-                                   class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-3 rounded">
-                                    <i class="fa-solid fa-pen"></i>
+                                   class="">
+                                    <i class="fa-solid fa-pen"></i>Editar
                                 </a>
 
                                 <form method="POST"
@@ -98,12 +98,11 @@
                                     @csrf
                                     @method('DELETE')
 
-                                    <button type="submit"
-                                            class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded">
-                                        <i class="fa-solid fa-trash"></i>
+                                    <button type="submit" class="action-danger">
+                                        <i class="fa-solid fa-trash"></i>Eliminar
                                     </button>
                                 </form>
-                            </div>
+                            </x-row-actions>
                         </td>
                     </tr>
                 @empty

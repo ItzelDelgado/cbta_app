@@ -40,12 +40,16 @@
                 </h1>
                 <p class="font-semibold text-xl mb-8">¿Qué tipo de mezcla necesitas?</p>
                 <p class="text-lg mb-8">Elija una opción entre mezclas de nutrición parenteral y mezclas oncológicas</p>
-                <div class="flex flex-col max-w-96 mx-auto gap-8">
-                    <a class="text-white bg-azul-prodifem rounded-xl "
-                        href="{{ route('admin.nutricionales.solicitudes.index') }}"><button class=" p-4 text-2xl">Mezclas de nutrición
-                            parenteral</button></a>
-                    {{-- <a class="text-white bg-azul-prodifem rounded-xl " href=""><button class=" p-4 text-2xl">Mezclas
-                        oncológicas</button></a> --}}
+                <div class="flex flex-col max-w-96 mx-auto gap-5">
+                    <a class="block text-white bg-azul-prodifem rounded-xl p-4 text-2xl hover:bg-blue-900 transition"
+                        href="{{ route('admin.nutricionales.solicitudes.create') }}">
+                        Mezclas de nutrición parenteral
+                    </a>
+
+                    <a class="block text-white bg-azul-prodifem rounded-xl p-4 text-2xl hover:bg-blue-900 transition"
+                        href="{{ route('admin.oncologicos.solicitudes.create') }}">
+                        Mezclas oncológicas
+                    </a>
                 </div>
             </div>
 

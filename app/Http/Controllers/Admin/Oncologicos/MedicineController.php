@@ -4,73 +4,51 @@ namespace App\Http\Controllers\Admin\Oncologicos;
 
 use App\Exports\Oncologicos\MedicineListExport;
 use App\Http\Controllers\Controller;
-use App\Models\Hospital;
 use App\Models\Oncologicos\Distributor;
 use App\Models\Oncologicos\MedicineList;
 use App\Models\Oncologicos\MedicinesCatalog;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 
 class MedicineController extends Controller
 {
-    private function currentHospitalId(): int
-    {
-        $hospitalId = Auth::user()?->hospital_id;
-        abort_unless($hospitalId, 422, 'Tu usuario no tiene hospital asignado.');
-        return (int) $hospitalId;
-    }
-
-    private function listForCurrentHospital(): ?MedicineList
-    {
-        return MedicineList::where('hospital_id', $this->currentHospitalId())
-            ->with(['presentations.catalog', 'distributor'])
-            ->first();
-    }
-
     public function index()
     {
         return view('admin.oncologicos.medicines.index');
     }
 
-
     public function create()
     {
         $catalogos = MedicinesCatalog::with([
             'presentations' => function ($q) {
-                $q->where('is_available', 1)
+                $this->scopeActivePresentations($q)
                     ->orderBy('presentacion');
             }
         ])
+            ->whereHas('presentations', function ($q) {
+                $this->scopeActivePresentations($q);
+            })
             ->orderBy('denominacion')
             ->get();
-
-        // 👉 Hospitales para el select del formulario
-        $hospitals = Hospital::orderBy('name')->get(['id', 'name']);
 
         $distributor = null;
 
         return view(
             'admin.oncologicos.medicines.create',
-            compact('catalogos', 'hospitals', 'distributor')
+            compact('catalogos', 'distributor')
         );
     }
 
-
     public function store(Request $request)
     {
-        // ✅ Ahora el hospital viene del formulario
         $request->validate([
-            'hospital_id'   => 'required|exists:hospitals,id',
-
-            // ⚠️ ya no unique global; si quieres unique por hospital, lo validamos manual
             'name'          => 'required|string|max:255',
             'description'   => 'nullable|string',
             'active_brands' => 'nullable|boolean',
             'charge_by'     => 'required|in:mg,frasco',
+            'show_label_lot_expiry' => 'nullable|boolean',
 
             'medicamentos'                   => 'required|array|min:1',
             'medicamentos.*.presentation_id' => 'required|exists:medicine_presentations,id',
@@ -82,18 +60,7 @@ class MedicineController extends Controller
         ], [
             'distributor_name.required_with'    => 'Indica el nombre del distribuidor.',
             'distributor_address.required_with' => 'Indica la dirección del distribuidor.',
-            'hospital_id.required'              => 'Selecciona un hospital.',
-            'hospital_id.exists'                => 'El hospital seleccionado no existe.',
         ]);
-
-        $hospitalId = (int) $request->input('hospital_id');
-
-        // ✅ Regla 1:1 por hospital (con el hospital elegido)
-        if (MedicineList::where('hospital_id', $hospitalId)->exists()) {
-            return back()->withInput()->withErrors([
-                'hospital_id' => 'Este hospital ya tiene una lista de medicamentos configurada.',
-            ]);
-        }
 
         $items = collect($request->input('medicamentos', []))
             ->filter(fn($m) => !empty($m['presentation_id']) && $m['precio'] !== null && $m['precio'] !== '')
@@ -111,17 +78,23 @@ class MedicineController extends Controller
             ]);
         }
 
+        if (!$this->allPresentationsAreSelectable($items->pluck('presentation_id'))) {
+            return back()->withInput()->withErrors([
+                'medicamentos' => 'Solo puedes agregar presentaciones activas del catálogo.',
+            ]);
+        }
+
         try {
             DB::beginTransaction();
 
             $chargeBy = $request->input('charge_by', 'mg');
 
             $lista = MedicineList::create([
-                'hospital_id'   => $hospitalId, // ✅ VIENE DEL FORM
                 'name'          => $request->name,
                 'description'   => $request->description,
                 'active_brands' => $request->boolean('active_brands', false),
                 'charge_by'     => $chargeBy,
+                'show_label_lot_expiry' => $request->boolean('show_label_lot_expiry', false),
             ]);
 
             $hasDistributor =
@@ -131,6 +104,7 @@ class MedicineController extends Controller
 
             if ($hasDistributor) {
                 $logoPath = null;
+
                 if ($request->hasFile('distributor_logo')) {
                     $logoPath = $request->file('distributor_logo')->store('distributors', 'public');
                 }
@@ -144,6 +118,7 @@ class MedicineController extends Controller
             }
 
             $pivotData = [];
+
             foreach ($items as $item) {
                 $presentationId  = (int) $item['presentation_id'];
                 $precioCapturado = (float) $item['precio'];
@@ -157,6 +132,7 @@ class MedicineController extends Controller
 
             if (empty($pivotData)) {
                 DB::rollBack();
+
                 return back()->withInput()->withErrors([
                     'medicamentos' => 'No se pudo construir ninguna relación de presentaciones con la lista.',
                 ]);
@@ -178,62 +154,107 @@ class MedicineController extends Controller
         }
     }
 
-
     public function edit(string $id)
     {
-        // ✅ Cargar la lista por ID (ya NO por hospital del usuario)
         $lista = MedicineList::with([
-            'hospital',
             'presentations.catalog',
             'distributor'
+        ])->findOrFail($id);
+
+        $catalogos = MedicinesCatalog::with([
+            'presentations' => function ($q) {
+                $this->scopeActivePresentations($q)
+                    ->orderBy('presentacion');
+            }
         ])
-            ->findOrFail($id);
-
-        // ✅ Para el select de hospital (si quieres permitir cambiarlo)
-        $hospitals = DB::table('hospitals')
-            ->select('id', 'name')
-            ->orderBy('name')
-            ->get();
-
-        $catalogos = MedicinesCatalog::with('presentations')
+            ->whereHas('presentations', function ($q) {
+                $this->scopeActivePresentations($q);
+            })
             ->orderBy('denominacion')
             ->get();
+
+        $presentationsInList = $lista->presentations
+            ->loadMissing('catalog')
+            ->groupBy('catalog_id');
+
+        $catalogos = $catalogos->map(function ($catalogo) use ($presentationsInList) {
+            $extraPresentations = $presentationsInList->get($catalogo->id, collect());
+
+            if ($extraPresentations->isNotEmpty()) {
+                $catalogo->setRelation(
+                    'presentations',
+                    $catalogo->presentations
+                        ->concat($extraPresentations)
+                        ->unique('id')
+                        ->sortBy(function ($presentation) {
+                            return mb_strtolower(trim((string) ($presentation->presentacion ?? '')), 'UTF-8');
+                        })
+                        ->values()
+                );
+            }
+
+            return $catalogo;
+        });
+
+        $missingCatalogIds = $presentationsInList
+            ->keys()
+            ->diff($catalogos->pluck('id'))
+            ->values();
+
+        if ($missingCatalogIds->isNotEmpty()) {
+            $missingCatalogs = MedicinesCatalog::whereIn('id', $missingCatalogIds)
+                ->orderBy('denominacion')
+                ->get()
+                ->map(function ($catalogo) use ($presentationsInList) {
+                    $catalogo->setRelation(
+                        'presentations',
+                        $presentationsInList->get($catalogo->id, collect())
+                            ->unique('id')
+                            ->sortBy(function ($presentation) {
+                                return mb_strtolower(trim((string) ($presentation->presentacion ?? '')), 'UTF-8');
+                            })
+                            ->values()
+                    );
+
+                    return $catalogo;
+                });
+
+            $catalogos = $catalogos
+                ->concat($missingCatalogs)
+                ->sortBy(function ($catalogo) {
+                    return mb_strtolower(trim((string) ($catalogo->denominacion ?? '')), 'UTF-8');
+                })
+                ->values();
+        }
 
         $listaItems = $lista->presentations->map(function ($pres) {
             return [
                 'catalog_id'      => $pres->catalog_id,
                 'presentation_id' => $pres->id,
                 'charge_by'       => $pres->pivot->charge_by ?? 'mg',
-                'precio'          => $pres->pivot->charge_by === 'frasco'
+                'precio'          => ($pres->pivot->charge_by ?? 'mg') === 'frasco'
                     ? ($pres->pivot->precio ?? null)
                     : ($pres->pivot->precio_mg_override ?? null),
             ];
-        })->values();
+        })
+            ->values();
 
         return view('admin.oncologicos.medicines.edit', [
-            'lista'        => $lista,
-            'catalogos'    => $catalogos,
-            'listaItems'   => $listaItems,
-            'distributor'  => $lista->distributor,
-            'hospitals'    => $hospitals, // ✅ para el select
+            'lista'       => $lista,
+            'catalogos'   => $catalogos,
+            'listaItems'  => $listaItems,
+            'distributor' => $lista->distributor,
         ]);
     }
-
 
     public function update(Request $request, string $id)
     {
         $request->validate([
-            // ✅ ahora el hospital viene del formulario
-            'hospital_id' => [
-                'required',
-                'exists:hospitals,id',
-                Rule::unique('medicine_lists', 'hospital_id')->ignore($id), // 1 hospital = 1 lista
-            ],
-
             'name'           => 'required|string|max:255',
             'description'    => 'nullable|string',
             'active_brands'  => 'nullable|boolean',
             'charge_by'      => 'required|in:mg,frasco',
+            'show_label_lot_expiry' => 'nullable|boolean',
 
             'distributor_nombre'    => 'nullable|string|max:255',
             'distributor_direccion' => 'nullable|string|max:500',
@@ -244,17 +265,15 @@ class MedicineController extends Controller
             'medicamentos.*.catalog_id'      => 'required|exists:medicines_catalog,id',
             'medicamentos.*.presentation_id' => 'required|exists:medicine_presentations,id',
             'medicamentos.*.precio'          => 'required|numeric|min:0',
-        ], [
-            'hospital_id.unique' => 'Ese hospital ya tiene una lista de medicamentos configurada.',
         ]);
 
         $rows = collect($request->input('medicamentos', []))
             ->filter(
                 fn($m) =>
                 !empty($m['catalog_id']) &&
-                    !empty($m['presentation_id']) &&
-                    $m['precio'] !== null &&
-                    $m['precio'] !== ''
+                !empty($m['presentation_id']) &&
+                $m['precio'] !== null &&
+                $m['precio'] !== ''
             )
             ->values();
 
@@ -273,20 +292,26 @@ class MedicineController extends Controller
         try {
             DB::beginTransaction();
 
-            // ✅ ya NO filtramos por hospital del usuario
             $lista = MedicineList::with('distributor')->findOrFail($id);
 
             $chargeByGlobal = $request->input('charge_by', 'mg');
 
+            if (!$this->allPresentationsAreSelectable($rows->pluck('presentation_id'))) {
+                DB::rollBack();
+
+                return back()->withInput()->withErrors([
+                    'medicamentos' => 'Solo puedes agregar presentaciones activas del catálogo.',
+                ]);
+            }
+
             $lista->update([
-                'hospital_id'   => (int) $request->hospital_id,  // ✅ CLAVE
                 'name'          => $request->name,
                 'description'   => $request->description,
                 'active_brands' => $request->boolean('active_brands', false),
                 'charge_by'     => $chargeByGlobal,
+                'show_label_lot_expiry' => $request->boolean('show_label_lot_expiry', false),
             ]);
 
-            // ===== Distributor =====
             if ($request->boolean('distributor_delete')) {
                 if ($lista->distributor) {
                     if (!empty($lista->distributor->logo_path)) {
@@ -306,13 +331,14 @@ class MedicineController extends Controller
                 if ($hayDatosDistributor) {
                     $distributor = $lista->distributor ?: new Distributor();
                     $distributor->medicine_list_id = $lista->id;
-                    $distributor->nombre    = $distNombre;
+                    $distributor->nombre = $distNombre;
                     $distributor->direccion = $distDireccion;
 
                     if ($request->hasFile('distributor_logo')) {
                         if (!empty($distributor->logo_path)) {
                             Storage::disk('public')->delete($distributor->logo_path);
                         }
+
                         $path = $request->file('distributor_logo')->store('distributors/logos', 'public');
                         $distributor->logo_path = $path;
                     }
@@ -321,11 +347,11 @@ class MedicineController extends Controller
                 }
             }
 
-            // ===== Pivot sync =====
             $pivotData = [];
+
             foreach ($rows as $row) {
                 $presentationId = (int) $row['presentation_id'];
-                $precio         = (float) $row['precio'];
+                $precio = (float) $row['precio'];
 
                 $pivotData[$presentationId] = [
                     'charge_by'          => $chargeByGlobal,
@@ -336,6 +362,7 @@ class MedicineController extends Controller
 
             if (empty($pivotData)) {
                 DB::rollBack();
+
                 return back()->withInput()->withErrors([
                     'medicamentos' => 'No se pudo construir ninguna relación de presentaciones con la lista.',
                 ]);
@@ -362,11 +389,16 @@ class MedicineController extends Controller
         try {
             DB::beginTransaction();
 
-            $hospitalId = $this->currentHospitalId();
+            $lista = MedicineList::with('distributor')->findOrFail($id);
 
-            $lista = MedicineList::where('hospital_id', $hospitalId)->findOrFail($id);
+            if ($lista->distributor && !empty($lista->distributor->logo_path)) {
+                Storage::disk('public')->delete($lista->distributor->logo_path);
+            }
 
-            // OJO: tú usas presentations() en el resto del controller, aquí estabas usando medicines()
+            if ($lista->distributor) {
+                $lista->distributor->delete();
+            }
+
             $lista->presentations()->detach();
             $lista->delete();
 
@@ -376,6 +408,7 @@ class MedicineController extends Controller
                 ->with('success', 'Lista de medicamentos eliminada correctamente.');
         } catch (\Throwable $e) {
             DB::rollBack();
+
             return back()->withErrors([
                 'error' => 'Error al eliminar la lista: ' . $e->getMessage()
             ]);
@@ -384,9 +417,36 @@ class MedicineController extends Controller
 
     public function exportarExcel(MedicineList $medicineList)
     {
-        $hospitalId = $this->currentHospitalId();
-
         $filename = 'lista_precios_' . $medicineList->id . '.xlsx';
+
         return Excel::download(new MedicineListExport($medicineList->id), $filename);
+    }
+
+    private function scopeActivePresentations($query)
+    {
+        return $query
+            ->where('is_available', 1);
+    }
+
+    private function allPresentationsAreSelectable($presentationIds): bool
+    {
+        $ids = collect($presentationIds)
+            ->filter()
+            ->map(fn($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return false;
+        }
+
+        $validCount = \App\Models\Oncologicos\MedicinePresentation::query()
+            ->whereIn('id', $ids)
+            ->where(function ($query) {
+                $this->scopeActivePresentations($query);
+            })
+            ->count();
+
+        return $validCount === $ids->count();
     }
 }

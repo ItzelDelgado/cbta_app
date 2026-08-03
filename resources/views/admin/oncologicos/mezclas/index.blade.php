@@ -106,13 +106,14 @@
                             </span>
                         </td>
                         <td class="px-6 py-4">
+                            <x-row-actions>
                             <a href="{{ route('admin.oncologicos.mezclas.show', $mezcla->id) }}"
-                                class="btn-ver px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition">
+                                class="">
                                 Ver
                             </a>
 
                             <a href="{{ route('admin.oncologicos.mezclas.edit', $mezcla->id) }}"
-                                class="btn-editar ml-2 px-4 py-1 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600 transition">
+                                class="">
                                 Editar
                             </a>
 
@@ -123,16 +124,14 @@
                                     @csrf
                                     @method('PUT')
                                     <input type="hidden" name="accion" value="preparada">
-                                    <button type="button" onclick="confirmarPreparada({{ $mezcla->id }})"
-                                        class="btn-aprobar ml-2 px-4 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition">
+                                    <button type="button" onclick="confirmarPreparada({{ $mezcla->id }})">
                                         Preparada
                                     </button>
                                 </form>
                             @endif
                             @if ($mezcla->estado === 'preparada')
                                 <button type="button"
-                                    onclick="window.dispatchEvent(new CustomEvent('abrir-modal-inspeccion', { detail: [{{ $mezcla->id }}] }))"
-                                    class="ml-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded px-4 py-1 transition">
+                                    onclick="window.dispatchEvent(new CustomEvent('abrir-modal-inspeccion', { detail: [{{ $mezcla->id }}] }))">
                                     Inspección
                                 </button>
                             @endif
@@ -144,12 +143,12 @@
                                     @csrf
                                     @method('PUT')
                                     <input type="hidden" name="accion" value="entregada">
-                                    <button type="button" onclick="confirmarEntregada({{ $mezcla->id }})"
-                                        class="ml-2 px-4 py-1 bg-emerald-600 text-white text-sm rounded hover:bg-emerald-700 transition">
+                                    <button type="button" onclick="confirmarEntregada({{ $mezcla->id }})">
                                         Entregada
                                     </button>
                                 </form>
                             @endif
+                            </x-row-actions>
 
 
                         </td>

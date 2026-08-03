@@ -32,14 +32,16 @@ class MedicineCatalogController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'denominacion'           => 'required|string|max:255',
-            'conc_min'               => 'nullable|numeric|min:0',
-            'conc_max'               => 'nullable|numeric|min:0',
-            'requires_infusor'       => 'nullable|boolean',
-            'diluents'               => 'nullable|array',
-            'diluents.*'             => 'integer|exists:diluents,id',
-            'routes'                 => 'nullable|array',
-            'routes.*'               => 'integer|exists:administration_routes,id',
+            'denominacion' => 'required|string|max:255|unique:medicines_catalog,denominacion',
+            'conc_min' => 'nullable|numeric|min:0',
+            'conc_max' => 'nullable|numeric|min:0',
+            'requires_infusor' => 'nullable|boolean',
+            'diluents' => 'nullable|array',
+            'diluents.*' => 'integer|exists:diluents,id',
+            'routes' => 'nullable|array',
+            'routes.*' => 'integer|exists:administration_routes,id',
+        ], [
+            'denominacion.unique' => 'Ya existe un medicamento con esa denominación.',
         ]);
 
         // Importante: la lógica de dosis/volumen ya NO vive en catálogo,

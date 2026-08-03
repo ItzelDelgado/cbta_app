@@ -37,9 +37,15 @@
                         value="{{ old('presentacion', $presentation->presentacion) }}" required>
                 </div>
                 <div class="col-span-12 md:col-span-4">
-                    <label class="text-sm">Presentación comercial</label>
+                    <label class="text-sm">Marca</label>
                     <input class="w-full border rounded p-2" name="marca"
-                        value="{{ old('marca', $presentation->marca) }}">
+                        value="{{ old('marca', $presentation->marca) }}" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Fabricante</label>
+                    <input type="text" name="fabricante" value="{{ old('fabricante', $presentation->fabricante) }}"
+                        class="w-full px-3 py-2 border rounded focus:ring focus:ring-blue-200 focus:outline-none">
                 </div>
 
                 <div class="col-span-6 md:col-span-2">
@@ -65,14 +71,9 @@
                 <!-- =========================
              COSTOS / COMPOSICIÓN
         ========================== -->
-                <div class="col-span-12 md:col-span-3">
-                    <label class="text-sm">Precio frasco (opcional)</label>
-                    <input class="w-full border rounded p-2" type="number" step="0.01" min="0"
-                        name="precio_frasco" value="{{ old('precio_frasco', $presentation->precio_frasco) }}">
-                </div>
 
                 <div class="col-span-12 md:col-span-3">
-                    <label class="text-sm">Cantidad de medicamento (mg) (opcional)</label>
+                    <label class="text-sm">Concentración de medicamento (mg) (opcional)</label>
                     <input class="w-full border rounded p-2" type="number" step="0.01" min="0"
                         name="cantidad_medicamento"
                         value="{{ old('cantidad_medicamento', $presentation->cantidad_medicamento) }}">
@@ -110,13 +111,32 @@
                 </div>
 
                 <div class="col-span-12 md:col-span-5">
+                    <label class="text-sm">Forma de reconstitución (opcional)</label>
+                    <input class="w-full border rounded p-2" type="text" name="forma_reconstitucion"
+                        value="{{ old('forma_reconstitucion', $presentation->forma_reconstitucion) }}"
+                        placeholder="Ej. Disolver el contenido en 500 mL de agua estéril">
+                </div>
+
+                <div class="col-span-12 md:col-span-5">
                     <label class="text-sm">Leyenda / Indicaciones (opcional)</label>
                     <textarea class="w-full border rounded p-2" rows="2" name="legend"
                         placeholder="Ej. Refrigerar. Proteger de la luz. No agitar.">{{ old('legend', $presentation->legend) }}</textarea>
                 </div>
 
+                <!-- =========================
+             DISPONIBILIDAD
+        ========================== -->
+                <div class="col-span-12 md:col-span-3">
+                    <label class="text-sm">Disponible</label>
+                    <select class="w-full border rounded p-2" name="is_available">
+                        <option value="1" @selected(old('is_available', $presentation->is_available) == 1)>Sí</option>
+                        <option value="0" @selected(old('is_available', $presentation->is_available) == 0)>No</option>
+                    </select>
+                </div>
 
-                <div class="mb-4">
+
+
+                <div class="mb-4 col-span-4">
                     <div class="p-3 rounded bg-blue-50 border border-blue-200 text-blue-800 text-sm">
                         <div class="font-semibold">Lotes y caducidades</div>
                         <div class="text-xs mt-1">
@@ -131,17 +151,6 @@
                             </a>
                         </div>
                     </div>
-                </div>
-
-                <!-- =========================
-             DISPONIBILIDAD
-        ========================== -->
-                <div class="col-span-12 md:col-span-3">
-                    <label class="text-sm">Disponible</label>
-                    <select class="w-full border rounded p-2" name="is_available">
-                        <option value="1" @selected(old('is_available', $presentation->is_available) == 1)>Sí</option>
-                        <option value="0" @selected(old('is_available', $presentation->is_available) == 0)>No</option>
-                    </select>
                 </div>
 
             </div>

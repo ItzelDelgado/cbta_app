@@ -18,31 +18,34 @@
 
         <div class="flex items-center gap-2">
             <a href="{{ route('admin.oncologicos.inventory.selectLaboratory') }}"
-               class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded">
+                class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded">
                 Cambiar laboratorio
             </a>
 
-            <button type="button" id="btn-guardar"
+            <a href="{{ route('admin.oncologicos.inventory.exportar', [
+                'laboratory_id' => $laboratoryId,
+                'q' => $q,
+                'stock' => $stock,
+            ]) }}"
                 class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                Guardar cambios
-            </button>
+                <i class="fa-solid fa-file-excel mr-1"></i>
+                Exportar Excel
+            </a>
+
         </div>
     </div>
 
     <div class="bg-white rounded-lg shadow p-4 mb-4">
-        <form method="GET"
-              action="{{ route('admin.oncologicos.inventory.index') }}"
-              class="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <form method="GET" action="{{ route('admin.oncologicos.inventory.index') }}"
+            class="grid grid-cols-1 md:grid-cols-4 gap-3">
 
             <input type="hidden" name="laboratory_id" value="{{ $laboratoryId }}">
 
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-                <input type="text"
-                       name="q"
-                       value="{{ request('q') }}"
-                       placeholder="Denominación del medicamento, presentación, marca o lote..."
-                       class="w-full rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                <input type="text" name="q" value="{{ request('q') }}"
+                    placeholder="Denominación del medicamento, presentación, marca o lote..."
+                    class="w-full rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500">
             </div>
 
             <div>
@@ -55,271 +58,239 @@
             </div>
 
             <div class="flex items-end gap-2">
-                <button type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                     Buscar
                 </button>
 
                 <a href="{{ route('admin.oncologicos.inventory.index', ['laboratory_id' => $laboratoryId]) }}"
-                   class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded">
+                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded">
                     Limpiar
                 </a>
             </div>
         </form>
     </div>
 
-    <form id="bulk-form" method="POST" action="{{ route('admin.oncologicos.inventory.batches.bulkUpdate') }}">
-        @csrf
+    <div class="space-y-6">
+        @forelse ($groupedRows as $catalog)
+            @php
+                $totalFrascosProducto = collect($catalog['presentations'])->sum('stock_total');
+                $totalReservadoProducto = collect($catalog['presentations'])->sum('stock_reservado_total');
+            @endphp
 
-        <input type="hidden" name="laboratory_id" value="{{ $laboratoryId }}">
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-gray-50 px-4 py-3 border-b">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-800">
+                                {{ $catalog['denominacion'] }}
+                            </h2>
 
-        <div class="relative overflow-x-auto bg-white rounded-lg shadow">
-            <table class="w-full text-sm text-left text-gray-600">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-3">Medicamento</th>
-                        <th class="px-4 py-3">Presentación</th>
-                        <th class="px-4 py-3">Marca</th>
-                        <th class="px-4 py-3">Lote</th>
-                        <th class="px-4 py-3">Caducidad</th>
-                        <th class="px-4 py-3">Ingreso</th>
-                        <th class="px-4 py-3 text-center">Stock inicial</th>
-                        <th class="px-4 py-3 text-center">Stock actual</th>
-                        <th class="px-4 py-3 text-center">Estado</th>
-                    </tr>
-                </thead>
+                            <div class="text-sm text-gray-600 mt-1">
+                                @if (!empty($catalog['state']))
+                                    Estado:
+                                    <span class="font-medium text-gray-800">
+                                        {{ $catalog['state'] }}
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
 
-                <tbody>
-                    @forelse ($rows as $row)
-                        @php
-                            $cad = !empty($row->caducidad_current)
-                                ? \Carbon\Carbon::parse($row->caducidad_current)->format('Y-m-d')
-                                : '';
+                        <div class="text-sm text-right">
+                            <div class="text-gray-500">
+                                Total de piezas del producto
+                            </div>
 
-                            $fechaIngreso = !empty($row->fecha_ingreso)
-                                ? \Carbon\Carbon::parse($row->fecha_ingreso)->format('Y-m-d')
-                                : '';
+                            <div class="font-bold text-lg text-gray-800">
+                                {{ number_format($totalFrascosProducto, 2) }} frascos
+                            </div>
 
-                            $origLote = $row->lote_current ?? '';
-                            $origCad = $cad;
-                            $origFechaIngreso = $fechaIngreso;
-                            $origStockInicial = (int) ($row->stock_inicial ?? 0);
-                            $origStockActual = (int) ($row->stock_actual ?? 0);
+                            <div class="text-xs text-gray-500">
+                                Reservado: {{ number_format($totalReservadoProducto, 2) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                            $hasStock = $origStockActual > 0;
-                        @endphp
+                <div class="relative overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-600">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3">Presentación</th>
+                                <th class="px-4 py-3">Marca</th>
+                                <th class="px-4 py-3">Lote</th>
+                                <th class="px-4 py-3">Detalle del lote</th>
+                                <th class="px-4 py-3 text-center">Stock lote seleccionado</th>
+                                <th class="px-4 py-3 text-center">Estado</th>
+                                <th class="px-4 py-3 text-right">Acciones</th>
+                            </tr>
+                        </thead>
 
-                        <tr class="bg-white border-b last:border-b-0 row-inv"
-                            data-batch-id="{{ $row->batch_id ?? '' }}"
-                            data-presentation-id="{{ $row->presentation_id }}">
-                            <td class="px-4 py-2 font-medium text-gray-800">
-                                {{ $row->denominacion }}
-                            </td>
+                        <tbody>
+                            @forelse ($catalog['presentations'] as $presentation)
+                                @php
+                                    $batches = collect($presentation['batches']);
+                                    $firstBatch = $batches->first();
+                                    $hasStock = $batches->contains(fn($batch) => (float) $batch->stock_actual > 0);
+                                @endphp
 
-                            <td class="px-4 py-2">
-                                <div class="font-medium text-gray-800">{{ $row->presentacion }}</div>
-                                <div class="text-xs text-gray-500">
-                                    {{ $row->contenido_valor }} {{ $row->contenido_unidad }}
-                                    @if (!is_null($row->volumen_diluyente))
-                                        · Diluyente: {{ $row->volumen_diluyente }} mL
-                                    @endif
-                                </div>
-                            </td>
+                                <tr class="bg-white border-b last:border-b-0 presentation-row">
+                                    <td class="px-4 py-3 font-medium text-gray-800 align-top">
+                                        <div>{{ $presentation['presentacion'] ?: '—' }}</div>
 
-                            <td class="px-4 py-2">
-                                {{ $row->marca ?: '—' }}
-                            </td>
+                                        <div class="text-xs text-gray-500">
+                                            {{ $presentation['contenido_valor'] }}
+                                            {{ $presentation['contenido_unidad'] }}
+                                        </div>
+                                    </td>
 
-                            <td class="px-4 py-2 min-w-[140px]">
-                                <input type="text"
-                                       class="inv-input inv-lote w-full rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                                       value="{{ $origLote }}"
-                                       placeholder="Lote..."
-                                       data-original="{{ $origLote }}">
-                            </td>
+                                    <td class="px-4 py-3 align-top">
+                                        {{ $presentation['marca'] ?: '—' }}
+                                    </td>
 
-                            <td class="px-4 py-2 min-w-[150px]">
-                                <input type="date"
-                                       class="inv-input inv-cad w-full rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                                       value="{{ $origCad }}"
-                                       data-original="{{ $origCad }}">
-                            </td>
+                                    <td class="px-4 py-3 align-top min-w-[190px]">
+                                        @if ($batches->count())
+                                            <select class="lote-select w-full rounded border-gray-300 text-sm">
+                                                @foreach ($batches as $batch)
+                                                    <option value="{{ $batch->batch_id }}"
+                                                        data-caducidad="{{ $batch->caducidad ? \Carbon\Carbon::parse($batch->caducidad)->format('d/m/Y') : '—' }}"
+                                                        data-fecha-ingreso="{{ $batch->fecha_ingreso ? \Carbon\Carbon::parse($batch->fecha_ingreso)->format('d/m/Y') : '—' }}"
+                                                        data-stock-inicial="{{ number_format((float) $batch->stock_inicial, 2) }}"
+                                                        data-stock-actual="{{ number_format((float) $batch->stock_actual, 2) }}"
+                                                        data-stock-reservado="{{ number_format((float) $batch->stock_reservado, 2) }}">
+                                                        {{ $batch->lote }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        @else
+                                            <span class="text-gray-400 text-xs">Sin lotes</span>
+                                        @endif
+                                    </td>
 
-                            <td class="px-4 py-2 min-w-[150px]">
-                                <input type="date"
-                                       class="inv-input inv-fecha-ingreso w-full rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                                       value="{{ $origFechaIngreso }}"
-                                       data-original="{{ $origFechaIngreso }}">
-                            </td>
+                                    <td class="px-4 py-3 align-top min-w-[280px]">
+                                        @if ($firstBatch)
+                                            <div class="text-xs text-gray-700 lote-info">
+                                                <div>
+                                                    <span class="font-semibold">Caducidad:</span>
+                                                    <span class="info-caducidad">
+                                                        {{ $firstBatch->caducidad ? \Carbon\Carbon::parse($firstBatch->caducidad)->format('d/m/Y') : '—' }}
+                                                    </span>
+                                                </div>
 
-                            <td class="px-4 py-2 min-w-[110px]">
-                                <input type="number"
-                                       min="0"
-                                       class="inv-input inv-stock-inicial w-full rounded border-gray-300 text-center focus:border-blue-500 focus:ring-blue-500"
-                                       value="{{ $origStockInicial }}"
-                                       data-original="{{ $origStockInicial }}">
-                            </td>
+                                                <div>
+                                                    <span class="font-semibold">Ingreso:</span>
+                                                    <span class="info-fecha-ingreso">
+                                                        {{ $firstBatch->fecha_ingreso ? \Carbon\Carbon::parse($firstBatch->fecha_ingreso)->format('d/m/Y') : '—' }}
+                                                    </span>
+                                                </div>
 
-                            <td class="px-4 py-2 min-w-[110px]">
-                                <input type="number"
-                                       min="0"
-                                       class="inv-input inv-stock-actual w-full rounded border-gray-300 text-center focus:border-blue-500 focus:ring-blue-500"
-                                       value="{{ $origStockActual }}"
-                                       data-original="{{ $origStockActual }}">
-                            </td>
+                                                <div>
+                                                    <span class="font-semibold">Stock actual:</span>
+                                                    <span class="text-green-700 font-semibold info-stock-actual">
+                                                        {{ number_format((float) $firstBatch->stock_actual, 2) }}
+                                                    </span>
+                                                    frascos
+                                                </div>
 
-                            <td class="px-4 py-2 text-center min-w-[120px]">
-                                <span class="stock-badge inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
-                                    {{ $hasStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                    {{ $hasStock ? 'Con stock' : 'Sin stock' }}
-                                </span>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="9" class="px-6 py-6 text-center text-gray-500">
-                                No hay medicamentos para mostrar con los filtros actuales.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                                                <div>
+                                                    <span class="font-semibold">Inicial:</span>
+                                                    <span class="info-stock-inicial">
+                                                        {{ number_format((float) $firstBatch->stock_inicial, 2) }}
+                                                    </span>
+                                                    /
+                                                    <span class="text-gray-500">Reservado:</span>
+                                                    <span class="info-stock-reservado">
+                                                        {{ number_format((float) $firstBatch->stock_reservado, 2) }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <span class="text-gray-400 text-xs">Sin información</span>
+                                        @endif
+                                    </td>
 
-        <input type="hidden" name="items" id="bulk-items" value="">
-    </form>
+                                    <td class="px-4 py-3 text-center align-top">
+                                        @if ($firstBatch)
+                                            <div class="font-semibold text-green-700 selected-stock">
+                                                {{ number_format((float) $firstBatch->stock_actual, 2) }} frascos
+                                            </div>
+                                        @else
+                                            <div class="text-gray-400 text-xs">
+                                                Sin stock
+                                            </div>
+                                        @endif
+                                    </td>
+
+                                    <td class="px-4 py-3 text-center align-top">
+                                        @if ($hasStock)
+                                            <span
+                                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">
+                                                Disponible
+                                            </span>
+                                        @else
+                                            <span
+                                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700">
+                                                Sin stock
+                                            </span>
+                                        @endif
+                                    </td>
+
+                                    <td class="px-4 py-3 text-right align-top">
+                                        <x-row-actions>
+                                        <a href="{{ route('admin.oncologicos.inventory.ingresoForm', [
+                                            'laboratory_id' => $laboratoryId,
+                                            'presentation_id' => $presentation['presentation_id'],
+                                        ]) }}"
+                                            class="">
+                                            Ingresar lote
+                                        </a>
+                                        </x-row-actions>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-6 py-6 text-center text-gray-500">
+                                        Este medicamento no tiene presentaciones disponibles.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @empty
+            <div class="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+                No hay medicamentos para mostrar con los filtros actuales.
+            </div>
+        @endforelse
+    </div>
+
 
     @push('js')
         <script>
-            (function() {
-                const form = document.getElementById('bulk-form');
-                const btnGuardar = document.getElementById('btn-guardar');
-                const bulkItems = document.getElementById('bulk-items');
+            document.querySelectorAll('.lote-select').forEach(select => {
+                select.addEventListener('change', function() {
+                    const row = this.closest('.presentation-row');
+                    const option = this.selectedOptions[0];
 
-                function toInt(value) {
-                    const n = parseInt(value, 10);
-                    return Number.isNaN(n) ? 0 : n;
-                }
+                    if (!row || !option) return;
 
-                function toStr(value) {
-                    return (value ?? '').toString().trim();
-                }
+                    row.querySelector('.info-caducidad').textContent = option.dataset.caducidad || '—';
+                    row.querySelector('.info-fecha-ingreso').textContent = option.dataset.fechaIngreso || '—';
+                    row.querySelector('.info-stock-inicial').textContent = option.dataset.stockInicial ||
+                    '0.00';
+                    row.querySelector('.info-stock-actual').textContent = option.dataset.stockActual || '0.00';
+                    row.querySelector('.info-stock-reservado').textContent = option.dataset.stockReservado ||
+                        '0.00';
 
-                function updateStockBadge(row) {
-                    const stockActual = toInt(row.querySelector('.inv-stock-actual')?.value);
-                    const badge = row.querySelector('.stock-badge');
+                    const selectedStock = row.querySelector('.selected-stock');
 
-                    if (!badge) return;
-
-                    const hasStock = stockActual > 0;
-
-                    badge.textContent = hasStock ? 'Con stock' : 'Sin stock';
-                    badge.classList.remove('bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
-                    badge.classList.add(hasStock ? 'bg-green-100' : 'bg-red-100');
-                    badge.classList.add(hasStock ? 'text-green-800' : 'text-red-800');
-                }
-
-                function markDirty(row) {
-                    row.classList.add('dirty');
-                    updateStockBadge(row);
-                }
-
-                document.querySelectorAll('.row-inv .inv-input').forEach(inp => {
-                    inp.addEventListener('input', (e) => {
-                        markDirty(e.target.closest('.row-inv'));
-                    });
-
-                    inp.addEventListener('change', (e) => {
-                        markDirty(e.target.closest('.row-inv'));
-                    });
-                });
-
-                btnGuardar.addEventListener('click', () => {
-                    const cambios = [];
-
-                    document.querySelectorAll('.row-inv').forEach(row => {
-                        const batchId = row.dataset.batchId || null;
-                        const presentationId = row.dataset.presentationId ? Number(row.dataset.presentationId) : null;
-
-                        const loteInput = row.querySelector('.inv-lote');
-                        const cadInput = row.querySelector('.inv-cad');
-                        const fechaIngresoInput = row.querySelector('.inv-fecha-ingreso');
-                        const stockInicialInput = row.querySelector('.inv-stock-inicial');
-                        const stockActualInput = row.querySelector('.inv-stock-actual');
-
-                        const lote = toStr(loteInput?.value);
-                        const cad = toStr(cadInput?.value);
-                        const fechaIngreso = toStr(fechaIngresoInput?.value);
-                        const stockInicial = toInt(stockInicialInput?.value);
-                        const stockActual = toInt(stockActualInput?.value);
-
-                        const origLote = toStr(loteInput?.dataset.original);
-                        const origCad = toStr(cadInput?.dataset.original);
-                        const origFechaIngreso = toStr(fechaIngresoInput?.dataset.original);
-                        const origStockInicial = toInt(stockInicialInput?.dataset.original);
-                        const origStockActual = toInt(stockActualInput?.dataset.original);
-
-                        const changed =
-                            lote !== origLote ||
-                            cad !== origCad ||
-                            fechaIngreso !== origFechaIngreso ||
-                            stockInicial !== origStockInicial ||
-                            stockActual !== origStockActual;
-
-                        if (changed) {
-                            cambios.push({
-                                batch_id: batchId ? Number(batchId) : null,
-                                presentation_id: presentationId,
-                                lote: lote,
-                                caducidad: cad,
-                                fecha_ingreso: fechaIngreso,
-                                stock_inicial: stockInicial,
-                                stock_actual: stockActual
-                            });
-                        }
-                    });
-
-                    if (cambios.length === 0) {
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'Sin cambios',
-                            text: 'No hay modificaciones para guardar.'
-                        });
-                        return;
+                    if (selectedStock) {
+                        selectedStock.textContent = (option.dataset.stockActual || '0.00') + ' frascos';
                     }
-
-                    const faltanDatos = cambios.some(item => !item.lote || !item.caducidad);
-                    if (faltanDatos) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Datos incompletos',
-                            text: 'Cada registro modificado debe tener lote y caducidad.'
-                        });
-                        return;
-                    }
-
-                    bulkItems.value = JSON.stringify(cambios);
-
-                    Swal.fire({
-                        title: '¿Guardar cambios?',
-                        text: `Se actualizarán ${cambios.length} registro(s).`,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'Sí, guardar',
-                        cancelButtonText: 'Cancelar',
-                        customClass: {
-                            confirmButton: 'swal-button-confirm',
-                            cancelButton: 'swal-button-cancel'
-                        }
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.submit();
-                        }
-                    });
                 });
-
-                document.querySelectorAll('.row-inv').forEach(row => updateStockBadge(row));
-            })();
+            });
         </script>
     @endpush
+
+
 </x-admin-layout>

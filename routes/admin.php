@@ -10,7 +10,10 @@ use App\Http\Controllers\Admin\UserController;
 use App\Models\Solicitud;
 use Illuminate\Support\Facades\Route; //Importamos para generar nuestras rutas.
 use App\Exports\SolicitudesExport;
-use App\Http\Controllers\Admin\ClienteController;
+use App\Http\Controllers\Admin\InstitucionController;
+use App\Http\Controllers\Admin\InstitucionBillingController;
+use App\Http\Controllers\Admin\Nutricionales\NutriMedicineListController;
+use App\Http\Controllers\Admin\Nutricionales\NutritionStockController;
 use App\Http\Controllers\Admin\Oncologicos\DiluentController;
 use App\Http\Controllers\Admin\Oncologicos\DiluentPresentationController;
 use App\Http\Controllers\Admin\Oncologicos\InfusorController;
@@ -60,6 +63,11 @@ Route::resource('nutricionales/medicines', MedicineController::class)
     ->except(['destroy'])
     ->middleware(['can:medicamentos_nutricionales'])
     ->names('nutricionales.medicines');
+
+Route::resource('nutricionales/inputs', InputController::class)
+    ->except(['show'])
+    ->middleware(['can:medicamentos_nutricionales'])
+    ->names('nutricionales.inputs');
 
 Route::get('hospitals/{hospital}/reporte-mezclas-onco', [HospitalController::class, 'exportarMezclasOnco'])
     ->name('hospitals.exportarMezclasOnco')
@@ -116,6 +124,64 @@ Route::get('nutricionales/solicitudes/envio/{solicitud}', [SolicitudController::
 Route::get('nutricionales/solicitudes/etiqueta/{solicitud}', [SolicitudController::class, 'etiqueta'])->name('nutricionales.solicitudes.etiqueta')
     ->middleware(['can:nutricionales_solicitudes_index']);
 
+Route::resource('nutricionales/nutri-medicine-lists', NutriMedicineListController::class)
+    ->names('nutricionales.nutri-medicine-lists');
+
+Route::get('nutricionales/stocks/select-laboratory', [NutritionStockController::class, 'selectLaboratory'])
+    ->name('nutricionales.stocks.selectLaboratory');
+
+Route::get('nutricionales/stocks', [NutritionStockController::class, 'index'])
+    ->name('nutricionales.stocks.index');
+
+Route::get('nutricionales/stocks/exportar', [NutritionStockController::class, 'exportarExcel'])
+    ->name('nutricionales.stocks.exportar');
+
+Route::post('nutricionales/stocks/bulk-update', [NutritionStockController::class, 'bulkUpdate'])
+    ->name('nutricionales.stocks.bulkUpdate');
+
+Route::get('nutricionales/stocks/ingreso', [NutritionStockController::class, 'ingresoForm'])
+    ->name('nutricionales.stocks.ingreso');
+
+Route::post('nutricionales/stocks/ingreso', [NutritionStockController::class, 'registrarIngreso'])
+    ->name('nutricionales.stocks.registrarIngreso');
+
+Route::get('nutricionales/stocks/{stock}/edit', [NutritionStockController::class, 'edit'])
+    ->name('nutricionales.stocks.edit');
+
+Route::put('nutricionales/stocks/{stock}', [NutritionStockController::class, 'update'])
+    ->name('nutricionales.stocks.update');
+
+
+Route::get('nutricionales/stocks/{stock}/merma', [NutritionStockController::class, 'mermaForm'])
+    ->name('nutricionales.stocks.merma');
+
+Route::post('nutricionales/stocks/{stock}/merma', [NutritionStockController::class, 'registrarMerma'])
+    ->name('nutricionales.stocks.registrarMerma');
+
+Route::get('nutricionales/stocks/{stock}/movimientos', [NutritionStockController::class, 'movimientos'])
+    ->name('nutricionales.stocks.movimientos');
+
+Route::post('nutricionales/solicitudes/{solicitud}/preparar', [SolicitudController::class, 'preparar'])
+    ->name('nutricionales.solicitudes.preparar');
+
+Route::post('nutricionales/solicitudes/{solicitud}/revisar', [SolicitudController::class, 'revisar'])
+    ->name('nutricionales.solicitudes.revisar');
+
+Route::post('nutricionales/solicitudes/{solicitud}/entregar', [SolicitudController::class, 'entregar'])
+    ->name('nutricionales.solicitudes.entregar');
+
+
+Route::post(
+    'nutricionales/stocks/save-active-presentations',
+    [NutritionStockController::class, 'saveActivePresentations']
+)->name('nutricionales.stocks.saveActivePresentations');
+
+
+Route::post('nutricionales/solicitudes/{solicitud}/cancelar', [SolicitudController::class, 'cancelar'])
+    ->name('nutricionales.solicitudes.cancelar');
+
+
+
 // RUTAS PARA ONCOLOGICOS
 
 Route::get('oncologicos/solicitudes/exportar', [OncologicosSolicitudController::class, 'exportarExcel'])
@@ -139,6 +205,8 @@ Route::get('oncologicos/solicitudes/{id}/edit', [OncologicosSolicitudController:
 
 Route::put('oncologicos/solicitudes/{id}', [OncologicosSolicitudController::class, 'update'])->name('oncologicos.solicitudes.update')
     ->middleware(['can:oncologicos_solicitudes_update']);
+
+Route::post('/solicitudes/{solicitud}/cancelar', [OncologicosSolicitudController::class, 'cancelar'])->name('oncologicos.solicitudes.cancelar');
 
 //RUTAS PARA MEZCLAS ONCOLOGICAS
 
@@ -261,18 +329,76 @@ Route::prefix('oncologicos')->name('oncologicos.')->group(function () {
 
 //RUTAS PARA PRESENTACIONES
 
+Route::patch(
+    'oncologicos/medicines/catalog/{catalog}/presentations/{presentation}/habilitar',
+    [MedicinePresentationController::class, 'restore']
+)
+    ->name('oncologicos.medicines.catalog.presentations.restore')
+    ->middleware(['can:medicamentos_oncologicos']);
+
 Route::resource('oncologicos/medicines/catalog.presentations', MedicinePresentationController::class)
     ->middleware(['can:medicamentos_oncologicos'])
     ->names('oncologicos.medicines.catalog.presentations');
 
 
-Route::resource('/clientes', ClienteController::class)
-    ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
-    ->middleware(['can:clientes']); // ajusta permiso si quieres otro nombre
+Route::redirect('/clientes', '/admin/instituciones')
+    ->middleware(['role:Super Admin']);
 
-Route::get('clientes/{cliente}/exportar-mezclas-onco', [ClienteController::class, 'exportarMezclasOnco'])
-    ->name('clientes.exportarMezclasOnco')
-    ->middleware(['can:clientes']);
+Route::redirect('/clientes/create', '/admin/instituciones/create')
+    ->middleware(['role:Super Admin']);
+
+Route::resource('/instituciones', InstitucionController::class)
+    ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
+    ->parameters(['instituciones' => 'institucion'])
+    ->middleware(['role:Super Admin']);
+
+Route::get('instituciones-reportes', [InstitucionController::class, 'reportes'])
+    ->name('instituciones.reportes')
+    ->middleware(['role:Super Admin']);
+
+Route::get('instituciones-facturacion', [InstitucionBillingController::class, 'index'])
+    ->name('instituciones.billing.index')
+    ->middleware(['role:Super Admin']);
+
+Route::get('instituciones-facturacion/exportar', [InstitucionBillingController::class, 'exportarExcel'])
+    ->name('instituciones.billing.export')
+    ->middleware(['role:Super Admin']);
+
+Route::post('instituciones-facturacion', [InstitucionBillingController::class, 'store'])
+    ->name('instituciones.billing.store')
+    ->middleware(['role:Super Admin']);
+
+Route::get('instituciones/{institucion}/hospitals', [InstitucionController::class, 'hospitales'])
+    ->name('instituciones.hospitals')
+    ->middleware(['role:Super Admin']);
+
+Route::put('instituciones/{institucion}/hospitals', [InstitucionController::class, 'actualizarHospitales'])
+    ->name('instituciones.hospitals.update')
+    ->middleware(['role:Super Admin']);
+
+Route::get('clientes/{cliente}/edit', function ($cliente) {
+    return redirect()->route('admin.instituciones.edit', ['institucion' => $cliente]);
+})->middleware(['role:Super Admin']);
+
+Route::get('instituciones/{institucion}/exportar-mezclas-onco', [InstitucionController::class, 'exportarMezclasOnco'])
+    ->name('instituciones.exportarMezclasOnco')
+    ->middleware(['role:Super Admin']);
+
+Route::get('instituciones/{institucion}/exportar-general', [InstitucionController::class, 'exportarReporteGeneral'])
+    ->name('instituciones.exportarGeneral')
+    ->middleware(['role:Super Admin']);
+
+Route::get('instituciones/{institucion}/exportar-hospital', [InstitucionController::class, 'exportarReporteHospital'])
+    ->name('instituciones.exportarHospital')
+    ->middleware(['role:Super Admin']);
+
+Route::get('instituciones/{institucion}/exportar-hospital-detalle', [InstitucionController::class, 'exportarReporteHospitalDetalle'])
+    ->name('instituciones.exportarHospitalDetalle')
+    ->middleware(['role:Super Admin']);
+
+Route::get('clientes/{cliente}/exportar-mezclas-onco', function ($cliente) {
+    return redirect()->route('admin.instituciones.exportarMezclasOnco', ['institucion' => $cliente]);
+})->middleware(['role:Super Admin']);
 
 
 // ===============================
@@ -281,34 +407,27 @@ Route::get('clientes/{cliente}/exportar-mezclas-onco', [ClienteController::class
 
 Route::prefix('oncologicos/inventory')
     ->name('oncologicos.inventory.')
-    ->middleware(['can:medicamentos_oncologicos']) // puedes cambiar permiso si quieres uno más específico
+    ->middleware(['can:medicamentos_oncologicos'])
     ->group(function () {
 
-        // Pantalla principal (listado global catálogo + presentaciones + lote vigente)
         Route::get('/', [InventoryController::class, 'index'])
             ->name('index');
 
-        // Guardado masivo de lotes y caducidades
-        Route::post('/batches/bulk-update', [InventoryController::class, 'bulkUpdate'])
-            ->name('batches.bulkUpdate');
+        Route::get('/ingreso', [InventoryController::class, 'ingresoForm'])
+            ->name('ingresoForm');
 
-        // Crear nuevo lote para una presentación específica
-        Route::post('/presentations/{presentation}/batches', [InventoryController::class, 'storeBatch'])
-            ->name('presentations.batches.store');
+        Route::post('/ingreso', [InventoryController::class, 'registrarIngreso'])
+            ->name('registrarIngreso');
 
-        // Marcar un batch como vigente (is_current = 1)
-        Route::post('/batches/{batch}/set-current', [InventoryController::class, 'setCurrent'])
-            ->name('batches.setCurrent');
+        Route::get('/exportar', [InventoryController::class, 'exportarExcel'])
+            ->name('exportar');
 
-        // Seleccionar laboratorio antes de entrar al inventario
         Route::get('/select-laboratory', [InventoryController::class, 'selectLaboratory'])
             ->name('selectLaboratory');
 
         Route::post('/select-laboratory', [InventoryController::class, 'setLaboratory'])
             ->name('setLaboratory');
     });
-
-
 
 // ===============================
 // LABORATORIOS (SUCURSALES)

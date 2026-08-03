@@ -10,16 +10,17 @@ class MedicineList extends Model
 {
     protected $fillable = [
         'user_id',
-        'hospital_id',
         'name',
         'description',
         'active_brands',
-        'charge_by', // ⬅️ nuevo
+        'charge_by',
+        'show_label_lot_expiry',
     ];
 
     protected $casts = [
         'active_brands' => 'boolean',
-        'charge_by'     => 'string', // 'mg' | 'frasco'
+        'charge_by' => 'string',
+        'show_label_lot_expiry' => 'boolean',
     ];
 
     public function medicines()
@@ -42,11 +43,11 @@ class MedicineList extends Model
         return $this->hasMany(User::class, 'medicine_list_id');
     }
 
-    // Helpers opcionales
     public function chargeByMg(): bool
     {
         return $this->charge_by === 'mg';
     }
+
     public function chargeByFrasco(): bool
     {
         return $this->charge_by === 'frasco';
@@ -56,9 +57,9 @@ class MedicineList extends Model
     {
         return $this->belongsToMany(
             MedicinePresentation::class,
-            'medicine_list_presentation',          // tabla pivot
-            'medicine_list_id',                    // FK a esta tabla
-            'medicine_presentation_id'             // FK a presentations
+            'medicine_list_presentation',
+            'medicine_list_id',
+            'medicine_presentation_id'
         )->withPivot([
             'charge_by',
             'precio',
@@ -66,15 +67,13 @@ class MedicineList extends Model
         ])->withTimestamps();
     }
 
-    // App\Models\MedicineList.php
     public function distributor()
     {
         return $this->hasOne(Distributor::class, 'medicine_list_id', 'id');
     }
 
-
     public function hospital()
     {
-        return $this->belongsTo(Hospital::class, 'hospital_id');
+        return $this->hasOne(Hospital::class, 'onco_medicine_list_id', 'id');
     }
 }

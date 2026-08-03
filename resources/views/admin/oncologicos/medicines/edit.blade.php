@@ -30,23 +30,6 @@
                 <input type="text" name="name" value="{{ old('name', $lista->name) }}" required
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200">
             </div>
-            {{-- Hospital (requerido) --}}
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Hospital *</label>
-                <select name="hospital_id" required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-200">
-                    <option value="">Seleccione un hospital...</option>
-
-                    @foreach ($hospitals as $h)
-                        <option value="{{ $h->id }}" @selected((int) old('hospital_id', $lista->hospital_id) === (int) $h->id)>
-                            {{ $h->name }}
-                        </option>
-                    @endforeach
-                </select>
-                <p class="text-xs text-gray-500 mt-1">
-                    Si cambias el hospital, la lista quedará asignada al hospital seleccionado.
-                </p>
-            </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Descripción:</label>
@@ -89,6 +72,23 @@
                         <span id="charge_by_label">
                             {{ old('charge_by', $lista->charge_by ?? 'mg') === 'frasco' ? 'frasco' : 'mg' }}
                         </span>
+                    </span>
+                </label>
+            </div>
+
+            <div class="flex items-center">
+                <input type="hidden" name="show_label_lot_expiry" value="0">
+                <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="show_label_lot_expiry" value="1" class="sr-only peer"
+                        {{ old('show_label_lot_expiry', $lista->show_label_lot_expiry ?? false) ? 'checked' : '' }}>
+                    <div
+                        class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 relative
+                               after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                               after:bg-white after:border-gray-300 after:border after:rounded-full
+                               after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
+                    </div>
+                    <span class="ml-3 text-sm font-medium text-gray-700">
+                        Mostrar lote y caducidad en etiqueta
                     </span>
                 </label>
             </div>
@@ -165,6 +165,27 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Medicamentos:</label>
 
+                <div class="mb-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <div class="text-xs font-semibold uppercase text-gray-500">Filtrar por inicial</div>
+                            <div class="mt-2 flex flex-wrap gap-1 price-list-alpha-filter">
+                                <button type="button" data-alpha=""
+                                    class="alpha-filter-btn rounded bg-blue-600 px-2 py-1 text-xs font-semibold text-white">Todos</button>
+                                @foreach (range('A', 'Z') as $letter)
+                                    <button type="button" data-alpha="{{ $letter }}"
+                                        class="alpha-filter-btn rounded bg-white px-2 py-1 text-xs font-semibold text-gray-700 ring-1 ring-gray-200 hover:bg-gray-100">{{ $letter }}</button>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <button type="button" id="btn-sort-alpha"
+                            class="rounded bg-gray-800 px-3 py-2 text-xs font-semibold text-white hover:bg-gray-900">
+                            Ordenar A-Z
+                        </button>
+                    </div>
+                </div>
+
                 <table class="w-full text-sm text-left text-gray-600 border">
                     <thead class="text-xs uppercase bg-gray-100">
                         <tr>
@@ -230,12 +251,11 @@
 
                             <td class="px-4 py-2 align-top text-gray-800 text-sm" data-role="generico-label"></td>
 
-                            <td class="px-4 py-2 align-top">
-                                <select class="w-full border-gray-300 rounded text-sm select-presentacion"
+                            <td class="px-4 py-2 align-top min-w-[320px]">
+                                <select class="w-full min-w-[320px] border-gray-300 rounded text-sm select-presentacion"
                                     data-role="presentacion">
                                     <option value="">Seleccione presentación...</option>
                                 </select>
-
                                 <input type="hidden" data-role="input-catalog-id">
                             </td>
 
@@ -362,6 +382,78 @@
                     });
                 }
 
+                let selectedAlpha = '';
+
+                const normalizeText = (value) => String(value || '')
+                    .toLowerCase()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .trim();
+
+                function getGroupHeaderText(headerRow) {
+                    const select = headerRow.querySelector('[data-role="generico"]');
+                    return select?.selectedOptions?.[0]?.textContent || '';
+                }
+
+                function getGroupRows(headerRow) {
+                    const rows = [headerRow];
+                    let next = headerRow.nextElementSibling;
+
+                    while (next && next.classList.contains('fila-presentacion')) {
+                        rows.push(next);
+                        next = next.nextElementSibling;
+                    }
+
+                    return rows;
+                }
+
+                function applyAlphabetFilter() {
+                    const headers = Array.from(tbody.querySelectorAll('tr[data-group]:not(.fila-presentacion)'));
+
+                    headers.forEach((header) => {
+                        const firstLetter = normalizeText(getGroupHeaderText(header)).charAt(0).toUpperCase();
+                        const visible = selectedAlpha === '' || firstLetter === selectedAlpha;
+
+                        getGroupRows(header).forEach((row) => {
+                            row.classList.toggle('hidden', !visible);
+                        });
+                    });
+                }
+
+                function sortGroupsAlphabetically() {
+                    const groups = Array.from(tbody.querySelectorAll('tr[data-group]:not(.fila-presentacion)'))
+                        .map((header) => ({
+                            rows: getGroupRows(header),
+                            text: normalizeText(getGroupHeaderText(header)),
+                        }))
+                        .sort((a, b) => a.text.localeCompare(b.text, 'es'));
+
+                    groups.forEach((group) => {
+                        group.rows.forEach((row) => tbody.appendChild(row));
+                    });
+
+                    renumerarFilas();
+                    applyAlphabetFilter();
+                }
+
+                document.querySelectorAll('.alpha-filter-btn').forEach((button) => {
+                    button.addEventListener('click', function() {
+                        selectedAlpha = this.dataset.alpha || '';
+
+                        document.querySelectorAll('.alpha-filter-btn').forEach((btn) => {
+                            btn.classList.remove('bg-blue-600', 'text-white');
+                            btn.classList.add('bg-white', 'text-gray-700', 'ring-1', 'ring-gray-200');
+                        });
+
+                        this.classList.add('bg-blue-600', 'text-white');
+                        this.classList.remove('bg-white', 'text-gray-700', 'ring-1', 'ring-gray-200');
+
+                        applyAlphabetFilter();
+                    });
+                });
+
+                document.getElementById('btn-sort-alpha')?.addEventListener('click', sortGroupsAlphabetically);
+
                 // --- Genéricos usados (en otros grupos) ---
                 function getSelectedCatalogIds(exceptGroupId = null) {
                     const used = [];
@@ -430,12 +522,21 @@
                     return used;
                 }
 
+                function syncPresentationDetail(selectEl) {
+                    const selectedText = selectEl.value ?
+                        (selectEl.selectedOptions?.[0]?.textContent || '').trim() :
+                        '';
+
+                    selectEl.title = selectedText;
+                }
+
                 function cargarPresentacionesEnSelect(selectEl, catalogId, keepValue = null) {
                     const currentValue = keepValue ? String(keepValue) : (selectEl.value ? String(selectEl.value) : '');
                     selectEl.innerHTML = '<option value="">Seleccione presentación...</option>';
 
                     if (!catalogId) {
                         selectEl.disabled = true;
+                        syncPresentationDetail(selectEl);
                         return;
                     }
 
@@ -454,6 +555,7 @@
                     });
 
                     selectEl.disabled = false;
+                    syncPresentationDetail(selectEl);
                 }
 
                 function refreshAllPresentationsForCatalog(catalogId) {
@@ -525,6 +627,7 @@
                     });
 
                     refreshAllGenericSelects();
+                    applyAlphabetFilter();
                     return groupId;
                 }
 
@@ -575,7 +678,8 @@
                     if (presetPresentationId) selectPresent.value = presetPresentationId;
 
                     selectPresent.addEventListener('change', function() {
-                        refreshAllPresentationsForCatalog(catalogId);
+                        refreshAllPresentationsForCatalog(inputCatalog.value);
+                        syncPresentationDetail(this);
                     });
 
                     btnRemoveRow.addEventListener('click', function() {
@@ -583,9 +687,11 @@
                         row.remove();
                         renumerarFilas();
                         if (oldCatalogId) refreshAllPresentationsForCatalog(oldCatalogId);
+                        applyAlphabetFilter();
                     });
 
                     renumerarFilas();
+                    applyAlphabetFilter();
                 }
 
                 // ===== Inicialización: old() tiene prioridad =====
@@ -640,6 +746,8 @@
                         refreshAllGenericSelects();
                         refreshAllPresentationsForCatalog(catalogId);
                     });
+
+                    sortGroupsAlphabetically();
                 }
             });
         </script>

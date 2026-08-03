@@ -1,11 +1,11 @@
-<nav class="fixed top-0 z-50 w-full bg-azul-prodifem border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-    <div class="px-3 py-3 lg:px-5 lg:pl-3">
+<nav class="fixed top-0 z-50 w-full bg-azul-prodifem border-b border-blue-950/10 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+    <div class="px-3 py-2.5 lg:px-5 lg:pl-3">
         <div class="flex items-center justify-between">
             <div class="flex items-center justify-start rtl:justify-end">
-                <button data-drawer-target="logo-sidebar" data-drawer-toggle="logo-sidebar"
-                x-on:click="open = !open"
-                aria-controls="logo-sidebar" type="button"
-                    class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+                <button x-on:click="open = !open"
+                    x-bind:aria-expanded="open.toString()"
+                    aria-controls="logo-sidebar" type="button"
+                    class="inline-flex items-center p-2 text-sm text-white rounded-lg sm:hidden hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50">
                     <span class="sr-only">Open sidebar</span>
                     <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20"
                         xmlns="http://www.w3.org/2000/svg">
@@ -17,10 +17,10 @@
                 <a href="/" class="flex ms-2 md:me-24">
                     {{-- <img src="https://flowbite.com/docs/images/logo.svg" class="h-8 me-3" alt="CBTA" /> --}}
                     {{-- <span class="self-center text-xl font-semibold sm:text-2xl whitespace-now rap dark:text-white">CBTA</span> --}}
-                    <img class="w-20 md:w-28" src="{{ asset('img/Centro Biotecnologico de Terapias Avanzadas.png') }}" alt="">
+                    <img class="w-20 md:w-28 max-h-10 object-contain" src="{{ asset('img/Centro Biotecnologico de Terapias Avanzadas.png') }}" alt="">
                 </a>
             </div>
-            <div class="flex items-center">
+            <div class="flex min-w-0 items-center gap-2">
                 @livewire('notifications')
                 <!-- Settings Dropdown - SOLO APARECERA SI ESTAMOS LOGEADOS-->
                 <div class="ms-3 relative">
@@ -35,8 +35,8 @@
                             @else
                                 <span class="inline-flex rounded-md">
                                     <button type="button"
-                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
-                                        {{ Auth::user()->name }}
+                                    class="inline-flex max-w-[8.5rem] items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-600 bg-white hover:text-gray-800 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150 md:max-w-none">
+                                        <span class="truncate">{{ Auth::user()->name }}</span>
 
                                         <svg class="ms-2 -me-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

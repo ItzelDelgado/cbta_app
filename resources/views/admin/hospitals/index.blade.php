@@ -1,8 +1,5 @@
 <x-admin-layout>
 
-    {{-- @push('css')
-        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
-    @endpush --}}
     <div class="mt-2">
         <h1 class="text-2xl font-medium text-gray-800">Lista de Hospitales</h1>
     </div>
@@ -16,18 +13,11 @@
         <table id="hospitalsTable" class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
-                    <th scope="col" class="px-6 py-3">
-                        ID
-                    </th>
-                    <th scope="col" class="px-6 py-3">
-                        Nombre
-                    </th>
-                    <th scope="col" class="px-6 py-3">
-                        Dirección
-                    </th>
-                    <th scope="col" class="px-6 py-3">
-                        Estado
-                    </th>
+                    <th scope="col" class="px-6 py-3">ID</th>
+                    <th scope="col" class="px-6 py-3">Nombre</th>
+                    <th scope="col" class="px-6 py-3">Instituciones</th>
+                    <th scope="col" class="px-6 py-3">Direccion</th>
+                    <th scope="col" class="px-6 py-3">Estado</th>
                     <th scope="col" class="px-6 py-3"></th>
                 </tr>
             </thead>
@@ -40,6 +30,13 @@
                         </th>
                         <td class="px-6 py-4">
                             {{ $hospital->name }}
+                        </td>
+                        <td class="px-6 py-4">
+                            @forelse ($hospital->instituciones as $institucion)
+                                <div>{{ $institucion->nombre }}</div>
+                            @empty
+                                <span class="text-gray-400">Sin institucion</span>
+                            @endforelse
                         </td>
                         <td class="px-6 py-4">
                             {{ $hospital->adress }}
@@ -56,30 +53,29 @@
                             @endif
                         </td>
                         <td class="px-6 py-4">
-                            <div class="flex items-center">
-                                <a class="text-white bg-azul-prodifem hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-azul-prodifem dark:focus:ring-blue-800"
-                                    href="{{ route('admin.hospitals.edit', $hospital) }}"><i
-                                        class="fa-solid fa-pen pr-1"></i> Editar</a>
-                            </div>
+                            <x-row-actions>
+                                <a href="{{ route('admin.hospitals.edit', $hospital) }}">
+                                    <i class="fa-solid fa-pen pr-1"></i> Editar
+                                </a>
+                            </x-row-actions>
                         </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
-        {{-- <div class="mt-4">
-            {{ $hospitals->links() }}
-        </div> --}}
     </div>
 
     @push('js')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                let table = new DataTable('#hospitalsTable', {
-                    order: [[0, 'desc']], // Ordenar la primera columna (ID) de manera descendente
+                new DataTable('#hospitalsTable', {
+                    order: [
+                        [0, 'desc']
+                    ],
                     language: {
-                        lengthMenu: "Mostrar _MENU_ registros por página",
-                        zeroRecords: "Nada encontrado - lo siento",
-                        info: "Mostrando página _PAGE_ de _PAGES_",
+                        lengthMenu: "Mostrar _MENU_ registros por pagina",
+                        zeroRecords: "Nada encontrado",
+                        info: "Mostrando pagina _PAGE_ de _PAGES_",
                         infoEmpty: "No hay registros disponibles",
                         infoFiltered: "(filtrado de _MAX_ registros totales)",
                         search: "Buscar:",
@@ -88,8 +84,5 @@
             });
         </script>
     @endpush
-
-
-
 
 </x-admin-layout>

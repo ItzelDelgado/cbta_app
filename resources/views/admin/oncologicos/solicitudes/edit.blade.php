@@ -270,7 +270,7 @@
                     if (esCompatible || mId === valorActual || seleccionados.length === 0) {
                         const opt = document.createElement('option');
                         opt.value = m.id;
-                        opt.textContent = `${m.denominacion} (${m.presentacion})`;
+                        opt.textContent = m.presentacion ? `${m.denominacion} (${m.presentacion})` : m.denominacion;
                         if (mId === valorActual) opt.selected = true;
                         select.appendChild(opt);
                     }
@@ -282,7 +282,7 @@
         function agregarMezcla() {
             idInternoMezcla++;
             const mezclaDiv = document.createElement('div');
-            mezclaDiv.classList.add("border", "border-black", "p-4", "relative");
+            mezclaDiv.classList.add("oncology-mixture", "border", "border-slate-300", "p-4", "relative");
             mezclaDiv.dataset.idInterno = idInternoMezcla;
 
             mezclaDiv.innerHTML = `
@@ -292,7 +292,8 @@
                 <i class="fas fa-trash"></i> Eliminar Mezcla
             </button>
         </div>
-        <table class="table-auto w-full border text-center">
+        <div class="oncology-medicine-table-wrap">
+        <table class="oncology-medicine-table table-auto w-full border text-center">
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-4 py-2 text-xs">MEDICAMENTO</th>
@@ -303,11 +304,12 @@
             </thead>
             <tbody id="medicamentos_mezcla_${idInternoMezcla}"></tbody>
         </table>
+        </div>
 
-        <div class="grid grid-cols-2 gap-4 mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
                 <label>Volumen total de dilución (ml)*</label>
-                <input type="number" data-name="volumen_dilucion" class="w-full border rounded px-2 py-1 text-sm">
+                <input type="number" step="0.01" data-name="volumen_dilucion" class="w-full border rounded px-2 py-1 text-sm">
             </div>
             <div>
                 <label>Tiempo de infusión (min)*</label>
@@ -315,7 +317,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div class="flex items-center gap-2">
                 <input type="checkbox" data-name="set_infusion" class="w-4 h-4"
                        onchange="toggleSetInfusion(this, ${idInternoMezcla})">
@@ -353,7 +355,7 @@
         function agregarMezclaCargada(m) {
             idInternoMezcla++;
             const mezclaDiv = document.createElement('div');
-            mezclaDiv.classList.add("border", "border-black", "p-4", "relative", "mezcla-existente");
+            mezclaDiv.classList.add("oncology-mixture", "border", "border-slate-300", "p-4", "relative", "mezcla-existente");
             mezclaDiv.dataset.idInterno = idInternoMezcla;
 
             mezclaDiv.innerHTML = `
@@ -361,7 +363,8 @@
             <h3 class="text-lg font-semibold mezcla-titulo">Mezcla</h3>
         </div>
 
-        <table class="table-auto w-full border text-center">
+        <div class="oncology-medicine-table-wrap">
+        <table class="oncology-medicine-table table-auto w-full border text-center">
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-4 py-2 text-xs">MEDICAMENTO</th>
@@ -372,11 +375,12 @@
             </thead>
             <tbody id="medicamentos_mezcla_${idInternoMezcla}"></tbody>
         </table>
+        </div>
 
-        <div class="grid grid-cols-2 gap-4 mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
                 <label>Volumen total de dilución (ml)*</label>
-                <input type="number" data-name="volumen_dilucion" class="w-full border rounded px-2 py-1 text-sm" value="${m.volumen_dilucion ?? ''}" disabled>
+                <input type="number" step="0.01" data-name="volumen_dilucion" class="w-full border rounded px-2 py-1 text-sm" value="${m.volumen_dilucion ?? ''}" disabled>
             </div>
             <div>
                 <label>Tiempo de infusión (min)*</label>
@@ -384,7 +388,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div class="flex items-center gap-2">
                 <input type="checkbox" data-name="set_infusion" class="w-4 h-4"
                        ${m.set_infusion ? 'checked' : ''}
@@ -426,23 +430,23 @@
 
                 fila.innerHTML = `
             <td class="border">
-                <select class="medicamento-select w-full border px-2 py-1 text-sm" data-name="medicamento" disabled>
+                <select class="medicamento-select min-w-52 w-full border px-2 py-1 text-sm" data-name="medicamento" disabled>
                     ${medicamentos.map(x =>
-                        `<option value="${x.id}" ${x.id == med.medicamento_id ? 'selected' : ''}>${x.denominacion} (${x.presentacion})</option>`
+                        `<option value="${x.id}" ${x.id == med.medicamento_id ? 'selected' : ''}>${x.presentacion ? `${x.denominacion} (${x.presentacion})` : x.denominacion}</option>`
                     ).join('')}
                 </select>
             </td>
             <td class="border">
-                <input type="number" value="${med.dosis}" class="w-full border px-2 py-1 text-sm" disabled>
+                <input type="number" value="${med.dosis}" class="min-w-28 w-full border px-2 py-1 text-sm" disabled>
             </td>
             <td class="border">
-                <select data-name="diluyente" class="w-full border rounded px-2 py-1 text-sm" disabled>
+                <select data-name="diluyente" class="min-w-44 w-full border rounded px-2 py-1 text-sm" disabled>
                     <option value="">Diluyentes</option>
                     ${diluyenteOptions}
                 </select>
             </td>
             <td class="border">
-                <select data-name="via_administracion" class="w-full border rounded px-2 py-1 text-sm" disabled>
+                <select data-name="via_administracion" class="min-w-44 w-full border rounded px-2 py-1 text-sm" disabled>
                     <option value="">Vía de admin</option>
                     ${viaOptions}
                 </select>
@@ -507,22 +511,22 @@
 
                 fila.innerHTML = `
             <td class="border">
-                <select class="medicamento-select w-full border px-2 py-1 text-sm" data-name="medicamento"
+                <select class="medicamento-select min-w-52 w-full border px-2 py-1 text-sm" data-name="medicamento"
                         onchange="actualizarDiluentesYVias(this, ${idMezcla}, ${contadorFilasGlobal})">
                     <option value="">Seleccione</option>
-                    ${medicamentos.map(med => `<option value="${med.id}">${med.denominacion} (${med.presentacion})</option>`).join('')}
+                    ${medicamentos.map(med => `<option value="${med.id}">${med.presentacion ? `${med.denominacion} (${med.presentacion})` : med.denominacion}</option>`).join('')}
                 </select>
             </td>
             <td class="border">
-                <input type="number" data-name="dosis" class="w-full border px-2 py-1 text-sm">
+                <input type="number" data-name="dosis" class="min-w-28 w-full border px-2 py-1 text-sm">
             </td>
             <td class="border">
-                <select data-name="diluyente" class="w-full border rounded px-2 py-1 text-sm">
+                <select data-name="diluyente" class="min-w-44 w-full border rounded px-2 py-1 text-sm">
                     <option value="">Diluyentes</option>
                 </select>
             </td>
             <td class="border">
-                <select data-name="via_administracion" class="w-full border rounded px-2 py-1 text-sm">
+                <select data-name="via_administracion" class="min-w-44 w-full border rounded px-2 py-1 text-sm">
                     <option value="">Vía de admin</option>
                 </select>
             </td>

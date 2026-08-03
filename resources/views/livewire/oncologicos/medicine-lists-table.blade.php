@@ -114,9 +114,10 @@
                             {{ $lista->hospital->name ?? '—' }}
                         </td>
 
-                        <td class="px-6 py-2 text-center space-x-2">
+                        <td class="px-6 py-2 text-center">
+                            <x-row-actions>
                             <a href="{{ route('admin.oncologicos.medicines.edit', $lista->id) }}"
-                                class="inline-block px-4 py-1 bg-yellow-400 text-white text-sm rounded hover:bg-yellow-500 transition">
+                                class="">
                                 Editar
                             </a>
 
@@ -126,16 +127,17 @@
                                 @csrf
                                 @method('DELETE')
                                 <button type="button"
-                                    class="btn-eliminar px-4 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition"
+                                    class="btn-eliminar action-danger"
                                     data-id="{{ $lista->id }}">
                                     Eliminar
                                 </button>
                             </form>
 
                             <a href="{{ route('admin.oncologicos.medicines.exportar', $lista) }}" target="_blank"
-                                class="px-4 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition">
+                                class="">
                                 <i class="fa-solid fa-file-excel pr-1"></i> Exportar
                             </a>
+                            </x-row-actions>
                         </td>
                     </tr>
                 @empty

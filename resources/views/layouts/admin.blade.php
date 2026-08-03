@@ -29,18 +29,18 @@
 
 {{-- con x-data le digo que voy a trabajar con los alpine --}}
 
-<body class="font-sans antialiased sm:overflow-auto" :class="{ 'overflow-hidden': open }" x-data="{ open: false }">
+<body class="font-sans antialiased bg-slate-100 text-slate-900 sm:overflow-auto" :class="{ 'overflow-hidden': open }" x-data="{ open: false }">
 
 
     @include('layouts.includes.admin.nav')
 
     @include('layouts.includes.admin.aside')
 
-    <div class="p-4 sm:ml-44">
-        <div class="p-4 border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700 mt-14">
+    <main class="admin-page sm:ml-44">
+        <div class="admin-content">
             {{ $slot }}
         </div>
-    </div>
+    </main>
     <div x-show="open" x-on:click="open=false"
         style="display: none"class="bg-gray-900/50 dark:bg-gray-900/80 fixed inset-0 z-30 sm:hidden"></div>
     @stack('modals')

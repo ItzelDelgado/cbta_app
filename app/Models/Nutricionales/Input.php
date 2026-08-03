@@ -15,17 +15,23 @@ class Input extends Model
         'is_active',
         'tipo_input',
         'orden_enum',
+        'category_id',
+        'mult',
+        'div',
     ];
 
-    //Relacion uno a muchos, por que una category puede ser asignado a varias medicinas
-    public function medicine()
+    public function nutritionMedicineCatalog()
     {
-        return $this->hasOne(Medicine::class);
+        return $this->hasOne(NutritionMedicineCatalog::class, 'input_id');
     }
 
-    //Relacion uno a uno
-    public function solicitudInput()
+    public function solicitudInputs()
     {
-        return $this->hasMany(SolicitudInput::class);
+        return $this->hasMany(SolicitudInput::class, 'input_id');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
     }
 }

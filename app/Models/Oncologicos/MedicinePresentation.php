@@ -17,6 +17,7 @@ class MedicinePresentation extends Model
         'contenido_valor',
         'contenido_unidad',
         'marca',
+        'fabricante',
         'cantidad_medicamento',
         'volumen_diluyente',
         'is_available',
@@ -25,6 +26,7 @@ class MedicinePresentation extends Model
 
         // ✅ NUEVOS
         'legend',
+        'forma_reconstitucion',
         'temp_min_c',
         'temp_max_c',
         'stability_hours',

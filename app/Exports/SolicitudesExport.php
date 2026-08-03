@@ -28,31 +28,26 @@ class SolicitudesExport implements FromQuery, WithMapping, WithHeadings, WithChu
             'user.hospital',
             'solicitud_patient',
             'solicitud_detail',
-            'solicitud_aprobada',
-            'input'
+            'input',
         ])->latest();
 
         if (!in_array($this->user->roles[0]->name, ['Admin', 'Super Admin'])) {
             $query->where('user_id', $this->user->id);
         }
 
-        //   dd($query->take(10)->get());
-
         return $query;
     }
 
     public function map($s): array
     {
-        // Mapea los valores de input por input_id
         $inputs = $s->input->keyBy('input_id');
 
-        // Función para obtener el valor_ml con sufijo ' mL'
         $getMl = fn($id) => isset($inputs[$id]) ? $inputs[$id]->valor_ml . ' mL' : '';
 
         return [
             $s->id,
-            $s->solicitud_aprobada->id ?? '',
-            $s->solicitud_aprobada->lote ?? '',
+            $s->remision ?? '',
+            $s->lote ?? '',
             $s->user->hospital->name ?? '',
             trim(($s->solicitud_patient->nombre_paciente ?? '') . ' ' . ($s->solicitud_patient->apellidos_paciente ?? '')),
             $s->solicitud_patient->servicio ?? '',
@@ -95,7 +90,7 @@ class SolicitudesExport implements FromQuery, WithMapping, WithHeadings, WithChu
             'Gluconato de Calcio (0.465 mEq/mL)', 'Ácidos Grasos Omega 3 10%',
             'Albúmina 25% (0.25 g/mL)', 'Albúmina 20% (0.20 g/mL)', 'Glutamina 20%',
             'Cromo (4 mcg/mL)', 'Heparina (1000 UI/mL)',
-            'L-Carnitina','Insulina', 'Manganeso (100 mcg/mL)', 'MVI pediátrico',
+            'L-Carnitina', 'Insulina', 'Manganeso (100 mcg/mL)', 'MVI pediátrico',
             'Oligoelementos Nulanza', 'Oligoelementos Tracefusin',
             'Ácido Folínico (12.5 mg/mL)', 'Selenio (40 mcg/mL)',
             'Vitamina C (100 mg/mL)', 'Vitamina K (10 mg/mL)', 'Zinc (1 mg/mL)',

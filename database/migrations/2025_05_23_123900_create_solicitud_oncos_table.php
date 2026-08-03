@@ -30,7 +30,7 @@ return new class extends Migration
             $table->text('observaciones')->nullable();
             $table->string('nombre_medico');
             $table->string('cedula_medico', 50);
-            $table->enum('estado', ['pendiente', 'enproceso', 'finalizada'])->nullable();
+            $table->enum('estado', ['pendiente', 'enproceso', 'finalizada', 'cancelada','no-aprobada'])->nullable();
             $table->timestamps();
             $table->string('remision', 50)->nullable();
         });
